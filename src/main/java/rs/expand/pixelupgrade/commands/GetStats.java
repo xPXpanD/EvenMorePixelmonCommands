@@ -25,11 +25,11 @@ public class GetStats implements CommandExecutor
 		Integer slot = args.<Integer>getOne("slot").get();
 		Boolean targetAcquired = false;
 		Player player = (Player) src, target;
-		if (!args.<Integer>getOne("target").isPresent())
-			target = (Player) src;
+		if (!args.getOne("target").isPresent())
+            target = (Player) src;
 		else
 		{
-			target = (Player) args.getOne("target").get();
+			target = args.<Player>getOne("target").get();
 			targetAcquired = true;
 		}
 
@@ -37,25 +37,23 @@ public class GetStats implements CommandExecutor
         	System.out.println("\u00A74Error: \u00A7cYou can't run this command from the console."); */
         if (slot > 6 || slot < 1)
         	player.sendMessage(Text.of("\u00A74Error: \u00A7cSlot number must be between 1 and 6."));
-		else if (!player.isOnline())
-			player.sendMessage(Text.of("\u00A74Error: \u00A7cYou're not online. Are you trying this from the console?"));
-        else if (!target.isOnline())
-        	player.sendMessage(Text.of("\u00A74Error: \u00A7cTarget player does not exist or is offline."));
         else
-	    {
-        	Optional<?> storage;
-        	if (!targetAcquired)
-        		storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) player));
+        {
+            Optional<?> storage;
+            if (!targetAcquired)
+                storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) player));
         	else
         		storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) target));
 
         	PlayerStorage storageCompleted = (PlayerStorage)storage.get();
             NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
 
-            if (nbt == null && !targetAcquired)
+            if (!targetAcquired && nbt == null)
             	player.sendMessage(Text.of("\u00A74Error: \u00A7cYou don't have anything in that slot!"));
-			else if (nbt == null && targetAcquired)
-				player.sendMessage(Text.of("\u00A74Error: \u00A7cTarget player does not have anything in that slot!"));
+			else if (targetAcquired && nbt == null)
+				player.sendMessage(Text.of("\u00A74Error: \u00A7cTarget doesn't have anything in that slot!"));
+			else if (nbt.getBoolean("isEgg"))
+                player.sendMessage(Text.of("\u00A74Error: \u00A7cSorry, but even I cannot see what's inside an egg."));
             else
             {
                 EnumPokemon pokemonName = EnumPokemon.getFromName(nbt.getString("Name")).get();
@@ -177,9 +175,9 @@ public class GetStats implements CommandExecutor
                 else
                 {
 	                if (nbt.getString("Nickname").equals(""))
-	                	player.sendMessage(Text.of("\u00A76Stats of \u00A7c" + target + "'s " + String.valueOf(pokemonName)));
+	                	player.sendMessage(Text.of("\u00A76Stats of \u00A7c" + target.getName() + "'s " + String.valueOf(pokemonName)));
 	                else
-	                	player.sendMessage(Text.of("\u00A76Stats of \u00A7c" + target + "'s " + String.valueOf(pokemonName) + "\u00A76, also known as \u00A7c" + nbt.getString("Nickname")));
+	                	player.sendMessage(Text.of("\u00A76Stats of \u00A7c" + target.getName() + "'s " + String.valueOf(pokemonName) + "\u00A76, also known as \u00A7c" + nbt.getString("Nickname")));
 
                     player.sendMessage(Text.of("\u00A7eTotal IVs: \u00A7a" + totalIVs + "\u00A7e/\u00A7a186\u00A7e (\u00A7a" + percentIVs + "%\u00A7e)"));
 	                player.sendMessage(Text.of(ivs1 + "" + ivs2));

@@ -16,6 +16,8 @@
  * 0.5.3: Added /upgrade resetevs. Finally figured out how to add optional parameters.
  * 0.5.4: Capped /upgrade force a bunch more, added a bypass flag. Made the main /upgrade info command.
  * 0.5.5: Sanity checking, part 3. Re-added other person support on /getstats, removed a ton of useless checks, migrated to IntelliJ IDEA.
+ * 0.5.6: Flipped parameters so that people can now run either /getstats SLOT or /getstats PLAYER SLOT, instead of the awkward /getstats SLOT PLAYER. Cleanup.
+ * 0.6: Started work on /upgrade ivs.
  *
  * Enjoy the plugin!
  */
@@ -52,10 +54,11 @@ import rs.expand.pixelupgrade.commands.Upgrade;
 //Cool ideas: Pixelpay. New starter box.
 //TODO: Maybe make a /showstats or /printstats.
 //TODO: Remake command helper so it follows the /gts help format.
+//TODO: Make an /eggsee with economy tie-in?
 
 @Plugin(id = "pixelupgrade",
         name = "PixelUpgrade",
-        version = "0.5.5",
+        version = "0.6",
         dependencies = @Dependency(id = "pixelmon"),
         authors = "XpanD", // Written by XpanD, with a bunch of help from Xenoyia and a breakthrough snippet from NickImpact!
         description = "Change just about everything Pok\u00E9mon-related, and pay people with Pok\u00E9dollars!")
@@ -84,8 +87,8 @@ public class PixelUpgrade
             .executor(new GetStats())
 
             .arguments(
-                    GenericArguments.onlyOne(GenericArguments.integer(Text.of("slot"))),
-                    GenericArguments.optional(GenericArguments.string(Text.of("target"))))
+                    GenericArguments.optionalWeak(GenericArguments.player(Text.of("target"))),
+                    GenericArguments.onlyOne(GenericArguments.integer(Text.of("slot"))))
 
             .build();
 

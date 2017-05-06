@@ -28,7 +28,7 @@ public class Upgrade implements CommandExecutor
         }
         if (player.hasPermission("pixelupgrade.commands.getstats"))
         {
-            player.sendMessage(Text.of("\u00A76/getstats (player) <slot>\u00A7f -- \u00A7eLists all of a Pok\u00E9mon's stats."));
+            player.sendMessage(Text.of("\u00A76/getstats (player) <slot>\u00A7f -- \u00A7eLists many of a Pok\u00E9mon's stats."));
             hasNoPermission = false;
         }
 		if (player.hasPermission("pixelupgrade.commands.ivs"))
@@ -43,13 +43,13 @@ public class Upgrade implements CommandExecutor
         }
 		if (player.hasPermission("pixelupgrade.commands.admin.force"))
         {
-            player.sendMessage(Text.of("\u00A76/upgrade force <slot> <type> <value> (-f)\u00A7f -- \u00A7eSee command."));
+            player.sendMessage(Text.of("\u00A76/upgrade force <slot> <type> <value> (-f)\u00A7f -- \u00A7eChange anything!"));
             hasNoPermission = false;
         }
 
         if (hasNoPermission)
         {
-            player.sendMessage(Text.of("\u00A7dYou have not been given any of this plugin's permissions. Sorry!"));
+            player.sendMessage(Text.of("\u00A7cYou do not have any of this plugin's permissions. Sorry!"));
         }
 		player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
 
