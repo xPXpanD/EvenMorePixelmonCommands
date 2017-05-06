@@ -36,60 +36,37 @@ public class ResetEVs implements CommandExecutor
 				commandConfirmed = true;		
 		}
 
-		if (!(src instanceof Player))
-	    	System.out.println("\u00A74Error: \u00A7cYou must run this command as a player.");
-	    else if (slot > 6 || slot < 1)
+	    if (slot > 6 || slot < 1)
 	    	player.sendMessage(Text.of("\u00A74Error: \u00A7cSlot number must be between 1 and 6."));
 	    else
 	    {
 	    	Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) player));
-			String username = player.getName();
+			PlayerStorage storageCompleted = (PlayerStorage)storage.get();
+			NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
 
-	        if (!storage.isPresent())
-	        {
-	        	player.sendMessage(Text.of("\u00A74Error: \u00A7cYou don't seem to have any Pok\u00E9mon."));
-	            System.out.println("\u00A72" + username + "\u00A7a failed the storage check, has no Pok\u00E9mon? May be bad.");
-	        }
-	        else
-	        {
-	        	PlayerStorage storageCompleted = (PlayerStorage)storage.get();
-                NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
-                
-	            if (nbt == null)
-	            	player.sendMessage(Text.of("\u00A74Error: \u00A7cYou don't have anything in that slot!"));
-	            else if (commandConfirmed == true)
-	            {
-	            	try
-	            	{
-		                EnumPokemon pokemonName = (EnumPokemon)EnumPokemon.getFromName((String)nbt.getString("Name")).get();
+			if (nbt == null)
+				player.sendMessage(Text.of("\u00A74Error: \u00A7cYou don't have anything in that slot!"));
+			else if (commandConfirmed)
+			{
+				EnumPokemon pokemonName = EnumPokemon.getFromName(nbt.getString("Name")).get();
 
-                		nbt.setInteger(NbtKeys.EV_HP, 0);
-                		nbt.setInteger(NbtKeys.EV_ATTACK, 0);
-                		nbt.setInteger(NbtKeys.EV_DEFENCE, 0);
-                		nbt.setInteger(NbtKeys.EV_SPECIAL_ATTACK, 0);
-                		nbt.setInteger(NbtKeys.EV_SPECIAL_DEFENCE, 0);
-                		nbt.setInteger(NbtKeys.EV_SPEED, 0);
-	                		
-	                	if (nbt.getString("Nickname").equals(""))
-	                		player.sendMessage(Text.of("\u00A76" + String.valueOf(pokemonName) + "\u00A7e had its EVs wiped."));
-	                	else
-	                		player.sendMessage(Text.of("\u00A7eYour \u00A76" + nbt.getString("Nickname") + "\u00A7e had its EVs wiped."));
-	            	}
+				nbt.setInteger(NbtKeys.EV_HP, 0);
+				nbt.setInteger(NbtKeys.EV_ATTACK, 0);
+				nbt.setInteger(NbtKeys.EV_DEFENCE, 0);
+				nbt.setInteger(NbtKeys.EV_SPECIAL_ATTACK, 0);
+				nbt.setInteger(NbtKeys.EV_SPECIAL_DEFENCE, 0);
+				nbt.setInteger(NbtKeys.EV_SPEED, 0);
 
-		            // Press F to pay respects.
-		            catch (Exception F)
-		            {
-	                	player.sendMessage(Text.of("\u00A74Error: \u00A7cUnknown error! Please tell staff what you were doing!"));
-	                    System.out.println("\u00A72" + username + "\u00A7a hit an unknown error executing ResetEVs. Stack trace follows.");
-	                    F.printStackTrace();
-		            }
-	            }
-	            else
-	            {
-	            	player.sendMessage(Text.of("\u00A75Warning: \u00A7dYou are about to reset this Pok\u00E9mon's EVs to zero!"));
-	            	player.sendMessage(Text.of("\u00A7bIf you want to continue, type: \u00A7a/upgrade resetevs " + slot + " confirm"));
-	            }
-	        }
+				if (nbt.getString("Nickname").equals(""))
+					player.sendMessage(Text.of("\u00A76" + String.valueOf(pokemonName) + "\u00A7e had its EVs wiped."));
+				else
+					player.sendMessage(Text.of("\u00A7eYour \u00A76" + nbt.getString("Nickname") + "\u00A7e had its EVs wiped."));
+			}
+			else
+			{
+				player.sendMessage(Text.of("\u00A75Warning: \u00A7dYou are about to reset this Pok\u00E9mon's EVs to zero!"));
+				player.sendMessage(Text.of("\u00A7bIf you want to continue, type: \u00A7a/upgrade resetevs " + slot + " confirm"));
+			}
 	    }
 	    return CommandResult.success();
 	}

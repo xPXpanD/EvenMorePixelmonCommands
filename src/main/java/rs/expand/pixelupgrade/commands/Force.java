@@ -29,7 +29,7 @@ public class Force implements CommandExecutor
 			player.sendMessage(Text.of("\u00A74Usage: \u00A7c/upgrade force <slot> <type> <value> (-f)"));
 			player.sendMessage(Text.of(""));
 			player.sendMessage(Text.of("\u00A75Please note: \u00A7dPassing the -f flag will disable safety checks."));
-			player.sendMessage(Text.of("\u00A7dThis may lead to crashes or other issues. Handle with care!"));
+			player.sendMessage(Text.of("\u00A7dThis may lead to crashes or even corruption. Handle with care!"));
 			player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
 		}
 		else
@@ -57,31 +57,24 @@ public class Force implements CommandExecutor
 				player.sendMessage(Text.of("\u00A74Usage: \u00A7c/upgrade force <slot> <type> <value> (-f)"));
 				player.sendMessage(Text.of(""));
 				player.sendMessage(Text.of("\u00A75Please note: \u00A7dPassing the -f flag will disable safety checks."));
-				player.sendMessage(Text.of("\u00A7dThis may lead to crashes or other issues. Handle with care!"));
+				player.sendMessage(Text.of("\u00A7dThis may lead to crashes or even corruption. Handle with care!"));
 				player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
 			}
 			
-			if (canContinue == true)
+			if (canContinue)
 			{
 				Boolean forceValue = false;
 				if (args.hasAny("f"))
 					forceValue = true;
-		
-			    if (!(src instanceof Player))
-			    	System.out.println("\u00A74Error: \u00A7cYou can't run this command from the console.");
-			    else if (slot > 6 || slot < 1)
+
+			    if (slot > 6 || slot < 1)
 			    	player.sendMessage(Text.of("\u00A74Error: \u00A7cSlot number must be between 1 and 6."));
 			    else
 			    {
 		        	Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) player));
 		        	String username = player.getName();
-		
-			        if (!storage.isPresent())
-			        {
-			        	player.sendMessage(Text.of("\u00A74Error: \u00A7cYou don't seem to have any Pok\u00E9mon."));
-			            System.out.println("\u00A72" + username + "\u00A7a failed the storage check, has no Pok\u00E9mon? May be bad.");
-			        }
-			        else if (forceValue != true && valueIsInt == true)
+
+		        	if (!forceValue && valueIsInt)
 			        {
 		            	PlayerStorage storageCompleted = (PlayerStorage)storage.get();
 		                NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
@@ -128,22 +121,10 @@ public class Force implements CommandExecutor
 					    		player.sendMessage(Text.of("\u00A74Error: \u00A7cNature value out of bounds. Valid range: 0 ~ 24"));
 					    	else if (Arrays.asList(validIVs).contains(fixedStat) || Arrays.asList(validEVs).contains(fixedStat) || Arrays.asList(validGrowth).contains(fixedStat) || Arrays.asList(validNature).contains(fixedStat))
 					    	{				    	
-						    	if (unknownParameter == false)
+						    	if (!unknownParameter)
 						    	{
-						            try
-						            {              
 						                nbt.setInteger(fixedStat, intValue);			                
 						                player.sendMessage(Text.of("\u00A7aValue changed! Not showing? Reconnect to update your client."));
-						            }
-					
-					                // Press F to pay respects.
-					                catch (Exception F)
-					                {
-					                	player.sendMessage(Text.of("\u00A74Error: \u00A7cUnknown error! Please tell staff what you were doing!"));
-					                    System.out.println("\u00A72" + username + "\u00A7a hit an unknown error executing Force (limited). Stack trace follows.");
-					                    F.printStackTrace();
-					                    System.out.println("\u00A7aType parameter passed: \u00A72" + fixedStat + "\u00A7a (before correction: \u00A72" + stat + "\u00A7a)");
-					                }
 						    	}
 						    	else
 						    	{
@@ -165,14 +146,14 @@ public class Force implements CommandExecutor
 					    	}
 			            }
 			        }
-			        else if (forceValue != true && valueIsInt != true)
+			        else if (!forceValue && !valueIsInt)
 			        {
 			        	player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
 						player.sendMessage(Text.of("\u00A74Error: \u00A7c<value> should be a number, not text."));
 						player.sendMessage(Text.of("\u00A74Usage: \u00A7c/upgrade force <slot> <type> <value> (-f)"));
 						player.sendMessage(Text.of(""));
 						player.sendMessage(Text.of("\u00A75Please note: \u00A7dPassing the -f flag will disable safety checks."));
-						player.sendMessage(Text.of("\u00A7dThis may lead to crashes or other issues. Handle with care!"));
+						player.sendMessage(Text.of("\u00A7dThis may lead to crashes or even corruption. Handle with care!"));
 						player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
 			        }
 			        else
@@ -182,44 +163,44 @@ public class Force implements CommandExecutor
 		                
 			            if (nbt == null)
 			            	player.sendMessage(Text.of("\u00A74Error: \u00A7cYou don't have anything in that slot!"));
-			            else try
+			            else
 			            {
 					    	String fixedStat = stat;
+					    	Boolean statWasFixed = false;
 					    	switch (fixedStat.toUpperCase())
 					    	{
-					    		case "IVHP": fixedStat = "IVHP"; break;
-					    		case "IVATTACK" : fixedStat = "IVAttack"; break;
-					    		case "IVDEFENCE" : fixedStat = "IVDefence"; break;
-					    		case "IVSPATT" : fixedStat = "IVSpAtt"; break;
-					    		case "IVSPDEF" : fixedStat = "IVSpDef"; break;
-					    		case "IVSPEED" : fixedStat = "IVSpeed"; break;
-					    		case "EVHP" : fixedStat = "EVHP"; break;
-					    		case "EVATTACK" : fixedStat = "EVAttack"; break;
-					    		case "EVDEFENCE" : fixedStat = "EVDefence"; break;
-					    		case "EVSPECIALATTACK" : fixedStat = "EVSpecialAttack"; break;
-					    		case "EVSPECIALDEFENCE" : fixedStat = "EVSpecialDefence"; break;
-					    		case "EVSPEED" : fixedStat = "EVSpeed"; break;
-					    		case "GROWTH" : fixedStat = "Growth"; break;
-					    		case "NATURE" : fixedStat = "Nature"; break;
+					    		case "IVHP": fixedStat = "IVHP"; statWasFixed = true; break;
+					    		case "IVATTACK" : fixedStat = "IVAttack"; statWasFixed = true; break;
+					    		case "IVDEFENCE" : fixedStat = "IVDefence"; statWasFixed = true; break;
+					    		case "IVSPATT" : fixedStat = "IVSpAtt"; statWasFixed = true; break;
+					    		case "IVSPDEF" : fixedStat = "IVSpDef"; statWasFixed = true; break;
+					    		case "IVSPEED" : fixedStat = "IVSpeed"; statWasFixed = true; break;
+					    		case "EVHP" : fixedStat = "EVHP"; statWasFixed = true; break;
+					    		case "EVATTACK" : fixedStat = "EVAttack"; statWasFixed = true; break;
+					    		case "EVDEFENCE" : fixedStat = "EVDefence"; statWasFixed = true; break;
+					    		case "EVSPECIALATTACK" : fixedStat = "EVSpecialAttack"; statWasFixed = true; break;
+					    		case "EVSPECIALDEFENCE" : fixedStat = "EVSpecialDefence"; statWasFixed = true; break;
+					    		case "EVSPEED" : fixedStat = "EVSpeed"; statWasFixed = true; break;
+					    		case "GROWTH" : fixedStat = "Growth"; statWasFixed = true; break;
+					    		case "NATURE" : fixedStat = "Nature"; statWasFixed = true; break;
 					    	}
 					    	
 			            	player.sendMessage(Text.of("\u00A7eForcing value..."));
-			            	
-			            	if (valueIsInt == true)
+
+					    	if (statWasFixed)
+                            {
+                                player.sendMessage(Text.of("\u00A75Note: \u00AdAn invalid but known stat was found, and was auto-corrected."));
+                                player.sendMessage(Text.of("\u00A75Provided stat: \u00Ad" + stat + "\u00A75, corrected to: \u00A7d" + fixedStat));
+                                stat = fixedStat;
+                            }
+
+			            	if (valueIsInt)
 			            		nbt.setInteger(stat, intValue);
 			            	else
 			            		nbt.setString(stat, value);
 			            	
-			            	player.sendMessage(Text.of("\u00A7aValue succesfully set! Not showing? Check caps and spelling."));
+			            	player.sendMessage(Text.of("\u00A7aValue set... Not showing? Reconnect to update your client."));
 			            }
-			            
-		                // Press F to pay respects.
-		                catch (Exception F)
-		                {
-		                	player.sendMessage(Text.of("\u00A74Error: \u00A7cUnknown error! Please tell staff what you were doing!"));
-		                    System.out.println("\u00A72" + username + "\u00A7a hit an unknown error executing Force (-f flag). Stack trace follows.");
-		                    F.printStackTrace();
-		                }
 			        }
 			    }
 			}

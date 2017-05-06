@@ -37,6 +37,8 @@ public class GetStats implements CommandExecutor
         	System.out.println("\u00A74Error: \u00A7cYou can't run this command from the console."); */
         if (slot > 6 || slot < 1)
         	player.sendMessage(Text.of("\u00A74Error: \u00A7cSlot number must be between 1 and 6."));
+		else if (!player.isOnline())
+			player.sendMessage(Text.of("\u00A74Error: \u00A7cYou're not online. Are you trying this from the console?"));
         else if (!target.isOnline())
         	player.sendMessage(Text.of("\u00A74Error: \u00A7cTarget player does not exist or is offline."));
         else
@@ -52,6 +54,8 @@ public class GetStats implements CommandExecutor
 
             if (nbt == null && !targetAcquired)
             	player.sendMessage(Text.of("\u00A74Error: \u00A7cYou don't have anything in that slot!"));
+			else if (nbt == null && targetAcquired)
+				player.sendMessage(Text.of("\u00A74Error: \u00A7cTarget player does not have anything in that slot!"));
             else
             {
                 EnumPokemon pokemonName = EnumPokemon.getFromName(nbt.getString("Name")).get();

@@ -15,7 +15,7 @@
  * 0.5.2: Rewrote /upgrade force, too. Added sane caps.
  * 0.5.3: Added /upgrade resetevs. Finally figured out how to add optional parameters.
  * 0.5.4: Capped /upgrade force a bunch more, added a bypass flag. Made the main /upgrade info command.
- * 0.5.5: Sanity checking, part 3. Re-added other person support on /getstats, made a /printstats.
+ * 0.5.5: Sanity checking, part 3. Re-added other person support on /getstats, removed a ton of useless checks, migrated to IntelliJ IDEA.
  *
  * Enjoy the plugin!
  */
@@ -40,15 +40,13 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.text.Text;
 
 import rs.expand.pixelupgrade.commands.GetStats;
-import rs.expand.pixelupgrade.commands.ShowStats;
+// import rs.expand.pixelupgrade.commands.ShowStats;
 import rs.expand.pixelupgrade.commands.FixEVs;
 import rs.expand.pixelupgrade.commands.Force;
 import rs.expand.pixelupgrade.commands.SetIVs;
 import rs.expand.pixelupgrade.commands.ResetEVs;
 import rs.expand.pixelupgrade.commands.Resize;
 import rs.expand.pixelupgrade.commands.Upgrade;
-
-import java.io.File;
 
 //TODO: add fixlevel
 //Cool ideas: Pixelpay. New starter box.
@@ -64,7 +62,6 @@ import java.io.File;
 
 public class PixelUpgrade
 {
-    public static final String id = "pixelupgrade";
     public static final String name = "PixelUpgrade";
     private static final Logger log = LoggerFactory.getLogger(name);
 
@@ -92,7 +89,7 @@ public class PixelUpgrade
 
             .build();
 
-    CommandSpec showstats = CommandSpec.builder()
+    /*CommandSpec showstats = CommandSpec.builder()
             .description(Text.of("Shows a comprehensive list of Pok\u00E9mon stats, such as EVs/IVs/natures."))
             .permission("pixelupgrade.commands.showstats")
             .executor(new ShowStats())
@@ -100,7 +97,7 @@ public class PixelUpgrade
             .arguments(
                     GenericArguments.onlyOne(GenericArguments.integer(Text.of("slot"))))
 
-            .build();
+            .build();*/
 
     CommandSpec resetevs = CommandSpec.builder()
             .description(Text.of("Completely wipes a local Pok\u00E9mon's EVs."))
@@ -152,7 +149,6 @@ public class PixelUpgrade
 
     CommandSpec upgrade = CommandSpec.builder()
             .description(Text.of("Shows the PixelUpgrade subcommand listing."))
-            .permission("pixelupgrade.commands")
             .executor(new Upgrade())
 
             .child(setivs, "ivs", "iv", "setivs", "setiv")
@@ -166,7 +162,7 @@ public class PixelUpgrade
     {
         Sponge.getCommandManager().register(this, upgrade, "upgrade");
         Sponge.getCommandManager().register(this, getstats, "getstats", "getstat");
-        Sponge.getCommandManager().register(this, showstats, "showstats", "showstat", "printstats", "printstat");
+        // Sponge.getCommandManager().register(this, showstats, "showstats", "showstat", "printstats", "printstat");
         Sponge.getCommandManager().register(this, fixevs, "fixevs", "fixev");
         Sponge.getCommandManager().register(this, resetevs, "resetevs", "resetev");
 
@@ -175,16 +171,7 @@ public class PixelUpgrade
 
     @Listener
     public void onServerStart(GameStartedServerEvent event)
-    {
-        log.info("\u00A7bPixelUpgrade: Ready to go!");
-        File directory = new File("/config");
-        Boolean directoryExists = directory.exists();
-        if (!directoryExists)
-        {
-
-        }
-
-    }
+    { log.info("\u00A7bPixelUpgrade: Ready to go!"); }
 }
 
 /*switch (typeNumPrimary) // 0, 2, 5, 6, 7, 8, a, b, c, d, e, f are used -- 1, 3, 4 and 9 are free -- 3 or 9 would be most legible, 9 may be best.
