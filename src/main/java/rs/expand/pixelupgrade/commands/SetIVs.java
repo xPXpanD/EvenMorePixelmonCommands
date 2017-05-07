@@ -42,7 +42,7 @@ public class SetIVs implements CommandExecutor
 		else
 		{
 			String stat = null;
-			Integer slot = null;
+			Integer slot = null, quantity = 1;
 			Boolean canContinue = false, commandConfirmed = false;
             if (!args.<String>getOne("confirm").isPresent())
                 ; // Do nothing! Just need the next statement to not run if this is the case, really.
@@ -53,6 +53,11 @@ public class SetIVs implements CommandExecutor
                 if (confirm.contains("confirm") || confirm.contains("true"))
                     commandConfirmed = true;
             }
+
+            if (!args.<String>getOne("quantity").isPresent())
+                ; // Do nothing! Just need the next statement to not run if this is the case, really.
+            else
+                quantity = args.<Integer>getOne("quantity").get();
 
 			try
 			{
@@ -171,10 +176,24 @@ public class SetIVs implements CommandExecutor
                                         Integer totalIVs = IVHP + IVATK + IVDEF + IVSPATK + IVSPDEF + IVSPD;
 
                                         int minStat = totalIVs, maxStat = 186;
-                                        String outputValues = null;
+                                        Integer costToConfirm = null;
+                                        Boolean elseError = false;
                                         StringBuilder listOfValues = new StringBuilder();
                                         IntStream.rangeClosed(minStat, maxStat).forEach(listOfValues::append);
-                                        outputValues = listOfValues.toString();
+                                        String[] outputArray = listOfValues.toString().split("");
+
+                                        if (quantity == 1)
+                                        {
+                                            String finalValue = outputArray[1];
+                                            costToConfirm = Integer.parseInt(finalValue) * priceMultiplier;
+                                        }
+                                        else if (quantity > 1)
+                                        {
+                                            // loop here
+                                        }
+                                        else
+                                            elseError = true;
+
 
 
                                         //outputValues.setText(listOfValues.toString());
