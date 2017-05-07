@@ -161,11 +161,11 @@ public class SetIVs implements CommandExecutor
                                     {
                                         Integer basePrice = 10, priceMultiplier = 1, upgradeLimit = 30;
                                         if (isLegendary && isShiny)
-                                            priceMultiplier = 10;
-                                        else if (isShiny)
                                             priceMultiplier = 5;
+                                        else if (isShiny)
+                                            priceMultiplier = 3;
                                         else if (isLegendary)
-                                            priceMultiplier = 4;
+                                            priceMultiplier = 2;
 
                                         Integer IVHP = nbt.getInteger(NbtKeys.IV_HP);
                                         Integer IVATK = nbt.getInteger(NbtKeys.IV_ATTACK);
@@ -176,20 +176,26 @@ public class SetIVs implements CommandExecutor
                                         Integer totalIVs = IVHP + IVATK + IVDEF + IVSPATK + IVSPDEF + IVSPD;
 
                                         int minStat = totalIVs, maxStat = 186;
-                                        Integer costToConfirm = null;
+                                        Integer costToConfirm = 0;
                                         Boolean elseError = false;
                                         StringBuilder listOfValues = new StringBuilder();
-                                        IntStream.rangeClosed(minStat, maxStat).forEach(listOfValues::append);
+                                        IntStream.rangeClosed(minStat + 1, maxStat).forEach(listOfValues::append);
                                         String[] outputArray = listOfValues.toString().split("");
 
                                         if (quantity == 1)
                                         {
-                                            String finalValue = outputArray[1];
+                                            String finalValue = outputArray[0] + 1;
                                             costToConfirm = Integer.parseInt(finalValue) * priceMultiplier;
                                         }
                                         else if (quantity > 1)
                                         {
-                                            // loop here
+                                            int i = 0;
+                                            for(String loopValue : outputArray)
+                                            {
+                                                if(i > quantity) break;
+                                                costToConfirm += Integer.valueOf(loopValue) * priceMultiplier;
+                                                i++;
+                                            }
                                         }
                                         else
                                             elseError = true;
