@@ -37,8 +37,10 @@ import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
+import org.spongepowered.api.event.service.ChangeServiceProviderEvent;
 import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.text.Text;
 
 import rs.expand.pixelupgrade.commands.GetStats;
@@ -66,7 +68,15 @@ import rs.expand.pixelupgrade.commands.Upgrade;
 public class PixelUpgrade
 {
     public static final String name = "PixelUpgrade";
-    private static final Logger log = LoggerFactory.getLogger(name);
+    public static final Logger log = LoggerFactory.getLogger(name);
+    public static EconomyService economyService;
+
+    @Listener
+    public void onChangeServiceProvider(ChangeServiceProviderEvent event)
+    {
+        if (event.getService().equals(EconomyService.class))
+            economyService = (EconomyService) event.getNewProviderRegistration().getProvider();
+    }
 
     //TODO: Check public static final String PC_RAVE = "rave";
     //TODO: Check public static final String PIXEL_DOLLARS = "pixelDollars";
