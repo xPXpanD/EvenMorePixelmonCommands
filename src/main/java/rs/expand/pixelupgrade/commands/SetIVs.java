@@ -192,7 +192,7 @@ public class SetIVs implements CommandExecutor
                                         {
                                             String finalValue = outputArray[0];
                                             player.sendMessage(Text.of("\u00A74OutputArray[0] value: " + finalValue + " | Cost to confirm: " + costToConfirm));
-                                            costToConfirm += Integer.parseInt(finalValue) * (1 * priceMultiplier);
+                                            costToConfirm += Integer.parseInt(finalValue) * (1 * priceMultiplier); 
                                             player.sendMessage(Text.of("\u00A74Cost to confirm: " + costToConfirm));
                                         }
                                         else if (quantity > 1)
