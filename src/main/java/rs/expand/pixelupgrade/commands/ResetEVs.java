@@ -65,7 +65,7 @@ public class ResetEVs implements CommandExecutor
 			else
 			{
 				player.sendMessage(Text.of("\u00A75Warning: \u00A7dYou are about to reset this Pok\u00E9mon's EVs to zero!"));
-				player.sendMessage(Text.of("\u00A7bIf you want to continue, type: \u00A7a/upgrade resetevs " + slot + " confirm"));
+				player.sendMessage(Text.of("\u00A7bIf you want to continue, type: \u00A7a/resetevs " + slot + " confirm"));
 			}
 	    }
 	    return CommandResult.success();

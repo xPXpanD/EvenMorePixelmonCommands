@@ -57,6 +57,8 @@ import rs.expand.pixelupgrade.commands.Upgrade;
 //TODO: Maybe make a /showstats or /printstats.
 //TODO: Remake command helper so it follows the /gts help format.
 //TODO: Make an /eggsee with economy tie-in?
+//TODO: Consider making a shiny upgrade command and a gender swapper.
+//TODO: Make a Pokémon transfer command.
 
 @Plugin(id = "pixelupgrade",
         name = "PixelUpgrade",
@@ -131,7 +133,8 @@ public class PixelUpgrade
             .arguments(
                     GenericArguments.onlyOne(GenericArguments.integer(Text.of("slot"))),
                     GenericArguments.onlyOne(GenericArguments.string(Text.of("stat"))),
-                    GenericArguments.onlyOne(GenericArguments.string(Text.of("confirm"))))
+                    GenericArguments.optionalWeak(GenericArguments.integer(Text.of("quantity"))),
+                    GenericArguments.optional(GenericArguments.string(Text.of("confirm"))))
 
             .build();
 
@@ -174,7 +177,7 @@ public class PixelUpgrade
     public void onPreInitializationEvent(GameInitializationEvent event)
     {
         Sponge.getCommandManager().register(this, upgrade, "upgrade");
-        Sponge.getCommandManager().register(this, getstats, "getstats", "getstat");
+        Sponge.getCommandManager().register(this, getstats, "getstats", "getstat", "gs");
         // Sponge.getCommandManager().register(this, showstats, "showstats", "showstat", "printstats", "printstat");
         Sponge.getCommandManager().register(this, fixevs, "fixevs", "fixev");
         Sponge.getCommandManager().register(this, resetevs, "resetevs", "resetev");

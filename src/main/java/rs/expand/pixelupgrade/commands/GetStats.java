@@ -89,54 +89,186 @@ public class GetStats implements CommandExecutor
 
                 switch (natureNum)
                 {
-                	case 0: natureName = "Hardy"; plusVal = "+NONE"; minusVal = "-NONE"; break;
-                	case 1: natureName = "Serious"; plusVal = "+NONE"; minusVal = "-NONE"; break;
-                	case 2: natureName = "Docile"; plusVal = "+NONE"; minusVal = "-NONE"; break;
-                	case 3: natureName = "Bashful"; plusVal = "+NONE"; minusVal = "-NONE"; break;
-                	case 4: natureName = "Quirky"; plusVal = "+NONE"; minusVal = "-NONE"; break;
-                	case 5: natureName = "Lonely"; plusVal = "+ATK"; minusVal = "-DEF"; break;
-                	case 6: natureName = "Brave"; plusVal = "+ATK"; minusVal = "-SPD"; break;
-                	case 7: natureName = "Adamant"; plusVal = "+ATK"; minusVal = "-SP. ATK"; break;
-                	case 8: natureName = "Naughty"; plusVal = "+ATK"; minusVal = "-SP. DEF"; break;
-                	case 9: natureName = "Bold"; plusVal = "+DEF"; minusVal = "-ATK"; break;
-                	case 10: natureName = "Relaxed"; plusVal = "+DEF"; minusVal = "-SPD"; break;
-                	case 11: natureName = "Impish"; plusVal = "+DEF"; minusVal = "-SP. ATK"; break;
-                	case 12: natureName = "Lax"; plusVal = "+DEF"; minusVal = "-SP. DEF"; break;
-                	case 13: natureName = "Timid"; plusVal = "+SPD"; minusVal = "-ATK"; break;
-                	case 14: natureName = "Hasty"; plusVal = "+SPD"; minusVal = "-DEF"; break;
-                	case 15: natureName = "Jolly"; plusVal = "+SPD"; minusVal = "-SP. ATK"; break;
-                	case 16: natureName = "Naive"; plusVal = "+SPD"; minusVal = "-SP. DEF"; break;
-                	case 17: natureName = "Modest"; plusVal = "+SP. ATK"; minusVal = "-ATK"; break;
-                	case 18: natureName = "Mild"; plusVal = "+SP. ATK"; minusVal = "-DEF"; break;
-                	case 19: natureName = "Quiet"; plusVal = "+SP. ATK"; minusVal = "-SPD"; break;
-                	case 20: natureName = "Rash"; plusVal = "+SP. ATK"; minusVal = "-SP. DEF"; break;
-                	case 21: natureName = "Calm"; plusVal = "+SP. DEF"; minusVal = "-ATK"; break;
-                	case 22: natureName = "Gentle"; plusVal = "+SP. DEF"; minusVal = "-DEF"; break;
-                	case 23: natureName = "Sassy"; plusVal = "+SP. DEF"; minusVal = "-SPD"; break;
-                	case 24: natureName = "Careful"; plusVal = "+SP. DEF"; minusVal = "-SP. ATK"; break;
-                	default: natureName = "Not found? Please report this."; plusVal = "+N/A"; minusVal = "-N/A"; break;
+                	case 0:
+                	    natureName = "Hardy";
+                	    plusVal = "+NONE";
+                	    minusVal = "-NONE";
+                	    break;
+                	case 1:
+                	    natureName = "Serious";
+                	    plusVal = "+NONE";
+                	    minusVal = "-NONE";
+                	    break;
+                	case 2:
+                	    natureName = "Docile";
+                	    plusVal = "+NONE";
+                	    minusVal = "-NONE";
+                	    break;
+                	case 3:
+                	    natureName = "Bashful";
+                	    plusVal = "+NONE";
+                	    minusVal = "-NONE";
+                	    break;
+                	case 4:
+                	    natureName = "Quirky";
+                	    plusVal = "+NONE";
+                	    minusVal = "-NONE";
+                	    break;
+                	case 5:
+                	    natureName = "Lonely";
+                	    plusVal = "+ATK";
+                	    minusVal = "-DEF";
+                	    break;
+                	case 6:
+                	    natureName = "Brave";
+                	    plusVal = "+ATK";
+                	    minusVal = "-SPD";
+                	    break;
+                	case 7:
+                	    natureName = "Adamant";
+                	    plusVal = "+ATK";
+                	    minusVal = "-SP. ATK";
+                	    break;
+                	case 8:
+                	    natureName = "Naughty";
+                	    plusVal = "+ATK";
+                	    minusVal = "-SP. DEF";
+                	    break;
+                	case 9:
+                	    natureName = "Bold";
+                	    plusVal = "+DEF";
+                	    minusVal = "-ATK";
+                	    break;
+                	case 10:
+                	    natureName = "Relaxed";
+                	    plusVal = "+DEF";
+                	    minusVal = "-SPD";
+                	    break;
+                	case 11:
+                	    natureName = "Impish";
+                	    plusVal = "+DEF";
+                	    minusVal = "-SP. ATK";
+                	    break;
+                	case 12:
+                	    natureName = "Lax";
+                	    plusVal = "+DEF";
+                	    minusVal = "-SP. DEF";
+                	    break;
+                	case 13:
+                	    natureName = "Timid";
+                	    plusVal = "+SPD";
+                	    minusVal = "-ATK";
+                	    break;
+                	case 14:
+                	    natureName = "Hasty";
+                	    plusVal = "+SPD";
+                	    minusVal = "-DEF";
+                	    break;
+                	case 15:
+                	    natureName = "Jolly";
+                	    plusVal = "+SPD";
+                	    minusVal = "-SP. ATK";
+                	    break;
+                	case 16:
+                	    natureName = "Naive";
+                	    plusVal = "+SPD";
+                	    minusVal = "-SP. DEF";
+                	    break;
+                	case 17:
+                	    natureName = "Modest";
+                	    plusVal = "+SP. ATK";
+                	    minusVal = "-ATK";
+                	    break;
+                	case 18:
+                	    natureName = "Mild";
+                	    plusVal = "+SP. ATK";
+                	    minusVal = "-DEF";
+                	    break;
+                	case 19:
+                	    natureName = "Quiet";
+                	    plusVal = "+SP. ATK";
+                	    minusVal = "-SPD";
+                	    break;
+                	case 20:
+                	    natureName = "Rash";
+                	    plusVal = "+SP. ATK";
+                	    minusVal = "-SP. DEF";
+                	    break;
+                	case 21:
+                	    natureName = "Calm";
+                	    plusVal = "+SP. DEF";
+                	    minusVal = "-ATK";
+                	    break;
+                	case 22:
+                	    natureName = "Gentle";
+                	    plusVal = "+SP. DEF";
+                	    minusVal = "-DEF";
+                	    break;
+                	case 23:
+                	    natureName = "Sassy";
+                	    plusVal = "+SP. DEF";
+                	    minusVal = "-SPD";
+                	    break;
+                	case 24:
+                	    natureName = "Careful";
+                	    plusVal = "+SP. DEF";
+                	    minusVal = "-SP. ATK";
+                	    break;
+                	default:
+                	    natureName = "Not found? Please report this.";
+                	    plusVal = "+N/A";
+                	    minusVal = "-N/A";
+                	    break;
                 }
 
                 switch (growthNum)
                 {
-                	case 0: growthName = "Pygmy"; break;
-                	case 1: growthName = "Runt"; break;
-                	case 2: growthName = "Small"; break;
-                	case 3: growthName = "Ordinary"; break;
-                	case 4: growthName = "Huge"; break;
-                	case 5: growthName = "Giant"; break;
-                	case 6: growthName = "Enormous"; break;
-                	case 7: growthName = "\u00A7cGinormous (!)"; break;
-                	case 8: growthName = "\u00A7aMicroscopic (!)"; break;
-                	default: growthName = "Not found? Please report this."; break;
+                	case 0:
+                	    growthName = "Pygmy";
+                	    break;
+                	case 1:
+                	    growthName = "Runt";
+                	    break;
+                	case 2:
+                	    growthName = "Small";
+                	    break;
+                	case 3:
+                	    growthName = "Ordinary";
+                	    break;
+                	case 4:
+                	    growthName = "Huge";
+                	    break;
+                	case 5:
+                	    growthName = "Giant";
+                	    break;
+                	case 6:
+                	    growthName = "Enormous";
+                	    break;
+                	case 7:
+                	    growthName = "\u00A7cGinormous (!)";
+                	    break;
+                	case 8:
+                	    growthName = "\u00A7aMicroscopic (!)";
+                	    break;
+                	default:
+                	    growthName = "Not found? Please report this.";
+                	    break;
                 }
 
                 switch (genderNum)
                 {
-                	case 0: genderName = "\u2642"; break;
-                	case 1: genderName = "\u2640"; break;
-                	case 2: genderName = "\u26A5"; break;
-                	default: genderName = "Not found? Please report this."; break;
+                	case 0:
+                	    genderName = "\u2642";
+                	    break;
+                	case 1:
+                	    genderName = "\u2640";
+                	    break;
+                	case 2:
+                	    genderName = "\u26A5";
+                	    break;
+                	default:
+                	    genderName = "Not found? Please report this.";
+                	    break;
                 }
 
                 if (EVHP < 256 && EVHP > 252 || EVATK < 256 && EVATK > 252 || EVDEF < 256 && EVDEF > 252 || EVSPATK < 256 && EVSPATK > 252 || EVSPDEF < 256 && EVSPDEF > 252 || EVSPD < 256 && EVSPD > 252)
@@ -144,10 +276,15 @@ public class GetStats implements CommandExecutor
 
                 if (!targetAcquired)
                 {
-	                if (nbt.getString("Nickname").equals(""))
-	                	player.sendMessage(Text.of("\u00A76Stats of \u00A7c" + String.valueOf(pokemonName)));
-	                else
+
+	                if (!nbt.getString("Nickname").equals("") && !nbt.getBoolean("isShiny"))
 	                	player.sendMessage(Text.of("\u00A76Stats of \u00A7c" + String.valueOf(pokemonName) + "\u00A76, also known as \u00A7c" + nbt.getString("Nickname")));
+                    else if (!nbt.getString("Nickname").equals("") && nbt.getBoolean("isShiny"))
+                        player.sendMessage(Text.of("\u00A76Stats of \u00A7c" + String.valueOf(pokemonName) + "\u00A76, also known as \u00A7c" + nbt.getString("Nickname") + "\u00A7e (shiny!)"));
+                    else if (nbt.getString("Nickname").equals("") && nbt.getBoolean("isShiny"))
+                        player.sendMessage(Text.of("\u00A76Stats of \u00A7c" + String.valueOf(pokemonName) + "\u00A7e (shiny!)"));
+                    else
+                        player.sendMessage(Text.of("\u00A76Stats of \u00A7c" + String.valueOf(pokemonName)));
 
 	                if (percentIVs == 100)
 	                	player.sendMessage(Text.of("\u00A7eTotal IVs: \u00A7a" + totalIVs + "\u00A7e/\u00A7a186\u00A7e (\u00A7a" + percentIVs + "%\u00A7e, \u00A76nicely done!\u00A7e)"));
@@ -174,10 +311,14 @@ public class GetStats implements CommandExecutor
                 }
                 else
                 {
-	                if (nbt.getString("Nickname").equals(""))
-	                	player.sendMessage(Text.of("\u00A76Stats of \u00A7c" + target.getName() + "'s " + String.valueOf(pokemonName)));
-	                else
-	                	player.sendMessage(Text.of("\u00A76Stats of \u00A7c" + target.getName() + "'s " + String.valueOf(pokemonName) + "\u00A76, also known as \u00A7c" + nbt.getString("Nickname")));
+	                if (!nbt.getString("Nickname").equals("") && !nbt.getBoolean("isShiny"))
+                        player.sendMessage(Text.of("\u00A76Stats of \u00A7c" + target.getName() + "\u00A76's \u00A7c" + String.valueOf(pokemonName) + "\u00A76, also known as \u00A7c" + nbt.getString("Nickname")));
+	                else if (!nbt.getString("Nickname").equals("") && nbt.getBoolean("isShiny"))
+	                	player.sendMessage(Text.of("\u00A76Stats of \u00A7c" + target.getName() + "\u00A76's \u00A7c" + String.valueOf(pokemonName) + "\u00A76, also known as \u00A7c" + nbt.getString("Nickname") + "\u00A7e (shiny!)"));
+	                else if (nbt.getString("Nickname").equals("") && nbt.getBoolean("isShiny"))
+	                	player.sendMessage(Text.of("\u00A76Stats of \u00A7c" + target.getName() + "\u00A76's \u00A7c" + String.valueOf(pokemonName) + "\u00A7e (shiny!)"));
+                    else
+                        player.sendMessage(Text.of("\u00A76Stats of \u00A7c" + target.getName() + "\u00A76's \u00A7c" + String.valueOf(pokemonName)));
 
                     player.sendMessage(Text.of("\u00A7eTotal IVs: \u00A7a" + totalIVs + "\u00A7e/\u00A7a186\u00A7e (\u00A7a" + percentIVs + "%\u00A7e)"));
 	                player.sendMessage(Text.of(ivs1 + "" + ivs2));

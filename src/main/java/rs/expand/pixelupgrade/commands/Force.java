@@ -84,29 +84,59 @@ public class Force implements CommandExecutor
 			            else
 			            {
 					    	String[] validIVs = new String[] {"IVHP", "IVAttack", "IVDefence", "IVSpAtt", "IVSpDef", "IVSpeed"};
-					    	String[] validEVs = new String[] {"EVHP","EVAttack","EVDefence","EVSpecialAttack","EVSpecialDefence","EVSpeed"};
+					    	String[] validEVs = new String[] {"EVHP", "EVAttack", "EVDefence", "EVSpecialAttack", "EVSpecialDefence", "EVSpAtt", "EVSpAtk", "EVSpDef", "EVSpeed"};
 					    	String[] validGrowth = new String[] {"Growth"};
 					    	String[] validNature = new String[] {"Nature"};
-					    	
+					    	String[] validBools = new String[] {"IsShiny", "Is_Shiny"};
+
 					    	String fixedStat = stat;
-					    	Boolean unknownParameter = false;
 					    	switch (fixedStat.toUpperCase())
 					    	{
-					    		case "IVHP": fixedStat = "IVHP"; break;
-					    		case "IVATTACK" : fixedStat = "IVAttack"; break;
-					    		case "IVDEFENCE" : fixedStat = "IVDefence"; break;
-					    		case "IVSPATT" : fixedStat = "IVSpAtt"; break;
-					    		case "IVSPDEF" : fixedStat = "IVSpDef"; break;
-					    		case "IVSPEED" : fixedStat = "IVSpeed"; break;
-					    		case "EVHP" : fixedStat = "EVHP"; break;
-					    		case "EVATTACK" : fixedStat = "EVAttack"; break;
-					    		case "EVDEFENCE" : fixedStat = "EVDefence"; break;
-					    		case "EVSPECIALATTACK" : fixedStat = "EVSpecialAttack"; break;
-					    		case "EVSPECIALDEFENCE" : fixedStat = "EVSpecialDefence"; break;
-					    		case "EVSPEED" : fixedStat = "EVSpeed"; break;
-					    		case "GROWTH" : fixedStat = "Growth"; break;
-					    		case "NATURE" : fixedStat = "Nature"; break;
-					    		default: unknownParameter = true; break;
+					    		case "IVHP":
+					    		    fixedStat = "IVHP";
+					    		    break;
+					    		case "IVATTACK":
+					    		    fixedStat = "IVAttack";
+					    		    break;
+					    		case "IVDEFENCE":
+					    		    fixedStat = "IVDefence";
+					    		    break;
+					    		case "IVSPATT":
+					    		    fixedStat = "IVSpAtt";
+					    		    break;
+					    		case "IVSPDEF":
+					    		    fixedStat = "IVSpDef";
+					    		    break;
+					    		case "IVSPEED":
+					    		    fixedStat = "IVSpeed";
+					    		    break;
+					    		case "EVHP":
+					    		    fixedStat = "EVHP";
+					    		    break;
+					    		case "EVATTACK":
+					    		    fixedStat = "EVAttack";
+					    		    break;
+					    		case "EVDEFENCE":
+					    		    fixedStat = "EVDefence";
+					    		    break;
+					    		case "EVSPECIALATTACK": case "EVSPATT": case "EVSPATK":
+					    		    fixedStat = "EVSpecialAttack";
+					    		    break;
+					    		case "EVSPECIALDEFENCE": case "EVSPDEF":
+					    		    fixedStat = "EVSpecialDefence";
+					    		    break;
+					    		case "EVSPEED":
+					    		    fixedStat = "EVSpeed";
+					    		    break;
+					    		case "GROWTH":
+					    		    fixedStat = "Growth";
+					    		    break;
+					    		case "NATURE":
+					    		    fixedStat = "Nature";
+					    		    break;
+					    		case "ISSHINY": case "IS_SHINY":
+					    		    fixedStat = "IsShiny";
+					    		    break;
 					    	}
 					    	
 					    	System.out.println("\u00A72Params: \u00A7c" + stat + " " + fixedStat);
@@ -119,29 +149,23 @@ public class Force implements CommandExecutor
 					    		player.sendMessage(Text.of("\u00A74Error: \u00A7cSize value out of bounds. Valid range: 0 ~ 8"));
 					    	else if (Arrays.asList(validNature).contains(fixedStat) && intValue > 24 || Arrays.asList(validNature).contains(fixedStat) && intValue < 0)
 					    		player.sendMessage(Text.of("\u00A74Error: \u00A7cNature value out of bounds. Valid range: 0 ~ 24"));
+                            else if (Arrays.asList(validBools).contains(fixedStat) && intValue > 1 || Arrays.asList(validBools).contains(fixedStat) && intValue < 0)
+                                player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid boolean value. Valid values: 0 (false) or 1 (true)"));
 					    	else if (Arrays.asList(validIVs).contains(fixedStat) || Arrays.asList(validEVs).contains(fixedStat) || Arrays.asList(validGrowth).contains(fixedStat) || Arrays.asList(validNature).contains(fixedStat))
 					    	{				    	
-						    	if (!unknownParameter)
-						    	{
-						                nbt.setInteger(fixedStat, intValue);			                
+						                nbt.setInteger(fixedStat, intValue);
 						                player.sendMessage(Text.of("\u00A7aValue changed! Not showing? Reconnect to update your client."));
-						    	}
-						    	else
-						    	{
-						    		player.sendMessage(Text.of("\u00A74Error: \u00A7cUnknown type, but passed first check! Please report this."));
-						    		System.out.println("\u00A72" + username + "\u00A7c passed an invalid type, despite passing the first check.");
-						    		System.out.println("\u00A72This is a bug. \u00A7cDebug info follows: (stat) \u00A72" + stat + "\u00A7c, (fixedStat) \u00A72" + fixedStat);
-						    	}
 					    	}
 					    	else
 					    	{
 					    		player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
 					    		player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid parameter. See below!"));
 								player.sendMessage(Text.of(""));
-					    		player.sendMessage(Text.of("\u00A76IV types: \u00A7eIVHP, IVAttack, IVDefence, IVSpAtt, IVSpDef, IVSpeed"));
-					    		player.sendMessage(Text.of("\u00A76EV types: \u00A7eEVHP, EVAttack, EVDefence, EVSpecialAttack..."));
-					    		player.sendMessage(Text.of("\u00A76EV types: \u00A7eEVSpecialDefence, EVSpeed"));
-					    		player.sendMessage(Text.of("\u00A76Other types: \u00A7eGrowth, Nature"));
+					    		player.sendMessage(Text.of("\u00A76IVs: \u00A7eIVHP, IVAttack, IVDefence, IVSpAtt, IVSpDef, IVSpeed"));
+					    		player.sendMessage(Text.of("\u00A76EVs: \u00A7eEVHP, EVAttack, EVDefence, EVSpAtt, EVSpDef, EVSpeed"));
+					    		player.sendMessage(Text.of("\u00A76Others: \u00A7eGrowth, Nature, IsShiny"));
+                                player.sendMessage(Text.of(""));
+                                player.sendMessage(Text.of("\u00A75Please note: \u00A7dThese are sanitized, and may not work on -f."));
 					    		player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
 					    	}
 			            }
@@ -166,23 +190,52 @@ public class Force implements CommandExecutor
 			            else
 			            {
 					    	String fixedStat = stat;
-					    	Boolean statWasFixed = false;
+					    	Boolean statWasFixed = true;
 					    	switch (fixedStat.toUpperCase())
 					    	{
-					    		case "IVHP": fixedStat = "IVHP"; statWasFixed = true; break;
-					    		case "IVATTACK" : fixedStat = "IVAttack"; statWasFixed = true; break;
-					    		case "IVDEFENCE" : fixedStat = "IVDefence"; statWasFixed = true; break;
-					    		case "IVSPATT" : fixedStat = "IVSpAtt"; statWasFixed = true; break;
-					    		case "IVSPDEF" : fixedStat = "IVSpDef"; statWasFixed = true; break;
-					    		case "IVSPEED" : fixedStat = "IVSpeed"; statWasFixed = true; break;
-					    		case "EVHP" : fixedStat = "EVHP"; statWasFixed = true; break;
-					    		case "EVATTACK" : fixedStat = "EVAttack"; statWasFixed = true; break;
-					    		case "EVDEFENCE" : fixedStat = "EVDefence"; statWasFixed = true; break;
-					    		case "EVSPECIALATTACK" : fixedStat = "EVSpecialAttack"; statWasFixed = true; break;
-					    		case "EVSPECIALDEFENCE" : fixedStat = "EVSpecialDefence"; statWasFixed = true; break;
-					    		case "EVSPEED" : fixedStat = "EVSpeed"; statWasFixed = true; break;
-					    		case "GROWTH" : fixedStat = "Growth"; statWasFixed = true; break;
-					    		case "NATURE" : fixedStat = "Nature"; statWasFixed = true; break;
+					    		case "IVHP":
+					    		    fixedStat = "IVHP";
+					    		    break;
+					    		case "IVATTACK" :
+					    		    fixedStat = "IVAttack";
+					    		    break;
+					    		case "IVDEFENCE" :
+					    		    fixedStat = "IVDefence";
+					    		    break;
+					    		case "IVSPATT" :
+					    		    fixedStat = "IVSpAtt";
+					    		    break;
+					    		case "IVSPDEF" :
+					    		    fixedStat = "IVSpDef";
+					    		    break;
+					    		case "IVSPEED" :
+					    		    fixedStat = "IVSpeed";
+					    		    break;
+					    		case "EVHP" :
+					    		    fixedStat = "EVHP";
+					    		    break;
+					    		case "EVATTACK" :
+					    		    fixedStat = "EVAttack";
+					    		    break;
+					    		case "EVDEFENCE" :
+					    		    fixedStat = "EVDefence";
+					    		    break;
+                                case "EVSPECIALATTACK": case "EVSPATT": case "EVSPATK":
+                                    fixedStat = "EVSpecialAttack";
+                                    break;
+                                case "EVSPECIALDEFENCE": case "EVSPDEF":
+                                    fixedStat = "EVSpecialDefence";
+                                    break;
+					    		case "EVSPEED" :
+					    		    fixedStat = "EVSpeed";
+					    		    break;
+					    		case "GROWTH" :
+					    		    fixedStat = "Growth";
+					    		    break;
+                                case "ISSHINY": case "IS_SHINY":
+                                    fixedStat = "IsShiny";
+                                    break;
+                                default: statWasFixed = false;
 					    	}
 					    	
 			            	player.sendMessage(Text.of("\u00A7eForcing value..."));
@@ -191,6 +244,7 @@ public class Force implements CommandExecutor
                             {
                                 player.sendMessage(Text.of("\u00A75Note: \u00AdAn invalid but known stat was found, and was auto-corrected."));
                                 player.sendMessage(Text.of("\u00A75Provided stat: \u00Ad" + stat + "\u00A75, corrected to: \u00A7d" + fixedStat));
+
                                 stat = fixedStat;
                             }
 
@@ -198,8 +252,8 @@ public class Force implements CommandExecutor
 			            		nbt.setInteger(stat, intValue);
 			            	else
 			            		nbt.setString(stat, value);
-			            	
-			            	player.sendMessage(Text.of("\u00A7aValue set... Not showing? Reconnect to update your client."));
+
+			            	player.sendMessage(Text.of("\u00A7aThe new value has been written. A reconnect may be necessary."));
 			            }
 			        }
 			    }

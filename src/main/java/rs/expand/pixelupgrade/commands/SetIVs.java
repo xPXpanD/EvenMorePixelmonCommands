@@ -61,7 +61,7 @@ public class SetIVs implements CommandExecutor
 
 			try
 			{
-				slot = Integer.parseInt(args.<String>getOne("slot").get());
+				slot = args.<Integer>getOne("slot").get();
 				stat = args.<String>getOne("stat").get();
 
 				canContinue = true;
@@ -137,8 +137,10 @@ public class SetIVs implements CommandExecutor
                                 BigDecimal balance = economyAccountUnique.getBalance(PixelUpgrade.economyService.getDefaultCurrency());
                                 Integer statOld = nbt.getInteger(fixedStat);
 
-                                if (statOld >= 31)
-                                    player.sendMessage(Text.of("\u00A74Error: \u00A7cYou cannot upgrade this stat any further, it's already maxed!"));
+                                if (nbt.getBoolean("isEgg"))
+                                    player.sendMessage(Text.of("\u00A74Error: \u00A7cThat's an egg. Wait until it hatches, first."));
+                                else if (statOld >= 31)
+                                    player.sendMessage(Text.of("\u00A74Error: \u00A7cYou cannot upgrade this stat any further, it's maxed!"));
                                 else
                                 {
                                     Boolean isShiny;
@@ -159,13 +161,17 @@ public class SetIVs implements CommandExecutor
                                         player.sendMessage(Text.of("\u00A74Error: \u00A7cThis Pok\u00E9mon's upgrade cap has been reached! (4)"));
                                     else /// HEAVILY WIP
                                     {
-                                        Integer basePrice = 10, priceMultiplier = 1, upgradeLimit = 30;
-                                        if (isLegendary && isShiny)
-                                            priceMultiplier = 5;
-                                        else if (isShiny)
+                                        Integer priceMultiplier = 1, upgradeLimit = 30, costToConfirm = 0;
+                                        if (isShiny)
+                                        {
                                             priceMultiplier = 3;
+                                            upgradeLimit = 50;
+                                        }
                                         else if (isLegendary)
-                                            priceMultiplier = 2;
+                                        {
+                                            priceMultiplier = 3;
+                                            upgradeLimit = 20;
+                                        }
 
                                         Integer IVHP = nbt.getInteger(NbtKeys.IV_HP);
                                         Integer IVATK = nbt.getInteger(NbtKeys.IV_ATTACK);
@@ -175,46 +181,70 @@ public class SetIVs implements CommandExecutor
                                         Integer IVSPD = nbt.getInteger(NbtKeys.IV_SPEED);
                                         Integer totalIVs = IVHP + IVATK + IVDEF + IVSPATK + IVSPDEF + IVSPD;
 
-                                        int minStat = totalIVs, maxStat = 186;
-                                        Integer costToConfirm = 0;
-                                        Boolean elseError = false;
+                                        Boolean fireElseError = false;
                                         StringBuilder listOfValues = new StringBuilder();
-                                        IntStream.rangeClosed(minStat + 1, maxStat).forEach(listOfValues::append);
+                                        IntStream.rangeClosed(totalIVs + 1, 186).forEach(listOfValues::append);
                                         String[] outputArray = listOfValues.toString().split("");
+
+                                        //TODO: Add egg check.
 
                                         if (quantity == 1)
                                         {
-                                            String finalValue = outputArray[0] + 1;
-                                            costToConfirm = Integer.parseInt(finalValue) * priceMultiplier;
+                                            String finalValue = outputArray[0];
+                                            player.sendMessage(Text.of("\u00A74OutputArray[0] value: " + finalValue + " | Cost to confirm: " + costToConfirm));
+                                            costToConfirm += Integer.parseInt(finalValue) * (1 * priceMultiplier);
+                                            player.sendMessage(Text.of("\u00A74Cost to confirm: " + costToConfirm));
                                         }
                                         else if (quantity > 1)
                                         {
-                                            int i = 0;
+                                            if (quantity > (31 - statOld))
+                                                quantity = (31 - statOld);
+
+                                            Integer upgradeTicker = 0, iteratedValue = 0;
+
                                             for(String loopValue : outputArray)
                                             {
-                                                if(i > quantity) break;
-                                                costToConfirm += Integer.valueOf(loopValue) * priceMultiplier;
-                                                i++;
+                                                if(upgradeTicker > quantity) break;
+
+                                                iteratedValue += Integer.valueOf(loopValue);
+                                                player.sendMessage(Text.of("\u00A74LV: " + loopValue + " | LV Int: " + Integer.valueOf(loopValue)));
+                                                upgradeTicker++;
                                             }
+
+                                            costToConfirm = iteratedValue * (1 * priceMultiplier);
                                         }
                                         else
-                                            elseError = true;
+                                            fireElseError = true;
 
 
 
                                         //outputValues.setText(listOfValues.toString());
 
-                                        if (commandConfirmed)
+                                        if (!commandConfirmed && quantity == 1)
                                         {
                                             player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-                                            player.sendMessage(Text.of("\u00A7dYour Pokémon's \u00A75" + cleanedStat + "\u00A7d stat will be upgraded!"));
+                                            player.sendMessage(Text.of("\u00A7dYour Pok\u00E9mon's \u00A75" + cleanedStat + "\u00A7d stat will be upgraded by \u00A75one \u00A7dpoint!"));
                                             player.sendMessage(Text.of("\u00A7dThis will cost you: \u00A75" + costToConfirm + " coins!"));
-                                            player.sendMessage(Text.of("\u00A7eReady? Use: \u00A76/upgrade ivs " + slot + " " + stat + " # of times (optional) + confirm"));
+                                            player.sendMessage(Text.of("\u00A7eReady? Use: \u00A76/upgrade ivs " + slot + " " + stat + " confirm"));
                                             player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
                                         }
-                                        else
+                                        if (!commandConfirmed && quantity > 1 && quantity <= (186 - totalIVs))
                                         {
-
+                                            player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+                                            player.sendMessage(Text.of("\u00A7dYour Pok\u00E9mon's \u00A75" + cleanedStat + "\u00A7d stat will be upgraded by \u00A75" + quantity + "\u00A7d points!"));
+                                            player.sendMessage(Text.of("\u00A7dThis will cost you: \u00A75" + costToConfirm + " coins!"));
+                                            player.sendMessage(Text.of("\u00A7eReady? Use: \u00A76/upgrade ivs " + slot + " " + stat + " # confirm"));
+                                            player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+                                        }
+                                        else if (fireElseError)
+                                        {
+                                            player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+                                            player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid # of times! Please provide a positive number."));
+                                            player.sendMessage(Text.of("\u00A74Usage: \u00A7c/upgrade IVs <slot> <type> (# of times) (confirm)"));
+                                            player.sendMessage(Text.of(""));
+                                            player.sendMessage(Text.of("\u00A76Warning: \u00A7eDo not add \"confirm\" unless you're sure!"));
+                                            player.sendMessage(Text.of("\u00A7eConfirming will immediately take your money, if you have enough!"));
+                                            player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
                                         }
                                     }
                                 }
