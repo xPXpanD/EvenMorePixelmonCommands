@@ -15,7 +15,7 @@ public class Upgrade implements CommandExecutor
 		Player player = (Player) src;
 		Boolean hasNoPermission = true;
 
-		player.sendMessage(Text.of("\u00A75-------------------- \u00A7dcommands \u00A75--------------------"));
+		player.sendMessage(Text.of("\u00A75---------------- \u00A7dPixelUpgrade commands \u00A75----------------"));
 		if (player.hasPermission("pixelupgrade.commands.fixevs"))
 		{
 			player.sendMessage(Text.of("\u00A76/fixevs <slot>\u00A7f -- \u00A7eFixes EVs above 252 (which are wasted)."));
@@ -33,12 +33,12 @@ public class Upgrade implements CommandExecutor
         }
 		if (player.hasPermission("pixelupgrade.commands.ivs"))
         {
-            player.sendMessage(Text.of("\u00A76/upgrade ivs <slot> <IV> <value>\u00A7f -- \u00A7eUpgrades IVs for money."));
+            player.sendMessage(Text.of("\u00A76/upgrade ivs <slot> <IV> (value) (confirm)\u00A7f -- \u00A7eRaise IVs for cash."));
             hasNoPermission = false;
         }
-		if (player.hasPermission("pixelupgrade.commands.resize"))
+        if (player.hasPermission("pixelupgrade.commands.resize"))
         {
-            player.sendMessage(Text.of("\u00A76/upgrade resize <slot> <size>\u00A7f -- \u00A7eChanges sizes for money."));
+            player.sendMessage(Text.of("\u00A76/upgrade size <slot> <size> (confirm)\u00A7f -- \u00A7eBuy size changes on shinies/legendaries."));
             hasNoPermission = false;
         }
 		if (player.hasPermission("pixelupgrade.commands.admin.force"))

@@ -18,6 +18,10 @@
  * 0.5.5: Sanity checking, part 3. Re-added other person support on /getstats, removed a ton of useless checks, migrated to IntelliJ IDEA.
  * 0.5.6: Flipped parameters so that people can now run either /getstats SLOT or /getstats PLAYER SLOT, instead of the awkward /getstats SLOT PLAYER. Cleanup.
  * 0.6: Started work on /upgrade ivs.
+ * 0.7: /upgrade IVs logic pretty much done, still have to make it take cash and set stats. Got a nice exponential scale going.
+ * 0.8: /upgrade IVs done!!
+ * 0.8.1: Added a remote listing of all party Pokémon to /getstats, if the slot asked for is empty.
+ * 0.8.2: Added /forcehatch.
  *
  * Enjoy the plugin!
  */
@@ -49,22 +53,28 @@ import rs.expand.pixelupgrade.commands.FixEVs;
 import rs.expand.pixelupgrade.commands.Force;
 import rs.expand.pixelupgrade.commands.SetIVs;
 import rs.expand.pixelupgrade.commands.ResetEVs;
-import rs.expand.pixelupgrade.commands.Resize;
+// import rs.expand.pixelupgrade.commands.Resize;
 import rs.expand.pixelupgrade.commands.Upgrade;
+import rs.expand.pixelupgrade.commands.ForceHatch;
 
-//TODO: add fixlevel
-//Cool ideas: Pixelpay. New starter box.
+//TODO: Add fixlevel.
+//TODO: Cool ideas: Pixelpay. New starter box.
 //TODO: Maybe make a /showstats or /printstats.
-//TODO: Remake command helper so it follows the /gts help format.
 //TODO: Make an /eggsee with economy tie-in?
 //TODO: Consider making a shiny upgrade command and a gender swapper.
 //TODO: Make a Pokémon transfer command.
+//TODO: Check for doubled switch statements.
+//TODO: Check if setting stuff to player entities works, too!
+//TODO: Ditto fusion.
+//TODO: Upgrade token support.
+//TODO: Configuration.
+//TODO: Maybe make a heal command with a hour-long cooldown.
 
 @Plugin(id = "pixelupgrade",
         name = "PixelUpgrade",
-        version = "0.6",
+        version = "0.8.2",
         dependencies = @Dependency(id = "pixelmon"),
-        authors = "XpanD", // Written by XpanD, with a bunch of help from Xenoyia and a breakthrough snippet from NickImpact!
+        authors = "XpanD", // + a bunch of help from Xenoyia and breakthrough snippets from NickImpact (NBT editing) and Proxying (writing to entities in a way that saves when the entity is re-made)!
         description = "Change just about everything Pok\u00E9mon-related, and pay people with Pok\u00E9dollars!")
 
 public class PixelUpgrade
@@ -100,12 +110,23 @@ public class PixelUpgrade
 
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.player(Text.of("target"))),
-                    GenericArguments.onlyOne(GenericArguments.integer(Text.of("slot"))))
+                    GenericArguments.optional(GenericArguments.integer(Text.of("slot"))))
+
+            .build();
+
+    CommandSpec forcehatch = CommandSpec.builder()
+            .description(Text.of("Shows a comprehensive list of Pok\u00E9mon stats, such as EVs/IVs/natures."))
+            .permission("pixelupgrade.commands.admin.forcehatch")
+            .executor(new ForceHatch())
+
+            .arguments(
+                    GenericArguments.optionalWeak(GenericArguments.player(Text.of("target"))),
+                    GenericArguments.optional(GenericArguments.integer(Text.of("slot"))))
 
             .build();
 
     /*CommandSpec showstats = CommandSpec.builder()
-            .description(Text.of("Shows a comprehensive list of Pok\u00E9mon stats, such as EVs/IVs/natures."))
+            .description(Text.of("Announces a comprehensive list of a Pok\u00E9mon stats, with a cooldown."))
             .permission("pixelupgrade.commands.showstats")
             .executor(new ShowStats())
 
@@ -131,8 +152,8 @@ public class PixelUpgrade
             .executor(new SetIVs())
 
             .arguments(
-                    GenericArguments.onlyOne(GenericArguments.integer(Text.of("slot"))),
-                    GenericArguments.onlyOne(GenericArguments.string(Text.of("stat"))),
+                    GenericArguments.optional(GenericArguments.integer(Text.of("slot"))),
+                    GenericArguments.optional(GenericArguments.string(Text.of("stat"))),
                     GenericArguments.optionalWeak(GenericArguments.integer(Text.of("quantity"))),
                     GenericArguments.optional(GenericArguments.string(Text.of("confirm"))))
 
@@ -151,7 +172,7 @@ public class PixelUpgrade
 
             .build();
 
-    CommandSpec resize = CommandSpec.builder()
+    /* CommandSpec resize = CommandSpec.builder()
             .description(Text.of("Enables changing of Pok\u00E9mon size."))
             .permission("pixelupgrade.commands.resize")
             .executor(new Resize())
@@ -161,7 +182,7 @@ public class PixelUpgrade
                     GenericArguments.onlyOne(GenericArguments.string(Text.of("size"))),
                     GenericArguments.onlyOne(GenericArguments.string(Text.of("confirm"))))
 
-            .build();
+            .build(); */
 
     CommandSpec upgrade = CommandSpec.builder()
             .description(Text.of("Shows the PixelUpgrade subcommand listing."))
@@ -169,7 +190,7 @@ public class PixelUpgrade
 
             .child(setivs, "ivs", "iv", "setivs", "setiv")
             .child(force, "force", "forcestats", "forceivs", "adminivs", "forceiv", "adminiv", "forceevs", "adminevs", "forceev", "adminev")
-            .child(resize, "resize", "changesize", "size")
+            // .child(resize, "resize", "changesize", "size")
 
             .build();
 
@@ -178,16 +199,19 @@ public class PixelUpgrade
     {
         Sponge.getCommandManager().register(this, upgrade, "upgrade");
         Sponge.getCommandManager().register(this, getstats, "getstats", "getstat", "gs");
+        Sponge.getCommandManager().register(this, forcehatch, "forcehatch");
         // Sponge.getCommandManager().register(this, showstats, "showstats", "showstat", "printstats", "printstat");
         Sponge.getCommandManager().register(this, fixevs, "fixevs", "fixev");
         Sponge.getCommandManager().register(this, resetevs, "resetevs", "resetev");
 
-        log.info("\u00A7aPixelUpgrade: Commands registered!");
+        log.info("\u00A7aCommands registered!");
     }
 
     @Listener
     public void onServerStart(GameStartedServerEvent event)
-    { log.info("\u00A7bPixelUpgrade: Ready to go!"); }
+    {
+        log.info("\u00A7bAll systems nominal.");
+    }
 }
 
 /*switch (typeNumPrimary) // 0, 2, 5, 6, 7, 8, a, b, c, d, e, f are used -- 1, 3, 4 and 9 are free -- 3 or 9 would be most legible, 9 may be best.
@@ -216,3 +240,7 @@ public class PixelUpgrade
 
 /* if (!(src instanceof Player))
         	System.out.println("\u00A74Error: \u00A7cYou can't run this command from the console."); */
+
+		/* String ivs1 = String.valueOf(IVHP + " \u00A72HP \u00A7e|\u00A7a " + IVATK + " \u00A72ATK \u00A7e|\u00A7a " + IVDEF + " \u00A72DEF \u00A7e|\u00A7a ");
+                        String ivs2 = String.valueOf(IVSPATK + " \u00A72Sp. ATK \u00A7e|\u00A7a " + IVSPDEF + " \u00A72Sp. DEF \u00A7e|\u00A7a " + IVSPD + " \u00A72SPD"); */
+// \u00A7eIVs: \u00A7a" +

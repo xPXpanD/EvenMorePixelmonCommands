@@ -1,5 +1,7 @@
 package rs.expand.pixelupgrade.commands;
 
+import com.pixelmonmod.pixelmon.config.PixelmonEntityList;
+import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import com.pixelmonmod.pixelmon.enums.EnumPokemon;
 import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
@@ -7,6 +9,7 @@ import com.pixelmonmod.pixelmon.storage.PlayerStorage;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.World;
 
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -14,259 +17,382 @@ import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.service.economy.transaction.ResultType;
+import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 
 import rs.expand.pixelupgrade.PixelUpgrade;
 
+import java.math.RoundingMode;
 import java.util.Optional;
 import java.math.BigDecimal;
-import java.util.stream.IntStream;
+
+import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
 public class SetIVs implements CommandExecutor
 {
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
 	{
 		Player player = (Player) src;
-		if (!args.getOne("stat").isPresent() || !args.getOne("slot").isPresent())
-		{
-			player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-			player.sendMessage(Text.of("\u00A74Error: \u00A7cNot all arguments were provided!"));
-			player.sendMessage(Text.of("\u00A74Usage: \u00A7c/upgrade IVs <slot> <type> (# of times) (confirm)"));
-			player.sendMessage(Text.of(""));
-			player.sendMessage(Text.of("\u00A76Warning: \u00A7eDo not add \"confirm\" unless you're sure!"));
-			player.sendMessage(Text.of("\u00A7eConfirming will immediately take your money, if you have enough!"));
-			player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-		}
-		else
-		{
-			String stat = null;
-			Integer slot = null, quantity = 1;
-			Boolean canContinue = false, commandConfirmed = false;
-            if (!args.<String>getOne("confirm").isPresent())
-                ; // Do nothing! Just need the next statement to not run if this is the case, really.
+        String stat = null;
+        Integer slot = null, quantity = 1;
+        Boolean canContinue = false, commandConfirmed = false;
+
+        PixelUpgrade.log.info("\u00A7bSetIVs debug: Called by player " + player.getName() + ", starting command.");
+
+        if (args.<String>getOne("confirm").isPresent())
+        {
+            String confirm = args.<String>getOne("confirm").get();
+
+            if (confirm.contains("confirm") || confirm.contains("true"))
+                commandConfirmed = true;
+
+            PixelUpgrade.log.info("\u00A7aSetIVs debug: Command was confirmed.");
+        }
+
+        if (args.<String>getOne("quantity").isPresent())
+            quantity = args.<Integer>getOne("quantity").get();
+
+        if (args.<Integer>getOne("slot").isPresent() && args.<String>getOne("stat").isPresent())
+        {
+            try
+            {
+                slot = args.<Integer>getOne("slot").get();
+                stat = args.<String>getOne("stat").get();
+
+                canContinue = true;
+            }
+            catch (NumberFormatException e)
+            {
+                player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+                player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid arguments! Format is #, text, #, text."));
+                player.sendMessage(Text.of("\u00A74Usage: \u00A7c/upgrade IVs <slot> <type> (# of times) (confirm)"));
+                player.sendMessage(Text.of(""));
+                player.sendMessage(Text.of("\u00A76Warning: \u00A7eDo not add \"confirm\" unless you're sure!"));
+                player.sendMessage(Text.of("\u00A7eConfirming will immediately take your money, if you have enough!"));
+                player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+
+                PixelUpgrade.log.info("\u00A7cSetIVs debug: Slot or stat invalid? Aborting.");
+            }
+        }
+        else
+        {
+            player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+            player.sendMessage(Text.of("\u00A74Error: \u00A7cMissing arguments! Format is #, text, #, text."));
+            player.sendMessage(Text.of("\u00A74Usage: \u00A7c/upgrade IVs <slot> <type> (# of times) (confirm)"));
+            player.sendMessage(Text.of(""));
+            player.sendMessage(Text.of("\u00A76Warning: \u00A7eDo not add \"confirm\" unless you're sure!"));
+            player.sendMessage(Text.of("\u00A7eConfirming will immediately take your money, if you have enough!"));
+            player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+
+            PixelUpgrade.log.info("\u00A7cSetIVs debug: Slot or stat not provided. Aborting.");
+        }
+
+        if (canContinue)
+        {
+            if (slot > 6 || slot < 1)
+                player.sendMessage(Text.of("\u00A74Error: \u00A7cSlot number must be between 1 and 6."));
             else
             {
-                String confirm = args.<String>getOne("confirm").get();
+                Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) player));
+                PlayerStorage storageCompleted = (PlayerStorage) storage.get();
+                NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
 
-                if (confirm.contains("confirm") || confirm.contains("true"))
-                    commandConfirmed = true;
-            }
+                if (nbt == null)
+                    player.sendMessage(Text.of("\u00A74Error: \u00A7cYou don't have anything in that slot!"));
+                else
+                {
+                    String fixedStat = stat, cleanedStat = "Error, please report!";
+                    Boolean statWasValid = false;
+                    switch (fixedStat.toUpperCase())
+                    {
+                        case "HP": case "HITPOINTS": case "HEALTH": case "IVHP": case "IV_HP":
+                            fixedStat = "IVHP";
+                            cleanedStat = "HP";
+                            statWasValid = true;
+                            break;
+                        case "ATTACK": case "ATK": case "IVATTACK": case "IV_ATTACK":
+                            fixedStat = "IVAttack";
+                            cleanedStat = "Attack";
+                            statWasValid = true;
+                            break;
+                        case "DEFENCE": case "DEFENSE": case "DEF": case "IVDEFENCE": case "IV_DEFENCE":
+                            fixedStat = "IVDefence";
+                            cleanedStat = "Defence";
+                            statWasValid = true;
+                            break;
+                        case "SPECIALATTACK": case "SPATT": case "SPATK": case "SPATTACK": case "IVSPATT": case "IV_SP_ATT":
+                            fixedStat = "IVSpAtt";
+                            cleanedStat = "Sp. Attack";
+                            statWasValid = true;
+                            break;
+                        case "SPECIALDEFENSE": case "SPECIALDEFENCE": case "SPDEF": case "SPDEFENCE": case "SPDEFENSE": case "IVSPDEF": case "IV_SP_DEF":
+                            fixedStat = "IVSpDef";
+                            cleanedStat = "Sp. Defence";
+                            statWasValid = true;
+                            break;
+                        case "SPEED": case "SPD": case "IVSPEED": case "IV_SPEED":
+                            fixedStat = "IVSpeed";
+                            cleanedStat = "Speed";
+                            statWasValid = true;
+                            break;
+                    }
 
-            if (!args.<String>getOne("quantity").isPresent())
-                ; // Do nothing! Just need the next statement to not run if this is the case, really.
-            else
-                quantity = args.<Integer>getOne("quantity").get();
+                    if (statWasValid)
+                    {
+                        Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
 
-			try
-			{
-				slot = args.<Integer>getOne("slot").get();
-				stat = args.<String>getOne("stat").get();
-
-				canContinue = true;
-			}
-			catch (NumberFormatException e)
-			{
-				player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-				player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid arguments! Format is #, text, #."));
-				player.sendMessage(Text.of("\u00A74Usage: \u00A7c/upgrade IVs <slot> <type> (# of times) (confirm)"));
-				player.sendMessage(Text.of(""));
-				player.sendMessage(Text.of("\u00A76Warning: \u00A7eDo not add \"confirm\" unless you're sure!"));
-				player.sendMessage(Text.of("\u00A7eConfirming will immediately take your money, if you have enough!"));
-				player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-			}
-
-			if (canContinue)
-			{
-				if (slot > 6 || slot < 1)
-					player.sendMessage(Text.of("\u00A74Error: \u00A7cSlot number must be between 1 and 6."));
-				else
-				{
-					Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) player));
-					PlayerStorage storageCompleted = (PlayerStorage) storage.get();
-					NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
-
-					if (nbt == null)
-						player.sendMessage(Text.of("\u00A74Error: \u00A7cYou don't have anything in that slot!"));
-					else
-					{
-						String fixedStat = stat, cleanedStat = "Error, please report!";
-						Boolean statWasValid = false;
-						switch (fixedStat.toUpperCase())
-						{
-							case "HP": case "HITPOINTS": case "HEALTH": case "IVHP": case "IV_HP":
-							    fixedStat = "IVHP";
-							    cleanedStat = "HP";
-							    statWasValid = true;
-							    break;
-							case "ATTACK": case "ATK": case "IVATTACK": case "IV_ATTACK":
-							    fixedStat = "IVAttack";
-							    cleanedStat = "Attack";
-							    statWasValid = true;
-							    break;
-                            case "DEFENCE": case "DEFENSE": case "DEF": case "IVDEFENCE": case "IV_DEFENCE":
-                                fixedStat = "IVDefence";
-                                cleanedStat = "Defence";
-                                statWasValid = true;
-                                break;
-                            case "SPECIALATTACK": case "SPATT" : case "SPATK": case "IVSPATT": case "IV_SP_ATT":
-                                fixedStat = "IVSpAtt";
-                                cleanedStat = "Sp. Attack";
-                                statWasValid = true;
-                                break;
-                            case "SPECIALDEFENSE": case "SPECIALDEFENCE": case "SPDEF" : case "SPDEFENCE": case "SPDEFENSE": case "IVSPDEF": case "IV_SP_DEF":
-                                fixedStat = "IVSpDef";
-                                cleanedStat = "Sp. Defence";
-                                statWasValid = true;
-                                break;
-                            case "SPEED": case "SPD": case "IVSPEED" : case "IV_SPEED":
-                                fixedStat = "IVSpeed";
-                                cleanedStat = "Speed";
-                                statWasValid = true;
-                                break;
-						}
-
-                        if (statWasValid)
+                        if (optionalAccount.isPresent())
                         {
-                            Optional<UniqueAccount> economyAccount = PixelUpgrade.economyService.getOrCreateAccount(player.getUniqueId());
+                            UniqueAccount uniqueAccount = optionalAccount.get();
+                            Integer statOld = nbt.getInteger(fixedStat);
+                            Integer IVHP = nbt.getInteger(NbtKeys.IV_HP);
+                            Integer IVATK = nbt.getInteger(NbtKeys.IV_ATTACK);
+                            Integer IVDEF = nbt.getInteger(NbtKeys.IV_DEFENCE);
+                            Integer IVSPATK = nbt.getInteger(NbtKeys.IV_SP_ATT);
+                            Integer IVSPDEF = nbt.getInteger(NbtKeys.IV_SP_DEF);
+                            Integer IVSPD = nbt.getInteger(NbtKeys.IV_SPEED);
+                            Integer totalIVs = IVHP + IVATK + IVDEF + IVSPATK + IVSPDEF + IVSPD;
+                            Integer upgradeTicker = 0;
 
-                            if (economyAccount.isPresent())
+                            if (nbt.getBoolean("isEgg"))
                             {
-                                UniqueAccount economyAccountUnique = economyAccount.get();
-                                BigDecimal balance = economyAccountUnique.getBalance(PixelUpgrade.economyService.getDefaultCurrency());
-                                Integer statOld = nbt.getInteger(fixedStat);
+                                player.sendMessage(Text.of("\u00A74Error: \u00A7cThat's an egg. Wait until it hatches, first."));
 
-                                if (nbt.getBoolean("isEgg"))
-                                    player.sendMessage(Text.of("\u00A74Error: \u00A7cThat's an egg. Wait until it hatches, first."));
-                                else if (statOld >= 31)
-                                    player.sendMessage(Text.of("\u00A74Error: \u00A7cYou cannot upgrade this stat any further, it's maxed!"));
+                                PixelUpgrade.log.info("\u00A7cSetIVs debug: Tried to upgrade an egg. Abort.");
+                            }
+                            else if (totalIVs >= 186)
+                            {
+                                player.sendMessage(Text.of("\u00A74Error: \u00A7cThis Pok\u00E9mon's stats are already perfect!"));
+
+                                PixelUpgrade.log.info("\u00A7cSetIVs debug: Total stats at or above 186. Abort.");
+                            }
+                            else if (statOld >= 31)
+                            {
+                                player.sendMessage(Text.of("\u00A74Error: \u00A7cYou cannot upgrade this stat any further, it's maxed!"));
+
+                                PixelUpgrade.log.info("\u00A7cSetIVs debug: At or above the 31 stat cap. Abort.");
+                            }
+                            else if (nbt.getString("Name").equals("Ditto"))
+                            {
+                                player.sendMessage(Text.of("\u00A74Error: \u00A7cI'm sorry, \u00A74" + player.getName() + "\u00A7c, but I'm afraid I can't do that."));
+
+                                PixelUpgrade.log.info("\u00A7cSetIVs debug: Tried to upgrade a Ditto. Abort.");
+                            }
+                            else
+                            {
+                                Boolean isShiny = false, isLegendary;
+                                if (nbt.getInteger(NbtKeys.IS_SHINY) == 1)
+                                    isShiny = true;
+                                isLegendary = EnumPokemon.legendaries.contains(nbt.getString("Name"));
+
+                                EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
+                                Integer upgradeCount = pokemon.getEntityData().getInteger("upgradeCount");
+
+                                if (isShiny && upgradeCount >= 50)
+                                {
+                                    player.sendMessage(Text.of("\u00A74Error: \u00A7cThis shiny Pok\u00E9mon's upgrade cap has been reached!"));
+
+                                    PixelUpgrade.log.info("\u00A7aSetIVs debug: Hit cap on shiny.");
+                                }
+                                else if (isLegendary && upgradeCount >= 20)
+                                {
+                                    player.sendMessage(Text.of("\u00A74Error: \u00A7cThis legendary Pok\u00E9mon's upgrade cap has been reached!"));
+
+                                    PixelUpgrade.log.info("\u00A7aSetIVs debug: Hit cap on legendary.");
+                                }
+                                else if (upgradeCount >= 30)
+                                {
+                                    player.sendMessage(Text.of("\u00A74Error: \u00A7cThis Pok\u00E9mon's upgrade cap has been reached!"));
+
+                                    PixelUpgrade.log.info("\u00A7aSetIVs debug: Hit cap on ordinary.");
+                                }
                                 else
                                 {
-                                    Boolean isShiny;
-                                        isShiny = nbt.getInteger(NbtKeys.SHINY) == 1;
-
-                                    Boolean isLegendary;
-                                        isLegendary = EnumPokemon.legendaries.contains(nbt.getString("Name"));
-
-                                    Integer upgradeCount = nbt.getInteger("upgradeCount");
-
-                                    if (isLegendary && !isShiny && upgradeCount >= 20)
-                                        player.sendMessage(Text.of("\u00A74Error: \u00A7cThis Pok\u00E9mon's upgrade cap has been reached! (1)"));
-                                    else if (isLegendary && isShiny && upgradeCount >= 40)
-                                        player.sendMessage(Text.of("\u00A74Error: \u00A7cThis Pok\u00E9mon's upgrade cap has been reached! (2)"));
-                                    if (!isShiny && upgradeCount >= 30)
-                                        player.sendMessage(Text.of("\u00A74Error: \u00A7cThis Pok\u00E9mon's upgrade cap has been reached! (3)"));
-                                    else if (isShiny && upgradeCount >= 50)
-                                        player.sendMessage(Text.of("\u00A74Error: \u00A7cThis Pok\u00E9mon's upgrade cap has been reached! (4)"));
-                                    else /// HEAVILY WIP
+                                    if (quantity >= 1)
                                     {
-                                        Integer priceMultiplier = 1, upgradeLimit = 30, costToConfirm = 0;
-                                        if (isShiny)
-                                        {
-                                            priceMultiplier = 3;
-                                            upgradeLimit = 50;
-                                        }
-                                        else if (isLegendary)
-                                        {
-                                            priceMultiplier = 3;
-                                            upgradeLimit = 20;
-                                        }
+                                        Boolean freeUpgrade = false, paidUpgrade = false, singleUpgrade = true;
+                                        BigDecimal costToConfirm = new BigDecimal(0);
+                                        Double priceMultiplier = 1.0, iteratedValue = 0.0;
+                                        Integer remainder;
 
-                                        Integer IVHP = nbt.getInteger(NbtKeys.IV_HP);
-                                        Integer IVATK = nbt.getInteger(NbtKeys.IV_ATTACK);
-                                        Integer IVDEF = nbt.getInteger(NbtKeys.IV_DEFENCE);
-                                        Integer IVSPATK = nbt.getInteger(NbtKeys.IV_SP_ATT);
-                                        Integer IVSPDEF = nbt.getInteger(NbtKeys.IV_SP_DEF);
-                                        Integer IVSPD = nbt.getInteger(NbtKeys.IV_SPEED);
-                                        Integer totalIVs = IVHP + IVATK + IVDEF + IVSPATK + IVSPDEF + IVSPD;
+                                        if (isLegendary)
+                                        {
+                                            remainder = 20 - upgradeCount;
+                                            priceMultiplier = 7.5;
+                                        }
+                                        else if (isShiny)
+                                        {
+                                            remainder = 50 - upgradeCount;
+                                            priceMultiplier = 2.5;
+                                        }
+                                        else
+                                            remainder = 30 - upgradeCount;
 
-                                        Boolean fireElseError = false;
+                                        PixelUpgrade.log.info("\u00A7aSetIVs debug: Remainder is " + remainder + ".");
+
                                         StringBuilder listOfValues = new StringBuilder();
-                                        IntStream.rangeClosed(totalIVs + 1, 186).forEach(listOfValues::append);
-                                        String[] outputArray = listOfValues.toString().split("");
-
-                                        //TODO: Add egg check.
-
-                                        if (quantity == 1)
+                                        for (int i = totalIVs + 1; i <= 186; i++)
                                         {
-                                            String finalValue = outputArray[0];
-                                            player.sendMessage(Text.of("\u00A74OutputArray[0] value: " + finalValue + " | Cost to confirm: " + costToConfirm));
-                                            costToConfirm += Integer.parseInt(finalValue) * (1 * priceMultiplier); 
-                                            player.sendMessage(Text.of("\u00A74Cost to confirm: " + costToConfirm));
+                                            listOfValues.append(i);
+                                            listOfValues.append(",");
+                                        }
+                                        listOfValues.setLength(listOfValues.length() - 1);
+                                        String[] outputArray = listOfValues.toString().split(",");
+
+                                        if (quantity == 1 && Integer.valueOf(outputArray[0]) > 37)
+                                        {
+                                            costToConfirm = BigDecimal.valueOf(Math.pow(Double.valueOf(outputArray[0]), 5) / 900000000);
+                                            remainder--;
+                                            upgradeTicker = 1;
+
+                                            PixelUpgrade.log.info("\u00A7aSetIVs debug: Quantity is one. Remainder: " + remainder + ". Uncorrected price: " + costToConfirm + ".");
                                         }
                                         else if (quantity > 1)
                                         {
                                             if (quantity > (31 - statOld))
                                                 quantity = (31 - statOld);
 
-                                            Integer upgradeTicker = 0, iteratedValue = 0;
+                                            Integer initialRemainder = remainder;
 
-                                            for(String loopValue : outputArray)
+                                            for (String loopValue : outputArray)
                                             {
-                                                if(upgradeTicker > quantity) break;
+                                                if (upgradeTicker >= quantity || upgradeTicker >= initialRemainder)
+                                                    break;
 
-                                                iteratedValue += Integer.valueOf(loopValue);
-                                                player.sendMessage(Text.of("\u00A74LV: " + loopValue + " | LV Int: " + Integer.valueOf(loopValue)));
+                                                // Allow a free upgrade in case a Pokémon has 33% or lower total IVs (two full IVs, or a spread totalling no more than 33%).
+                                                if (Integer.valueOf(loopValue) <= 62)
+                                                    freeUpgrade = true;
+                                                else
+                                                {
+                                                    iteratedValue += Math.pow(Double.valueOf(loopValue), 5) / 900000000;
+                                                    paidUpgrade = true;
+                                                }
+
                                                 upgradeTicker++;
+                                                remainder--;
                                             }
 
-                                            costToConfirm = iteratedValue * (1 * priceMultiplier);
+                                            costToConfirm = BigDecimal.valueOf(iteratedValue * priceMultiplier);
+                                            singleUpgrade = false;
+
+                                            PixelUpgrade.log.info("\u00A7aSetIVs debug: Quantity is " + upgradeTicker + ". Remainder: " + remainder + ". Uncorrected price: " + costToConfirm + ".");
                                         }
                                         else
-                                            fireElseError = true;
+                                        {
+                                            freeUpgrade = true;
+                                            remainder--;
+                                            upgradeTicker = 1;
 
+                                            PixelUpgrade.log.info("\u00A7aSetIVs debug: Else check hit. Remainder: " + remainder + ". Uncorrected price: " + costToConfirm + ".");
+                                        }
 
+                                        costToConfirm = costToConfirm.setScale(2, RoundingMode.HALF_UP);
 
-                                        //outputValues.setText(listOfValues.toString());
+                                        if (commandConfirmed)
+                                        {
+                                            PixelUpgrade.log.info("\u00A7aSetIVs debug: Entering final stage, with confirmation. Current cash: " + uniqueAccount.getBalance(economyService.getDefaultCurrency()) + ".");
 
-                                        if (!commandConfirmed && quantity == 1)
+                                            TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(), costToConfirm, Cause.source(this).build());
+                                            if (transactionResult.getResult() == ResultType.SUCCESS)
+                                            {
+                                                if (isLegendary)
+                                                    upgradeCount = 20 - remainder;
+                                                else if (isShiny)
+                                                    upgradeCount = 50 - remainder;
+                                                else
+                                                    upgradeCount = 30 - remainder;
+
+                                                pokemon.getEntityData().setInteger("upgradeCount", upgradeCount);
+                                                nbt.setInteger(fixedStat, nbt.getInteger(fixedStat) + upgradeTicker);
+
+                                                if (singleUpgrade)
+                                                    player.sendMessage(Text.of("\u00A7bYou've upgraded your \u00A73" + nbt.getString("Name") + "\u00A7b's \u00A73" + cleanedStat + "\u00A7b stat by \u00A73one \u00A7bpoint!"));
+                                                else
+                                                    player.sendMessage(Text.of("\u00A7bYou've upgraded your \u00A73" + nbt.getString("Name") + "\u00A7b's \u00A73" + cleanedStat + "\u00A7b stat by \u00A73" + upgradeTicker + "\u00A7b points!"));
+
+                                                PixelUpgrade.log.info("\u00A7aSetIVs debug: Transaction successful. upgradeCount: " + upgradeCount + ". Took: " + costToConfirm + ".");
+                                            }
+                                            else
+                                            {
+                                                BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
+                                                player.sendMessage(Text.of("\u00A74Error: \u00A7cYou need \u00A74" + balanceNeeded + "\u00A7c more coins to do this."));
+                                                PixelUpgrade.log.info("\u00A7aSetIVs debug: Hit the failed/no funds check. Needed: " + balanceNeeded + ".");
+                                            }
+
+                                            PixelUpgrade.log.info("\u00A7aSetIVs debug: Exiting final stage. Current cash: " + uniqueAccount.getBalance(economyService.getDefaultCurrency()) + ".");
+                                        }
+                                        else
                                         {
                                             player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-                                            player.sendMessage(Text.of("\u00A7dYour Pok\u00E9mon's \u00A75" + cleanedStat + "\u00A7d stat will be upgraded by \u00A75one \u00A7dpoint!"));
-                                            player.sendMessage(Text.of("\u00A7dThis will cost you: \u00A75" + costToConfirm + " coins!"));
-                                            player.sendMessage(Text.of("\u00A7eReady? Use: \u00A76/upgrade ivs " + slot + " " + stat + " confirm"));
+
+                                            if (quantity == 1)
+                                                player.sendMessage(Text.of("\u00A7dThe \u00A75" + cleanedStat + "\u00A7d stat will be upgraded by \u00A75one \u00A7dpoint!"));
+                                            else if (quantity > (31 - statOld))
+                                                player.sendMessage(Text.of("\u00A7dThe \u00A75" + cleanedStat + "\u00A7d stat will be upgraded by \u00A75" + upgradeTicker + "\u00A7d points, up to the cap!"));
+                                            else
+                                                player.sendMessage(Text.of("\u00A7dThe \u00A75" + cleanedStat + "\u00A7d stat will be upgraded by \u00A75" + upgradeTicker + "\u00A7d points!"));
+
+                                            if (freeUpgrade && !paidUpgrade && remainder > 0)
+                                                player.sendMessage(Text.of("\u00A7dThis upgrade will be free due to your Pok\u00E9mon's low stats."));
+                                            else if (freeUpgrade && !paidUpgrade)
+                                                player.sendMessage(Text.of("\u00A7dThis final upgrade will be free due to your Pok\u00E9mon's low stats."));
+                                            else if (freeUpgrade && remainder > 0)
+                                                player.sendMessage(Text.of("\u00A7dThis upgrade costs \u00A75" + costToConfirm + " coins\u00A7d, with low stat compensation."));
+                                            else if (freeUpgrade)
+                                                player.sendMessage(Text.of("\u00A7dThis final upgrade costs \u00A75" + costToConfirm + " coins\u00A7d, with low stat compensation."));
+                                            else if (remainder == 0)
+                                                player.sendMessage(Text.of("\u00A7dThis final upgrade will cost you \u00A75" + costToConfirm + " coins\u00A7d."));
+                                            else
+                                                player.sendMessage(Text.of("\u00A7dThis upgrade will cost you \u00A75" + costToConfirm + " coins\u00A7d."));
+
+                                            if (quantity == 1)
+                                                player.sendMessage(Text.of("\u00A7eReady? Use: \u00A76/upgrade ivs " + slot + " " + stat + " confirm"));
+                                            else
+                                                player.sendMessage(Text.of("\u00A7eReady? Use: \u00A76/upgrade ivs " + slot + " " + stat + " " + upgradeTicker + " confirm"));
                                             player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+
+                                            PixelUpgrade.log.info("\u00A7aSetIVs debug: Final stage, no confirmation. cleanedStat: " + cleanedStat + ". upgradeTicker: " + upgradeTicker + ".");
                                         }
-                                        if (!commandConfirmed && quantity > 1 && quantity <= (186 - totalIVs))
-                                        {
-                                            player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-                                            player.sendMessage(Text.of("\u00A7dYour Pok\u00E9mon's \u00A75" + cleanedStat + "\u00A7d stat will be upgraded by \u00A75" + quantity + "\u00A7d points!"));
-                                            player.sendMessage(Text.of("\u00A7dThis will cost you: \u00A75" + costToConfirm + " coins!"));
-                                            player.sendMessage(Text.of("\u00A7eReady? Use: \u00A76/upgrade ivs " + slot + " " + stat + " # confirm"));
-                                            player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-                                        }
-                                        else if (fireElseError)
-                                        {
-                                            player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-                                            player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid # of times! Please provide a positive number."));
-                                            player.sendMessage(Text.of("\u00A74Usage: \u00A7c/upgrade IVs <slot> <type> (# of times) (confirm)"));
-                                            player.sendMessage(Text.of(""));
-                                            player.sendMessage(Text.of("\u00A76Warning: \u00A7eDo not add \"confirm\" unless you're sure!"));
-                                            player.sendMessage(Text.of("\u00A7eConfirming will immediately take your money, if you have enough!"));
-                                            player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-                                        }
+                                    }
+                                    else
+                                    {
+                                        player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+                                        player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid # of times! Please provide a positive number."));
+                                        player.sendMessage(Text.of("\u00A74Usage: \u00A7c/upgrade IVs <slot> <type> (# of times) (confirm)"));
+                                        player.sendMessage(Text.of(""));
+                                        player.sendMessage(Text.of("\u00A76Warning: \u00A7eDo not add \"confirm\" unless you're sure!"));
+                                        player.sendMessage(Text.of("\u00A7eConfirming will immediately take your money, if you have enough!"));
+                                        player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+
+                                        PixelUpgrade.log.info("\u00A7cSetIVs debug: Invalid # of times provided. Quantity: " + quantity + ".");
                                     }
                                 }
                             }
-                            else
-                            {
-                                player.sendMessage(Text.of("\u00A74Error: \u00A7cYou don't have an economy account. Please contact staff!"));
-                                PixelUpgrade.log.info("\u00A74/upgrade IVs:" + player.getName() + "\u00A7c does not have an economy account, aborting. May be a bug?");
-                            }
                         }
-						else
-						{
-							player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-							player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid parameter. See below!"));
-							player.sendMessage(Text.of(""));
-							player.sendMessage(Text.of("\u00A72Valid types: \u00A7aHP, Attack, Defence, SpecialAttack, SpecialDefense, Speed"));
-							player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-						}
-					}
-				}
-			}
-		}
-		return CommandResult.success();
+                        else
+                        {
+                            player.sendMessage(Text.of("\u00A74Error: \u00A7cNo economy account found. Please contact staff!"));
+
+                            PixelUpgrade.log.info("\u00A74SetIVs debug:" + player.getName() + "\u00A7c does not have an economy account, aborting. May be a bug?");
+                        }
+                    }
+                    else
+                    {
+                        player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+                        player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid parameter. See below!"));
+                        player.sendMessage(Text.of(""));
+                        player.sendMessage(Text.of("\u00A72Valid types: \u00A7aHP, Attack, Defence, SpAtt, SpDef, Speed"));
+                        player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+
+                        PixelUpgrade.log.info("\u00A7cSetIVs debug: Invalid parameter. Given: " + stat + ".");
+                    }
+                }
+            }
+        }
+        PixelUpgrade.log.info("\u00A7bSetIVs debug: Command ended.");
+        return CommandResult.success();
 	}
 }

@@ -92,51 +92,51 @@ public class Force implements CommandExecutor
 					    	String fixedStat = stat;
 					    	switch (fixedStat.toUpperCase())
 					    	{
-					    		case "IVHP":
-					    		    fixedStat = "IVHP";
-					    		    break;
-					    		case "IVATTACK":
-					    		    fixedStat = "IVAttack";
-					    		    break;
-					    		case "IVDEFENCE":
-					    		    fixedStat = "IVDefence";
-					    		    break;
-					    		case "IVSPATT":
-					    		    fixedStat = "IVSpAtt";
-					    		    break;
-					    		case "IVSPDEF":
-					    		    fixedStat = "IVSpDef";
-					    		    break;
-					    		case "IVSPEED":
-					    		    fixedStat = "IVSpeed";
-					    		    break;
-					    		case "EVHP":
-					    		    fixedStat = "EVHP";
-					    		    break;
-					    		case "EVATTACK":
-					    		    fixedStat = "EVAttack";
-					    		    break;
-					    		case "EVDEFENCE":
-					    		    fixedStat = "EVDefence";
-					    		    break;
-					    		case "EVSPECIALATTACK": case "EVSPATT": case "EVSPATK":
-					    		    fixedStat = "EVSpecialAttack";
-					    		    break;
-					    		case "EVSPECIALDEFENCE": case "EVSPDEF":
-					    		    fixedStat = "EVSpecialDefence";
-					    		    break;
-					    		case "EVSPEED":
-					    		    fixedStat = "EVSpeed";
-					    		    break;
-					    		case "GROWTH":
-					    		    fixedStat = "Growth";
-					    		    break;
-					    		case "NATURE":
-					    		    fixedStat = "Nature";
-					    		    break;
-					    		case "ISSHINY": case "IS_SHINY":
-					    		    fixedStat = "IsShiny";
-					    		    break;
+								case "IVHP":
+									fixedStat = "IVHP";
+									break;
+								case "IVATTACK":
+									fixedStat = "IVAttack";
+									break;
+								case "IVDEFENCE": case "IVDEFENSE":
+									fixedStat = "IVDefence";
+									break;
+								case "IVSPATT": case "IVSPATK":
+									fixedStat = "IVSpAtt";
+									break;
+								case "IVSPDEF":
+									fixedStat = "IVSpDef";
+									break;
+								case "IVSPEED":
+									fixedStat = "IVSpeed";
+									break;
+								case "EVHP":
+									fixedStat = "EVHP";
+									break;
+								case "EVATTACK":
+									fixedStat = "EVAttack";
+									break;
+								case "EVDEFENCE": case "EVDEFENSE":
+									fixedStat = "EVDefence";
+									break;
+								case "EVSPECIALATTACK": case "EVSPATT": case "EVSPATK":
+									fixedStat = "EVSpecialAttack";
+									break;
+								case "EVSPECIALDEFENCE": case "EVSPDEF":
+									fixedStat = "EVSpecialDefence";
+									break;
+								case "EVSPEED":
+									fixedStat = "EVSpeed";
+									break;
+								case "GROWTH": case "SIZE":
+									fixedStat = "Growth";
+									break;
+								case "NATURE":
+									fixedStat = "Nature";
+									break;
+								case "ISSHINY": case "IS_SHINY":
+									fixedStat = "IsShiny";
+									break;
 					    	}
 					    	
 					    	System.out.println("\u00A72Params: \u00A7c" + stat + " " + fixedStat);
@@ -150,8 +150,8 @@ public class Force implements CommandExecutor
 					    	else if (Arrays.asList(validNature).contains(fixedStat) && intValue > 24 || Arrays.asList(validNature).contains(fixedStat) && intValue < 0)
 					    		player.sendMessage(Text.of("\u00A74Error: \u00A7cNature value out of bounds. Valid range: 0 ~ 24"));
                             else if (Arrays.asList(validBools).contains(fixedStat) && intValue > 1 || Arrays.asList(validBools).contains(fixedStat) && intValue < 0)
-                                player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid boolean value. Valid values: 0 (false) or 1 (true)"));
-					    	else if (Arrays.asList(validIVs).contains(fixedStat) || Arrays.asList(validEVs).contains(fixedStat) || Arrays.asList(validGrowth).contains(fixedStat) || Arrays.asList(validNature).contains(fixedStat))
+                                player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid boolean value. Valid values: 0 (=false) or 1 (=true)"));
+					    	else if (Arrays.asList(validIVs).contains(fixedStat) || Arrays.asList(validEVs).contains(fixedStat) || Arrays.asList(validGrowth).contains(fixedStat) || Arrays.asList(validNature).contains(fixedStat) || Arrays.asList(validBools).contains(fixedStat))
 					    	{				    	
 						                nbt.setInteger(fixedStat, intValue);
 						                player.sendMessage(Text.of("\u00A7aValue changed! Not showing? Reconnect to update your client."));
@@ -196,28 +196,28 @@ public class Force implements CommandExecutor
 					    		case "IVHP":
 					    		    fixedStat = "IVHP";
 					    		    break;
-					    		case "IVATTACK" :
+					    		case "IVATTACK":
 					    		    fixedStat = "IVAttack";
 					    		    break;
-					    		case "IVDEFENCE" :
+					    		case "IVDEFENCE": case "IVDEFENSE":
 					    		    fixedStat = "IVDefence";
 					    		    break;
-					    		case "IVSPATT" :
+					    		case "IVSPATT": case "IVSPATK":
 					    		    fixedStat = "IVSpAtt";
 					    		    break;
-					    		case "IVSPDEF" :
+					    		case "IVSPDEF":
 					    		    fixedStat = "IVSpDef";
 					    		    break;
-					    		case "IVSPEED" :
+					    		case "IVSPEED":
 					    		    fixedStat = "IVSpeed";
 					    		    break;
-					    		case "EVHP" :
+					    		case "EVHP":
 					    		    fixedStat = "EVHP";
 					    		    break;
-					    		case "EVATTACK" :
+					    		case "EVATTACK":
 					    		    fixedStat = "EVAttack";
 					    		    break;
-					    		case "EVDEFENCE" :
+					    		case "EVDEFENCE": case "EVDEFENSE":
 					    		    fixedStat = "EVDefence";
 					    		    break;
                                 case "EVSPECIALATTACK": case "EVSPATT": case "EVSPATK":
@@ -226,10 +226,10 @@ public class Force implements CommandExecutor
                                 case "EVSPECIALDEFENCE": case "EVSPDEF":
                                     fixedStat = "EVSpecialDefence";
                                     break;
-					    		case "EVSPEED" :
+					    		case "EVSPEED":
 					    		    fixedStat = "EVSpeed";
 					    		    break;
-					    		case "GROWTH" :
+					    		case "GROWTH": case "SIZE":
 					    		    fixedStat = "Growth";
 					    		    break;
                                 case "ISSHINY": case "IS_SHINY":
@@ -253,7 +253,7 @@ public class Force implements CommandExecutor
 			            	else
 			            		nbt.setString(stat, value);
 
-			            	player.sendMessage(Text.of("\u00A7aThe new value has been written. A reconnect may be necessary."));
+			            	player.sendMessage(Text.of("\u00A7aThe new value was written, a reconnect may be necessary."));
 			            }
 			        }
 			    }
