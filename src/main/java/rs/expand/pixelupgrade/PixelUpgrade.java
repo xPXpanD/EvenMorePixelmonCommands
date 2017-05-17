@@ -69,6 +69,7 @@ import rs.expand.pixelupgrade.commands.ForceHatch;
 //TODO: Upgrade token support.
 //TODO: Configuration.
 //TODO: Maybe make a heal command with a hour-long cooldown.
+//TODO: Make a /pokesell, maybe one that sells based on ball worth.
 
 @Plugin(id = "pixelupgrade",
         name = "PixelUpgrade",
@@ -109,7 +110,7 @@ public class PixelUpgrade
             .executor(new GetStats())
 
             .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.player(Text.of("target"))),
+                    GenericArguments.optionalWeak(GenericArguments.playerOrSource(Text.of("target"))),
                     GenericArguments.optional(GenericArguments.integer(Text.of("slot"))))
 
             .build();
@@ -120,7 +121,7 @@ public class PixelUpgrade
             .executor(new ForceHatch())
 
             .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.player(Text.of("target"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target or slot"))),
                     GenericArguments.optional(GenericArguments.integer(Text.of("slot"))))
 
             .build();
