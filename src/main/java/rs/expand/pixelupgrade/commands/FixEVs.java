@@ -20,17 +20,41 @@ import com.pixelmonmod.pixelmon.storage.PlayerStorage;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
+import rs.expand.pixelupgrade.PixelUpgrade;
 
 public class FixEVs implements CommandExecutor
 {
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
 	{
-		Integer slot = args.<Integer>getOne("slot").get();
-		Player player = (Player) src;
+	    Player player = (Player) src;
+	    Boolean canContinue = true;
+	    Integer slot = 0;
 
-	    if (slot > 6 || slot < 1)
-	    	player.sendMessage(Text.of("\u00A74Error: \u00A7cSlot number must be between 1 and 6."));
-	    else
+        PixelUpgrade.log.info("\u00A7bFixEVs: Called by player " + player.getName() + ", starting command.");
+
+        if (!args.<String>getOne("slot").isPresent())
+        {
+            player.sendMessage(Text.of("\u00A74Error: \u00A7cNo parameters found. Please provide a slot."));
+            player.sendMessage(Text.of("\u00A74Usage: \u00A7c/fixEVs <slot, 1-6>"));
+
+            canContinue = false;
+        }
+        else
+        {
+            String slotString = args.<String>getOne("slot").get();
+
+            if (slotString.matches("^[1-6]"))
+                slot = Integer.parseInt(args.<String>getOne("slot").get());
+            else
+            {
+                player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid slot value. Valid values are 1-6."));
+                player.sendMessage(Text.of("\u00A74Usage: \u00A7c/hatch (optional target) <slot, 1-6>"));
+
+                canContinue = false;
+            }
+        }
+
+	    if (canContinue)
 	    {
 	    	Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) player));
             PlayerStorage storageCompleted = (PlayerStorage)storage.get();

@@ -18,39 +18,44 @@ public class Upgrade implements CommandExecutor
 		player.sendMessage(Text.of("\u00A75---------------- \u00A7dPixelUpgrade commands \u00A75----------------"));
 		if (player.hasPermission("pixelupgrade.commands.fixevs"))
 		{
-			player.sendMessage(Text.of("\u00A76/fixevs <slot>\u00A7f -- \u00A7eFixes EVs above 252 (which are wasted)."));
+			player.sendMessage(Text.of("\u00A76/fixevs <slot, 1-6>"));
+			player.sendMessage(Text.of("\u00A7f --> \u00A7eEVs above 252 are wasted. This command fixes them!"));
 			hasNoPermission = false;
 		}
 		if (player.hasPermission("pixelupgrade.commands.resetevs"))
 		{
-            player.sendMessage(Text.of("\u00A76/resetevs <slot> (confirm)\u00A7f -- \u00A7eResets all EVs to zero."));
+            player.sendMessage(Text.of("\u00A76/resetevs <slot, 1-6> [confirmation flag]"));
+            player.sendMessage(Text.of("\u00A7f --> \u00A7eResets all EVs down to zero, when confirmed."));
             hasNoPermission = false;
         }
         if (player.hasPermission("pixelupgrade.commands.getstats"))
         {
-            player.sendMessage(Text.of("\u00A76/getstats (player) <slot>\u00A7f -- \u00A7eLists many of a Pok\u00E9mon's stats."));
+            player.sendMessage(Text.of("\u00A76/getstats or /gs (player name, optional) <slot, 1-6>"));
+            player.sendMessage(Text.of("\u00A7f --> \u00A7eLists many of a Pok\u00E9mon's stats in one place."));
             hasNoPermission = false;
         }
 		if (player.hasPermission("pixelupgrade.commands.ivs"))
         {
-            player.sendMessage(Text.of("\u00A76/upgrade ivs <slot> <IV> (value) (confirm)\u00A7f -- \u00A7eRaise IVs for cash."));
-            hasNoPermission = false;
-        }
-        if (player.hasPermission("pixelupgrade.commands.resize"))
-        {
-            player.sendMessage(Text.of("\u00A76/upgrade size <slot> <size> (confirm)\u00A7f -- \u00A7eBuy size changes on shinies/legendaries."));
+            player.sendMessage(Text.of("\u00A76/upgrade ivs <slot, 1-6> <IV type> (amount of times, optional)"));
+            player.sendMessage(Text.of("\u00A7f --> \u00A7eBuy upgrades to your Pok\u00E9mon's IVs, making them stronger."));
             hasNoPermission = false;
         }
 		if (player.hasPermission("pixelupgrade.commands.admin.force"))
         {
-            player.sendMessage(Text.of("\u00A76/upgrade force <slot> <type> <value> (-f)\u00A7f -- \u00A7eChange anything!"));
+            player.sendMessage(Text.of("\u00A76/upgrade force <slot, 1-6> <stat> <value> [force flag]"));
+            player.sendMessage(Text.of("\u00A7f --> \u00A7eChange supported stats freely, or pass -f and go crazy."));
+            hasNoPermission = false;
+        }
+        if (player.hasPermission("pixelupgrade.commands.admin.forcehatch"))
+        {
+            player.sendMessage(Text.of("\u00A76/forcehatch <slot or target player> (slot, 1-6, optional)"));
+            player.sendMessage(Text.of("\u00A7f --> \u00A7eHatch eggs instantly, without any cooldowns!"));
             hasNoPermission = false;
         }
 
         if (hasNoPermission)
-        {
             player.sendMessage(Text.of("\u00A7cYou do not have any of this plugin's permissions. Sorry!"));
-        }
+
 		player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
 
 		return CommandResult.success();

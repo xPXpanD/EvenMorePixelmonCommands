@@ -1,6 +1,5 @@
 package rs.expand.pixelupgrade.commands;
 
-import java.util.Objects;
 import java.util.Optional;
 
 import org.spongepowered.api.Sponge;
@@ -30,47 +29,76 @@ public class ForceHatch implements CommandExecutor
         Boolean targetAcquired = false, canContinue = true;
         Integer slot = 0;
 
-        PixelUpgrade.log.info("\u00A7bHatch debug: Called by player " + player.getName() + ", starting command.");
+        PixelUpgrade.log.info("\u00A7bForceHatch: Called by player " + player.getName() + ", starting command.");
 
         if (args.<String>getOne("target or slot").isPresent())
         {
             targetString = args.<String>getOne("target or slot").get();
             target = Sponge.getServer().getPlayer(targetString);
-            if (targetString.matches("^[1-6]") && targetString.length() == 1)
-                slot = Integer.parseInt(targetString);
-            else if (targetString.length() == 1)
+            if (!args.<String>getOne("slot").isPresent())
             {
-                player.sendMessage(Text.of("\u00A74Error: \u00A7cSlot must be a number between 1 and 6."));
+                if (targetString.matches("^[1-6]"))
+                    slot = Integer.parseInt(targetString);
+                else
+                {
+                    if (target.isPresent())
+                    {
+                        player.sendMessage(Text.of("\u00A74Error: \u00A7cFound a target, but no slot was provided."));
+                        player.sendMessage(Text.of("\u00A74Usage: \u00A7c/hatch (optional target) <slot, 1-6>"));
+                    }
+                    else if (targetString.matches("^[0-9].*"))
+                    {
+                        player.sendMessage(Text.of("\u00A74Error: \u00A7cSlot value out of bounds! Valid values are 1-6."));
+                        player.sendMessage(Text.of("\u00A74Usage: \u00A7c/hatch (optional target) <slot, 1-6>"));
+                    }
+                    else
+                    {
+                        player.sendMessage(Text.of("\u00A74Error: \u00A7cYour target does not exist, or is offline."));
+                        player.sendMessage(Text.of("\u00A74Usage: \u00A7c/hatch (optional target) <slot, 1-6>"));
+                    }
+
+                    canContinue = false;
+                }
+            }
+            else if (!target.isPresent())
+            {
+                player.sendMessage(Text.of("\u00A74Error: \u00A7cYour target does not exist, or is offline."));
+                player.sendMessage(Text.of("\u00A74Usage: \u00A7c/hatch (optional target) <slot, 1-6>"));
+
                 canContinue = false;
             }
             else
             {
-                if (target.isPresent() && !player.equals(target.get()))
-                    targetAcquired = true;
-                else if (target.isPresent() && player.equals(target.get()))
-                    player.sendMessage(Text.of("\u00A75Info: \u00A7dYou don't need to provide your own name. Ignoring!"));
-                else
+                try
                 {
-                    player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-                    player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid target name or slot number!"));
-                    player.sendMessage(Text.of("\u00A74Usage: \u00A7c/hatch (target) <slot>"));
-                    player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+                    slot = Integer.parseInt(args.<String>getOne("slot").get());
+
+                    if (!(slot < 7 && slot > 0))
+                    {
+                        player.sendMessage(Text.of("\u00A74Error: \u00A7cSlot value out of bounds. Valid values are 1-6."));
+                        player.sendMessage(Text.of("\u00A74Usage: \u00A7c/hatch (optional target) <slot, 1-6>"));
+
+                        canContinue = false;
+                    }
+                    else
+                        targetAcquired = true;
+                }
+                catch (Exception F)
+                {
+                    player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid slot value. Valid values are 1-6."));
+                    player.sendMessage(Text.of("\u00A74Usage: \u00A7c/hatch (optional target) <slot, 1-6>"));
 
                     canContinue = false;
                 }
             }
         }
-
-        if (args.<Integer>getOne("slot").isPresent() && canContinue)
-            slot = args.<Integer>getOne("slot").get();
-
-        if (!(slot < 7 && slot > 0) && canContinue)
+        else
         {
-            player.sendMessage(Text.of("\u00A74Error: \u00A7cSlot number must be between 1 and 6."));
+            player.sendMessage(Text.of("\u00A74Error: \u00A7cNo parameters found. Please provide at least a slot."));
+            player.sendMessage(Text.of("\u00A74Usage: \u00A7c/hatch (optional target) <slot, 1-6>"));
+
             canContinue = false;
         }
-
-        PixelUpgrade.log.info("\u00A7aHatch debug: Finished input checks.");
 
         if (canContinue)
         {
@@ -89,17 +117,12 @@ public class ForceHatch implements CommandExecutor
                 player.sendMessage(Text.of("\u00A74Error: \u00A7cThat's not an egg. Don't hatch actual Pok\u00E9mon, kids!"));
             else
             {
-                PixelUpgrade.log.info("\u00A7aHatch debug: Attempting to hatch...");
-
                 //nbt.setString("originalTrainer", player.getName());
                 nbt.setBoolean("isEgg", false);
                 storageCompleted.changePokemonAndAssignID(slot - 1, nbt);
                 player.sendMessage(Text.of("\u00A7eCongratulations, it's a healthy baby \u00A76" + nbt.getString("Name") + "\u00A7e!"));
-
-                PixelUpgrade.log.info("\u00A7aHatch debug: Hatch done.");
             }
         }
-        PixelUpgrade.log.info("\u00A7bHatch debug: Command ended.");
         return CommandResult.success();
     }
 }

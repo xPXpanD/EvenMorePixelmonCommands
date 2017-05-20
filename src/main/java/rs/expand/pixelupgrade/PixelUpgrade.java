@@ -17,11 +17,13 @@
  * 0.5.4: Capped /upgrade force a bunch more, added a bypass flag. Made the main /upgrade info command.
  * 0.5.5: Sanity checking, part 3. Re-added other person support on /getstats, removed a ton of useless checks, migrated to IntelliJ IDEA.
  * 0.5.6: Flipped parameters so that people can now run either /getstats SLOT or /getstats PLAYER SLOT, instead of the awkward /getstats SLOT PLAYER. Cleanup.
- * 0.6: Started work on /upgrade ivs.
+ * 0.6: Started work on /upgrade ivs. First launch version! Private, for now.
  * 0.7: /upgrade IVs logic pretty much done, still have to make it take cash and set stats. Got a nice exponential scale going.
  * 0.8: /upgrade IVs done!!
  * 0.8.1: Added a remote listing of all party Pokémon to /getstats, if the slot asked for is empty.
  * 0.8.2: Added /forcehatch.
+ * 0.9: Full internal rewrite of the way command arguments are handled. No more issues with certain characters causing massive console errors!
+ * 1.0: Everything fixed up. Second launch version! Still private.
  *
  * Enjoy the plugin!
  */
@@ -35,6 +37,7 @@ package rs.expand.pixelupgrade;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
@@ -48,12 +51,11 @@ import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.text.Text;
 
 import rs.expand.pixelupgrade.commands.GetStats;
-// import rs.expand.pixelupgrade.commands.ShowStats;
+import rs.expand.pixelupgrade.commands.FuseDitto;
 import rs.expand.pixelupgrade.commands.FixEVs;
-import rs.expand.pixelupgrade.commands.Force;
-import rs.expand.pixelupgrade.commands.SetIVs;
+import rs.expand.pixelupgrade.commands.AdminForce;
+import rs.expand.pixelupgrade.commands.UpgradeIVs;
 import rs.expand.pixelupgrade.commands.ResetEVs;
-// import rs.expand.pixelupgrade.commands.Resize;
 import rs.expand.pixelupgrade.commands.Upgrade;
 import rs.expand.pixelupgrade.commands.ForceHatch;
 
@@ -63,17 +65,18 @@ import rs.expand.pixelupgrade.commands.ForceHatch;
 //TODO: Make an /eggsee with economy tie-in?
 //TODO: Consider making a shiny upgrade command and a gender swapper.
 //TODO: Make a Pokémon transfer command.
-//TODO: Check for doubled switch statements.
 //TODO: Check if setting stuff to player entities works, too!
 //TODO: Ditto fusion.
 //TODO: Upgrade token support.
 //TODO: Configuration.
 //TODO: Maybe make a heal command with a hour-long cooldown.
 //TODO: Make a /pokesell, maybe one that sells based on ball worth.
+//TODO: Make an hidden ability switcher, maybe.
+//TODO: Make an admin toggle command for stuff like shinyness.
 
 @Plugin(id = "pixelupgrade",
         name = "PixelUpgrade",
-        version = "0.8.2",
+        version = "1.0",
         dependencies = @Dependency(id = "pixelmon"),
         authors = "XpanD", // + a bunch of help from Xenoyia and breakthrough snippets from NickImpact (NBT editing) and Proxying (writing to entities in a way that saves when the entity is re-made)!
         description = "Change just about everything Pok\u00E9mon-related, and pay people with Pok\u00E9dollars!")
@@ -100,7 +103,19 @@ public class PixelUpgrade
             .executor(new FixEVs())
 
             .arguments(
-                    GenericArguments.onlyOne(GenericArguments.integer(Text.of("slot"))))
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))))
+
+            .build();
+
+    CommandSpec fuseditto = CommandSpec.builder()
+            .description(Text.of("Lowers EVs that are above 252, avoiding wasted points."))
+            .permission("pixelupgrade.commands.fuseditto")
+            .executor(new FuseDitto())
+
+            .arguments(
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot1"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot2"))),
+                    GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
 
             .build();
 
@@ -110,8 +125,8 @@ public class PixelUpgrade
             .executor(new GetStats())
 
             .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.playerOrSource(Text.of("target"))),
-                    GenericArguments.optional(GenericArguments.integer(Text.of("slot"))))
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target or slot"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))))
 
             .build();
 
@@ -122,7 +137,7 @@ public class PixelUpgrade
 
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("target or slot"))),
-                    GenericArguments.optional(GenericArguments.integer(Text.of("slot"))))
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))))
 
             .build();
 
@@ -142,33 +157,33 @@ public class PixelUpgrade
             .executor(new ResetEVs())
 
             .arguments(
-                    GenericArguments.onlyOne(GenericArguments.integer(Text.of("slot"))),
-                    GenericArguments.optional(GenericArguments.string(Text.of("confirm"))))
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
+                    GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
 
             .build();
 
-    CommandSpec setivs = CommandSpec.builder()
+    CommandSpec upgradeivs = CommandSpec.builder()
             .description(Text.of("Enables upgrading of Pok\u00E9mon IVs."))
-            .permission("pixelupgrade.commands.setivs")
-            .executor(new SetIVs())
+            .permission("pixelupgrade.commands.upgradeivs")
+            .executor(new UpgradeIVs())
 
             .arguments(
-                    GenericArguments.optional(GenericArguments.integer(Text.of("slot"))),
-                    GenericArguments.optional(GenericArguments.string(Text.of("stat"))),
-                    GenericArguments.optionalWeak(GenericArguments.integer(Text.of("quantity"))),
-                    GenericArguments.optional(GenericArguments.string(Text.of("confirm"))))
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("stat"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("quantity"))),
+                    GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
 
             .build();
 
-    CommandSpec force = CommandSpec.builder()
+    CommandSpec adminforce = CommandSpec.builder()
             .description(Text.of("Allows free setting of IVs and EVs on any Pok\u00E9mon."))
             .permission("pixelupgrade.commands.admin.force")
-            .executor(new Force())
+            .executor(new AdminForce())
 
             .arguments(
-                    GenericArguments.optional(GenericArguments.string(Text.of("slot"))),
-                    GenericArguments.optional(GenericArguments.string(Text.of("stat"))),
-                    GenericArguments.optional(GenericArguments.string(Text.of("value"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("stat"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("value"))),
                     GenericArguments.flags().flag("f").buildWith(GenericArguments.none()))
 
             .build();
@@ -189,8 +204,8 @@ public class PixelUpgrade
             .description(Text.of("Shows the PixelUpgrade subcommand listing."))
             .executor(new Upgrade())
 
-            .child(setivs, "ivs", "iv", "setivs", "setiv")
-            .child(force, "force", "forcestats", "forceivs", "adminivs", "forceiv", "adminiv", "forceevs", "adminevs", "forceev", "adminev")
+            .child(upgradeivs, "ivs", "iv", "setivs", "setiv", "upgradeiv", "upgradeivs")
+            .child(adminforce, "force", "forcestats", "forceivs", "forceiv", "forceevs", "adminforce", "forceev")
             // .child(resize, "resize", "changesize", "size")
 
             .build();
@@ -204,6 +219,7 @@ public class PixelUpgrade
         // Sponge.getCommandManager().register(this, showstats, "showstats", "showstat", "printstats", "printstat");
         Sponge.getCommandManager().register(this, fixevs, "fixevs", "fixev");
         Sponge.getCommandManager().register(this, resetevs, "resetevs", "resetev");
+        Sponge.getCommandManager().register(this, fuseditto, "fuse", "fuseditto", "fusedittos", "amalgamate");
 
         log.info("\u00A7aCommands registered!");
     }
@@ -214,34 +230,3 @@ public class PixelUpgrade
         log.info("\u00A7bAll systems nominal.");
     }
 }
-
-/*switch (typeNumPrimary) // 0, 2, 5, 6, 7, 8, a, b, c, d, e, f are used -- 1, 3, 4 and 9 are free -- 3 or 9 would be most legible, 9 may be best.
-{
-	case 0: typeNamePrimary = "\u00A7fNormal"; break;
-	case 1: typeNamePrimary = "\u00A7cFire"; break;
-	case 2: typeNamePrimary = "\u00A7bWater"; break;
-	case 3: typeNamePrimary = "\u00A7eElectric"; break;
-	case 4: typeNamePrimary = "\u00A7aGrass"; break;
-	case 5: typeNamePrimary = "\u00A7bIce"; break;
-	case 6: typeNamePrimary = "\u00A7fFighting"; break;
-	case 7: typeNamePrimary = "\u00A72Poison"; break;
-	case 8: typeNamePrimary = "\u00A76Ground"; break;
-	case 9: typeNamePrimary = "\u00A77Flying"; break;
-	case 10: typeNamePrimary = "\u00A7dPsychic"; break;
-	case 11: typeNamePrimary = "\u00A72Bug"; break;
-	case 12: typeNamePrimary = "\u00A76Rock"; break;
-	case 13: typeNamePrimary = "\u00A75Ghost"; break;
-	case 14: typeNamePrimary = "\u00A75Dragon"; break;
-	case 15: typeNamePrimary = "\u00A78Dark"; break;
-	case 16: typeNamePrimary = "\u00A77Steel"; break;
-	case 17: typeNamePrimary = "\u00A70Unknown..."; break;
-	case 18: typeNamePrimary = "\u00A7dFairy"; break;
-	default: typeNamePrimary = "\u00A7fN/A"; break;
-}*/ // Fun fact: PRIMARY_TYPE and SECONDARY_TYPE do not seem to return any proper values. They always return 0 and -1 respectively.
-
-/* if (!(src instanceof Player))
-        	System.out.println("\u00A74Error: \u00A7cYou can't run this command from the console."); */
-
-		/* String ivs1 = String.valueOf(IVHP + " \u00A72HP \u00A7e|\u00A7a " + IVATK + " \u00A72ATK \u00A7e|\u00A7a " + IVDEF + " \u00A72DEF \u00A7e|\u00A7a ");
-                        String ivs2 = String.valueOf(IVSPATK + " \u00A72Sp. ATK \u00A7e|\u00A7a " + IVSPDEF + " \u00A72Sp. DEF \u00A7e|\u00A7a " + IVSPD + " \u00A72SPD"); */
-// \u00A7eIVs: \u00A7a" +

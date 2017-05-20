@@ -23,26 +23,48 @@ public class ResetEVs implements CommandExecutor
 {
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
 	{
-		Integer slot = args.<Integer>getOne("slot").get();
-		Player player = (Player) src;
-		Boolean commandConfirmed = false;
-		String confirm;
+        Player player = (Player) src;
+        Boolean canContinue = true, commandConfirmed = false;
+        Integer slot = 0;
 
-        PixelUpgrade.log.info("\u00A7bResetEVs debug: Called by player " + player.getName() + ", starting command.");
+        PixelUpgrade.log.info("\u00A7bResetEVs: Called by player " + player.getName() + ", starting command.");
 
-		if (args.<String>getOne("confirm").isPresent())
+        if (!args.<String>getOne("slot").isPresent())
         {
-            confirm = args.<String>getOne("confirm").get();
+            player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+            player.sendMessage(Text.of("\u00A74Error: \u00A7cNo parameters found. Please provide a slot."));
+            player.sendMessage(Text.of("\u00A74Usage: \u00A7c/resetEVs <slot, 1-6> (-c to confirm)"));
+            player.sendMessage(Text.of(""));
+            player.sendMessage(Text.of("\u00A76Warning: \u00A7eAdd the -c flag only if you're sure!"));
+            player.sendMessage(Text.of("\u00A7eConfirming will immediately reset your EVs to zero!"));
+            player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
 
-            if (confirm.contains("confirm") || confirm.contains("true"))
-                commandConfirmed = true;
+            canContinue = false;
+        }
+        else
+        {
+            String slotString = args.<String>getOne("slot").get();
 
-            PixelUpgrade.log.info("\u00A7aResetEVs debug: Confirm argument passed. Argument: " + confirm);
+            if (slotString.matches("^[1-6]"))
+                slot = Integer.parseInt(args.<String>getOne("slot").get());
+            else
+            {
+                player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+                player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid slot value. Valid values are 1-6."));
+                player.sendMessage(Text.of("\u00A74Usage: \u00A7c/resetEVs <slot, 1-6> (-c to confirm)"));
+                player.sendMessage(Text.of(""));
+                player.sendMessage(Text.of("\u00A76Warning: \u00A7eAdd the -c flag only if you're sure!"));
+                player.sendMessage(Text.of("\u00A7eConfirming will immediately reset your EVs to zero!"));
+                player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+
+                canContinue = false;
+            }
         }
 
-	    if (slot > 6 || slot < 1)
-	    	player.sendMessage(Text.of("\u00A74Error: \u00A7cSlot number must be between 1 and 6."));
-	    else
+        if (args.hasAny("c"))
+            commandConfirmed = true;
+
+	    if (canContinue)
 	    {
 	    	Optional<PlayerStorage> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) player));
 			PlayerStorage storageCompleted = storage.get();
@@ -79,12 +101,9 @@ public class ResetEVs implements CommandExecutor
 			else
 			{
 				player.sendMessage(Text.of("\u00A75Warning: \u00A7dYou are about to reset this Pok\u00E9mon's EVs to zero!"));
-				player.sendMessage(Text.of("\u00A7bIf you want to continue, type: \u00A7a/resetevs " + slot + " confirm"));
-
-                PixelUpgrade.log.info("\u00A7aResetEVs debug: Command not confirmed by player, aborting.");
+				player.sendMessage(Text.of("\u00A7bIf you want to continue, type: \u00A7a/resetevs " + slot + " -confirm"));
 			}
 	    }
-        PixelUpgrade.log.info("\u00A7bResetEVs debug: Command ended.");
 	    return CommandResult.success();
 	}
 }
