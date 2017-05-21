@@ -48,7 +48,7 @@ public class FixEVs implements CommandExecutor
             else
             {
                 player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid slot value. Valid values are 1-6."));
-                player.sendMessage(Text.of("\u00A74Usage: \u00A7c/hatch (optional target) <slot, 1-6>"));
+                player.sendMessage(Text.of("\u00A74Usage: \u00A7c/fixEVs <slot, 1-6>"));
 
                 canContinue = false;
             }

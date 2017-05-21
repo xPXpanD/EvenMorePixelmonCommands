@@ -34,7 +34,7 @@ public class Upgrade implements CommandExecutor
             player.sendMessage(Text.of("\u00A7f --> \u00A7eLists many of a Pok\u00E9mon's stats in one place."));
             hasNoPermission = false;
         }
-		if (player.hasPermission("pixelupgrade.commands.ivs"))
+		if (player.hasPermission("pixelupgrade.commands.upgradeivs"))
         {
             player.sendMessage(Text.of("\u00A76/upgrade ivs <slot, 1-6> <IV type> (amount of times, optional)"));
             player.sendMessage(Text.of("\u00A7f --> \u00A7eBuy upgrades to your Pok\u00E9mon's IVs, making them stronger."));

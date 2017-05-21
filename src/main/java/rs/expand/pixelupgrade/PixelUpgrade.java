@@ -23,7 +23,8 @@
  * 0.8.1: Added a remote listing of all party Pokémon to /getstats, if the slot asked for is empty.
  * 0.8.2: Added /forcehatch.
  * 0.9: Full internal rewrite of the way command arguments are handled. No more issues with certain characters causing massive console errors!
- * 1.0: Everything fixed up. Second launch version! Still private.
+ * 1.0: Everything fixed up. Second launch version! Started private, became public after we decided to shut down server.
+ * 1.1: Early work on FuseDitto. Text fixes.
  *
  * Enjoy the plugin!
  */
@@ -76,7 +77,7 @@ import rs.expand.pixelupgrade.commands.ForceHatch;
 
 @Plugin(id = "pixelupgrade",
         name = "PixelUpgrade",
-        version = "1.0",
+        version = "1.1",
         dependencies = @Dependency(id = "pixelmon"),
         authors = "XpanD", // + a bunch of help from Xenoyia and breakthrough snippets from NickImpact (NBT editing) and Proxying (writing to entities in a way that saves when the entity is re-made)!
         description = "Change just about everything Pok\u00E9mon-related, and pay people with Pok\u00E9dollars!")
@@ -113,8 +114,8 @@ public class PixelUpgrade
             .executor(new FuseDitto())
 
             .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot1"))),
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot2"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target slot"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("sacrifice slot"))),
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
 
             .build();

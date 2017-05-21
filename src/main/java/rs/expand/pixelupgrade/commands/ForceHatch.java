@@ -44,17 +44,17 @@ public class ForceHatch implements CommandExecutor
                     if (target.isPresent())
                     {
                         player.sendMessage(Text.of("\u00A74Error: \u00A7cFound a target, but no slot was provided."));
-                        player.sendMessage(Text.of("\u00A74Usage: \u00A7c/hatch (optional target) <slot, 1-6>"));
+                        player.sendMessage(Text.of("\u00A74Usage: \u00A7c/forcehatch (optional target) <slot, 1-6>"));
                     }
                     else if (targetString.matches("^[0-9].*"))
                     {
                         player.sendMessage(Text.of("\u00A74Error: \u00A7cSlot value out of bounds! Valid values are 1-6."));
-                        player.sendMessage(Text.of("\u00A74Usage: \u00A7c/hatch (optional target) <slot, 1-6>"));
+                        player.sendMessage(Text.of("\u00A74Usage: \u00A7c/forcehatch (optional target) <slot, 1-6>"));
                     }
                     else
                     {
                         player.sendMessage(Text.of("\u00A74Error: \u00A7cYour target does not exist, or is offline."));
-                        player.sendMessage(Text.of("\u00A74Usage: \u00A7c/hatch (optional target) <slot, 1-6>"));
+                        player.sendMessage(Text.of("\u00A74Usage: \u00A7c/forcehatch (optional target) <slot, 1-6>"));
                     }
 
                     canContinue = false;
@@ -63,7 +63,7 @@ public class ForceHatch implements CommandExecutor
             else if (!target.isPresent())
             {
                 player.sendMessage(Text.of("\u00A74Error: \u00A7cYour target does not exist, or is offline."));
-                player.sendMessage(Text.of("\u00A74Usage: \u00A7c/hatch (optional target) <slot, 1-6>"));
+                player.sendMessage(Text.of("\u00A74Usage: \u00A7c/forcehatch (optional target) <slot, 1-6>"));
 
                 canContinue = false;
             }
@@ -76,7 +76,7 @@ public class ForceHatch implements CommandExecutor
                     if (!(slot < 7 && slot > 0))
                     {
                         player.sendMessage(Text.of("\u00A74Error: \u00A7cSlot value out of bounds. Valid values are 1-6."));
-                        player.sendMessage(Text.of("\u00A74Usage: \u00A7c/hatch (optional target) <slot, 1-6>"));
+                        player.sendMessage(Text.of("\u00A74Usage: \u00A7c/forcehatch (optional target) <slot, 1-6>"));
 
                         canContinue = false;
                     }
@@ -86,7 +86,7 @@ public class ForceHatch implements CommandExecutor
                 catch (Exception F)
                 {
                     player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid slot value. Valid values are 1-6."));
-                    player.sendMessage(Text.of("\u00A74Usage: \u00A7c/hatch (optional target) <slot, 1-6>"));
+                    player.sendMessage(Text.of("\u00A74Usage: \u00A7c/forcehatch (optional target) <slot, 1-6>"));
 
                     canContinue = false;
                 }
@@ -95,7 +95,7 @@ public class ForceHatch implements CommandExecutor
         else
         {
             player.sendMessage(Text.of("\u00A74Error: \u00A7cNo parameters found. Please provide at least a slot."));
-            player.sendMessage(Text.of("\u00A74Usage: \u00A7c/hatch (optional target) <slot, 1-6>"));
+            player.sendMessage(Text.of("\u00A74Usage: \u00A7c/forcehatch (optional target) <slot, 1-6>"));
 
             canContinue = false;
         }
