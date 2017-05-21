@@ -147,6 +147,7 @@ public class GetStats implements CommandExecutor
                     Integer natureNum = nbt.getInteger(NbtKeys.NATURE);
                     Integer growthNum = nbt.getInteger(NbtKeys.GROWTH);
                     Integer genderNum = nbt.getInteger(NbtKeys.GENDER);
+                    Integer fuseCount = pokemon.getEntityData().getInteger("fuseCount");
                     Integer upgradeCount = pokemon.getEntityData().getInteger("upgradeCount");
                     String natureName, plusVal, minusVal, growthName, genderName;
                     String ivs1, ivs2, ivs3, ivs4, ivs5, ivs6;
@@ -433,7 +434,19 @@ public class GetStats implements CommandExecutor
 
                         player.sendMessage(Text.of("\u00A7eGender: \u00A7f" + genderName + "\u00A7f | \u00A7eSize: \u00A7f" + growthName + "\u00A7f | \u00A7eNature: \u00A7f" + natureName + "\u00A7e (\u00A7a" + plusVal + "\u00A7e / \u00A7c" + minusVal + "\u00A7e)"));
 
-                        if (isShiny && upgradeCount != 0 && upgradeCount < 60)
+                        if (isShiny && nbt.getString("Name").equals("Ditto") && fuseCount != 0 && fuseCount < 10)
+                            player.sendMessage(Text.of("\u00A76This shiny Ditto has been fused \u00A7c" + pokemon.getEntityData().getInteger("fuseCount") + "\u00A76/\u00A7c10 \u00A76times."));
+                        else if (isShiny && nbt.getString("Name").equals("Ditto") && fuseCount == 0)
+                            player.sendMessage(Text.of("\u00A76This shiny Ditto can be fused \u00A7c10 \u00A76more times!"));
+                        else if (isShiny && nbt.getString("Name").equals("Ditto"))
+                            player.sendMessage(Text.of("\u00A76This shiny Ditto cannot be fused any further!"));
+                        else if (!isShiny && nbt.getString("Name").equals("Ditto") && fuseCount != 0 && fuseCount < 10)
+                            player.sendMessage(Text.of("\u00A76This Ditto has been fused \u00A7c" + pokemon.getEntityData().getInteger("fuseCount") + "\u00A76/\u00A7c5 \u00A76times."));
+                        else if (!isShiny && nbt.getString("Name").equals("Ditto") && fuseCount == 0)
+                            player.sendMessage(Text.of("\u00A76This Ditto can be fused \u00A7c5 \u00A76more times!"));
+                        else if (!isShiny && nbt.getString("Name").equals("Ditto"))
+                            player.sendMessage(Text.of("\u00A76This Ditto cannot be fused any further!"));
+                        else if (isShiny && upgradeCount != 0 && upgradeCount < 60)
                             player.sendMessage(Text.of("\u00A76This shiny Pok\u00E9mon has been upgraded \u00A7c" + pokemon.getEntityData().getInteger("upgradeCount") + "\u00A76/\u00A7c60 \u00A76times."));
                         else if (isShiny && upgradeCount == 0)
                             player.sendMessage(Text.of("\u00A76This shiny Pok\u00E9mon can be upgraded \u00A7c60 \u00A76more times!"));
@@ -479,7 +492,19 @@ public class GetStats implements CommandExecutor
 
                         player.sendMessage(Text.of("\u00A7eGender: \u00A7f" + genderName + "\u00A7f | \u00A7eSize: \u00A7f" + growthName + "\u00A7f | \u00A7eNature: \u00A7f" + natureName + "\u00A7e (\u00A7a" + plusVal + "\u00A7e / \u00A7c" + minusVal + "\u00A7e)"));
 
-                        if (isShiny && upgradeCount != 0 && upgradeCount < 60)
+                        if (isShiny && nbt.getString("Name").equals("Ditto") && fuseCount != 0 && fuseCount < 10)
+                            player.sendMessage(Text.of("\u00A76This shiny Ditto has been fused \u00A7c" + pokemon.getEntityData().getInteger("fuseCount") + "\u00A76/\u00A7c10 \u00A76times."));
+                        else if (isShiny && nbt.getString("Name").equals("Ditto") && fuseCount == 0)
+                            player.sendMessage(Text.of("\u00A76This shiny Ditto can be fused \u00A7c10 \u00A76more times!"));
+                        else if (isShiny && nbt.getString("Name").equals("Ditto"))
+                            player.sendMessage(Text.of("\u00A76This shiny Ditto cannot be fused any further!"));
+                        else if (!isShiny && nbt.getString("Name").equals("Ditto") && fuseCount != 0 && fuseCount < 10)
+                            player.sendMessage(Text.of("\u00A76This Ditto has been fused \u00A7c" + pokemon.getEntityData().getInteger("fuseCount") + "\u00A76/\u00A7c5 \u00A76times."));
+                        else if (!isShiny && nbt.getString("Name").equals("Ditto") && fuseCount == 0)
+                            player.sendMessage(Text.of("\u00A76This Ditto can be fused \u00A7c5 \u00A76more times!"));
+                        else if (!isShiny && nbt.getString("Name").equals("Ditto"))
+                            player.sendMessage(Text.of("\u00A76This Ditto cannot be fused any further!"));
+                        else if (isShiny && upgradeCount != 0 && upgradeCount < 60)
                             player.sendMessage(Text.of("\u00A76This shiny Pok\u00E9mon has been upgraded \u00A7c" + pokemon.getEntityData().getInteger("upgradeCount") + "\u00A76/\u00A7c60 \u00A76times."));
                         else if (isShiny && upgradeCount == 0)
                             player.sendMessage(Text.of("\u00A76This shiny Pok\u00E9mon can be upgraded \u00A7c60 \u00A76more times!"));

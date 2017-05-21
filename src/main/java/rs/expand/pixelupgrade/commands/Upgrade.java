@@ -40,10 +40,10 @@ public class Upgrade implements CommandExecutor
             player.sendMessage(Text.of("\u00A7f --> \u00A7eLists many of a Pok\u00E9mon's stats in one place."));
             hasNoPermission = false;
         }
-        if (player.hasPermission("pixelupgrade.commands.fuseditto"))
+        if (player.hasPermission("pixelupgrade.commands.dittofusion"))
         {
-            player.sendMessage(Text.of("\u00A76TODO"));
-            player.sendMessage(Text.of("\u00A7f --> \u00A7eTODO"));
+            player.sendMessage(Text.of("\u00A76/fuse <target slot> <sacrifice slot> [confirmation flag]"));
+            player.sendMessage(Text.of("\u00A7f --> \u00A7eSacrifice one Ditto to make another stronger, for a price."));
             hasNoPermission = false;
         }
 		if (player.hasPermission("pixelupgrade.commands.admin.force"))

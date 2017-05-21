@@ -24,7 +24,8 @@
  * 0.8.2: Added /forcehatch.
  * 0.9: Full internal rewrite of the way command arguments are handled. No more issues with certain characters causing massive console errors!
  * 1.0: Everything fixed up. Second launch version! Started private, became public after we decided to shut down server.
- * 1.1: Early work on FuseDitto. Text fixes.
+ * 1.1: Made /dittofusion. Yes, Ditto Fusion. The most kick-ass command.
+ * 1.2: Added caps to /dittofusion, and made it triple cash amounts when using a pre-upgraded sacrifice.
  *
  * Enjoy the plugin!
  */
@@ -52,7 +53,7 @@ import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.text.Text;
 
 import rs.expand.pixelupgrade.commands.GetStats;
-import rs.expand.pixelupgrade.commands.FuseDitto;
+import rs.expand.pixelupgrade.commands.DittoFusion;
 import rs.expand.pixelupgrade.commands.FixEVs;
 import rs.expand.pixelupgrade.commands.AdminForce;
 import rs.expand.pixelupgrade.commands.UpgradeIVs;
@@ -77,7 +78,7 @@ import rs.expand.pixelupgrade.commands.ForceHatch;
 
 @Plugin(id = "pixelupgrade",
         name = "PixelUpgrade",
-        version = "1.1",
+        version = "1.2",
         dependencies = @Dependency(id = "pixelmon"),
         authors = "XpanD", // + a bunch of help from Xenoyia and breakthrough snippets from NickImpact (NBT editing) and Proxying (writing to entities in a way that saves when the entity is re-made)!
         description = "Change just about everything Pok\u00E9mon-related, and pay people with Pok\u00E9dollars!")
@@ -108,10 +109,10 @@ public class PixelUpgrade
 
             .build();
 
-    CommandSpec fuseditto = CommandSpec.builder()
-            .description(Text.of("Lowers EVs that are above 252, avoiding wasted points."))
-            .permission("pixelupgrade.commands.fuseditto")
-            .executor(new FuseDitto())
+    CommandSpec dittofusion = CommandSpec.builder()
+            .description(Text.of("Fuse Dittos together for economy balance, improving their stats!"))
+            .permission("pixelupgrade.commands.dittofusion")
+            .executor(new DittoFusion())
 
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("target slot"))),
@@ -132,7 +133,7 @@ public class PixelUpgrade
             .build();
 
     CommandSpec forcehatch = CommandSpec.builder()
-            .description(Text.of("Shows a comprehensive list of Pok\u00E9mon stats, such as EVs/IVs/natures."))
+            .description(Text.of("Forcefully hatches a remote or local Pok\u00E9mon egg."))
             .permission("pixelupgrade.commands.admin.forcehatch")
             .executor(new ForceHatch())
 
@@ -164,7 +165,7 @@ public class PixelUpgrade
             .build();
 
     CommandSpec upgradeivs = CommandSpec.builder()
-            .description(Text.of("Enables upgrading of Pok\u00E9mon IVs."))
+            .description(Text.of("Enables upgrading of Pok\u00E9mon IVs, for economy balance."))
             .permission("pixelupgrade.commands.upgradeivs")
             .executor(new UpgradeIVs())
 
@@ -220,7 +221,7 @@ public class PixelUpgrade
         // Sponge.getCommandManager().register(this, showstats, "showstats", "showstat", "printstats", "printstat");
         Sponge.getCommandManager().register(this, fixevs, "fixevs", "fixev");
         Sponge.getCommandManager().register(this, resetevs, "resetevs", "resetev");
-        Sponge.getCommandManager().register(this, fuseditto, "fuse", "fuseditto", "fusedittos", "amalgamate");
+        Sponge.getCommandManager().register(this, dittofusion, "fuse", "dittofuse", "dittofusion", "fuseditto", "fusedittos", "amalgamate");
 
         log.info("\u00A7aCommands registered!");
     }

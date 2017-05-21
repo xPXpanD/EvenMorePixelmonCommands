@@ -362,15 +362,14 @@ public class UpgradeIVs implements CommandExecutor
                                         player.sendMessage(Text.of("\u00A7aYou paid \u00A72" + costToConfirm + "\u00A7a, fully upgrading the Pok\u00E9mon in the process."));
 
                                     PixelUpgrade.log.info("\u00A7aUpgradeIVs debug: Transaction successful. upgradeCount: " + upgradeCount + ". Took: " + costToConfirm + ".");
+                                    PixelUpgrade.log.info("\u00A7aDittoFusion debug: Exiting final stage. Current cash: " + uniqueAccount.getBalance(economyService.getDefaultCurrency()) + ".");
                                 }
                                 else
                                 {
                                     BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
                                     player.sendMessage(Text.of("\u00A74Error: \u00A7cYou need \u00A74" + balanceNeeded + "\u00A7c more coins to do this."));
-                                    PixelUpgrade.log.info("\u00A7aUpgradeIVs debug: Hit the failed/no funds check. Needed: " + balanceNeeded + ".");
+                                    PixelUpgrade.log.info("\u00A7aDittoFusion debug: Hit the failed/no funds check, exiting final stage. Needed: " + balanceNeeded + ".");
                                 }
-
-                                PixelUpgrade.log.info("\u00A7aUpgradeIVs debug: Exiting final stage. Current cash: " + uniqueAccount.getBalance(economyService.getDefaultCurrency()) + ".");
                             }
                             else
                             {
@@ -392,14 +391,14 @@ public class UpgradeIVs implements CommandExecutor
                                 else if (freeUpgrade)
                                     player.sendMessage(Text.of("\u00A7bThis final upgrade costs \u00A73" + costToConfirm + " coins\u00A7b, with low stat compensation."));
                                 else if (remainder == 0)
-                                    player.sendMessage(Text.of("\u00A7bThis final upgrade will cost you \u00A73" + costToConfirm + " coins\u00A7b."));
+                                    player.sendMessage(Text.of("\u00A7bThis final upgrade will cost you \u00A73" + costToConfirm + " coins\u00A7b upon confirmation."));
                                 else
-                                    player.sendMessage(Text.of("\u00A7bThis upgrade will cost you \u00A73" + costToConfirm + " coins\u00A7b."));
+                                    player.sendMessage(Text.of("\u00A7bThis upgrade will cost you \u00A73" + costToConfirm + " coins\u00A7b upon confirmation."));
 
                                 if (quantity == 1)
-                                    player.sendMessage(Text.of("\u00A7eReady? Use: \u00A76/upgrade ivs " + slot + " " + stat + " -c"));
+                                    player.sendMessage(Text.of("\u00A7aReady? Use: \u00A72/upgrade ivs " + slot + " " + stat + " -c"));
                                 else
-                                    player.sendMessage(Text.of("\u00A7eReady? Use: \u00A76/upgrade ivs " + slot + " " + stat + " " + upgradeTicker + " -c"));
+                                    player.sendMessage(Text.of("\u00A7aReady? Use: \u00A72/upgrade ivs " + slot + " " + stat + " " + upgradeTicker + " -c"));
                                 player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
 
                                 PixelUpgrade.log.info("\u00A7aUpgradeIVs debug: Final stage, no confirmation. cleanedStat: " + cleanedStat + ". upgradeTicker: " + upgradeTicker + ".");
