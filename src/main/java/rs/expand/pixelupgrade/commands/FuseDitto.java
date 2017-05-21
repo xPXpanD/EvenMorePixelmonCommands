@@ -31,7 +31,7 @@ public class FuseDitto implements CommandExecutor
         if (!args.<String>getOne("target slot").isPresent())
         {
             player.sendMessage(Text.of("\u00A74Error: \u00A7cNo slots were provided. Please provide two valid slots."));
-            player.sendMessage(Text.of("\u00A74Usage: \u00A7c/fuseditto <target slot, 1-6> <sacrifice slot, 1-6> (-c to confirm)"));
+            player.sendMessage(Text.of("\u00A74Usage: \u00A7c/fuseditto <target slot> <sacrifice slot> (-c to confirm)"));
 
             canContinue = false;
         }
@@ -44,7 +44,7 @@ public class FuseDitto implements CommandExecutor
             else
             {
                 player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid value on target slot. Valid values are 1-6."));
-                player.sendMessage(Text.of("\u00A74Usage: \u00A7c/fuseditto <target slot, 1-6> <sacrifice slot, 1-6> (-c to confirm)"));
+                player.sendMessage(Text.of("\u00A74Usage: \u00A7c/fuseditto <target slot> <sacrifice slot> (-c to confirm)"));
 
                 canContinue = false;
             }
@@ -53,7 +53,7 @@ public class FuseDitto implements CommandExecutor
         if (!args.<String>getOne("sacrifice slot").isPresent() && canContinue)
         {
             player.sendMessage(Text.of("\u00A74Error: \u00A7cNo sacrifice slot provided. Please provide two valid slots."));
-            player.sendMessage(Text.of("\u00A74Usage: \u00A7c/fuseditto <target slot, 1-6> <sacrifice slot, 1-6> (-c to confirm)"));
+            player.sendMessage(Text.of("\u00A74Usage: \u00A7c/fuseditto <target slot> <sacrifice slot> (-c to confirm)"));
 
             canContinue = false;
         }
@@ -62,11 +62,11 @@ public class FuseDitto implements CommandExecutor
             String slotString = args.<String>getOne("sacrifice slot").get();
 
             if (slotString.matches("^[1-6]"))
-                slot1 = Integer.parseInt(args.<String>getOne("sacrifice slot").get());
+                slot2 = Integer.parseInt(args.<String>getOne("sacrifice slot").get());
             else
             {
                 player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid value on sacrifice slot. Valid values are 1-6."));
-                player.sendMessage(Text.of("\u00A74Usage: \u00A7c/fuseditto <target slot, 1-6> <sacrifice slot, 1-6> (-c to confirm)"));
+                player.sendMessage(Text.of("\u00A74Usage: \u00A7c/fuseditto <target slot> <sacrifice slot> (-c to confirm)"));
 
                 canContinue = false;
             }

@@ -28,16 +28,22 @@ public class Upgrade implements CommandExecutor
             player.sendMessage(Text.of("\u00A7f --> \u00A7eResets all EVs down to zero, when confirmed."));
             hasNoPermission = false;
         }
+        if (player.hasPermission("pixelupgrade.commands.upgradeivs"))
+        {
+            player.sendMessage(Text.of("\u00A76/upgrade ivs <slot, 1-6> <IV type> (amount of times, optional)"));
+            player.sendMessage(Text.of("\u00A7f --> \u00A7eBuy upgrades for your Pok\u00E9mon's stats!"));
+            hasNoPermission = false;
+        }
         if (player.hasPermission("pixelupgrade.commands.getstats"))
         {
             player.sendMessage(Text.of("\u00A76/getstats or /gs (player name, optional) <slot, 1-6>"));
             player.sendMessage(Text.of("\u00A7f --> \u00A7eLists many of a Pok\u00E9mon's stats in one place."));
             hasNoPermission = false;
         }
-		if (player.hasPermission("pixelupgrade.commands.upgradeivs"))
+        if (player.hasPermission("pixelupgrade.commands.fuseditto"))
         {
-            player.sendMessage(Text.of("\u00A76/upgrade ivs <slot, 1-6> <IV type> (amount of times, optional)"));
-            player.sendMessage(Text.of("\u00A7f --> \u00A7eBuy upgrades to your Pok\u00E9mon's IVs, making them stronger."));
+            player.sendMessage(Text.of("\u00A76TODO"));
+            player.sendMessage(Text.of("\u00A7f --> \u00A7eTODO"));
             hasNoPermission = false;
         }
 		if (player.hasPermission("pixelupgrade.commands.admin.force"))
