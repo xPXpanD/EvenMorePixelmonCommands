@@ -40,6 +40,12 @@ public class Upgrade implements CommandExecutor
             player.sendMessage(Text.of("\u00A7f --> \u00A7eLists many of a Pok\u00E9mon's stats in one place."));
             hasNoPermission = false;
         }
+        if (player.hasPermission("pixelupgrade.commands.checkegg"))
+        {
+            player.sendMessage(Text.of("\u00A76/checkegg <slot, 1-6> [confirmation flag]"));
+            player.sendMessage(Text.of("\u00A7f --> \u00A7eCheck an egg to see what's inside! Costs some coins."));
+            hasNoPermission = false;
+        }
         if (player.hasPermission("pixelupgrade.commands.dittofusion"))
         {
             player.sendMessage(Text.of("\u00A76/fuse <target slot> <sacrifice slot> [confirmation flag]"));

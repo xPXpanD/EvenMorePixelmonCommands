@@ -190,6 +190,10 @@ public class UpgradeIVs implements CommandExecutor
 
             if (nbt == null)
                 player.sendMessage(Text.of("\u00A74Error: \u00A7cYou don't have anything in that slot!"));
+            else if (nbt.getBoolean("isEgg"))
+                player.sendMessage(Text.of("\u00A74Error: \u00A7cThat's an egg. Wait until it hatches, first."));
+            else if (nbt.getString("Name").equals("Ditto"))
+                player.sendMessage(Text.of("\u00A74Error: \u00A7cI'm sorry, \u00A74" + player.getName() + "\u00A7c, but I'm afraid I can't do that."));
             else
             {
                 Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
@@ -207,30 +211,10 @@ public class UpgradeIVs implements CommandExecutor
                     Integer totalIVs = IVHP + IVATK + IVDEF + IVSPATK + IVSPDEF + IVSPD;
                     Integer upgradeTicker = 0;
 
-                    if (nbt.getBoolean("isEgg"))
-                    {
-                        player.sendMessage(Text.of("\u00A74Error: \u00A7cThat's an egg. Wait until it hatches, first."));
-
-                        PixelUpgrade.log.info("\u00A7cUpgradeIVs debug: Tried to upgrade an egg. Abort.");
-                    }
-                    else if (totalIVs >= 186)
-                    {
+                    if (totalIVs >= 186)
                         player.sendMessage(Text.of("\u00A74Error: \u00A7cThis Pok\u00E9mon's stats are already perfect!"));
-
-                        PixelUpgrade.log.info("\u00A7cUpgradeIVs debug: Total stats at or above 186. Abort.");
-                    }
                     else if (statOld >= 31)
-                    {
                         player.sendMessage(Text.of("\u00A74Error: \u00A7cYou cannot upgrade this stat any further, it's maxed!"));
-
-                        PixelUpgrade.log.info("\u00A7cUpgradeIVs debug: At or above the 31 stat cap. Abort.");
-                    }
-                    else if (nbt.getString("Name").equals("Ditto"))
-                    {
-                        player.sendMessage(Text.of("\u00A74Error: \u00A7cI'm sorry, \u00A74" + player.getName() + "\u00A7c, but I'm afraid I can't do that."));
-
-                        PixelUpgrade.log.info("\u00A7cUpgradeIVs debug: Tried to upgrade a Ditto. Abort.");
-                    }
                     else
                     {
                         Boolean isShiny, isLegendary, isBaby = false;

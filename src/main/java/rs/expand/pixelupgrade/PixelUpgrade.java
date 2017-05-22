@@ -26,6 +26,7 @@
  * 1.0: Everything fixed up. Second launch version! Started private, became public after we decided to shut down server.
  * 1.1: Made /dittofusion. Yes, Ditto Fusion. The most kick-ass command.
  * 1.2: Added caps to /dittofusion, and made it triple cash amounts when using a pre-upgraded sacrifice.
+ * 1.3: Added a /checkegg. Config stuff and explicit stat showing toggle coming soon, hopefully.
  *
  * Enjoy the plugin!
  */
@@ -58,6 +59,7 @@ import rs.expand.pixelupgrade.commands.FixEVs;
 import rs.expand.pixelupgrade.commands.AdminForce;
 import rs.expand.pixelupgrade.commands.UpgradeIVs;
 import rs.expand.pixelupgrade.commands.ResetEVs;
+import rs.expand.pixelupgrade.commands.CheckEgg;
 import rs.expand.pixelupgrade.commands.Upgrade;
 import rs.expand.pixelupgrade.commands.ForceHatch;
 
@@ -85,7 +87,7 @@ import rs.expand.pixelupgrade.commands.ForceHatch;
 
 public class PixelUpgrade
 {
-    public static final String name = "PixelUpgrade";
+    private static final String name = "PixelUpgrade";
     public static final Logger log = LoggerFactory.getLogger(name);
     public static EconomyService economyService;
 
@@ -99,7 +101,7 @@ public class PixelUpgrade
     //TODO: Check public static final String PC_RAVE = "rave";
     //TODO: Check public static final String PIXEL_DOLLARS = "pixelDollars";
 
-    CommandSpec fixevs = CommandSpec.builder()
+    private CommandSpec fixevs = CommandSpec.builder()
             .description(Text.of("Lowers EVs that are above 252, avoiding wasted points."))
             .permission("pixelupgrade.commands.fixevs")
             .executor(new FixEVs())
@@ -109,7 +111,7 @@ public class PixelUpgrade
 
             .build();
 
-    CommandSpec dittofusion = CommandSpec.builder()
+    private CommandSpec dittofusion = CommandSpec.builder()
             .description(Text.of("Fuse Dittos together for economy balance, improving their stats!"))
             .permission("pixelupgrade.commands.dittofusion")
             .executor(new DittoFusion())
@@ -121,7 +123,7 @@ public class PixelUpgrade
 
             .build();
 
-    CommandSpec getstats = CommandSpec.builder()
+    private CommandSpec getstats = CommandSpec.builder()
             .description(Text.of("Shows a comprehensive list of Pok\u00E9mon stats, such as EVs/IVs/natures."))
             .permission("pixelupgrade.commands.getstats")
             .executor(new GetStats())
@@ -132,7 +134,7 @@ public class PixelUpgrade
 
             .build();
 
-    CommandSpec forcehatch = CommandSpec.builder()
+    private CommandSpec forcehatch = CommandSpec.builder()
             .description(Text.of("Forcefully hatches a remote or local Pok\u00E9mon egg."))
             .permission("pixelupgrade.commands.admin.forcehatch")
             .executor(new ForceHatch())
@@ -153,7 +155,18 @@ public class PixelUpgrade
 
             .build();*/
 
-    CommandSpec resetevs = CommandSpec.builder()
+    private CommandSpec checkegg = CommandSpec.builder()
+            .description(Text.of("Checks the contents of an egg. Can be set to vague or explicit."))
+            .permission("pixelupgrade.commands.checkegg")
+            .executor(new CheckEgg())
+
+            .arguments(
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
+                    GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
+
+            .build();
+
+    private CommandSpec resetevs = CommandSpec.builder()
             .description(Text.of("Completely wipes a local Pok\u00E9mon's EVs."))
             .permission("pixelupgrade.commands.resetevs")
             .executor(new ResetEVs())
@@ -164,7 +177,7 @@ public class PixelUpgrade
 
             .build();
 
-    CommandSpec upgradeivs = CommandSpec.builder()
+    private CommandSpec upgradeivs = CommandSpec.builder()
             .description(Text.of("Enables upgrading of Pok\u00E9mon IVs, for economy balance."))
             .permission("pixelupgrade.commands.upgradeivs")
             .executor(new UpgradeIVs())
@@ -177,7 +190,7 @@ public class PixelUpgrade
 
             .build();
 
-    CommandSpec adminforce = CommandSpec.builder()
+    private CommandSpec adminforce = CommandSpec.builder()
             .description(Text.of("Allows free setting of IVs and EVs on any Pok\u00E9mon."))
             .permission("pixelupgrade.commands.admin.force")
             .executor(new AdminForce())
@@ -202,7 +215,7 @@ public class PixelUpgrade
 
             .build(); */
 
-    CommandSpec upgrade = CommandSpec.builder()
+    private CommandSpec upgrade = CommandSpec.builder()
             .description(Text.of("Shows the PixelUpgrade subcommand listing."))
             .executor(new Upgrade())
 
@@ -222,6 +235,7 @@ public class PixelUpgrade
         Sponge.getCommandManager().register(this, fixevs, "fixevs", "fixev");
         Sponge.getCommandManager().register(this, resetevs, "resetevs", "resetev");
         Sponge.getCommandManager().register(this, dittofusion, "fuse", "dittofuse", "dittofusion", "fuseditto", "fusedittos", "amalgamate");
+        Sponge.getCommandManager().register(this, checkegg, "checkegg", "eggcheck", "eggsee");
 
         log.info("\u00A7aCommands registered!");
     }

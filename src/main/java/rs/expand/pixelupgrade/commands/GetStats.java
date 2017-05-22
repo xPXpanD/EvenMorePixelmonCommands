@@ -121,7 +121,7 @@ public class GetStats implements CommandExecutor
             else if (nbt != null)
             {
                 if (nbt.getBoolean("isEgg"))
-                    player.sendMessage(Text.of("\u00A74Error: \u00A7cSorry, but even I cannot see what's inside an egg."));
+                    player.sendMessage(Text.of("\u00A74Error: \u00A7cI cannot peer into an egg. Check out \u00A74/checkegg\u00A7c."));
                 else
                 {
                     EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
