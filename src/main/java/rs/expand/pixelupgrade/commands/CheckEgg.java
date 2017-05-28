@@ -2,7 +2,11 @@ package rs.expand.pixelupgrade.commands;
 
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
+import net.minecraft.world.World;
+
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -18,153 +22,447 @@ import org.spongepowered.api.text.Text;
 import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
+import com.pixelmonmod.pixelmon.config.PixelmonEntityList;
+import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 
 import rs.expand.pixelupgrade.PixelUpgrade;
+import rs.expand.pixelupgrade.configs.CheckEggConfig;
 
 import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
-
-//TODO: Add reveal mode to config.
-//TODO: Quick check for whether an egg has been previously checked.
 
 public class CheckEgg implements CommandExecutor
 {
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
     {
-        Player player = (Player) src;
-        Boolean canContinue = true, commandConfirmed = false;
-        Integer slot = 0;
-        BigDecimal costToConfirm = new BigDecimal(25);
-
-        PixelUpgrade.log.info("\u00A7bCheckEgg: Called by player " + player.getName() + ", starting command.");
-
-        if (!args.<String>getOne("slot").isPresent())
+        if (src instanceof Player)
         {
-            player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-            player.sendMessage(Text.of("\u00A74Error: \u00A7cNo parameters found. Please provide a slot."));
-            player.sendMessage(Text.of("\u00A74Usage: \u00A7c/checkegg <slot, 1-6> (-c to confirm)"));
-            player.sendMessage(Text.of(""));
-            player.sendMessage(Text.of("\u00A76Warning: \u00A7eAdd the -c flag only if you're sure!"));
-            player.sendMessage(Text.of("\u00A7eConfirming will cost you \u00A76" + costToConfirm + "\u00A7e coins."));
-            player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+            Boolean recheckIsFree, explicitReveal;
+            Integer debugVerbosityMode, commandCost;
 
-            canContinue = false;
-        }
-        else
-        {
-            String slotString = args.<String>getOne("slot").get();
+            debugVerbosityMode = checkConfigInt("debugVerbosityMode", false);
+            explicitReveal = checkConfigBool("explicitReveal");
+            commandCost = checkConfigInt("commandCost", false);
+            recheckIsFree = checkConfigBool("recheckIsFree");
 
-            if (slotString.matches("^[1-6]"))
-                slot = Integer.parseInt(args.<String>getOne("slot").get());
+            if (recheckIsFree == null || explicitReveal == null || debugVerbosityMode == null || commandCost == null)
+            {
+                printToLog(0, "Error parsing config! Make sure everything is valid, or regenerate it.");
+                src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid config for command! Please report this to staff."));
+            }
             else
             {
-                player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-                player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid slot value. Valid values are 1-6."));
-                player.sendMessage(Text.of("\u00A74Usage: \u00A7c/checkegg <slot, 1-6> (-c to confirm)"));
-                player.sendMessage(Text.of(""));
-                player.sendMessage(Text.of("\u00A76Warning: \u00A7eAdd the -c flag only if you're sure!"));
-                player.sendMessage(Text.of("\u00A7eConfirming will cost you \u00A76" + costToConfirm + "\u00A7e coins."));
-                player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+                printToLog(2, "Called by player \u00A73" + src.getName() + "\u00A7b. Starting!");
 
-                canContinue = false;
-            }
-        }
+                Integer slot = 0;
+                String targetString = null, slotString;
+                Boolean targetAcquired = false, commandConfirmed = false, canContinue = false, hasOtherPerm = false;
+                Player player = (Player) src, target = player;
 
-        if (args.hasAny("c"))
-            commandConfirmed = true;
+                if (src.hasPermission("pixelupgrade.command.getstats.other"))
+                    hasOtherPerm = true;
 
-        if (canContinue)
-        {
-            Optional<PlayerStorage> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) player));
-            PlayerStorage storageCompleted = storage.get();
-            NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
-
-            if (nbt == null)
-                player.sendMessage(Text.of("\u00A74Error: \u00A7cYou don't have anything in that slot!"));
-            else if (!nbt.getBoolean("isEgg"))
-                player.sendMessage(Text.of("\u00A74Error: \u00A7cThis command only works on eggs! Check out \u00A74/getstats\u00A7c."));
-            else if (commandConfirmed)
-            {
-                Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
-
-                if (optionalAccount.isPresent())
+                if (args.<String>getOne("target or slot").isPresent())
                 {
-                    UniqueAccount uniqueAccount = optionalAccount.get();
-                    TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(), costToConfirm, Cause.source(this).build());
-
-                    if (transactionResult.getResult() == ResultType.SUCCESS)
+                    // Check whether we have a confirmation flag.
+                    if (!args.<String>getOne("target or slot").get().equalsIgnoreCase("-c"))
                     {
-                        Integer IVHP = nbt.getInteger(NbtKeys.IV_HP);
-                        Integer IVATT = nbt.getInteger(NbtKeys.IV_ATTACK);
-                        Integer IVDEF = nbt.getInteger(NbtKeys.IV_DEFENCE);
-                        Integer IVSPATT = nbt.getInteger(NbtKeys.IV_SP_ATT);
-                        Integer IVSPDEF = nbt.getInteger(NbtKeys.IV_SP_DEF);
-                        Integer IVSPD = nbt.getInteger(NbtKeys.IV_SPEED);
-                        Integer totalIVs = IVHP + IVATT + IVDEF + IVSPATT + IVSPDEF + IVSPD;
-                        Integer percentIVs = totalIVs * 100 / 186;
-                        /*String ivs1, ivs2, ivs3, ivs4, ivs5, ivs6;
+                        printToLog(3, "There's something in the first argument slot!");
+                        targetString = args.<String>getOne("target or slot").get();
 
-                        if (IVHP == 31)
-                            ivs1 = String.valueOf("\u00A7o" + IVHP + " \u00A72HP \u00A7r\u00A7e|\u00A7a ");
+                        if (targetString.matches("^[1-6]"))
+                        {
+                            printToLog(3, "Found a slot in argument 1. Continuing to confirmation checks.");
+                            slot = Integer.parseInt(targetString);
+                            canContinue = true;
+                        }
+                        else if (hasOtherPerm)
+                        {
+                            if (Sponge.getServer().getPlayer(targetString).isPresent())
+                            {
+                                if (!player.getName().equalsIgnoreCase(targetString))
+                                {
+                                    target = Sponge.getServer().getPlayer(targetString).get();
+                                    printToLog(3, "Found a valid online target! Printed for your convenience: " + target.getName());
+                                    targetAcquired = true;
+                                }
+                                else
+                                    printToLog(3, "Played entered their own name as target.");
+
+                                canContinue = true;
+                            }
+                            else if (Pattern.matches("[a-zA-Z]+", targetString)) // Making an assumption; input is non-numeric so probably not a slot.
+                            {
+                                printToLog(2, "First argument was invalid. Input not numeric, assuming misspelled name.");
+
+                                checkAndAddHeader(commandCost, player);
+                                src.sendMessage(Text.of("\u00A74Error: \u00A7cCould not find the given target. Check your spelling."));
+                                printCorrectPerm(commandCost, player);
+                                checkAndAddFooter(commandCost, player);
+                            }
+                            else  // Throw a "safe" error that works for both missing slots and targets. Might not be as clean, which is why we check patterns above.
+                            {
+                                printToLog(2, "First argument was invalid, and input has numbers. Throwing generic error.");
+                                throwArg1Error(commandCost, true, player);
+                            }
+                        }
                         else
-                            ivs1 = String.valueOf(IVHP + " \u00A72HP \u00A7e|\u00A7a ");
-
-                        if (IVATT == 31)
-                            ivs2 = String.valueOf("\u00A7o" + IVATT + " \u00A72ATK \u00A7r\u00A7e|\u00A7a ");
-                        else
-                            ivs2 = String.valueOf(IVATT + " \u00A72ATK \u00A7e|\u00A7a ");
-
-                        if (IVDEF == 31)
-                            ivs3 = String.valueOf("\u00A7o" + IVDEF + " \u00A72DEF \u00A7r\u00A7e|\u00A7a ");
-                        else
-                            ivs3 = String.valueOf(IVDEF + " \u00A72DEF \u00A7e|\u00A7a ");
-
-                        if (IVSPATT == 31)
-                            ivs4 = String.valueOf("\u00A7o" + IVSPATT + " \u00A72Sp. ATK \u00A7r\u00A7e|\u00A7a ");
-                        else
-                            ivs4 = String.valueOf(IVSPATT + " \u00A72Sp. ATK \u00A7e|\u00A7a ");
-
-                        if (IVSPDEF == 31)
-                            ivs5 = String.valueOf("\u00A7o" + IVSPDEF + " \u00A72Sp. DEF \u00A7r\u00A7e|\u00A7a ");
-                        else
-                            ivs5 = String.valueOf(IVSPDEF + " \u00A72Sp. DEF \u00A7e|\u00A7a ");
-
-                        if (IVSPD == 31)
-                            ivs6 = String.valueOf("\u00A7o" + IVSPD + " \u00A72SPD");
-                        else
-                            ivs6 = String.valueOf(IVSPD + " \u00A72SPD");*/
-
-                        player.sendMessage(Text.of("\u00A76There's a healthy \u00A7c" + nbt.getString("Name") + "\u00A76 inside of this egg!"));
-                        if (percentIVs >= 90 && nbt.getInteger(NbtKeys.IS_SHINY) != 1)
-                            player.sendMessage(Text.of("\u00A76What's this? \u00A7eThis baby seems to be bursting with energy..."));
-                        else if (!(percentIVs >= 90) && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
-                            player.sendMessage(Text.of("\u00A76What's this? \u00A7eThis baby seems to have an odd sheen to it..."));
-                        else if (percentIVs >= 90 && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
-                            player.sendMessage(Text.of("\u00A76What's this? \u00A7eSomething about this baby seems real special!"));
-
-                        PixelUpgrade.log.info("\u00A7aCheckEgg debug: Checked status of egg in slot " + slot + ", and took " + costToConfirm + " coins.");
-                    }
-                    else
-                    {
-                        BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                        player.sendMessage(Text.of("\u00A74Error: \u00A7cYou need \u00A74" + balanceNeeded + "\u00A7c more coins to do this."));
+                        {
+                            printToLog(2, "Invalid slot provided, and player has no .other perm. Abort.");
+                            throwArg1Error(commandCost, false, player);
+                        }
                     }
                 }
                 else
                 {
-                    player.sendMessage(Text.of("\u00A74Error: \u00A7cNo economy account found. Please contact staff!"));
+                    printToLog(2, "No arguments found, aborting.");
 
-                    PixelUpgrade.log.info("\u00A74CheckEgg debug:" + player.getName() + "\u00A7c does not have an economy account, aborting. May be a bug?");
+                    checkAndAddHeader(commandCost, player);
+                    src.sendMessage(Text.of("\u00A74Error: \u00A7cNo arguments found. Please provide at least a slot."));
+                    printCorrectPerm(commandCost, player);
+                    checkAndAddFooter(commandCost, player);
+
+                    canContinue = false;
+                }
+
+                if (args.<String>getOne("slot").isPresent() && canContinue)
+                {
+                    String confirmString = args.<String>getOne("slot").get();
+                    if (confirmString.equalsIgnoreCase("-c"))
+                    {
+                        printToLog(3, "Got a confirmation flag on argument 2!");
+                        commandConfirmed = true;
+                    }
+                    else if (hasOtherPerm)
+                    {
+                        printToLog(3, "There's something in the second argument slot!");
+                        slotString = args.<String>getOne("slot").get();
+
+                        if (slotString.matches("^[1-6]"))
+                        {
+                            printToLog(3, "Found a slot in argument 2.");
+                            slot = Integer.parseInt(slotString);
+                        }
+                        else
+                        {
+                            printToLog(2, "Argument is not a slot or a confirmation flag. Abort.");
+
+                            checkAndAddHeader(commandCost, player);
+                            if (commandCost > 0)
+                                player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid slot or flag on second argument. See below."));
+                            else
+                                player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid slot provided. See below."));
+                            printCorrectPerm(commandCost, player);
+                            checkAndAddFooter(commandCost, player);
+
+                            canContinue = false;
+                        }
+                    }
+                }
+
+                if (args.<String>getOne("confirmation").isPresent() && hasOtherPerm && canContinue)
+                {
+                    String confirmString = args.<String>getOne("confirmation").get();
+                    if (confirmString.equalsIgnoreCase("-c"))
+                    {
+                        printToLog(3, "Got a confirmation flag on argument 3!");
+                        commandConfirmed = true;
+                    }
+                }
+
+                if (slot == 0 && canContinue)
+                {
+                    printToLog(2, "Failed final check, no slot was found. Abort.");
+
+                    checkAndAddHeader(commandCost, player);
+                    player.sendMessage(Text.of("\u00A74Error: \u00A7cCould not find a valid slot. See below."));
+                    printCorrectPerm(commandCost, player);
+                    checkAndAddFooter(commandCost, player);
+
+                    canContinue = false;
+                }
+
+                if (canContinue)
+                {
+                    printToLog(3, "No error encountered, input should be valid. Continuing!");
+
+                    Optional<PlayerStorage> storage;
+                    if (targetAcquired)
+                        storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) target));
+                    else
+                        storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
+
+                    if (!storage.isPresent())
+                    {
+                        src.sendMessage(Text.of("\u00A74Error: \u00A7cNo Pixelmon storage found. Please contact staff!"));
+                        printToLog(0, "\u00A74" + src.getName() + "\u00A7c does not have a Pixelmon storage, aborting. May be a bug?");
+                    }
+                    else
+                    {
+                        printToLog(3, "Found a Pixelmon storage on the player. Moving along.");
+
+                        PlayerStorage storageCompleted = storage.get();
+                        NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
+
+                        if (nbt == null || !nbt.getBoolean("isEgg"))
+                        {
+                            printToLog(2, "Could not find an egg in the provided slot, or no Pok\u00E9mon was found. Abort.");
+                            src.sendMessage(Text.of("\u00A74Error: \u00A7cCould not find an egg in the provided slot."));
+                        }
+                        else
+                        {
+                            printToLog(3, "Egg found. Let's do this!");
+
+                            EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
+                            Boolean wasEggChecked = pokemon.getEntityData().getBoolean("hadEggChecked");
+                            if (!recheckIsFree)
+                                wasEggChecked = false;
+
+                            if (wasEggChecked)
+                            {
+                                printToLog(2, "Checked egg in slot " + slot + ". Detected a recheck, taking nothing (config).");
+
+                                src.sendMessage(Text.of("\u00A76There's a healthy \u00A7c" + nbt.getString("Name") + "\u00A76 inside of this egg!"));
+                                printEggResults(nbt, pokemon, commandCost, explicitReveal, player);
+                            }
+                            else if (commandCost > 0)
+                            {
+                                BigDecimal costToConfirm = new BigDecimal(commandCost);
+
+                                if (commandConfirmed)
+                                {
+                                    Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
+
+                                    if (optionalAccount.isPresent())
+                                    {
+                                        UniqueAccount uniqueAccount = optionalAccount.get();
+                                        TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(), costToConfirm, Cause.source(this).build());
+
+                                        if (transactionResult.getResult() == ResultType.SUCCESS)
+                                        {
+                                            printToLog(1, "Checked egg in slot " + slot + ", and took " + costToConfirm + " coins.");
+
+                                            src.sendMessage(Text.of("\u00A76There's a healthy \u00A7c" + nbt.getString("Name") + "\u00A76 inside of this egg!"));
+                                            printEggResults(nbt, pokemon, commandCost, explicitReveal, player);
+                                        }
+                                        else
+                                        {
+                                            BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
+                                            printToLog(2, "Not enough coins! Cost: \u00A73" + costToConfirm + "\u00A7b, lacking: \u00A73" + balanceNeeded);
+
+                                            src.sendMessage(Text.of("\u00A74Error: \u00A7cYou need \u00A74" + balanceNeeded + "\u00A7c more coins to do this."));
+                                        }
+                                    }
+                                    else
+                                    {
+                                        printToLog(0, "\u00A74" + src.getName() + "\u00A7c does not have an economy account, aborting. May be a bug?");
+                                        src.sendMessage(Text.of("\u00A74Error: \u00A7cNo economy account found. Please contact staff!"));
+                                    }
+                                }
+                                else
+                                {
+                                    printToLog(2, "Got cost but no confirmation; end of the line.");
+
+                                    if (targetAcquired)
+                                    {
+                                        slot = Integer.parseInt(args.<String>getOne("slot").get());
+                                        src.sendMessage(Text.of("\u00A76Warning: \u00A7eChecking this egg's status costs \u00A76" + costToConfirm + "\u00A7e coins."));
+                                        src.sendMessage(Text.of("\u00A72Ready? Type: \u00A7a/checkegg " + targetString + " " + slot + " -c"));
+                                    }
+                                    else
+                                    {
+                                        src.sendMessage(Text.of("\u00A76Warning: \u00A7eChecking an egg's status costs \u00A76" + costToConfirm + "\u00A7e coins."));
+                                        src.sendMessage(Text.of("\u00A72Ready? Type: \u00A7a/checkegg " + slot + " -c"));
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                printToLog(2, "Checked egg in slot " + slot + ". Config price is 0, taking nothing.");
+
+                                src.sendMessage(Text.of("\u00A76There's a healthy \u00A7c" + nbt.getString("Name") + "\u00A76 inside of this egg!"));
+                                printEggResults(nbt, pokemon, commandCost, explicitReveal, player);
+                            }
+                        }
+                    }
                 }
             }
-            else
-            {
-                player.sendMessage(Text.of("\u00A76Warning: \u00A7eChecking an egg's status costs \u00A76" + costToConfirm + "\u00A7e coins."));
-                player.sendMessage(Text.of("\u00A7bIf you want to continue, type: \u00A7a/checkegg " + slot + " -c"));
-            }
         }
+        else
+            printToLog(0, "This command cannot run from the console or command blocks.");
+
         return CommandResult.success();
+    }
+
+    private void printToLog(Integer debugNum, String inputString)
+    {
+        Integer debugVerbosityMode = checkConfigInt("debugVerbosityMode", true);
+
+        if (debugVerbosityMode == null)
+            debugVerbosityMode = 4;
+
+        if (debugNum <= debugVerbosityMode)
+        {
+            if (debugNum == 0)
+                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7c" + inputString);
+            else if (debugNum == 1)
+                PixelUpgrade.log.info("\u00A76CheckEgg // important: \u00A7e" + inputString);
+            else if (debugNum == 2)
+                PixelUpgrade.log.info("\u00A73CheckEgg // start/end: \u00A7b" + inputString);
+            else
+                PixelUpgrade.log.info("\u00A72CheckEgg // debug: \u00A7a" + inputString);
+        }
+    }
+
+    private void checkAndAddHeader(Integer cost, Player player)
+    {
+        if (cost > 0)
+            player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+    }
+
+    private void checkAndAddFooter(Integer cost, Player player)
+    {
+        if (cost > 0)
+        {
+            player.sendMessage(Text.of(""));
+            player.sendMessage(Text.of("\u00A76Warning: \u00A7eAdd the -c flag only if you're sure!"));
+            player.sendMessage(Text.of("\u00A7eConfirming will cost you \u00A76" + cost + "\u00A7e coins."));
+            player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+        }
+    }
+
+    // Called when it's necessary to figure out the right perm message, or when it's just convenient. Saves typing!
+    private void printCorrectPerm(Integer cost, Player player)
+    {
+        if (cost != 0)
+        {
+            if (player.hasPermission("pixelupgrade.command.checkegg.other"))
+                player.sendMessage(Text.of("\u00A74Usage: \u00A7c/checkegg [optional target] <slot, 1-6> {-c to confirm}"));
+            else
+                player.sendMessage(Text.of("\u00A74Usage: \u00A7c/checkegg <slot> {-c to confirm} \u00A77(no perms for target)"));
+        }
+        else
+        {
+            if (player.hasPermission("pixelupgrade.command.checkegg.other"))
+                player.sendMessage(Text.of("\u00A74Usage: \u00A7c/checkegg [optional target] <slot, 1-6>"));
+            else
+                player.sendMessage(Text.of("\u00A74Usage: \u00A7c/checkegg <slot> \u00A77(no perms for target)"));
+        }
+    }
+
+    private void throwArg1Error(Integer cost, Boolean hasOtherPerm, Player player)
+    {
+        checkAndAddHeader(cost, player);
+        if (hasOtherPerm)
+            player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid target or slot on first argument. See below."));
+        else if (cost > 0)
+            player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid slot provided on first argument. See below."));
+        else
+            player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid slot provided. See below."));
+        printCorrectPerm(cost, player);
+        checkAndAddFooter(cost, player);
+    }
+
+    private Boolean checkConfigBool(String node)
+    {
+        if (!CheckEggConfig.getInstance().getConfig().getNode(node).isVirtual())
+            return CheckEggConfig.getInstance().getConfig().getNode(node).getBoolean();
+
+        else
+        {
+            PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCould not parse config variable \"" + node + "\"!");
+            return null;
+        }
+    }
+
+    private Integer checkConfigInt(String node, Boolean noMessageMode)
+    {
+        if (!CheckEggConfig.getInstance().getConfig().getNode(node).isVirtual())
+            return CheckEggConfig.getInstance().getConfig().getNode(node).getInt();
+        else if (noMessageMode)
+            return null;
+        else
+        {
+            PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCould not parse config variable \"" + node + "\"!");
+            return null;
+        }
+    }
+
+    private void printEggResults(NBTTagCompound nbt, EntityPixelmon pokemon, Integer cost, Boolean explicitReveal, Player player)
+    {
+        Integer IVHP = nbt.getInteger(NbtKeys.IV_HP);
+        Integer IVATT = nbt.getInteger(NbtKeys.IV_ATTACK);
+        Integer IVDEF = nbt.getInteger(NbtKeys.IV_DEFENCE);
+        Integer IVSPATT = nbt.getInteger(NbtKeys.IV_SP_ATT);
+        Integer IVSPDEF = nbt.getInteger(NbtKeys.IV_SP_DEF);
+        Integer IVSPD = nbt.getInteger(NbtKeys.IV_SPEED);
+        Integer totalIVs = IVHP + IVATT + IVDEF + IVSPATT + IVSPDEF + IVSPD;
+        Integer percentIVs = totalIVs * 100 / 186;
+
+        if (explicitReveal)
+        {
+            printToLog(3, "Explicit reveal enabled, printing full IVs and shiny status.");
+
+            String ivs1, ivs2, ivs3, ivs4, ivs5, ivs6;
+            Boolean isShiny = nbt.getInteger(NbtKeys.IS_SHINY) == 1;
+
+            if (IVHP == 31)
+                ivs1 = String.valueOf("\u00A7o" + IVHP + " \u00A72HP \u00A7r\u00A7e|\u00A7a ");
+            else
+                ivs1 = String.valueOf(IVHP + " \u00A72HP \u00A7e|\u00A7a ");
+
+            if (IVATT == 31)
+                ivs2 = String.valueOf("\u00A7o" + IVATT + " \u00A72ATK \u00A7r\u00A7e|\u00A7a ");
+            else
+                ivs2 = String.valueOf(IVATT + " \u00A72ATK \u00A7e|\u00A7a ");
+
+            if (IVDEF == 31)
+                ivs3 = String.valueOf("\u00A7o" + IVDEF + " \u00A72DEF \u00A7r\u00A7e|\u00A7a ");
+            else
+                ivs3 = String.valueOf(IVDEF + " \u00A72DEF \u00A7e|\u00A7a ");
+
+            if (IVSPATT == 31)
+                ivs4 = String.valueOf("\u00A7o" + IVSPATT + " \u00A72Sp. ATK \u00A7r\u00A7e|\u00A7a ");
+            else
+                ivs4 = String.valueOf(IVSPATT + " \u00A72Sp. ATK \u00A7e|\u00A7a ");
+
+            if (IVSPDEF == 31)
+                ivs5 = String.valueOf("\u00A7o" + IVSPDEF + " \u00A72Sp. DEF \u00A7r\u00A7e|\u00A7a ");
+            else
+                ivs5 = String.valueOf(IVSPDEF + " \u00A72Sp. DEF \u00A7e|\u00A7a ");
+
+            if (IVSPD == 31)
+                ivs6 = String.valueOf("\u00A7o" + IVSPD + " \u00A72SPD");
+            else
+                ivs6 = String.valueOf(IVSPD + " \u00A72SPD");
+
+            player.sendMessage(Text.of("\u00A7eTotal IVs: \u00A7a" + totalIVs + "\u00A7e/\u00A7a186\u00A7e (\u00A7a" + percentIVs + "%\u00A7e)"));
+            player.sendMessage(Text.of("\u00A7eIVs: \u00A7a" + ivs1 + "" + ivs2 + "" + ivs3 + "" + ivs4 + "" + ivs5 + "" + ivs6));
+            if (isShiny)
+                player.sendMessage(Text.of("\u00A76Congratulations! \u00A7eThis baby is shiny!"));
+        }
+        else
+        {
+            printToLog(3, "Explicit reveal disabled, printing vague status.");
+
+            if (percentIVs >= 90 && nbt.getInteger(NbtKeys.IS_SHINY) != 1)
+                player.sendMessage(Text.of("\u00A76What's this? \u00A7eThis baby seems to be bursting with energy..."));
+            else if (!(percentIVs >= 90) && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
+                player.sendMessage(Text.of("\u00A76What's this? \u00A7eThis baby seems to have an odd sheen to it..."));
+            else if (percentIVs >= 90 && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
+                player.sendMessage(Text.of("\u00A76What's this? \u00A7eSomething about this baby seems real special!"));
+            else
+                player.sendMessage(Text.of("\u00A7eThis baby seems to be fairly ordinary..."));
+        }
+
+        if (pokemon.getEntityData().getBoolean("hadEggChecked") && cost == 0)
+        {
+            player.sendMessage(Text.of(""));
+            player.sendMessage(Text.of("\u00A7aThis egg has been checked before, so this check was free!"));
+        }
+
+        pokemon.getEntityData().setBoolean("hadEggChecked", true);
     }
 }
