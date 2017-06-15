@@ -35,30 +35,52 @@ import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
 public class CheckEgg implements CommandExecutor
 {
+    // See which messages should be printed by the debug logger. Valid range is 0-3.
+    // We set 4 (out of range) or null on hitting an error, and let the main code block handle it from there.
+    private static Integer debugLevel = 4;
+    private void getVerbosityMode()
+    {
+        // Does the debugVerbosityMode node exist? If so, figure out what's in it.
+        if (!CheckEggConfig.getInstance().getConfig().getNode("debugVerbosityMode").isVirtual())
+        {
+            String modeString = CheckEggConfig.getInstance().getConfig().getNode("debugVerbosityMode").getString();
+
+            if (modeString.matches("^[0-3]"))
+                debugLevel = Integer.parseInt(modeString);
+            else
+                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
+        }
+        else
+        {
+            PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cConfig variable \"debugVerbosityMode\" could not be found!");
+            debugLevel = null;
+        }
+    }
+
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
     {
         if (src instanceof Player)
         {
-            Boolean recheckIsFree, explicitReveal;
-            Integer debugVerbosityMode, commandCost;
+            Integer commandCost = checkConfigInt();
+            Boolean explicitReveal = checkConfigBool("explicitReveal");
+            Boolean recheckIsFree = checkConfigBool("recheckIsFree");
 
-            debugVerbosityMode = checkConfigInt("debugVerbosityMode", false);
-            explicitReveal = checkConfigBool("explicitReveal");
-            commandCost = checkConfigInt("commandCost", false);
-            recheckIsFree = checkConfigBool("recheckIsFree");
+            // Check the command's debug verbosity mode, as set in the config.
+            getVerbosityMode();
 
-            if (recheckIsFree == null || explicitReveal == null || debugVerbosityMode == null || commandCost == null)
+            if (recheckIsFree == null || explicitReveal == null || commandCost == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
-                printToLog(0, "Error parsing config! Make sure everything is valid, or regenerate it.");
-                src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid config for command! Please report this to staff."));
+                // Specific errors are already called earlier on -- this is tacked on to the end.
+                src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
+                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCheck your config. If need be, wipe and \\u00A74/pu reload\\u00A7c.");
             }
             else
             {
                 printToLog(2, "Called by player \u00A73" + src.getName() + "\u00A7b. Starting!");
 
-                Integer slot = 0;
+                int slot = 0;
                 String targetString = null, slotString;
-                Boolean targetAcquired = false, commandConfirmed = false, canContinue = false, hasOtherPerm = false;
+                boolean targetAcquired = false, commandConfirmed = false, canContinue = false, hasOtherPerm = false;
                 Player player = (Player) src, target = player;
 
                 if (src.hasPermission("pixelupgrade.command.getstats.other"))
@@ -216,16 +238,17 @@ public class CheckEgg implements CommandExecutor
                             printToLog(3, "Egg found. Let's do this!");
 
                             EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
-                            Boolean wasEggChecked = pokemon.getEntityData().getBoolean("hadEggChecked");
+                            boolean wasEggChecked = pokemon.getEntityData().getBoolean("hadEggChecked");
                             if (!recheckIsFree)
                                 wasEggChecked = false;
 
                             if (wasEggChecked)
                             {
-                                printToLog(2, "Checked egg in slot " + slot + ". Detected a recheck, taking nothing (config).");
-
                                 src.sendMessage(Text.of("\u00A76There's a healthy \u00A7c" + nbt.getString("Name") + "\u00A76 inside of this egg!"));
                                 printEggResults(nbt, pokemon, commandCost, explicitReveal, player);
+
+                                // Keep this below the printEggResults call, or your debug message order will look weird.
+                                printToLog(2, "Checked egg in slot " + slot + ". Detected a recheck, taking nothing (config).");
                             }
                             else if (commandCost > 0)
                             {
@@ -242,10 +265,11 @@ public class CheckEgg implements CommandExecutor
 
                                         if (transactionResult.getResult() == ResultType.SUCCESS)
                                         {
-                                            printToLog(1, "Checked egg in slot " + slot + ", and took " + costToConfirm + " coins.");
-
                                             src.sendMessage(Text.of("\u00A76There's a healthy \u00A7c" + nbt.getString("Name") + "\u00A76 inside of this egg!"));
                                             printEggResults(nbt, pokemon, commandCost, explicitReveal, player);
+
+                                            // Keep this below the printEggResults call, or your debug message order will look weird.
+                                            printToLog(1, "Checked egg in slot " + slot + ", and took " + costToConfirm + " coins.");
                                         }
                                         else
                                         {
@@ -280,10 +304,11 @@ public class CheckEgg implements CommandExecutor
                             }
                             else
                             {
-                                printToLog(2, "Checked egg in slot " + slot + ". Config price is 0, taking nothing.");
-
                                 src.sendMessage(Text.of("\u00A76There's a healthy \u00A7c" + nbt.getString("Name") + "\u00A76 inside of this egg!"));
                                 printEggResults(nbt, pokemon, commandCost, explicitReveal, player);
+
+                                // Keep this below the printEggResults call, or your debug message order will look weird.
+                                printToLog(2, "Checked egg in slot " + slot + ". Config price is 0, taking nothing.");
                             }
                         }
                     }
@@ -296,35 +321,17 @@ public class CheckEgg implements CommandExecutor
         return CommandResult.success();
     }
 
-    private void printToLog(Integer debugNum, String inputString)
+    private void checkAndAddHeader(int cost, Player player)
     {
-        Integer debugVerbosityMode = checkConfigInt("debugVerbosityMode", true);
-
-        if (debugVerbosityMode == null)
-            debugVerbosityMode = 4;
-
-        if (debugNum <= debugVerbosityMode)
+        if (cost > 0)
         {
-            if (debugNum == 0)
-                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7c" + inputString);
-            else if (debugNum == 1)
-                PixelUpgrade.log.info("\u00A76CheckEgg // important: \u00A7e" + inputString);
-            else if (debugNum == 2)
-                PixelUpgrade.log.info("\u00A73CheckEgg // start/end: \u00A7b" + inputString);
-            else
-                PixelUpgrade.log.info("\u00A72CheckEgg // debug: \u00A7a" + inputString);
+            player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
         }
     }
 
-    private void checkAndAddHeader(Integer cost, Player player)
+    private void checkAndAddFooter(int cost, Player player)
     {
-        if (cost > 0)
-            player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-    }
-
-    private void checkAndAddFooter(Integer cost, Player player)
-    {
-        if (cost > 0)
+        if (cost != 0)
         {
             player.sendMessage(Text.of(""));
             player.sendMessage(Text.of("\u00A76Warning: \u00A7eAdd the -c flag only if you're sure!"));
@@ -334,7 +341,7 @@ public class CheckEgg implements CommandExecutor
     }
 
     // Called when it's necessary to figure out the right perm message, or when it's just convenient. Saves typing!
-    private void printCorrectPerm(Integer cost, Player player)
+    private void printCorrectPerm(int cost, Player player)
     {
         if (cost != 0)
         {
@@ -352,7 +359,7 @@ public class CheckEgg implements CommandExecutor
         }
     }
 
-    private void throwArg1Error(Integer cost, Boolean hasOtherPerm, Player player)
+    private void throwArg1Error(int cost, boolean hasOtherPerm, Player player)
     {
         checkAndAddHeader(cost, player);
         if (hasOtherPerm)
@@ -365,11 +372,25 @@ public class CheckEgg implements CommandExecutor
         checkAndAddFooter(cost, player);
     }
 
+    private void printToLog(int debugNum, String inputString)
+    {
+        if (debugNum <= debugLevel)
+        {
+            if (debugNum == 0)
+                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7c" + inputString);
+            else if (debugNum == 1)
+                PixelUpgrade.log.info("\u00A76CheckEgg // important: \u00A7e" + inputString);
+            else if (debugNum == 2)
+                PixelUpgrade.log.info("\u00A73CheckEgg // start/end: \u00A7b" + inputString);
+            else
+                PixelUpgrade.log.info("\u00A72CheckEgg // debug: \u00A7a" + inputString);
+        }
+    }
+
     private Boolean checkConfigBool(String node)
     {
         if (!CheckEggConfig.getInstance().getConfig().getNode(node).isVirtual())
             return CheckEggConfig.getInstance().getConfig().getNode(node).getBoolean();
-
         else
         {
             PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCould not parse config variable \"" + node + "\"!");
@@ -377,36 +398,34 @@ public class CheckEgg implements CommandExecutor
         }
     }
 
-    private Integer checkConfigInt(String node, Boolean noMessageMode)
+    private Integer checkConfigInt()
     {
-        if (!CheckEggConfig.getInstance().getConfig().getNode(node).isVirtual())
-            return CheckEggConfig.getInstance().getConfig().getNode(node).getInt();
-        else if (noMessageMode)
-            return null;
+        if (!CheckEggConfig.getInstance().getConfig().getNode("commandCost").isVirtual())
+            return CheckEggConfig.getInstance().getConfig().getNode("commandCost").getInt();
         else
         {
-            PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCould not parse config variable \"" + node + "\"!");
+            PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCould not parse config variable \"commandCost\"!");
             return null;
         }
     }
 
-    private void printEggResults(NBTTagCompound nbt, EntityPixelmon pokemon, Integer cost, Boolean explicitReveal, Player player)
+    private void printEggResults(NBTTagCompound nbt, EntityPixelmon pokemon, int cost, boolean explicitReveal, Player player)
     {
-        Integer IVHP = nbt.getInteger(NbtKeys.IV_HP);
-        Integer IVATT = nbt.getInteger(NbtKeys.IV_ATTACK);
-        Integer IVDEF = nbt.getInteger(NbtKeys.IV_DEFENCE);
-        Integer IVSPATT = nbt.getInteger(NbtKeys.IV_SP_ATT);
-        Integer IVSPDEF = nbt.getInteger(NbtKeys.IV_SP_DEF);
-        Integer IVSPD = nbt.getInteger(NbtKeys.IV_SPEED);
-        Integer totalIVs = IVHP + IVATT + IVDEF + IVSPATT + IVSPDEF + IVSPD;
-        Integer percentIVs = totalIVs * 100 / 186;
+        int IVHP = nbt.getInteger(NbtKeys.IV_HP);
+        int IVATT = nbt.getInteger(NbtKeys.IV_ATTACK);
+        int IVDEF = nbt.getInteger(NbtKeys.IV_DEFENCE);
+        int IVSPATT = nbt.getInteger(NbtKeys.IV_SP_ATT);
+        int IVSPDEF = nbt.getInteger(NbtKeys.IV_SP_DEF);
+        int IVSPD = nbt.getInteger(NbtKeys.IV_SPEED);
+        int totalIVs = IVHP + IVATT + IVDEF + IVSPATT + IVSPDEF + IVSPD;
+        int percentIVs = totalIVs * 100 / 186;
 
         if (explicitReveal)
         {
             printToLog(3, "Explicit reveal enabled, printing full IVs and shiny status.");
 
             String ivs1, ivs2, ivs3, ivs4, ivs5, ivs6;
-            Boolean isShiny = nbt.getInteger(NbtKeys.IS_SHINY) == 1;
+            boolean isShiny = nbt.getInteger(NbtKeys.IS_SHINY) == 1;
 
             if (IVHP == 31)
                 ivs1 = String.valueOf("\u00A7o" + IVHP + " \u00A72HP \u00A7r\u00A7e|\u00A7a ");

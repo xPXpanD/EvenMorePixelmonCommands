@@ -80,6 +80,7 @@ import java.nio.file.Paths;
 //TODO: Check public static final String PC_RAVE = "rave";
 //TODO: Tab completion on player names.
 //TODO: Rework /getstats fuse/upgrade printing once configs are in place for those commands.
+//TODO: See if recoloring Pokémon is possible.
 
 @Plugin
 (
@@ -266,7 +267,7 @@ public class PixelUpgrade
         Sponge.getCommandManager().register(this, forcehatch, "forcehatch");
         Sponge.getCommandManager().register(this, forcestats, "forcestats", "forcestat", "forceivs", "forceiv", "forceevs", "forceev");
         Sponge.getCommandManager().register(this, getstats, "getstats", "getstat", "gs");
-        Sponge.getCommandManager().register(this, pixelupgradeinfo, "pixelupgrade", "pu", "pixelupgradeinfo");
+        Sponge.getCommandManager().register(this, pixelupgradeinfo, "pixelupgrade", "pu", "pixelupgradeinfo", "puinfo");
         Sponge.getCommandManager().register(this, resetevs, "resetevs", "resetev");
         Sponge.getCommandManager().register(this, upgrade, "upgrade", "upgradeiv", "upgradeivs");
         Sponge.getCommandManager().register(this, weakness, "weakness", "weaknesses");

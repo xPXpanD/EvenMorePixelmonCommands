@@ -34,11 +34,33 @@ import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
 public class Upgrade implements CommandExecutor
 {
+    // See which messages should be printed by the debug logger. Valid range is 0-3.
+    // We set 4 (out of range) or null on hitting an error, and let the main code block handle it from there.
+    private static Integer debugLevel = 4;
+    private void getVerbosityMode()
+    {
+        // Does the debugVerbosityMode node exist? If so, figure out what's in it.
+        if (!UpgradeConfig.getInstance().getConfig().getNode("debugVerbosityMode").isVirtual())
+        {
+            String modeString = UpgradeConfig.getInstance().getConfig().getNode("debugVerbosityMode").getString();
+
+            if (modeString.matches("^[0-3]"))
+                debugLevel = Integer.parseInt(modeString);
+            else
+                PixelUpgrade.log.info("\u00A74Upgrade // critical: \u00A7cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
+        }
+        else
+        {
+            PixelUpgrade.log.info("\u00A74Upgrade // critical: \u00A7cConfig variable \"debugVerbosityMode\" could not be found!");
+            debugLevel = null;
+        }
+    }
+
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
 	{
         if (src instanceof Player)
         {
-            Boolean presenceCheck1 = true, presenceCheck2 = true, presenceCheck3 = true;
+            boolean presenceCheck1 = true, presenceCheck2 = true, presenceCheck3 = true;
             Double legendaryAndShinyMult, legendaryMult, regularMult, shinyMult, babyMult;
             Integer legendaryAndShinyCap, legendaryCap, regularCap, shinyCap, babyCap;
             Integer mathPower, mathDivisor, upgradesFreeBelow, addFlatFee, debugVerbosityMode;
@@ -61,6 +83,9 @@ public class Upgrade implements CommandExecutor
             shinyCap = checkConfigInt("shinyCap", false);
             babyCap = checkConfigInt("babyCap", false);
 
+            // Check the command's debug verbosity mode, as set in the config.
+            getVerbosityMode();
+
             if (legendaryAndShinyCap == null || legendaryCap == null || regularCap == null || shinyCap == null || babyCap == null)
                 presenceCheck1 = false;
             if (legendaryAndShinyMult == null || legendaryMult == null || regularMult == null || shinyMult == null || babyMult == null)
@@ -68,10 +93,11 @@ public class Upgrade implements CommandExecutor
             if (mathPower == null || mathDivisor == null || upgradesFreeBelow == null || addFlatFee == null || debugVerbosityMode == null)
                 presenceCheck3 = false;
 
-            if (!presenceCheck1 || !presenceCheck2 || !presenceCheck3)
+            if (!presenceCheck1 || !presenceCheck2 || !presenceCheck3 || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
-                printToLog(0, "Error parsing config! Make sure everything is valid, or regenerate it.");
-                src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid config for command! Please report this to staff."));
+                // Specific errors are already called earlier on -- this is tacked on to the end.
+                src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
+                PixelUpgrade.log.info("\u00A74Upgrade // critical: \u00A7cCheck your config. If need be, wipe and \\u00A74/pu reload\\u00A7c.");
             }
             else
             {

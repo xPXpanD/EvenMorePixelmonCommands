@@ -32,48 +32,74 @@ import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
 public class DittoFusion implements CommandExecutor
 {
+    // See which messages should be printed by the debug logger. Valid range is 0-3.
+    // We set 4 (out of range) or null on hitting an error, and let the main code block handle it from there.
+    private static Integer debugLevel = 4;
+    private void getVerbosityMode()
+    {
+        // Does the debugVerbosityMode node exist? If so, figure out what's in it.
+        if (!DittoFusionConfig.getInstance().getConfig().getNode("debugVerbosityMode").isVirtual())
+        {
+            String modeString = DittoFusionConfig.getInstance().getConfig().getNode("debugVerbosityMode").getString();
+
+            if (modeString.matches("^[0-3]"))
+                debugLevel = Integer.parseInt(modeString);
+            else
+                PixelUpgrade.log.info("\u00A74DittoFusion // critical: \u00A7cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
+        }
+        else
+        {
+            PixelUpgrade.log.info("\u00A74DittoFusion // critical: \u00A7cConfig variable \"debugVerbosityMode\" could not be found!");
+            debugLevel = null;
+        }
+    }
+
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
     {
         if (src instanceof Player)
         {
-            Boolean passOnShinyStatus, presenceCheck1 = true, presenceCheck2 = true, presenceCheck3 = true;
+            boolean presenceCheck1 = true, presenceCheck2 = true, presenceCheck3 = true;
+            Boolean passOnShinyStatus;
             Integer stat0to5, stat6to10, stat11to15, stat16to20, stat21to25, stat26to30, stat31plus;
-            Integer debugVerbosityMode, regularCap, shinyCap, previouslyUpgradedMultiplier, pointMultiplierForCost, addFlatFee;
-            Player player = (Player) src;
+            Integer regularCap, shinyCap, previouslyUpgradedMultiplier, pointMultiplierForCost, addFlatFee;
 
-            debugVerbosityMode = checkConfigInt("debugVerbosityMode", false);
-            stat0to5 = checkConfigInt("stat0to5", false);
-            stat6to10 = checkConfigInt("stat6to10", false);
-            stat11to15 = checkConfigInt("stat11to15", false);
-            stat16to20 = checkConfigInt("stat16to20", false);
-            stat21to25 = checkConfigInt("stat21to25", false);
-            stat26to30 = checkConfigInt("stat26to30", false);
-            stat31plus = checkConfigInt("stat31plus", false);
-            regularCap = checkConfigInt("regularCap", false);
-            shinyCap = checkConfigInt("shinyCap", false);
-            previouslyUpgradedMultiplier = checkConfigInt("previouslyUpgradedMultiplier", false);
+            stat0to5 = checkConfigInt("stat0to5");
+            stat6to10 = checkConfigInt("stat6to10");
+            stat11to15 = checkConfigInt("stat11to15");
+            stat16to20 = checkConfigInt("stat16to20");
+            stat21to25 = checkConfigInt("stat21to25");
+            stat26to30 = checkConfigInt("stat26to30");
+            stat31plus = checkConfigInt("stat31plus");
+            regularCap = checkConfigInt("regularCap");
+            shinyCap = checkConfigInt("shinyCap");
+            previouslyUpgradedMultiplier = checkConfigInt("previouslyUpgradedMultiplier");
             passOnShinyStatus = checkConfigBool();
-            pointMultiplierForCost = checkConfigInt("pointMultiplierForCost", false);
-            addFlatFee = checkConfigInt("addFlatFee", false);
+            pointMultiplierForCost = checkConfigInt("pointMultiplierForCost");
+            addFlatFee = checkConfigInt("addFlatFee");
 
-            if (passOnShinyStatus == null || debugVerbosityMode == null || regularCap == null || shinyCap == null)
+            // Check the command's debug verbosity mode, as set in the config.
+            getVerbosityMode();
+
+            if (passOnShinyStatus == null || debugLevel == null || regularCap == null || shinyCap == null)
                 presenceCheck1 = false;
             if (stat0to5 == null || stat6to10 == null || stat11to15 == null || stat16to20 == null || stat21to25 == null || stat26to30 == null)
                 presenceCheck2 = false;
             if (stat31plus == null || previouslyUpgradedMultiplier == null || pointMultiplierForCost == null || addFlatFee == null)
                 presenceCheck3 = false;
 
-            if (!presenceCheck1 || !presenceCheck2 || !presenceCheck3)
+            if (!presenceCheck1 || !presenceCheck2 || !presenceCheck3 || debugLevel >= 4 || debugLevel < 0)
             {
-                printToLog(0, "Error parsing config! Make sure everything is valid, or regenerate it.");
-                src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid config for command! Please report this to staff."));
+                // Specific errors are already called earlier on -- this is tacked on to the end.
+                src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
+                PixelUpgrade.log.info("\u00A74DittoFusion // critical: \u00A7cCheck your config. If need be, wipe and \\u00A74/pu reload\\u00A7c.");
             }
             else
             {
                 printToLog(2, "Called by player \u00A73" + src.getName() + "\u00A7b. Starting!");
 
-                Integer slot1 = 0, slot2 = 0;
-                Boolean commandConfirmed = false, canContinue = true;
+                Player player = (Player) src;
+                int slot1 = 0, slot2 = 0;
+                boolean commandConfirmed = false, canContinue = true;
 
                 if (!args.<String>getOne("target slot").isPresent())
                 {
@@ -81,10 +107,7 @@ public class DittoFusion implements CommandExecutor
 
                     src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
                     src.sendMessage(Text.of("\u00A74Error: \u00A7cNo slots were provided. Please provide two valid slots."));
-                    src.sendMessage(Text.of("\u00A74Usage: \u00A7c/fuse <target slot> <sacrifice slot> {-c to confirm}"));
-                    src.sendMessage(Text.of(""));
-                    src.sendMessage(Text.of("\u00A76Warning: \u00A7eAdd the -c flag only if you're ready to spend money!"));
-                    src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+                    checkAndAddFooter(player);
 
                     canContinue = false;
                 }
@@ -103,10 +126,7 @@ public class DittoFusion implements CommandExecutor
 
                         src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
                         src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid value on target slot. Valid values are 1-6."));
-                        src.sendMessage(Text.of("\u00A74Usage: \u00A7c/fuse <target slot> <sacrifice slot> {-c to confirm}"));
-                        src.sendMessage(Text.of(""));
-                        src.sendMessage(Text.of("\u00A76Warning: \u00A7eAdd the -c flag only if you're ready to spend money!"));
-                        src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+                        checkAndAddFooter(player);
 
                         canContinue = false;
                     }
@@ -118,10 +138,7 @@ public class DittoFusion implements CommandExecutor
 
                     src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
                     src.sendMessage(Text.of("\u00A74Error: \u00A7cNo sacrifice provided. Please provide two valid slots."));
-                    src.sendMessage(Text.of("\u00A74Usage: \u00A7c/fuse <target slot> <sacrifice slot> {-c to confirm}"));
-                    src.sendMessage(Text.of(""));
-                    src.sendMessage(Text.of("\u00A76Warning: \u00A7eAdd the -c flag only if you're ready to spend money!"));
-                    src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+                    checkAndAddFooter(player);
 
                     canContinue = false;
                 }
@@ -134,7 +151,7 @@ public class DittoFusion implements CommandExecutor
                         printToLog(3, "Valid slot found on argument 2. Checking against arg1...");
                         slot2 = Integer.parseInt(args.<String>getOne("sacrifice slot").get());
 
-                        if (slot2.equals(slot1))
+                        if (slot2 == slot1)
                         {
                             printToLog(2, "Caught " + src.getName() + " attempting to upgrade a Pok\u00E9mon with itself. Abort.");
                             src.sendMessage(Text.of("\u00A74Error: \u00A7cYou can't fuse a Pok\u00E9mon with itself."));
@@ -147,10 +164,7 @@ public class DittoFusion implements CommandExecutor
 
                         src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
                         src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid value on sacrifice slot. Valid values are 1-6."));
-                        src.sendMessage(Text.of("\u00A74Usage: \u00A7c/fuse <target slot> <sacrifice slot> {-c to confirm}"));
-                        src.sendMessage(Text.of(""));
-                        src.sendMessage(Text.of("\u00A76Warning: \u00A7eAdd the -c flag only if you're ready to spend money!"));
-                        src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+                        checkAndAddFooter(player);
 
                         canContinue = false;
                     }
@@ -208,14 +222,15 @@ public class DittoFusion implements CommandExecutor
                                 }
                                 else if (!nbt1.getString("Name").equals("Ditto") && !nbt2.getString("Name").equals("Ditto"))
                                 {
-                                    printToLog(3, "No Dittos in provided slots. Let's not create some unholy abomination. Abort.");
+                                    printToLog(2, "No Dittos in provided slots; Let's not create some unholy abomination. Abort.");
                                     src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command only works on Dittos."));
                                 }
                                 else
                                 {
                                     EntityPixelmon targetPokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt1, (World) player.getWorld());
                                     EntityPixelmon sacrificePokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt2, (World) player.getWorld());
-                                    Integer targetFuseCount = targetPokemon.getEntityData().getInteger("fuseCount"), sacrificeFuseCount = sacrificePokemon.getEntityData().getInteger("fuseCount");
+                                    int targetFuseCount = targetPokemon.getEntityData().getInteger("fuseCount");
+                                    int sacrificeFuseCount = sacrificePokemon.getEntityData().getInteger("fuseCount");
 
                                     if (targetFuseCount >= shinyCap && nbt1.getInteger(NbtKeys.IS_SHINY) == 1)
                                     {
@@ -236,22 +251,22 @@ public class DittoFusion implements CommandExecutor
                                         printToLog(3, "Passed the majority of checks, moving on to actual command logic.");
 
                                         UniqueAccount uniqueAccount = optionalAccount.get();
-                                        Integer HPUpgradeCount = 0, ATKUpgradeCount = 0, DEFUpgradeCount = 0, SPATKUpgradeCount = 0, SPDEFUpgradeCount = 0, SPDUpgradeCount = 0;
-                                        Integer statToCheck = null, statToUpgrade = 1337;
+                                        int HPUpgradeCount = 0, ATKUpgradeCount = 0, DEFUpgradeCount = 0, SPATKUpgradeCount = 0, SPDEFUpgradeCount = 0, SPDUpgradeCount = 0;
+                                        int statToCheck = 0, statToUpgrade;
 
-                                        Integer targetHP = nbt1.getInteger(NbtKeys.IV_HP);
-                                        Integer targetATK = nbt1.getInteger(NbtKeys.IV_ATTACK);
-                                        Integer targetDEF = nbt1.getInteger(NbtKeys.IV_DEFENCE);
-                                        Integer targetSPATK = nbt1.getInteger(NbtKeys.IV_SP_ATT);
-                                        Integer targetSPDEF = nbt1.getInteger(NbtKeys.IV_SP_DEF);
-                                        Integer targetSPD = nbt1.getInteger(NbtKeys.IV_SPEED);
+                                        int targetHP = nbt1.getInteger(NbtKeys.IV_HP);
+                                        int targetATK = nbt1.getInteger(NbtKeys.IV_ATTACK);
+                                        int targetDEF = nbt1.getInteger(NbtKeys.IV_DEFENCE);
+                                        int targetSPATK = nbt1.getInteger(NbtKeys.IV_SP_ATT);
+                                        int targetSPDEF = nbt1.getInteger(NbtKeys.IV_SP_DEF);
+                                        int targetSPD = nbt1.getInteger(NbtKeys.IV_SPEED);
 
-                                        Integer sacrificeHP = nbt2.getInteger(NbtKeys.IV_HP);
-                                        Integer sacrificeATK = nbt2.getInteger(NbtKeys.IV_ATTACK);
-                                        Integer sacrificeDEF = nbt2.getInteger(NbtKeys.IV_DEFENCE);
-                                        Integer sacrificeSPATK = nbt2.getInteger(NbtKeys.IV_SP_ATT);
-                                        Integer sacrificeSPDEF = nbt2.getInteger(NbtKeys.IV_SP_DEF);
-                                        Integer sacrificeSPD = nbt2.getInteger(NbtKeys.IV_SPEED);
+                                        int sacrificeHP = nbt2.getInteger(NbtKeys.IV_HP);
+                                        int sacrificeATK = nbt2.getInteger(NbtKeys.IV_ATTACK);
+                                        int sacrificeDEF = nbt2.getInteger(NbtKeys.IV_DEFENCE);
+                                        int sacrificeSPATK = nbt2.getInteger(NbtKeys.IV_SP_ATT);
+                                        int sacrificeSPDEF = nbt2.getInteger(NbtKeys.IV_SP_DEF);
+                                        int sacrificeSPD = nbt2.getInteger(NbtKeys.IV_SPEED);
 
                                         for (int i = 0; i <= 5; i++)
                                         {
@@ -325,9 +340,6 @@ public class DittoFusion implements CommandExecutor
                                             }
                                         }
 
-                                        src.sendMessage(Text.of("\u00A75HP Count: " + HPUpgradeCount + " | ATK: " + ATKUpgradeCount + " | DEF: " + DEFUpgradeCount + " | SPATK: " + SPATKUpgradeCount + " | SPDEF: "));
-                                        src.sendMessage(Text.of(SPDEFUpgradeCount + " | SPD: " + SPDUpgradeCount + " | statToUpgrade: " + statToUpgrade));
-
                                         if (targetHP >= 31)
                                             HPUpgradeCount = 0;
                                         else if (HPUpgradeCount + targetHP >= 31)
@@ -358,7 +370,7 @@ public class DittoFusion implements CommandExecutor
                                         else if (SPDUpgradeCount + targetSPD >= 31)
                                             SPDUpgradeCount = 31 - targetSPD;
 
-                                        Integer totalUpgradeCount = HPUpgradeCount + ATKUpgradeCount + DEFUpgradeCount + SPATKUpgradeCount + SPDEFUpgradeCount + SPDUpgradeCount;
+                                        int totalUpgradeCount = HPUpgradeCount + ATKUpgradeCount + DEFUpgradeCount + SPATKUpgradeCount + SPDEFUpgradeCount + SPDUpgradeCount;
                                         BigDecimal costToConfirm = BigDecimal.valueOf((totalUpgradeCount * pointMultiplierForCost) + addFlatFee);
                                         BigDecimal nonMultipliedCost = costToConfirm, extraCost = new BigDecimal(0);
 
@@ -499,14 +511,9 @@ public class DittoFusion implements CommandExecutor
         return CommandResult.success();
     }
 
-    private void printToLog(Integer debugNum, String inputString)
+    private void printToLog(int debugNum, String inputString)
     {
-        Integer debugVerbosityMode = checkConfigInt("debugVerbosityMode", true);
-
-        if (debugVerbosityMode == null)
-            debugVerbosityMode = 4;
-
-        if (debugNum <= debugVerbosityMode)
+        if (debugNum <= debugLevel)
         {
             if (debugNum == 0)
                 PixelUpgrade.log.info("\u00A74DittoFusion // critical: \u00A7c" + inputString);
@@ -530,16 +537,22 @@ public class DittoFusion implements CommandExecutor
         }
     }
 
-    private Integer checkConfigInt(String node, Boolean noMessageMode)
+    private Integer checkConfigInt(String node)
     {
         if (!DittoFusionConfig.getInstance().getConfig().getNode(node).isVirtual())
             return DittoFusionConfig.getInstance().getConfig().getNode(node).getInt();
-        else if (noMessageMode)
-            return null;
         else
         {
             PixelUpgrade.log.info("\u00A74DittoFusion // critical: \u00A7cCould not parse config variable \"" + node + "\"!");
             return null;
         }
+    }
+
+    private void checkAndAddFooter(Player player)
+    {
+        player.sendMessage(Text.of("\u00A74Usage: \u00A7c/fuse <target slot> <sacrifice slot> {-c to confirm}"));
+        player.sendMessage(Text.of(""));
+        player.sendMessage(Text.of("\u00A76Warning: \u00A7eAdd the -c flag only if you're ready to spend money!"));
+        player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
     }
 }

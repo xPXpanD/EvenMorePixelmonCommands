@@ -32,28 +32,54 @@ import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
 public class FixEVs implements CommandExecutor
 {
+    // See which messages should be printed by the debug logger. Valid range is 0-3.
+    // We set 4 (out of range) or null on hitting an error, and let the main code block handle it from there.
+    private static Integer debugLevel = 4;
+    private void getVerbosityMode()
+    {
+        // Does the debugVerbosityMode node exist? If so, figure out what's in it.
+        if (!FixEVsConfig.getInstance().getConfig().getNode("debugVerbosityMode").isVirtual())
+        {
+            String modeString = FixEVsConfig.getInstance().getConfig().getNode("debugVerbosityMode").getString();
+
+            if (modeString.matches("^[0-3]"))
+                debugLevel = Integer.parseInt(modeString);
+            else
+                PixelUpgrade.log.info("\u00A74FixEVs // critical: \u00A7cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
+        }
+        else
+        {
+            PixelUpgrade.log.info("\u00A74FixEVs // critical: \u00A7cConfig variable \"debugVerbosityMode\" could not be found!");
+            debugLevel = null;
+        }
+    }
+
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
 	{
 	    if (src instanceof Player)
         {
-            Boolean commandConfirmed = false;
-            Integer debugVerbosityMode, commandCost;
-            Player player = (Player) src;
+            Integer commandCost = null;
+            if (!FixEVsConfig.getInstance().getConfig().getNode("commandCost").isVirtual())
+                commandCost = FixEVsConfig.getInstance().getConfig().getNode("commandCost").getInt();
+            else
+                PixelUpgrade.log.info("\u00A74FixEVs // critical: \u00A7cCould not parse config variable \"commandCost\"!");
 
-            debugVerbosityMode = checkConfigInt("debugVerbosityMode", false);
-            commandCost = checkConfigInt("commandCost", false);
+            // Check the command's debug verbosity mode, as set in the config.
+            getVerbosityMode();
 
-            if (debugVerbosityMode == null || commandCost == null)
+            if (commandCost == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
-                printToLog(0, "Error parsing config! Make sure everything is valid, or regenerate it.");
-                src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid config for command! Please report this to staff."));
+                // Specific errors are already called earlier on -- this is tacked on to the end.
+                src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
+                PixelUpgrade.log.info("\u00A74FixEVs // critical: \u00A7cCheck your config. If need be, wipe and \\u00A74/pu reload\\u00A7c.");
             }
             else
             {
                 printToLog(2, "Called by player \u00A73" + src.getName() + "\u00A7b. Starting!");
 
-                Boolean canContinue = true;
-                Integer slot = 0;
+                Player player = (Player) src;
+                boolean canContinue = true, commandConfirmed = false;
+                int slot = 0;
 
                 if (!args.<String>getOne("slot").isPresent())
                 {
@@ -119,14 +145,14 @@ public class FixEVs implements CommandExecutor
                         else
                         {
                             EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
-                            Integer eHP = pokemon.stats.EVs.HP;
-                            Integer eATK = pokemon.stats.EVs.Attack;
-                            Integer eDEF = pokemon.stats.EVs.Defence;
-                            Integer eSPATK = pokemon.stats.EVs.SpecialAttack;
-                            Integer eSPDEF = pokemon.stats.EVs.SpecialDefence;
-                            Integer eSPD = pokemon.stats.EVs.Speed;
-                            Integer totalEVs = eHP + eATK + eDEF + eSPATK + eSPDEF + eSPD;
-                            Boolean wasOptimized = false, allEVsGood = false;
+                            int eHP = pokemon.stats.EVs.HP;
+                            int eATK = pokemon.stats.EVs.Attack;
+                            int eDEF = pokemon.stats.EVs.Defence;
+                            int eSPATK = pokemon.stats.EVs.SpecialAttack;
+                            int eSPDEF = pokemon.stats.EVs.SpecialDefence;
+                            int eSPD = pokemon.stats.EVs.Speed;
+                            int totalEVs = eHP + eATK + eDEF + eSPATK + eSPDEF + eSPD;
+                            boolean wasOptimized = false, allEVsGood = false;
 
                             if (eHP < 253 && eHP >= 0 && eATK < 253 && eATK >= 0 && eDEF < 253 && eDEF >= 0 && eSPATK < 253 && eSPATK >= 0 && eSPDEF < 253 && eSPDEF >= 0 && eSPD < 253 && eSPD >= 0)
                                 allEVsGood = true;
@@ -237,7 +263,7 @@ public class FixEVs implements CommandExecutor
         return CommandResult.success();
 	}
 
-	private void fixPlayerEVs(NBTTagCompound nbt, Player player, Integer eHP, Integer eATK, Integer eDEF, Integer eSPATK, Integer eSPDEF, Integer eSPD)
+	private void fixPlayerEVs(NBTTagCompound nbt, Player player, int eHP, int eATK, int eDEF, int eSPATK, int eSPDEF, int eSPD)
     {
         if (eHP > 252)
         {
@@ -271,13 +297,15 @@ public class FixEVs implements CommandExecutor
         }
     }
 
-    private void checkAndAddHeader(Integer cost, Player player)
+    private void checkAndAddHeader(int cost, Player player)
     {
         if (cost > 0)
+        {
             player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+        }
     }
 
-    private void checkAndAddFooter(Integer cost, Player player)
+    private void checkAndAddFooter(int cost, Player player)
     {
         if (cost > 0)
         {
@@ -288,7 +316,7 @@ public class FixEVs implements CommandExecutor
         }
     }
 
-    private void printCorrectHelper(Integer cost, Player player)
+    private void printCorrectHelper(int cost, Player player)
     {
         if (cost != 0)
             player.sendMessage(Text.of("\u00A74Usage: \u00A7c/fixevs <slot, 1-6> {-c to confirm}"));
@@ -296,14 +324,9 @@ public class FixEVs implements CommandExecutor
             player.sendMessage(Text.of("\u00A74Usage: \u00A7c/fixevs <slot, 1-6>"));
     }
 
-    private void printToLog(Integer debugNum, String inputString)
+    private void printToLog(int debugNum, String inputString)
     {
-        Integer debugVerbosityMode = checkConfigInt("debugVerbosityMode", true);
-
-        if (debugVerbosityMode == null)
-            debugVerbosityMode = 4;
-
-        if (debugNum <= debugVerbosityMode)
+        if (debugNum <= debugLevel)
         {
             if (debugNum == 0)
                 PixelUpgrade.log.info("\u00A74FixEVs // critical: \u00A7c" + inputString);
@@ -313,19 +336,6 @@ public class FixEVs implements CommandExecutor
                 PixelUpgrade.log.info("\u00A73FixEVs // start/end: \u00A7b" + inputString);
             else
                 PixelUpgrade.log.info("\u00A72FixEVs // debug: \u00A7a" + inputString);
-        }
-    }
-
-    private Integer checkConfigInt(String node, Boolean noMessageMode)
-    {
-        if (!FixEVsConfig.getInstance().getConfig().getNode(node).isVirtual())
-            return FixEVsConfig.getInstance().getConfig().getNode(node).getInt();
-        else if (noMessageMode)
-            return null;
-        else
-        {
-            PixelUpgrade.log.info("\u00A74FixEVs // critical: \u00A7cCould not parse config variable \"" + node + "\"!");
-            return null;
         }
     }
 }

@@ -35,30 +35,59 @@ import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
 public class GetStats implements CommandExecutor
 {
+    // See which messages should be printed by the debug logger. Valid range is 0-3.
+    // We set 4 (out of range) or null on hitting an error, and let the main code block handle it from there.
+    private static Integer debugLevel = 4;
+    private void getVerbosityMode()
+    {
+        // Does the debugVerbosityMode node exist? If so, figure out what's in it.
+        if (!GetStatsConfig.getInstance().getConfig().getNode("debugVerbosityMode").isVirtual())
+        {
+            String modeString = GetStatsConfig.getInstance().getConfig().getNode("debugVerbosityMode").getString();
+
+            if (modeString.matches("^[0-3]"))
+                debugLevel = Integer.parseInt(modeString);
+            else
+                PixelUpgrade.log.info("\u00A74GetStats // critical: \u00A7cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
+        }
+        else
+        {
+            PixelUpgrade.log.info("\u00A74GetStats // critical: \u00A7cConfig variable \"debugVerbosityMode\" could not be found!");
+            debugLevel = null;
+        }
+    }
+    
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
     {
         if (src instanceof Player)
         {
+            boolean presenceCheck = true;
             Boolean showTeamWhenSlotEmpty, enableCheckEggIntegration;
-            Integer debugVerbosityMode, commandCost;
-
-            debugVerbosityMode = checkConfigInt("debugVerbosityMode", false);
+            Integer commandCost;
+            
             showTeamWhenSlotEmpty = checkConfigBool("showTeamWhenSlotEmpty");
             enableCheckEggIntegration = checkConfigBool("enableCheckEggIntegration");
-            commandCost = checkConfigInt("commandCost", false);
+            commandCost = checkConfigInt();
 
-            if (enableCheckEggIntegration == null || showTeamWhenSlotEmpty == null || debugVerbosityMode == null || commandCost == null)
+            // Check the command's debug verbosity mode, as set in the config.
+            getVerbosityMode();
+
+            if (enableCheckEggIntegration == null || showTeamWhenSlotEmpty == null || commandCost == null)
+                presenceCheck = false;
+
+            if (!presenceCheck || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
-                printToLog(0, "Error parsing config! Make sure everything is valid, or regenerate it.");
-                src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid config for command! Please report this to staff."));
+                // Specific errors are already called earlier on -- this is tacked on to the end.
+                src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
+                PixelUpgrade.log.info("\u00A74GetStats // critical: \u00A7cCheck your config. If need be, wipe and \\u00A74/pu reload\\u00A7c.");
             }
             else
             {
                 printToLog(2, "Called by player \u00A73" + src.getName() + "\u00A7b. Starting!");
 
-                Integer slot = 0;
+                int slot = 0;
                 String targetString = null, slotString;
-                Boolean targetAcquired = false, commandConfirmed = false, canContinue = false, hasOtherPerm = false;
+                boolean targetAcquired = false, commandConfirmed = false, canContinue = false, hasOtherPerm = false;
                 Player player = (Player) src, target = player;
 
                 if (src.hasPermission("pixelupgrade.command.getstats.other"))
@@ -210,7 +239,7 @@ public class GetStats implements CommandExecutor
                         {
                             printToLog(3, "Slot provided on target is empty, dumping team to chat (config).");
 
-                            Integer slotTicker = 0;
+                            int slotTicker = 0;
                             player.sendMessage(Text.of("\u00A75Info: \u00A7dThat slot is empty, showing whole team!"));
 
                             for (NBTTagCompound loopValue : storageCompleted.partyPokemon)
@@ -319,13 +348,15 @@ public class GetStats implements CommandExecutor
         return CommandResult.success();
 	}
 
-    private void checkAndAddHeader(Integer cost, Player player)
+	private void checkAndAddHeader(int cost, Player player)
     {
         if (cost > 0)
+        {
             player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+        }
     }
 
-    private void checkAndAddFooter(Integer cost, Player player)
+    private void checkAndAddFooter(int cost, Player player)
     {
         if (cost > 0)
         {
@@ -337,7 +368,7 @@ public class GetStats implements CommandExecutor
     }
 
     // Called when it's necessary to figure out the right perm message, or when it's just convenient. Saves typing!
-    private void printCorrectPerm(Integer cost, Player player)
+    private void printCorrectPerm(int cost, Player player)
     {
         if (cost != 0)
         {
@@ -355,7 +386,7 @@ public class GetStats implements CommandExecutor
         }
     }
 
-    private void throwArg1Error(Integer cost, Boolean hasOtherPerm, Player player)
+    private void throwArg1Error(int cost, boolean hasOtherPerm, Player player)
     {
         checkAndAddHeader(cost, player);
         if (hasOtherPerm)
@@ -368,14 +399,9 @@ public class GetStats implements CommandExecutor
         checkAndAddFooter(cost, player);
     }
 
-    private void printToLog(Integer debugNum, String inputString)
+    private void printToLog(int debugNum, String inputString)
     {
-        Integer debugVerbosityMode = checkConfigInt("debugVerbosityMode", true);
-
-        if (debugVerbosityMode == null)
-            debugVerbosityMode = 4;
-
-        if (debugNum <= debugVerbosityMode)
+        if (debugNum <= debugLevel)
         {
             if (debugNum == 0)
                 PixelUpgrade.log.info("\u00A74GetStats // critical: \u00A7c" + inputString);
@@ -392,7 +418,6 @@ public class GetStats implements CommandExecutor
     {
         if (!GetStatsConfig.getInstance().getConfig().getNode(node).isVirtual())
             return GetStatsConfig.getInstance().getConfig().getNode(node).getBoolean();
-
         else
         {
             PixelUpgrade.log.info("\u00A74GetStats // critical: \u00A7cCould not parse config variable \"" + node + "\"!");
@@ -400,52 +425,50 @@ public class GetStats implements CommandExecutor
         }
     }
 
-    private Integer checkConfigInt(String node, Boolean noMessageMode)
+    private Integer checkConfigInt()
     {
-        if (!GetStatsConfig.getInstance().getConfig().getNode(node).isVirtual())
-            return GetStatsConfig.getInstance().getConfig().getNode(node).getInt();
-        else if (noMessageMode)
-            return null;
+        if (!GetStatsConfig.getInstance().getConfig().getNode("commandCost").isVirtual())
+            return GetStatsConfig.getInstance().getConfig().getNode("commandCost").getInt();
         else
         {
-            PixelUpgrade.log.info("\u00A74GetStats // critical: \u00A7cCould not parse config variable \"" + node + "\"!");
+            PixelUpgrade.log.info("\u00A74GetStats // critical: \u00A7cCould not parse config variable \"commandCost\"!");
             return null;
         }
     }
 
-    private void checkAndShow(NBTTagCompound nbt, Boolean targetAcquired, Player player, Player target)
+    private void checkAndShow(NBTTagCompound nbt, boolean targetAcquired, Player player, Player target)
     {
         EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
 
-        Integer IVHP = nbt.getInteger(NbtKeys.IV_HP);
-        Integer IVATK = nbt.getInteger(NbtKeys.IV_ATTACK);
-        Integer IVDEF = nbt.getInteger(NbtKeys.IV_DEFENCE);
-        Integer IVSPATK = nbt.getInteger(NbtKeys.IV_SP_ATT);
-        Integer IVSPDEF = nbt.getInteger(NbtKeys.IV_SP_DEF);
-        Integer IVSPD = nbt.getInteger(NbtKeys.IV_SPEED);
-        Integer totalIVs = IVHP + IVATK + IVDEF + IVSPATK + IVSPDEF + IVSPD;
-        Integer percentIVs = totalIVs * 100 / 186;
+        int IVHP = nbt.getInteger(NbtKeys.IV_HP);
+        int IVATK = nbt.getInteger(NbtKeys.IV_ATTACK);
+        int IVDEF = nbt.getInteger(NbtKeys.IV_DEFENCE);
+        int IVSPATK = nbt.getInteger(NbtKeys.IV_SP_ATT);
+        int IVSPDEF = nbt.getInteger(NbtKeys.IV_SP_DEF);
+        int IVSPD = nbt.getInteger(NbtKeys.IV_SPEED);
+        int totalIVs = IVHP + IVATK + IVDEF + IVSPATK + IVSPDEF + IVSPD;
+        int percentIVs = totalIVs * 100 / 186;
 
-        Integer EVHP = nbt.getInteger(NbtKeys.EV_HP);
-        Integer EVATK = nbt.getInteger(NbtKeys.EV_ATTACK);
-        Integer EVDEF = nbt.getInteger(NbtKeys.EV_DEFENCE);
-        Integer EVSPATK = nbt.getInteger(NbtKeys.EV_SPECIAL_ATTACK);
-        Integer EVSPDEF = nbt.getInteger(NbtKeys.EV_SPECIAL_DEFENCE);
-        Integer EVSPD = nbt.getInteger(NbtKeys.EV_SPEED);
-        Integer totalEVs = EVHP + EVATK + EVDEF + EVSPATK + EVSPDEF + EVSPD;
-        Integer percentEVs = totalEVs * 100 / 510;
+        int EVHP = nbt.getInteger(NbtKeys.EV_HP);
+        int EVATK = nbt.getInteger(NbtKeys.EV_ATTACK);
+        int EVDEF = nbt.getInteger(NbtKeys.EV_DEFENCE);
+        int EVSPATK = nbt.getInteger(NbtKeys.EV_SPECIAL_ATTACK);
+        int EVSPDEF = nbt.getInteger(NbtKeys.EV_SPECIAL_DEFENCE);
+        int EVSPD = nbt.getInteger(NbtKeys.EV_SPEED);
+        int totalEVs = EVHP + EVATK + EVDEF + EVSPATK + EVSPDEF + EVSPD;
+        int percentEVs = totalEVs * 100 / 510;
 
-        Integer natureNum = nbt.getInteger(NbtKeys.NATURE);
-        Integer growthNum = nbt.getInteger(NbtKeys.GROWTH);
-        Integer genderNum = nbt.getInteger(NbtKeys.GENDER);
-        Integer fuseCount = pokemon.getEntityData().getInteger("fuseCount");
-        Integer upgradeCount = pokemon.getEntityData().getInteger("upgradeCount");
+        int natureNum = nbt.getInteger(NbtKeys.NATURE);
+        int growthNum = nbt.getInteger(NbtKeys.GROWTH);
+        int genderNum = nbt.getInteger(NbtKeys.GENDER);
+        int fuseCount = pokemon.getEntityData().getInteger("fuseCount");
+        int upgradeCount = pokemon.getEntityData().getInteger("upgradeCount");
         String natureName, plusVal, minusVal, growthName, genderName;
         String ivs1, ivs2, ivs3, ivs4, ivs5, ivs6;
         String evs1, evs2, evs3, evs4, evs5, evs6;
         String extraInfo1, extraInfo2;
 
-        Boolean isShiny, isLegendary, isBaby = false;
+        boolean isShiny, isLegendary, isBaby = false;
         isShiny = nbt.getInteger(NbtKeys.IS_SHINY) == 1;
         if (nbt.getString("Name").equals("Riolu") || nbt.getString("Name").equals("Mime Jr.") || nbt.getString("Name").equals("Happiny"))
             isBaby = true;

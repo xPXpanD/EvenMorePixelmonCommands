@@ -16,9 +16,9 @@ import java.nio.file.Paths;
 public class CheckEggConfig
 {
     private CommentedConfigurationNode config;
-    private static CheckEggConfig instance = new CheckEggConfig();
+    public static CheckEggConfig CheckEggInstance = new CheckEggConfig();
     public static CheckEggConfig getInstance()
-    {   return instance;    }
+    {   return CheckEggInstance;    }
 
     private String path = "config" + FileSystems.getDefault().getSeparator() + "PixelUpgrade";
     private Path configPath = Paths.get(path, "CheckEgg.conf");

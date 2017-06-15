@@ -22,25 +22,47 @@ import rs.expand.pixelupgrade.configs.ForceStatsConfig;
 
 public class ForceStats implements CommandExecutor
 {
+    // See which messages should be printed by the debug logger. Valid range is 0-3.
+    // We set 4 (out of range) or null on hitting an error, and let the main code block handle it from there.
+    private static Integer debugLevel = 4;
+    private void getVerbosityMode()
+    {
+        // Does the debugVerbosityMode node exist? If so, figure out what's in it.
+        if (!ForceStatsConfig.getInstance().getConfig().getNode("debugVerbosityMode").isVirtual())
+        {
+            String modeString = ForceStatsConfig.getInstance().getConfig().getNode("debugVerbosityMode").getString();
+
+            if (modeString.matches("^[0-3]"))
+                debugLevel = Integer.parseInt(modeString);
+            else
+                PixelUpgrade.log.info("\u00A74ForceStats // critical: \u00A7cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
+        }
+        else
+        {
+            PixelUpgrade.log.info("\u00A74ForceStats // critical: \u00A7cConfig variable \"debugVerbosityMode\" could not be found!");
+            debugLevel = null;
+        }
+    }
+
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
     {
         if (src instanceof Player)
         {
-            Integer debugVerbosityMode;
+            // Check the command's debug verbosity mode, as set in the config.
+            getVerbosityMode();
 
-            debugVerbosityMode = checkConfigInt(false);
-
-            if (debugVerbosityMode == null)
+            if (debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
-                printToLog(0, "Error parsing config! Make sure everything is valid, or regenerate it.");
-                src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid config for command! Please report this to staff."));
+                // Specific errors are already called earlier on -- this is tacked on to the end.
+                src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
+                PixelUpgrade.log.info("\u00A74ForceStats // critical: \u00A7cCheck your config. If need be, wipe and \\u00A74/pu reload\\u00A7c.");
             }
             else
             {
                 printToLog(2, "Called by player \u00A73" + src.getName() + "\u00A7b. Starting!");
 
-                Boolean canContinue = true, statWasFixed = true, forceValue = false, shinyFix = false, valueIsInt = false;
-                Integer slot = 0, intValue = null;
+                boolean canContinue = true, statWasFixed = true, forceValue = false, shinyFix = false, valueIsInt = false;
+                int slot = 0, intValue = 0;
                 String stat = null, fixedStat = null, value = null;
 
                 if (!args.<String>getOne("slot").isPresent())
@@ -197,7 +219,7 @@ public class ForceStats implements CommandExecutor
                 {
                     String valueString = args.<String>getOne("value").get();
 
-                    if (valueString.matches("^-?[0-9].*"))
+                    if (valueString.matches("^-?[0-9]*$") && !valueString.matches("-"))
                     {
                         printToLog(3, "Checked value, and found out it's an integer. Setting flag.");
                         intValue = Integer.parseInt(args.<String>getOne("value").get());
@@ -332,14 +354,9 @@ public class ForceStats implements CommandExecutor
         return CommandResult.success();
 	}
 
-    private void printToLog(Integer debugNum, String inputString)
+    private void printToLog(int debugNum, String inputString)
     {
-        Integer debugVerbosityMode = checkConfigInt(true);
-
-        if (debugVerbosityMode == null)
-            debugVerbosityMode = 4;
-
-        if (debugNum <= debugVerbosityMode)
+        if (debugNum <= debugLevel)
         {
             if (debugNum == 0)
                 PixelUpgrade.log.info("\u00A74ForceStats // critical: \u00A7c" + inputString);
@@ -349,19 +366,6 @@ public class ForceStats implements CommandExecutor
                 PixelUpgrade.log.info("\u00A73ForceStats // start/end: \u00A7b" + inputString);
             else
                 PixelUpgrade.log.info("\u00A72ForceStats // debug: \u00A7a" + inputString);
-        }
-    }
-
-    private Integer checkConfigInt(Boolean noMessageMode)
-    {
-        if (!ForceStatsConfig.getInstance().getConfig().getNode("debugVerbosityMode").isVirtual())
-            return ForceStatsConfig.getInstance().getConfig().getNode("debugVerbosityMode").getInt();
-        else if (noMessageMode)
-            return null;
-        else
-        {
-            PixelUpgrade.log.info("\u00A74ForceStats // critical: \u00A7cCould not parse config variable \"debugVerbosityMode\"!");
-            return null;
         }
     }
 }

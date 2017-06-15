@@ -26,7 +26,7 @@ public class ReloadConfigs implements CommandExecutor
         UpgradeConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdUpgradePath, PixelUpgrade.getInstance().cmdUpgradeLoader);
         PixelUpgradeInfoConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdPixelUpgradeInfoPath, PixelUpgrade.getInstance().cmdPixelUpgradeInfoLoader);
 
-        src.sendMessage(Text.of("\u00A73Debug: \u00A7bConfigs reloaded. Check the console for any errors."));
+        src.sendMessage(Text.of("\u00A73Debug: \u00A7bReloading done. Check the console for any errors."));
 
         return CommandResult.success();
     }
