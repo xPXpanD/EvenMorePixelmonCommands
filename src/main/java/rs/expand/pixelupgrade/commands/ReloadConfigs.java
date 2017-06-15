@@ -14,7 +14,7 @@ public class ReloadConfigs implements CommandExecutor
 {
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
     {
-        src.sendMessage(Text.of("\u00A73Notice: \u00A7bStarting reload of all configs..."));
+        src.sendMessage(Text.of("\u00A73PU Reload // notice: \u00A7bStarting reload of all configs..."));
 
         CheckEggConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdCheckEggPath, PixelUpgrade.getInstance().cmdCheckEggLoader);
         DittoFusionConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdDittoFusionPath, PixelUpgrade.getInstance().cmdDittoFusionLoader);
@@ -22,11 +22,12 @@ public class ReloadConfigs implements CommandExecutor
         ForceStatsConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdForceStatsPath, PixelUpgrade.getInstance().cmdForceStatsLoader);
         ForceHatchConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdForceHatchPath, PixelUpgrade.getInstance().cmdForceHatchLoader);
         GetStatsConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdGetStatsPath, PixelUpgrade.getInstance().cmdGetStatsLoader);
+        PixelUpgradeInfoConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdPixelUpgradeInfoPath, PixelUpgrade.getInstance().cmdPixelUpgradeInfoLoader);
         ResetEVsConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdResetEVsPath, PixelUpgrade.getInstance().cmdResetEVsLoader);
         UpgradeConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdUpgradePath, PixelUpgrade.getInstance().cmdUpgradeLoader);
-        PixelUpgradeInfoConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdPixelUpgradeInfoPath, PixelUpgrade.getInstance().cmdPixelUpgradeInfoLoader);
+        WeaknessConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdWeaknessPath, PixelUpgrade.getInstance().cmdWeaknessLoader);
 
-        src.sendMessage(Text.of("\u00A73Debug: \u00A7bReloading done. Check the console for any errors."));
+        src.sendMessage(Text.of("\u00A73PU Reload // notice: \u00A7bReloading done. Check the console for any errors."));
 
         return CommandResult.success();
     }

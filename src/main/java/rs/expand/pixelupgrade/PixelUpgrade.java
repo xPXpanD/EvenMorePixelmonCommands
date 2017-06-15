@@ -118,7 +118,7 @@ public class PixelUpgrade
     public Path cmdPixelUpgradeInfoPath = Paths.get(path, "PixelUpgradeInfo.conf");
     public Path cmdResetEVsPath = Paths.get(path, "ResetEVs.conf");
     public Path cmdUpgradePath = Paths.get(path, "Upgrade.conf");
-    //public Path cmdWeaknessPath = Paths.get(path, "Weakness.conf");
+    public Path cmdWeaknessPath = Paths.get(path, "Weakness.conf");
 
     public ConfigurationLoader<CommentedConfigurationNode> cmdCheckEggLoader = HoconConfigurationLoader.builder().setPath(cmdCheckEggPath).build();
     public ConfigurationLoader<CommentedConfigurationNode> cmdDittoFusionLoader = HoconConfigurationLoader.builder().setPath(cmdDittoFusionPath).build();
@@ -129,7 +129,7 @@ public class PixelUpgrade
     public ConfigurationLoader<CommentedConfigurationNode> cmdPixelUpgradeInfoLoader = HoconConfigurationLoader.builder().setPath(cmdPixelUpgradeInfoPath).build();
     public ConfigurationLoader<CommentedConfigurationNode> cmdResetEVsLoader = HoconConfigurationLoader.builder().setPath(cmdResetEVsPath).build();
     public ConfigurationLoader<CommentedConfigurationNode> cmdUpgradeLoader = HoconConfigurationLoader.builder().setPath(cmdUpgradePath).build();
-    //public ConfigurationLoader<CommentedConfigurationNode> cmdWeaknessLoader = HoconConfigurationLoader.builder().setPath(cmdWeaknessPath).build();
+    public ConfigurationLoader<CommentedConfigurationNode> cmdWeaknessLoader = HoconConfigurationLoader.builder().setPath(cmdWeaknessPath).build();
 
     @Listener
     public void onChangeServiceProvider(ChangeServiceProviderEvent event)
@@ -249,7 +249,7 @@ public class PixelUpgrade
             .build();
 
     private CommandSpec weakness = CommandSpec.builder()
-            .description(Text.of("Shows you the weaknesses of the Pok\u00E9mon you're fighting."))
+            .description(Text.of("Shows you the weaknesses of any Pok\u00E9mon. Useful in battle!"))
             .permission("pixelupgrade.command.weakness")
             .executor(new Weakness())
 
@@ -280,7 +280,7 @@ public class PixelUpgrade
         GetStatsConfig.getInstance().loadOrCreateConfig(cmdGetStatsPath, cmdGetStatsLoader);
         PixelUpgradeInfoConfig.getInstance().loadOrCreateConfig(cmdPixelUpgradeInfoPath, cmdPixelUpgradeInfoLoader);
         ResetEVsConfig.getInstance().loadOrCreateConfig(cmdResetEVsPath, cmdResetEVsLoader);
-        //WeaknessConfig.getInstance().loadOrCreateConfig(cmdWeaknessPath, cmdWeaknessLoader);
+        WeaknessConfig.getInstance().loadOrCreateConfig(cmdWeaknessPath, cmdWeaknessLoader);
         UpgradeConfig.getInstance().loadOrCreateConfig(cmdUpgradePath, cmdUpgradeLoader);
 
         log.info("\u00A7aCommands registered!");

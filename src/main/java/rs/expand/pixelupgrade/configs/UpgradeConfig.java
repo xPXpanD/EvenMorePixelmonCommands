@@ -3,15 +3,9 @@ package rs.expand.pixelupgrade.configs;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 
-import org.spongepowered.api.Sponge;
-import org.spongepowered.api.asset.Asset;
-
 import rs.expand.pixelupgrade.PixelUpgrade;
 
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 
 public class UpgradeConfig
 {
@@ -20,21 +14,20 @@ public class UpgradeConfig
     public static UpgradeConfig getInstance()
     {   return instance;    }
 
-    private String path = "config" + FileSystems.getDefault().getSeparator() + "PixelUpgrade";
-    private Path configPath = Paths.get(path, "Upgrade.conf");
+    private String separator = FileSystems.getDefault().getSeparator();
+    private String path = "config" + separator + "PixelUpgrade" + separator;
 
     // Called during initial setup, either when the server is booting up or when /pu reload has been executed.
-    public void loadOrCreateConfig(Path configPath, ConfigurationLoader<CommentedConfigurationNode> configLoader)
+    public void loadOrCreateConfig(Path checkPath, ConfigurationLoader<CommentedConfigurationNode> configLoader)
     {
-        this.configPath = configPath;
-
-        if (Files.notExists(configPath))
+        if (Files.notExists(checkPath))
         {
             try
             {
                 PixelUpgrade.log.info("\u00A7eNo \"/upgrade\" configuration file found, creating...");
-                Asset asset = Sponge.getAssetManager().getAsset(PixelUpgrade.getInstance(), "Upgrade.conf").get();
-                asset.copyToFile(configPath);
+                Path targetLocation = Paths.get(path, "Upgrade.conf");
+                // Fetching files from the .jar is tough! But this will survive Github, at least.
+                Files.copy(getClass().getResourceAsStream("/assets/Upgrade.conf"), targetLocation);
                 config = configLoader.load();
             }
             catch (Exception F)
@@ -53,7 +46,7 @@ public class UpgradeConfig
             }
             catch (Exception F)
             {
-                PixelUpgrade.log.info("\u00A74Error during config loading for command \"/upgrade\"!");
+                PixelUpgrade.log.info("\u00A7cError during config loading for command \"/upgrade\"!");
                 PixelUpgrade.log.info("\u00A7cPlease make sure this config is formatted correctly. Stack trace follows:");
                 F.printStackTrace();
             }
