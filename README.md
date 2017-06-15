@@ -1,4 +1,8 @@
 # PixelUpgrade
-A Minecraft plugin, meant to work with Pixelmon. Adds a ton of fancy new commands, some with economy integration. Examples include upgrading IVs, checking Pokémon weaknesses on the fly (coming soon!) and FUSING DITTOS INTO BIGGER BADDER DITTOS. Yes.
+A Minecraft plugin, meant to work with Pixelmon. 
 
-Stay tuned for more details.
+Adds a ton of fancy new commands, some with economy integration. 
+
+Examples include upgrading IVs, checking Pokémon weaknesses on the fly (coming soon!) and FUSING DITTOS INTO BIGGER BADDER DITTOS. Yes.
+
+Stay tuned for more details!
