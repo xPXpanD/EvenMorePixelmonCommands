@@ -1,7 +1,8 @@
 # PixelUpgrade
-A Minecraft plugin, meant to work with Pixelmon. Change just about everything Pokémon-related, using economy integration!
+A Minecraft plugin, meant to work with Pixelmon. 
 
-Stock configs are external to the project, located in PROJECT FOLDER/build/classes/main/assets/pixelupgrade.
-Link for these coming soon, have an example for now.
+Adds a ton of fancy new commands, some with economy integration. 
 
-https://pastebin.com/8ZAV6hBR
+Examples include upgrading IVs, checking Pokémon weaknesses on the fly (coming soon!) and FUSING DITTOS TOGETHER. Yes.
+
+Stay tuned for more details!
