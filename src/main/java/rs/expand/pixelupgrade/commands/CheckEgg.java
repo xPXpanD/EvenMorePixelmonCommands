@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import net.minecraft.world.World;
-
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
@@ -27,6 +25,7 @@ import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.World;
 
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.configs.CheckEggConfig;
@@ -61,14 +60,19 @@ public class CheckEgg implements CommandExecutor
     {
         if (src instanceof Player)
         {
-            Integer commandCost = checkConfigInt();
+            boolean presenceCheck = true;
+            Integer commandCost = checkConfigInt("commandCost");
+            Integer babyHintPercent = checkConfigInt("babyHintPercent");
             Boolean explicitReveal = checkConfigBool("explicitReveal");
             Boolean recheckIsFree = checkConfigBool("recheckIsFree");
 
             // Check the command's debug verbosity mode, as set in the config.
             getVerbosityMode();
 
-            if (recheckIsFree == null || explicitReveal == null || commandCost == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
+            if (recheckIsFree == null || explicitReveal == null || commandCost == null || babyHintPercent == null)
+                presenceCheck = false;
+
+            if (!presenceCheck || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
@@ -242,15 +246,18 @@ public class CheckEgg implements CommandExecutor
                             if (!recheckIsFree)
                                 wasEggChecked = false;
 
-                            if (wasEggChecked)
+                            if (commandCost == 0 || wasEggChecked)
                             {
                                 src.sendMessage(Text.of("\u00A76There's a healthy \u00A7c" + nbt.getString("Name") + "\u00A76 inside of this egg!"));
-                                printEggResults(nbt, pokemon, commandCost, explicitReveal, player);
+                                printEggResults(nbt, pokemon, babyHintPercent, explicitReveal, recheckIsFree, player);
 
                                 // Keep this below the printEggResults call, or your debug message order will look weird.
-                                printToLog(2, "Checked egg in slot " + slot + ". Detected a recheck, taking nothing (config).");
+                                if (commandCost == 0)
+                                    printToLog(2, "Checked egg in slot " + slot + ". Config price is 0, taking nothing.");
+                                else
+                                    printToLog(2, "Checked egg in slot " + slot + ". Detected a recheck, taking nothing (config).");
                             }
-                            else if (commandCost > 0)
+                            else
                             {
                                 BigDecimal costToConfirm = new BigDecimal(commandCost);
 
@@ -266,7 +273,7 @@ public class CheckEgg implements CommandExecutor
                                         if (transactionResult.getResult() == ResultType.SUCCESS)
                                         {
                                             src.sendMessage(Text.of("\u00A76There's a healthy \u00A7c" + nbt.getString("Name") + "\u00A76 inside of this egg!"));
-                                            printEggResults(nbt, pokemon, commandCost, explicitReveal, player);
+                                            printEggResults(nbt, pokemon, babyHintPercent, explicitReveal, recheckIsFree, player);
 
                                             // Keep this below the printEggResults call, or your debug message order will look weird.
                                             printToLog(1, "Checked egg in slot " + slot + ", and took " + costToConfirm + " coins.");
@@ -301,14 +308,6 @@ public class CheckEgg implements CommandExecutor
                                         src.sendMessage(Text.of("\u00A72Ready? Type: \u00A7a/checkegg " + slot + " -c"));
                                     }
                                 }
-                            }
-                            else
-                            {
-                                src.sendMessage(Text.of("\u00A76There's a healthy \u00A7c" + nbt.getString("Name") + "\u00A76 inside of this egg!"));
-                                printEggResults(nbt, pokemon, commandCost, explicitReveal, player);
-
-                                // Keep this below the printEggResults call, or your debug message order will look weird.
-                                printToLog(2, "Checked egg in slot " + slot + ". Config price is 0, taking nothing.");
                             }
                         }
                     }
@@ -398,18 +397,18 @@ public class CheckEgg implements CommandExecutor
         }
     }
 
-    private Integer checkConfigInt()
+    private Integer checkConfigInt(String node)
     {
-        if (!CheckEggConfig.getInstance().getConfig().getNode("commandCost").isVirtual())
-            return CheckEggConfig.getInstance().getConfig().getNode("commandCost").getInt();
+        if (!CheckEggConfig.getInstance().getConfig().getNode(node).isVirtual())
+            return CheckEggConfig.getInstance().getConfig().getNode(node).getInt();
         else
         {
-            PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCould not parse config variable \"commandCost\"!");
+            PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCould not parse config variable \"" + node + "\"!");
             return null;
         }
     }
 
-    private void printEggResults(NBTTagCompound nbt, EntityPixelmon pokemon, int cost, boolean explicitReveal, Player player)
+    private void printEggResults(NBTTagCompound nbt, EntityPixelmon pokemon, int babyHintPercent, boolean explicitReveal, boolean recheckIsFree, Player player)
     {
         int IVHP = nbt.getInteger(NbtKeys.IV_HP);
         int IVATT = nbt.getInteger(NbtKeys.IV_ATTACK);
@@ -466,17 +465,17 @@ public class CheckEgg implements CommandExecutor
         {
             printToLog(3, "Explicit reveal disabled, printing vague status.");
 
-            if (percentIVs >= 90 && nbt.getInteger(NbtKeys.IS_SHINY) != 1)
+            if (percentIVs >= babyHintPercent && nbt.getInteger(NbtKeys.IS_SHINY) != 1)
                 player.sendMessage(Text.of("\u00A76What's this? \u00A7eThis baby seems to be bursting with energy..."));
-            else if (!(percentIVs >= 90) && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
+            else if (!(percentIVs >= babyHintPercent) && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
                 player.sendMessage(Text.of("\u00A76What's this? \u00A7eThis baby seems to have an odd sheen to it..."));
-            else if (percentIVs >= 90 && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
+            else if (percentIVs >= babyHintPercent && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
                 player.sendMessage(Text.of("\u00A76What's this? \u00A7eSomething about this baby seems real special!"));
             else
                 player.sendMessage(Text.of("\u00A7eThis baby seems to be fairly ordinary..."));
         }
 
-        if (pokemon.getEntityData().getBoolean("hadEggChecked") && cost == 0)
+        if (pokemon.getEntityData().getBoolean("hadEggChecked") && recheckIsFree)
         {
             player.sendMessage(Text.of(""));
             player.sendMessage(Text.of("\u00A7aThis egg has been checked before, so this check was free!"));

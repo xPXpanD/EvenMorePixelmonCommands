@@ -29,12 +29,17 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
 import rs.expand.pixelupgrade.PixelUpgrade;
+import rs.expand.pixelupgrade.configs.DittoFusionConfig;
 import rs.expand.pixelupgrade.configs.GetStatsConfig;
+import rs.expand.pixelupgrade.configs.UpgradeConfig;
 
 import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
 public class GetStats implements CommandExecutor
 {
+    private static Integer regularFusionCap, shinyFusionCap, legendaryAndShinyUpgradeCap;
+    private static Integer legendaryUpgradeCap, regularUpgradeCap, shinyUpgradeCap, babyUpgradeCap;
+
     // See which messages should be printed by the debug logger. Valid range is 0-3.
     // We set 4 (out of range) or null on hitting an error, and let the main code block handle it from there.
     private static Integer debugLevel = 4;
@@ -61,7 +66,8 @@ public class GetStats implements CommandExecutor
     {
         if (src instanceof Player)
         {
-            boolean presenceCheck = true;
+            boolean canContinue = true, presenceCheck = true, fusionPresenceCheck = true;
+            boolean upgradePresenceCheck = true;
             Boolean showTeamWhenSlotEmpty, enableCheckEggIntegration;
             Integer commandCost;
             
@@ -69,26 +75,81 @@ public class GetStats implements CommandExecutor
             enableCheckEggIntegration = checkConfigBool("enableCheckEggIntegration");
             commandCost = checkConfigInt();
 
+            // Load up Ditto Fusion config values. Used for showing fusion limits.
+            regularFusionCap = checkFusionConfigInt("regularCap");
+            shinyFusionCap = checkFusionConfigInt("shinyCap");
+
+            // Load up Upgrade config values. Used for showing upgrade limits.
+            // Sorry for the insanely long variable name. Clarity over style, there.
+            legendaryAndShinyUpgradeCap = checkUpgradeConfigInt("legendaryAndShinyCap");
+            legendaryUpgradeCap = checkUpgradeConfigInt("legendaryCap");
+            regularUpgradeCap = checkUpgradeConfigInt("regularCap");
+            shinyUpgradeCap = checkUpgradeConfigInt("shinyCap");
+            babyUpgradeCap = checkUpgradeConfigInt("babyCap");
+
             // Check the command's debug verbosity mode, as set in the config.
             getVerbosityMode();
 
             if (enableCheckEggIntegration == null || showTeamWhenSlotEmpty == null || commandCost == null)
                 presenceCheck = false;
+            if (regularFusionCap == null || shinyFusionCap == null)
+                fusionPresenceCheck = false;
+            if (legendaryAndShinyUpgradeCap == null || legendaryUpgradeCap == null || regularUpgradeCap == null)
+                upgradePresenceCheck = false;
+            else if (shinyUpgradeCap == null || babyUpgradeCap == null)
+                upgradePresenceCheck = false;
 
             if (!presenceCheck || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
                 PixelUpgrade.log.info("\u00A74GetStats // critical: \u00A7cCheck your config. If need be, wipe and \\u00A74/pu reload\\u00A7c.");
+                canContinue = false;
             }
-            else
+            else if (!fusionPresenceCheck || !upgradePresenceCheck)
+            {
+                PixelUpgrade.log.info("\u00A74GetStats // error: \u00A7cCheck your config. If need be, wipe and \\u00A74/pu reload\\u00A7c.");
+
+                if (!fusionPresenceCheck && upgradePresenceCheck)
+                {
+                    PixelUpgrade.log.info("\u00A76GetStats // error: \u00A7eFalling back to defaults for shown Ditto Fusion limits...");
+                    regularFusionCap = 5;
+                    shinyFusionCap = 10;
+                }
+                else if (fusionPresenceCheck)
+                {
+                    PixelUpgrade.log.info("\u00A76GetStats // error: \u00A7eFalling back to defaults for shown Upgrade limits...");
+                    legendaryAndShinyUpgradeCap = 40;
+                    legendaryUpgradeCap = 20;
+                    regularUpgradeCap = 35;
+                    shinyUpgradeCap = 60;
+                    babyUpgradeCap = 25;
+                }
+                else
+                {
+                    PixelUpgrade.log.info("\u00A76GetStats // error: \u00A7eFalling back to defaults for shown Upgrade and Ditto Fusion limits...");
+                    regularFusionCap = 5;
+                    shinyFusionCap = 10;
+                    legendaryAndShinyUpgradeCap = 40;
+                    legendaryUpgradeCap = 20;
+                    regularUpgradeCap = 35;
+                    shinyUpgradeCap = 60;
+                    babyUpgradeCap = 25;
+                }
+            }
+
+            if (canContinue)
             {
                 printToLog(2, "Called by player \u00A73" + src.getName() + "\u00A7b. Starting!");
 
                 int slot = 0;
                 String targetString = null, slotString;
-                boolean targetAcquired = false, commandConfirmed = false, canContinue = false, hasOtherPerm = false;
+                boolean targetAcquired = false, commandConfirmed = false, hasOtherPerm = false;
                 Player player = (Player) src, target = player;
+
+                // We reset this here since we used it above. It's a bit different from the other commands, but hey.
+                // If we get a valid input, we'll set this to "true" again so we can execute the main body of code.
+                canContinue = false;
 
                 if (src.hasPermission("pixelupgrade.command.getstats.other"))
                     hasOtherPerm = true;
@@ -436,6 +497,28 @@ public class GetStats implements CommandExecutor
         }
     }
 
+    private Integer checkFusionConfigInt(String node)
+    {
+        if (!DittoFusionConfig.getInstance().getConfig().getNode(node).isVirtual())
+            return DittoFusionConfig.getInstance().getConfig().getNode(node).getInt();
+        else
+        {
+            PixelUpgrade.log.info("\u00A74GetStats // critical: \u00A7cCan't read remote config variable \"" + node + "\" for /fuse!");
+            return null;
+        }
+    }
+
+    private Integer checkUpgradeConfigInt(String node)
+    {
+        if (!UpgradeConfig.getInstance().getConfig().getNode(node).isVirtual())
+            return UpgradeConfig.getInstance().getConfig().getNode(node).getInt();
+        else
+        {
+            PixelUpgrade.log.info("\u00A74GetStats // critical: \u00A7cCan't read remote config variable \"" + node + "\" for /upgrade!");
+            return null;
+        }
+    }
+
     private void checkAndShow(NBTTagCompound nbt, boolean targetAcquired, Player player, Player target)
     {
         EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
@@ -766,7 +849,7 @@ public class GetStats implements CommandExecutor
         {
             if (isShiny)
             {
-                if (fuseCount != 0 && fuseCount < 10)
+                if (fuseCount != 0 && fuseCount < shinyFusionCap)
                     player.sendMessage(Text.of("\u00A76This shiny Ditto has been fused \u00A7c" + fuseCount + "\u00A76/\u00A7c10 \u00A76times."));
                 else if (fuseCount == 0)
                     player.sendMessage(Text.of("\u00A76This shiny Ditto can be fused \u00A7c10 \u00A76more times!"));
@@ -775,7 +858,7 @@ public class GetStats implements CommandExecutor
             }
             else
             {
-                if (fuseCount != 0 && fuseCount < 5)
+                if (fuseCount != 0 && fuseCount < regularFusionCap)
                     player.sendMessage(Text.of("\u00A76This Ditto has been fused \u00A7c" + fuseCount + "\u00A76/\u00A7c5 \u00A76times."));
                 else if (fuseCount == 0)
                     player.sendMessage(Text.of("\u00A76This Ditto can be fused \u00A7c5 \u00A76more times!"));
@@ -785,7 +868,7 @@ public class GetStats implements CommandExecutor
         }
         else if (isShiny && isLegendary)
         {
-            if (upgradeCount != 0 && upgradeCount < 40)
+            if (upgradeCount != 0 && upgradeCount < legendaryAndShinyUpgradeCap)
                 player.sendMessage(Text.of("\u00A76This shiny legendary has been upgraded \u00A7c" + upgradeCount + "\u00A76/\u00A7c40 \u00A76times."));
             else if (upgradeCount == 0)
                 player.sendMessage(Text.of("\u00A76This shiny legendary can be upgraded \u00A7c40 \u00A76more times!"));
@@ -794,7 +877,7 @@ public class GetStats implements CommandExecutor
         }
         else if (isShiny)
         {
-            if (upgradeCount != 0 && upgradeCount < 60)
+            if (upgradeCount != 0 && upgradeCount < shinyUpgradeCap)
                 player.sendMessage(Text.of("\u00A76This shiny Pok\u00E9mon has been upgraded \u00A7c" + upgradeCount + "\u00A76/\u00A7c60 \u00A76times."));
             else if (upgradeCount == 0)
                 player.sendMessage(Text.of("\u00A76This shiny Pok\u00E9mon can be upgraded \u00A7c60 \u00A76more times!"));
@@ -803,7 +886,7 @@ public class GetStats implements CommandExecutor
         }
         else if (isLegendary)
         {
-            if (upgradeCount != 0 && upgradeCount < 20)
+            if (upgradeCount != 0 && upgradeCount < legendaryUpgradeCap)
                 player.sendMessage(Text.of("\u00A76This legendary has been upgraded \u00A7c" + upgradeCount + "\u00A76/\u00A7c20 \u00A76times."));
             else if (upgradeCount == 0)
                 player.sendMessage(Text.of("\u00A76This legendary can be upgraded \u00A7c20 \u00A76more times!"));
@@ -812,7 +895,7 @@ public class GetStats implements CommandExecutor
         }
         else if (isBaby)
         {
-            if (upgradeCount != 0 && upgradeCount < 25)
+            if (upgradeCount != 0 && upgradeCount < babyUpgradeCap)
                 player.sendMessage(Text.of("\u00A76This baby Pok\u00E9mon has been upgraded \u00A7c" + upgradeCount + "\u00A76/\u00A7c25 \u00A76times."));
             else if (upgradeCount == 0)
                 player.sendMessage(Text.of("\u00A76This baby Pok\u00E9mon can be upgraded \u00A7c25 \u00A76more times!"));
@@ -821,7 +904,7 @@ public class GetStats implements CommandExecutor
         }
         else
         {
-            if (upgradeCount != 0 && upgradeCount < 35)
+            if (upgradeCount != 0 && upgradeCount < regularUpgradeCap)
                 player.sendMessage(Text.of("\u00A76This Pok\u00E9mon has been upgraded \u00A7c" + upgradeCount + "\u00A76/\u00A7c35 \u00A76times."));
             else if (upgradeCount == 0)
                 player.sendMessage(Text.of("\u00A76This Pok\u00E9mon can be upgraded \u00A7c35 \u00A76more times!"));

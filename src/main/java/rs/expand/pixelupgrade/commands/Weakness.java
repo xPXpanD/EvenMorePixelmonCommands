@@ -1,43 +1,29 @@
 package rs.expand.pixelupgrade.commands;
 
-import java.math.BigDecimal;
-import java.util.Optional;
-
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.service.economy.account.UniqueAccount;
-import org.spongepowered.api.service.economy.transaction.ResultType;
-import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
-
-import com.pixelmonmod.pixelmon.storage.NbtKeys;
-import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
-import com.pixelmonmod.pixelmon.storage.PlayerStorage;
-
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
 
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.configs.WeaknessConfig;
+import rs.expand.pixelupgrade.utilities.EnumPokemonList;
 
-import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
+import static rs.expand.pixelupgrade.utilities.EnumPokemonList.getPokemonFromID;
+import static rs.expand.pixelupgrade.utilities.EnumPokemonList.getPokemonFromName;
 
-/*
-            PLEASE NOTE:
-            This is currently a placeholder clone of ResetEVs with some references changed.
-            For now, I just need it like this so I can test my config changes.
-            This should become its own command, soon!
-*/
+/*                                                *\
+        HEAVILY WORK IN PROGRESS, STAY TUNED
+\*                                                */
 
 public class Weakness implements CommandExecutor
 {
     // See which messages should be printed by the debug logger. Valid range is 0-3.
     // We set 4 (out of range) or null on hitting an error, and let the main code block handle it from there.
+
     private static Integer debugLevel = 4;
     private void getVerbosityMode()
     {
@@ -82,10 +68,11 @@ public class Weakness implements CommandExecutor
                 printToLog(2, "Called by player \u00A73" + src.getName() + "\u00A7b. Starting!");
 
                 Player player = (Player) src;
-                boolean canContinue = true, commandConfirmed = false;
-                int slot = 0;
+                boolean canContinue = true, commandConfirmed = false, inputIsInteger = false;
+                String inputString = null;
+                int inputInteger = 0;
 
-                if (!args.<String>getOne("slot").isPresent())
+                if (!args.<String>getOne("pokemon").isPresent())
                 {
                     printToLog(2, "No arguments provided, aborting.");
 
@@ -98,23 +85,21 @@ public class Weakness implements CommandExecutor
                 }
                 else
                 {
-                    String slotString = args.<String>getOne("slot").get();
+                    inputString = args.<String>getOne("pokemon").get();
 
-                    if (slotString.matches("^[1-6]"))
+                    if (inputString.matches("^[0-9].*"))
                     {
-                        printToLog(3, "Slot was a valid slot number. Let's move on!");
-                        slot = Integer.parseInt(args.<String>getOne("slot").get());
-                    }
-                    else
-                    {
-                        printToLog(2, "Invalid slot provided. Aborting.");
+                        inputIsInteger = true;
+                        inputInteger = Integer.parseInt(args.<String>getOne("pokemon").get());
 
-                        checkAndAddHeader(commandCost, player);
-                        src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid slot value. Valid values are 1-6."));
-                        printCorrectHelper(commandCost, player);
-                        checkAndAddFooter(commandCost, player);
-
-                        canContinue = false;
+                        if (inputInteger > 802 || inputInteger < 1)
+                        {
+                            checkAndAddHeader(commandCost, player);
+                            src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid Pok\u00E9dex number! Valid range is 1-802."));
+                            src.sendMessage(Text.of("\u00A75Please note: \u00A7dYou can also enter a Pok\u00E9mon's name!"));
+                            printCorrectHelper(commandCost, player);
+                            checkAndAddFooter(commandCost, player);
+                        }
                     }
                 }
 
@@ -124,84 +109,71 @@ public class Weakness implements CommandExecutor
                 if (canContinue)
                 {
                     printToLog(3, "No error encountered, input should be valid. Continuing!");
-                    Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
+                    EnumPokemonList returnedPokemon;
 
-                    if (!storage.isPresent())
+                    if (inputIsInteger)
                     {
-                        printToLog(0, "\u00A74" + player.getName() + "\u00A7c does not have a Pixelmon storage, aborting. May be a bug?");
-                        src.sendMessage(Text.of("\u00A74Error: \u00A7cNo Pixelmon storage found. Please contact staff!"));
+                        returnedPokemon = getPokemonFromID(inputInteger);
+
+
                     }
                     else
+                        returnedPokemon = getPokemonFromName(inputString);
+
+
+
+                    if (returnedPokemon == null)
                     {
-                        PlayerStorage storageCompleted = (PlayerStorage) storage.get();
-                        NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
+                        // TODO: Do checks for common mistakes, first. Add the below messages in an "else".
 
-                        if (nbt == null)
-                        {
-                            printToLog(2, "No NBT found in slot, probably empty. Aborting...");
-                            src.sendMessage(Text.of("\u00A74Error: \u00A7cYou don't have anything in that slot!"));
-                        }
-                        else if (nbt.getBoolean("isEgg"))
-                        {
-                            printToLog(2, "Tried to reset EVs on an egg. Aborting...");
-                            src.sendMessage(Text.of("\u00A74Error: \u00A7cThat's an egg! Go hatch it, first."));
-                        }
-                        else
-                        {
-                            if (commandConfirmed)
-                            {
-                                printToLog(3, "Command was confirmed, checking balances.");
+                        checkAndAddHeader(commandCost, player);
+                        src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid Pok\u00E9dex number! Valid range is 1-802."));
+                        src.sendMessage(Text.of("\u00A75Please note: \u00A7dYou can also enter a Pok\u00E9mon's name!"));
+                        printCorrectHelper(commandCost, player);
+                        checkAndAddFooter(commandCost, player);
 
-                                if (commandCost > 0)
-                                {
-                                    BigDecimal costToConfirm = new BigDecimal(commandCost);
-                                    Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
-
-                                    if (optionalAccount.isPresent())
-                                    {
-                                        UniqueAccount uniqueAccount = optionalAccount.get();
-                                        TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(), costToConfirm, Cause.source(this).build());
-
-                                        if (transactionResult.getResult() == ResultType.SUCCESS)
-                                        {
-                                            resetPlayerEVs(nbt, player);
-                                            printToLog(1, "Reset EVs for slot " + slot + ", and took " + costToConfirm + " coins.");
-                                            src.sendMessage(Text.of("\u00A76Your " + nbt.getString("Name") + "\u00A7e had their EVs successfully wiped!"));
-                                        }
-                                        else
-                                        {
-                                            BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                            printToLog(2, "Not enough coins! Cost: \u00A73" + costToConfirm + "\u00A7b, lacking: \u00A73" + balanceNeeded);
-
-                                            src.sendMessage(Text.of("\u00A74Error: \u00A7cYou need \u00A74" + balanceNeeded + "\u00A7c more coins to do this."));
-                                        }
-                                    }
-                                    else
-                                    {
-                                        printToLog(0, "\u00A74" + src.getName() + "\u00A7c does not have an economy account, aborting. May be a bug?");
-                                        src.sendMessage(Text.of("\u00A74Error: \u00A7cNo economy account found. Please contact staff!"));
-                                    }
-                                }
-                                else
-                                {
-                                    resetPlayerEVs(nbt, player);
-                                    printToLog(1, "Reset EVs for slot " + slot + ". Config price is 0, taking nothing.");
-                                    src.sendMessage(Text.of("\u00A76Your " + nbt.getString("Name") + "\u00A7e had their EVs successfully wiped!"));
-                                }
-                            }
-                            else
-                            {
-                                printToLog(2, "No confirmation provided, printing warning and aborting.");
-
-                                src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-                                src.sendMessage(Text.of("\u00A76Warning: \u00A7eYou are about to reset this Pok\u00E9mon's EVs to zero!"));
-                                if (commandCost > 0)
-                                    src.sendMessage(Text.of("\u00A7eResetting will cost \u00A76" + commandCost + "\u00A7e coins!"));
-                                src.sendMessage(Text.of("\u00A72Ready? Type: \u00A7a/resetevs " + slot + " -c"));
-                                src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-                            }
-                        }
+                        canContinue = false;
                     }
+
+                    if (canContinue)
+                    {
+                        boolean type2Present = true;
+                        int pokemonNumber = returnedPokemon.index;
+                        String type1 = returnedPokemon.type1;
+                        String type2 = returnedPokemon.type2;
+
+                        /* NAME ODDITIES
+                        029 Nidoran (female) - listed as NidoranFemale
+                        032 Nidoran (male) - listed as NidoranMale
+                        083 Farfetch'd - listed as Farfetchd
+                        122 Mr. Mime - listed as MrMime
+                        439 Mime Jr. - listed as MimeJr
+                        669 Flabébé - listed as Flabebe
+                        772 Type: Null - listed as TypeNull
+                        782 Jangmo-o - listed as JangmoO
+                        783 Hakamo-o - listed as HakamoO
+                        784 Kommo-o - listed as KommoO
+                        785 Tapu Koko - listed as TapuKoko
+                        786 Tapu Lele - listed as TapuLele
+                        787 Tapu Bunu - listed as TapuBunu
+                        788 Tapu Fini - listed as TapuFini
+                        */
+
+                        /* POKÉMON WITH DIFFERENTLY TYPED FORMS
+                        351 Castform
+                        413 Wormadam
+                        479 Rotom
+                        492 Shaymin
+                        555 Darmanitan
+                        648 Meloetta
+                        720 Hoopa
+                        */
+
+
+                    }
+
+
+
                 }
             }
         }
@@ -209,31 +181,6 @@ public class Weakness implements CommandExecutor
             printToLog(0, "This command cannot run from the console or command blocks.");
 
         return CommandResult.success();
-    }
-
-    private void resetPlayerEVs(NBTTagCompound nbt, Player player)
-    {
-        int EVHP = nbt.getInteger(NbtKeys.EV_HP);
-        int EVATT = nbt.getInteger(NbtKeys.EV_ATTACK);
-        int EVDEF = nbt.getInteger(NbtKeys.EV_DEFENCE);
-        int EVSPATT = nbt.getInteger(NbtKeys.EV_SPECIAL_ATTACK);
-        int EVSPDEF = nbt.getInteger(NbtKeys.EV_SPECIAL_DEFENCE);
-        int EVSPD = nbt.getInteger(NbtKeys.EV_SPEED);
-
-        printToLog(1, "Command has been confirmed, printing old EVs...");
-        printToLog(1, "HP: " + EVHP + " | ATK: " + EVATT + " | DEF: " + EVDEF + " | SPATK: " + EVSPATT + " | SPDEF: " + EVSPDEF + " | SPD: " + EVSPD);
-
-        nbt.setInteger(NbtKeys.EV_HP, 0);
-        nbt.setInteger(NbtKeys.EV_ATTACK, 0);
-        nbt.setInteger(NbtKeys.EV_DEFENCE, 0);
-        nbt.setInteger(NbtKeys.EV_SPECIAL_ATTACK, 0);
-        nbt.setInteger(NbtKeys.EV_SPECIAL_DEFENCE, 0);
-        nbt.setInteger(NbtKeys.EV_SPEED, 0);
-
-        if (nbt.getString("Nickname").equals(""))
-            player.sendMessage(Text.of("\u00A76" + nbt.getString("Name") + "\u00A7e had its EVs wiped."));
-        else
-            player.sendMessage(Text.of("\u00A7eYour \u00A76" + nbt.getString("Nickname") + "\u00A7e had its EVs wiped."));
     }
 
     private void checkAndAddHeader(int cost, Player player)
@@ -256,9 +203,9 @@ public class Weakness implements CommandExecutor
     private void printCorrectHelper(int cost, Player player)
     {
         if (cost != 0)
-            player.sendMessage(Text.of("\u00A74Usage: \u00A7c/resetevs <slot, 1-6> {-c to confirm}"));
+            player.sendMessage(Text.of("\u00A74Usage: \u00A7c/weakness <Pok\u00E9mon name/number> {-c to confirm}"));
         else
-            player.sendMessage(Text.of("\u00A74Usage: \u00A7c/resetevs <slot, 1-6>"));
+            player.sendMessage(Text.of("\u00A74Usage: \u00A7c/weakness <Pok\u00E9mon name/number>"));
     }
 
     private void printToLog(int debugNum, String inputString)
@@ -275,4 +222,57 @@ public class Weakness implements CommandExecutor
                 PixelUpgrade.log.info("\u00A72Weakness // debug: \u00A7a" + inputString);
         }
     }
+
+    /*
+    //-------------------------------------------------------//
+    // Testing routine for new additions to EnumPokemonList. //
+    // Uncomment this if you need to test further additions. //
+    //-------------------------------------------------------//
+
+    // Taken from http://www.java2s.com/Tutorials/Java/Data_Type_How_to/String/Check_if_enum_contains_a_given_string.htm
+    private static <E extends Enum<E>> boolean contains(Class<E> _enumClass,
+                                                       String value) {
+        try {
+            return EnumSet.allOf(_enumClass)
+                    .contains(Enum.valueOf(_enumClass, value));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    enum validTypeList
+    {
+        Normal,
+        Fighting,
+        Flying,
+        Poison,
+        Ground,
+        Rock,
+        Bug,
+        Ghost,
+        Steel,
+        Fire,
+        Water,
+        Grass,
+        Electric,
+        Psychic,
+        Ice,
+        Dragon,
+        Dark,
+        Fairy,
+        EMPTY
+    }
+
+    //---------------------------------------------------//
+    // Add the following under the inputIsInteger check. //
+    //---------------------------------------------------//
+
+    for (int i = 1; i < 803; i++) // UPDATE ME (replace 803 with your last Pokémon's ID, +1)
+    {
+        returnedPokemon = getPokemonFromID(i);
+
+        if (!contains(validTypeList.class, returnedPokemon.type1) || !contains(validTypeList.class, returnedPokemon.type2))
+            PixelUpgrade.log.info("\u00A74Array error found! \u00A7c" + returnedPokemon.index + " | " + returnedPokemon.type1 + " | " + returnedPokemon.type2);
+    }
+    */
 }

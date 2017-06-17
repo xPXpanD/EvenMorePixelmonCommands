@@ -76,11 +76,12 @@ import java.nio.file.Paths;
 //TODO: Make an admin command that de-flags upgraded/fused Pokémon.
 //TODO: Check if the proper events are called on commands like forcehatch.
 //TODO: Add a /weakness, which checks the weaknesses of what you're fighting. Thanks for the idea, MageFX!
-//TODO: Add egg step checking to /checkegg.
 //TODO: Check public static final String PC_RAVE = "rave";
 //TODO: Tab completion on player names.
 //TODO: Rework /getstats fuse/upgrade printing once configs are in place for those commands.
 //TODO: See if recoloring Pokémon is possible.
+//TODO: Maybe make a name color command that checks for proper working colors?
+//TODO: Make a Pokéball changing command, get it to write the old ball to the Pokémon for ball sale purposes.
 
 @Plugin
 (
@@ -89,8 +90,9 @@ import java.nio.file.Paths;
         version = "1.9",
         dependencies = @Dependency(id = "pixelmon"),
         description = "Adds a whole bunch of utility commands to Pixelmon, and also a good few economy-paid upgrades.",
-        authors = "XpanD, with a bunch of help from Xenoyia"
-        // + breakthrough snippets from NickImpact (NBT editing), Proxying (writing to entities in a copy-persistent manner) and Karanum (fancy paginated command list)!
+        authors = "XpanD"
+        // Not listed but certainly appreciated: A lot of early help from Xenoyia, plus breakthrough snippets from...
+        // NickImpact (NBT editing), Proxying (writing to entities in a copy-persistent manner) and Karanum (fancy paginated command list)!
 )
 
 public class PixelUpgrade
@@ -254,7 +256,7 @@ public class PixelUpgrade
             .executor(new Weakness())
 
             .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))))
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("pokemon"))))
 
             .build();
 
@@ -280,8 +282,8 @@ public class PixelUpgrade
         GetStatsConfig.getInstance().loadOrCreateConfig(cmdGetStatsPath, cmdGetStatsLoader);
         PixelUpgradeInfoConfig.getInstance().loadOrCreateConfig(cmdPixelUpgradeInfoPath, cmdPixelUpgradeInfoLoader);
         ResetEVsConfig.getInstance().loadOrCreateConfig(cmdResetEVsPath, cmdResetEVsLoader);
-        WeaknessConfig.getInstance().loadOrCreateConfig(cmdWeaknessPath, cmdWeaknessLoader);
         UpgradeConfig.getInstance().loadOrCreateConfig(cmdUpgradePath, cmdUpgradeLoader);
+        WeaknessConfig.getInstance().loadOrCreateConfig(cmdWeaknessPath, cmdWeaknessLoader);
 
         log.info("\u00A7aCommands registered!");
     }
