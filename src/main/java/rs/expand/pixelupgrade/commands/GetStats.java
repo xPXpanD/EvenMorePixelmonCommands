@@ -850,18 +850,18 @@ public class GetStats implements CommandExecutor
             if (isShiny)
             {
                 if (fuseCount != 0 && fuseCount < shinyFusionCap)
-                    player.sendMessage(Text.of("\u00A76This shiny Ditto has been fused \u00A7c" + fuseCount + "\u00A76/\u00A7c10 \u00A76times."));
+                    player.sendMessage(Text.of("\u00A76This shiny Ditto has been fused \u00A7c" + fuseCount + "\u00A76/\u00A7c" + shinyFusionCap + " \u00A76times."));
                 else if (fuseCount == 0)
-                    player.sendMessage(Text.of("\u00A76This shiny Ditto can be fused \u00A7c10 \u00A76more times!"));
+                    player.sendMessage(Text.of("\u00A76This shiny Ditto can be fused \u00A7c" + shinyFusionCap + "\u00A76more times!"));
                 else
                     player.sendMessage(Text.of("\u00A76This shiny Ditto cannot be fused any further!"));
             }
             else
             {
                 if (fuseCount != 0 && fuseCount < regularFusionCap)
-                    player.sendMessage(Text.of("\u00A76This Ditto has been fused \u00A7c" + fuseCount + "\u00A76/\u00A7c5 \u00A76times."));
+                    player.sendMessage(Text.of("\u00A76This Ditto has been fused \u00A7c" + fuseCount + "\u00A76/\u00A7c" + regularFusionCap + " \u00A76times."));
                 else if (fuseCount == 0)
-                    player.sendMessage(Text.of("\u00A76This Ditto can be fused \u00A7c5 \u00A76more times!"));
+                    player.sendMessage(Text.of("\u00A76This Ditto can be fused \u00A7c" + regularFusionCap + "\u00A76more times!"));
                 else
                     player.sendMessage(Text.of("\u00A76This Ditto cannot be fused any further!"));
             }
@@ -869,45 +869,45 @@ public class GetStats implements CommandExecutor
         else if (isShiny && isLegendary)
         {
             if (upgradeCount != 0 && upgradeCount < legendaryAndShinyUpgradeCap)
-                player.sendMessage(Text.of("\u00A76This shiny legendary has been upgraded \u00A7c" + upgradeCount + "\u00A76/\u00A7c40 \u00A76times."));
+                player.sendMessage(Text.of("\u00A76This shiny legendary has been upgraded \u00A7c" + upgradeCount + "\u00A76/\u00A7c" + legendaryAndShinyUpgradeCap + " \u00A76times."));
             else if (upgradeCount == 0)
-                player.sendMessage(Text.of("\u00A76This shiny legendary can be upgraded \u00A7c40 \u00A76more times!"));
+                player.sendMessage(Text.of("\u00A76This shiny legendary can be upgraded \u00A7c" + legendaryAndShinyUpgradeCap + "\u00A76more times!"));
             else
                 player.sendMessage(Text.of("\u00A76This shiny legendary has been fully upgraded!"));
         }
         else if (isShiny)
         {
             if (upgradeCount != 0 && upgradeCount < shinyUpgradeCap)
-                player.sendMessage(Text.of("\u00A76This shiny Pok\u00E9mon has been upgraded \u00A7c" + upgradeCount + "\u00A76/\u00A7c60 \u00A76times."));
+                player.sendMessage(Text.of("\u00A76This shiny Pok\u00E9mon has been upgraded \u00A7c" + upgradeCount + "\u00A76/\u00A7c" + shinyUpgradeCap + " \u00A76times."));
             else if (upgradeCount == 0)
-                player.sendMessage(Text.of("\u00A76This shiny Pok\u00E9mon can be upgraded \u00A7c60 \u00A76more times!"));
+                player.sendMessage(Text.of("\u00A76This shiny Pok\u00E9mon can be upgraded \u00A7c" + shinyUpgradeCap + "\u00A76more times!"));
             else
                 player.sendMessage(Text.of("\u00A76This shiny Pok\u00E9mon has been fully upgraded!"));
         }
         else if (isLegendary)
         {
             if (upgradeCount != 0 && upgradeCount < legendaryUpgradeCap)
-                player.sendMessage(Text.of("\u00A76This legendary has been upgraded \u00A7c" + upgradeCount + "\u00A76/\u00A7c20 \u00A76times."));
+                player.sendMessage(Text.of("\u00A76This legendary has been upgraded \u00A7c" + upgradeCount + "\u00A76/\u00A7c" + legendaryUpgradeCap + " \u00A76times."));
             else if (upgradeCount == 0)
-                player.sendMessage(Text.of("\u00A76This legendary can be upgraded \u00A7c20 \u00A76more times!"));
+                player.sendMessage(Text.of("\u00A76This legendary can be upgraded \u00A7c" + legendaryUpgradeCap + "\u00A76more times!"));
             else
                 player.sendMessage(Text.of("\u00A76This legendary has been fully upgraded!"));
         }
         else if (isBaby)
         {
             if (upgradeCount != 0 && upgradeCount < babyUpgradeCap)
-                player.sendMessage(Text.of("\u00A76This baby Pok\u00E9mon has been upgraded \u00A7c" + upgradeCount + "\u00A76/\u00A7c25 \u00A76times."));
+                player.sendMessage(Text.of("\u00A76This baby Pok\u00E9mon has been upgraded \u00A7c" + upgradeCount + "\u00A76/\u00A7c" + babyUpgradeCap + " \u00A76times."));
             else if (upgradeCount == 0)
-                player.sendMessage(Text.of("\u00A76This baby Pok\u00E9mon can be upgraded \u00A7c25 \u00A76more times!"));
+                player.sendMessage(Text.of("\u00A76This baby Pok\u00E9mon can be upgraded \u00A7c" + babyUpgradeCap + "\u00A76more times!"));
             else
                 player.sendMessage(Text.of("\u00A76This baby Pok\u00E9mon has been fully upgraded!"));
         }
         else
         {
             if (upgradeCount != 0 && upgradeCount < regularUpgradeCap)
-                player.sendMessage(Text.of("\u00A76This Pok\u00E9mon has been upgraded \u00A7c" + upgradeCount + "\u00A76/\u00A7c35 \u00A76times."));
+                player.sendMessage(Text.of("\u00A76This Pok\u00E9mon has been upgraded \u00A7c" + upgradeCount + "\u00A76/\u00A7c" + regularUpgradeCap + " \u00A76times."));
             else if (upgradeCount == 0)
-                player.sendMessage(Text.of("\u00A76This Pok\u00E9mon can be upgraded \u00A7c35 \u00A76more times!"));
+                player.sendMessage(Text.of("\u00A76This Pok\u00E9mon can be upgraded \u00A7c" + regularUpgradeCap + "\u00A76more times!"));
             else
                 player.sendMessage(Text.of("\u00A76This Pok\u00E9mon has been fully upgraded!"));
         }

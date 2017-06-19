@@ -256,7 +256,8 @@ public class PixelUpgrade
             .executor(new Weakness())
 
             .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("pokemon"))))
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("pokemon"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("optional"))))
 
             .build();
 

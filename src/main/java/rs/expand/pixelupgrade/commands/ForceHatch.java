@@ -116,7 +116,9 @@ public class ForceHatch implements CommandExecutor
                     }
                     else
                     {
-                        try
+                        String slotString = args.<String>getOne("slot").get();
+
+                        if (slotString.matches("^[0-9].*"))
                         {
                             slot = Integer.parseInt(args.<String>getOne("slot").get());
 
@@ -135,9 +137,9 @@ public class ForceHatch implements CommandExecutor
                                 targetAcquired = true;
                             }
                         }
-                        catch (NumberFormatException F)
+                        else
                         {
-                            printToLog(2, "Slot value was not an integer, fell through try check. Abort.");
+                            printToLog(2, "Slot value was not an integer. Abort.");
 
                             src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid slot value. Valid values are 1-6."));
                             src.sendMessage(Text.of("\u00A74Usage: \u00A7c/forcehatch (optional target) <slot, 1-6>"));
