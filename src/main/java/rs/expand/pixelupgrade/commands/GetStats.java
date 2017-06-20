@@ -41,8 +41,8 @@ public class GetStats implements CommandExecutor
     private static Integer legendaryUpgradeCap, regularUpgradeCap, shinyUpgradeCap, babyUpgradeCap;
 
     // See which messages should be printed by the debug logger. Valid range is 0-3.
-    // We set 4 (out of range) or null on hitting an error, and let the main code block handle it from there.
-    private static Integer debugLevel = 4;
+    // We set null on hitting an error, and let the main code block handle it from there.
+    private static Integer debugLevel;
     private void getVerbosityMode()
     {
         // Does the debugVerbosityMode node exist? If so, figure out what's in it.

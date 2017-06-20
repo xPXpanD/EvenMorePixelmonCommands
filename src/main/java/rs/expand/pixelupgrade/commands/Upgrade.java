@@ -35,8 +35,8 @@ import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 public class Upgrade implements CommandExecutor
 {
     // See which messages should be printed by the debug logger. Valid range is 0-3.
-    // We set 4 (out of range) or null on hitting an error, and let the main code block handle it from there.
-    private static Integer debugLevel = 4;
+    // We set null on hitting an error, and let the main code block handle it from there.
+    private static Integer debugLevel;
     private void getVerbosityMode()
     {
         // Does the debugVerbosityMode node exist? If so, figure out what's in it.
@@ -214,7 +214,7 @@ public class Upgrade implements CommandExecutor
                         commandConfirmed = true;
                         quantity = 1;
                     }
-                    else if (!quantityString.matches("^[0-9].*"))
+                    else if (!quantityString.matches("\\d+"))
                     {
                         printToLog(2, "Quantity was not numeric and not a confirmation flag, abort.");
 

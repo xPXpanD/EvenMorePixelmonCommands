@@ -23,8 +23,8 @@ import rs.expand.pixelupgrade.configs.ForceHatchConfig;
 public class ForceHatch implements CommandExecutor
 {
     // See which messages should be printed by the debug logger. Valid range is 0-3.
-    // We set 4 (out of range) or null on hitting an error, and let the main code block handle it from there.
-    private static Integer debugLevel = 4;
+    // We set null on hitting an error, and let the main code block handle it from there.
+    private static Integer debugLevel;
     private void getVerbosityMode()
     {
         // Does the debugVerbosityMode node exist? If so, figure out what's in it.
@@ -87,7 +87,7 @@ public class ForceHatch implements CommandExecutor
                                 src.sendMessage(Text.of("\u00A74Error: \u00A7cFound a target, but no slot was provided."));
                                 src.sendMessage(Text.of("\u00A74Usage: \u00A7c/forcehatch (optional target) <slot, 1-6>"));
                             }
-                            else if (targetString.matches("^[0-9].*"))
+                            else if (targetString.matches("\\d+"))
                             {
                                 printToLog(2, "First argument was numeric, but not valid. Abort.");
 
@@ -118,7 +118,7 @@ public class ForceHatch implements CommandExecutor
                     {
                         String slotString = args.<String>getOne("slot").get();
 
-                        if (slotString.matches("^[0-9].*"))
+                        if (slotString.matches("\\d+"))
                         {
                             slot = Integer.parseInt(args.<String>getOne("slot").get());
 

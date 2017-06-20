@@ -75,7 +75,6 @@ import java.nio.file.Paths;
 //TODO: Make a hidden ability switcher, maybe.
 //TODO: Make an admin command that de-flags upgraded/fused Pokémon.
 //TODO: Check if the proper events are called on commands like forcehatch.
-//TODO: Add a /weakness, which checks the weaknesses of what you're fighting. Thanks for the idea, MageFX!
 //TODO: Check public static final String PC_RAVE = "rave";
 //TODO: Tab completion on player names.
 //TODO: Rework /getstats fuse/upgrade printing once configs are in place for those commands.
@@ -120,7 +119,7 @@ public class PixelUpgrade
     public Path cmdPixelUpgradeInfoPath = Paths.get(path, "PixelUpgradeInfo.conf");
     public Path cmdResetEVsPath = Paths.get(path, "ResetEVs.conf");
     public Path cmdUpgradePath = Paths.get(path, "Upgrade.conf");
-    public Path cmdWeaknessPath = Paths.get(path, "Weakness.conf");
+    public Path cmdCheckTypesPath = Paths.get(path, "CheckTypes.conf");
 
     public ConfigurationLoader<CommentedConfigurationNode> cmdCheckEggLoader = HoconConfigurationLoader.builder().setPath(cmdCheckEggPath).build();
     public ConfigurationLoader<CommentedConfigurationNode> cmdDittoFusionLoader = HoconConfigurationLoader.builder().setPath(cmdDittoFusionPath).build();
@@ -131,7 +130,7 @@ public class PixelUpgrade
     public ConfigurationLoader<CommentedConfigurationNode> cmdPixelUpgradeInfoLoader = HoconConfigurationLoader.builder().setPath(cmdPixelUpgradeInfoPath).build();
     public ConfigurationLoader<CommentedConfigurationNode> cmdResetEVsLoader = HoconConfigurationLoader.builder().setPath(cmdResetEVsPath).build();
     public ConfigurationLoader<CommentedConfigurationNode> cmdUpgradeLoader = HoconConfigurationLoader.builder().setPath(cmdUpgradePath).build();
-    public ConfigurationLoader<CommentedConfigurationNode> cmdWeaknessLoader = HoconConfigurationLoader.builder().setPath(cmdWeaknessPath).build();
+    public ConfigurationLoader<CommentedConfigurationNode> cmdCheckTypesLoader = HoconConfigurationLoader.builder().setPath(cmdCheckTypesPath).build();
 
     @Listener
     public void onChangeServiceProvider(ChangeServiceProviderEvent event)
@@ -250,14 +249,14 @@ public class PixelUpgrade
 
             .build();
 
-    private CommandSpec weakness = CommandSpec.builder()
-            .description(Text.of("Shows you the weaknesses of any Pok\u00E9mon. Useful in battle!"))
-            .permission("pixelupgrade.command.weakness")
-            .executor(new Weakness())
+    private CommandSpec checktypes = CommandSpec.builder()
+            .description(Text.of("Shows resistances and weaknesses for any Pok\u00E9mon."))
+            .permission("pixelupgrade.command.checktypes")
+            .executor(new CheckTypes())
 
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("pokemon"))),
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("optional"))))
+                    GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
 
             .build();
 
@@ -273,7 +272,7 @@ public class PixelUpgrade
         Sponge.getCommandManager().register(this, pixelupgradeinfo, "pixelupgrade", "pu", "pixelupgradeinfo", "puinfo");
         Sponge.getCommandManager().register(this, resetevs, "resetevs", "resetev");
         Sponge.getCommandManager().register(this, upgrade, "upgrade", "upgradeiv", "upgradeivs");
-        Sponge.getCommandManager().register(this, weakness, "weakness", "weaknesses");
+        Sponge.getCommandManager().register(this, checktypes, "weakness", "weaknesses", "checktype", "checktypes", "typecheck");
 
         CheckEggConfig.getInstance().loadOrCreateConfig(cmdCheckEggPath, cmdCheckEggLoader);
         DittoFusionConfig.getInstance().loadOrCreateConfig(cmdDittoFusionPath, cmdDittoFusionLoader);
@@ -284,7 +283,7 @@ public class PixelUpgrade
         PixelUpgradeInfoConfig.getInstance().loadOrCreateConfig(cmdPixelUpgradeInfoPath, cmdPixelUpgradeInfoLoader);
         ResetEVsConfig.getInstance().loadOrCreateConfig(cmdResetEVsPath, cmdResetEVsLoader);
         UpgradeConfig.getInstance().loadOrCreateConfig(cmdUpgradePath, cmdUpgradeLoader);
-        WeaknessConfig.getInstance().loadOrCreateConfig(cmdWeaknessPath, cmdWeaknessLoader);
+        CheckTypesConfig.getInstance().loadOrCreateConfig(cmdCheckTypesPath, cmdCheckTypesLoader);
 
         log.info("\u00A7aCommands registered!");
     }
