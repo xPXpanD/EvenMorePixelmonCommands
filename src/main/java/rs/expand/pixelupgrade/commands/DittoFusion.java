@@ -54,6 +54,18 @@ public class DittoFusion implements CommandExecutor
         }
     }
 
+    private static String alias;
+    private void getCommandAlias()
+    {
+        if (!DittoFusionConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
+            alias = "/" + DittoFusionConfig.getInstance().getConfig().getNode("commandAlias").getString();
+        else
+        {
+            PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cConfig variable \"commandAlias\" could not be found!");
+            alias = null;
+        }
+    }
+
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
     {
         if (src instanceof Player)
@@ -77,8 +89,9 @@ public class DittoFusion implements CommandExecutor
             pointMultiplierForCost = checkConfigInt("pointMultiplierForCost");
             addFlatFee = checkConfigInt("addFlatFee");
 
-            // Check the command's debug verbosity mode, as set in the config.
+            // Set up the command's debug verbosity mode and preferred alias.
             getVerbosityMode();
+            getCommandAlias();
 
             if (passOnShinyStatus == null || debugLevel == null || regularCap == null || shinyCap == null)
                 presenceCheck1 = false;
@@ -481,7 +494,7 @@ public class DittoFusion implements CommandExecutor
                                             src.sendMessage(Text.of("\u00A7bThis upgrade will cost you \u00A73" + costToConfirm + " coins \u00A7bupon confirmation!"));
                                             if (sacrificeFuseCount > 0)
                                                 src.sendMessage(Text.of("\u00A7dThis includes an extra \u00A75" + extraCost + "\u00A7d coins from prior upgrades."));
-                                            src.sendMessage(Text.of("\u00A7aReady? Use: \u00A72/fuse " + slot1 + " " + slot2 + " -c"));
+                                            src.sendMessage(Text.of("\u00A7aReady? Use: \u00A72" + alias + " " + slot1 + " " + slot2 + " -c"));
 
                                             if (nbt2.getInteger(NbtKeys.IS_SHINY) == 1)
                                                 src.sendMessage(Text.of(""));
@@ -550,7 +563,7 @@ public class DittoFusion implements CommandExecutor
 
     private void checkAndAddFooter(Player player)
     {
-        player.sendMessage(Text.of("\u00A74Usage: \u00A7c/fuse <target slot> <sacrifice slot> {-c to confirm}"));
+        player.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <target slot> <sacrifice slot> {-c to confirm}"));
         player.sendMessage(Text.of(""));
         player.sendMessage(Text.of("\u00A76Warning: \u00A7eAdd the -c flag only if you're ready to spend money!"));
         player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));

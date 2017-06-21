@@ -44,12 +44,25 @@ public class ForceStats implements CommandExecutor
         }
     }
 
+    private static String alias;
+    private void getCommandAlias()
+    {
+        if (!ForceStatsConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
+            alias = "/" + ForceStatsConfig.getInstance().getConfig().getNode("commandAlias").getString();
+        else
+        {
+            PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cConfig variable \"commandAlias\" could not be found!");
+            alias = null;
+        }
+    }
+
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
     {
         if (src instanceof Player)
         {
-            // Check the command's debug verbosity mode, as set in the config.
+            // Set up the command's debug verbosity mode and preferred alias.
             getVerbosityMode();
+            getCommandAlias();
 
             if (debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
@@ -71,7 +84,7 @@ public class ForceStats implements CommandExecutor
 
                     src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
                     src.sendMessage(Text.of("\u00A74Error: \u00A7cNo parameters found. See below."));
-                    src.sendMessage(Text.of("\u00A74Usage: \u00A7c/forcestats <slot> <stat> <value> (-f to force)"));
+                    src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> <stat> <value> (-f to force)"));
                     src.sendMessage(Text.of(""));
                     src.sendMessage(Text.of("\u00A75Please note: \u00A7dPassing the -f flag will disable safety checks."));
                     src.sendMessage(Text.of("\u00A7dThis may lead to crashes or even corruption. Handle with care!"));
@@ -94,7 +107,7 @@ public class ForceStats implements CommandExecutor
 
                         src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
                         src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid slot value. Valid values are 1-6."));
-                        src.sendMessage(Text.of("\u00A74Usage: \u00A7c/forcestats <slot> <stat> <value> (-f to force)"));
+                        src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> <stat> <value> (-f to force)"));
                         src.sendMessage(Text.of(""));
                         src.sendMessage(Text.of("\u00A75Please note: \u00A7dPassing the -f flag will disable safety checks."));
                         src.sendMessage(Text.of("\u00A7dThis may lead to crashes or even corruption. Handle with care!"));
@@ -169,7 +182,7 @@ public class ForceStats implements CommandExecutor
 
                         src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
                         src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid stat provided. See below for valid stats."));
-                        src.sendMessage(Text.of("\u00A74Usage: \u00A7c/forcestats <slot> <stat> <value> (-f to force)"));
+                        src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> <stat> <value> (-f to force)"));
                         src.sendMessage(Text.of(""));
                         src.sendMessage(Text.of("\u00A76IVs: \u00A7eIVHP, IVAttack, IVDefence, IVSpAtt, IVSpDef, IVSpeed"));
                         src.sendMessage(Text.of("\u00A76EVs: \u00A7eEVHP, EVAttack, EVDefence, EVSpAtt, EVSpDef, EVSpeed"));
@@ -188,7 +201,7 @@ public class ForceStats implements CommandExecutor
 
                     src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
                     src.sendMessage(Text.of("\u00A74Error: \u00A7cNo stat provided. See below for valid stats."));
-                    src.sendMessage(Text.of("\u00A74Usage: \u00A7c/forcestats <slot> <stat> <value> (-f to force)"));
+                    src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> <stat> <value> (-f to force)"));
                     src.sendMessage(Text.of(""));
                     src.sendMessage(Text.of("\u00A76IVs: \u00A7eIVHP, IVAttack, IVDefence, IVSpAtt, IVSpDef, IVSpeed"));
                     src.sendMessage(Text.of("\u00A76EVs: \u00A7eEVHP, EVAttack, EVDefence, EVSpAtt, EVSpDef, EVSpeed"));
@@ -207,7 +220,7 @@ public class ForceStats implements CommandExecutor
 
                     src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
                     src.sendMessage(Text.of("\u00A74Error: \u00A7cNo value or amount was provided."));
-                    src.sendMessage(Text.of("\u00A74Usage: \u00A7c/forcestats <slot> <stat> <value> (-f to force)"));
+                    src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> <stat> <value> (-f to force)"));
                     src.sendMessage(Text.of(""));
                     src.sendMessage(Text.of("\u00A75Please note: \u00A7dPassing the -f flag will disable safety checks."));
                     src.sendMessage(Text.of("\u00A7dThis may lead to crashes or even corruption. Handle with care!"));
@@ -296,7 +309,7 @@ public class ForceStats implements CommandExecutor
 
                             src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
                             src.sendMessage(Text.of("\u00A74Error: \u00A7cGot a non-integer value, but no flag. Try a number."));
-                            src.sendMessage(Text.of("\u00A74Usage: \u00A7c/forcestats <slot> <stat> <value> (-f to force)"));
+                            src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> <stat> <value> (-f to force)"));
                             src.sendMessage(Text.of(""));
                             src.sendMessage(Text.of("\u00A75Please note: \u00A7dPassing the -f flag will disable safety checks."));
                             src.sendMessage(Text.of("\u00A7dThis may lead to crashes or even corruption. Handle with care!"));

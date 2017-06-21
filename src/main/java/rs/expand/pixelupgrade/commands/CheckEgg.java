@@ -56,6 +56,18 @@ public class CheckEgg implements CommandExecutor
         }
     }
 
+    private static String alias;
+    private void getCommandAlias()
+    {
+        if (!CheckEggConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
+            alias = "/" + CheckEggConfig.getInstance().getConfig().getNode("commandAlias").getString();
+        else
+        {
+            PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cConfig variable \"commandAlias\" could not be found!");
+            alias = null;
+        }
+    }
+
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
     {
         if (src instanceof Player)
@@ -66,13 +78,14 @@ public class CheckEgg implements CommandExecutor
             Boolean explicitReveal = checkConfigBool("explicitReveal");
             Boolean recheckIsFree = checkConfigBool("recheckIsFree");
 
-            // Check the command's debug verbosity mode, as set in the config.
+            // Set up the command's debug verbosity mode and preferred alias.
             getVerbosityMode();
+            getCommandAlias();
 
             if (recheckIsFree == null || explicitReveal == null || commandCost == null || babyHintPercent == null)
                 presenceCheck = false;
 
-            if (!presenceCheck || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
+            if (!presenceCheck || alias == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
@@ -300,12 +313,12 @@ public class CheckEgg implements CommandExecutor
                                     {
                                         slot = Integer.parseInt(args.<String>getOne("slot").get());
                                         src.sendMessage(Text.of("\u00A76Warning: \u00A7eChecking this egg's status costs \u00A76" + costToConfirm + "\u00A7e coins."));
-                                        src.sendMessage(Text.of("\u00A72Ready? Type: \u00A7a/checkegg " + targetString + " " + slot + " -c"));
+                                        src.sendMessage(Text.of("\u00A72Ready? Type: \u00A7a" + alias + " " + targetString + " " + slot + " -c"));
                                     }
                                     else
                                     {
                                         src.sendMessage(Text.of("\u00A76Warning: \u00A7eChecking an egg's status costs \u00A76" + costToConfirm + "\u00A7e coins."));
-                                        src.sendMessage(Text.of("\u00A72Ready? Type: \u00A7a/checkegg " + slot + " -c"));
+                                        src.sendMessage(Text.of("\u00A72Ready? Type: \u00A7a" + alias + " " + slot + " -c"));
                                     }
                                 }
                             }
@@ -345,16 +358,16 @@ public class CheckEgg implements CommandExecutor
         if (cost != 0)
         {
             if (player.hasPermission("pixelupgrade.command.checkegg.other"))
-                player.sendMessage(Text.of("\u00A74Usage: \u00A7c/checkegg [optional target] <slot, 1-6> {-c to confirm}"));
+                player.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " [optional target] <slot, 1-6> {-c to confirm}"));
             else
-                player.sendMessage(Text.of("\u00A74Usage: \u00A7c/checkegg <slot> {-c to confirm} \u00A77(no perms for target)"));
+                player.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> {-c to confirm} \u00A77(no perms for target)"));
         }
         else
         {
             if (player.hasPermission("pixelupgrade.command.checkegg.other"))
-                player.sendMessage(Text.of("\u00A74Usage: \u00A7c/checkegg [optional target] <slot, 1-6>"));
+                player.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " [optional target] <slot, 1-6>"));
             else
-                player.sendMessage(Text.of("\u00A74Usage: \u00A7c/checkegg <slot> \u00A77(no perms for target)"));
+                player.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> \u00A77(no perms for target)"));
         }
     }
 

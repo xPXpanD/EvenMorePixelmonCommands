@@ -1,3 +1,4 @@
+// Thanks for the command idea, MageFX!
 package rs.expand.pixelupgrade.commands;
 
 import com.pixelmonmod.pixelmon.enums.EnumType;
@@ -17,6 +18,7 @@ import org.spongepowered.api.text.action.TextActions;
 
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.configs.CheckTypesConfig;
+import rs.expand.pixelupgrade.utilities.EnumPokemonList;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -25,14 +27,11 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static com.pixelmonmod.pixelmon.enums.EnumType.getTotalEffectiveness;
+import static org.spongepowered.api.text.TextTemplate.of;
 import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
-import static rs.expand.pixelupgrade.commands.CheckTypes.EnumPokemonList.getPokemonFromName;
-import static rs.expand.pixelupgrade.commands.CheckTypes.EnumPokemonList.getPokemonFromID;
 
-// TODO: Some super long lists like /checktypes 599 cause minor visual issues. Fixing that would be nice polish.
+// TODO: Some super long lists like " + alias + " 599 cause minor visual issues. Fixing that would be nice polish.
 // TODO: Maybe look into paginated lists that you can move through. Lots of work, but would be real neat for evolutions.
-
-// Thanks for the command idea, MageFX!
 
 public class CheckTypes implements CommandExecutor
 {
@@ -58,6 +57,18 @@ public class CheckTypes implements CommandExecutor
         }
     }
 
+    private static String alias;
+    private void getCommandAlias()
+    {
+        if (!CheckTypesConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
+            alias = "/" + CheckTypesConfig.getInstance().getConfig().getNode("commandAlias").getString();
+        else
+        {
+            PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cConfig variable \"commandAlias\" could not be found!");
+            alias = null;
+        }
+    }
+
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
     {
         if (src instanceof Player)
@@ -71,13 +82,14 @@ public class CheckTypes implements CommandExecutor
             else
                 PixelUpgrade.log.info("\u00A74CheckTypes // critical: \u00A7cCould not parse config variable \"commandCost\"!");
 
-            // Check the command's debug verbosity mode, as set in the config.
+            // Set up the command's debug verbosity mode and preferred alias.
             getVerbosityMode();
+            getCommandAlias();
 
             if (showFormMessage == null || showAlolanMessage == null || commandCost == null)
                 presenceCheck = false;
 
-            if (!presenceCheck || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
+            if (!presenceCheck || alias == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
@@ -98,7 +110,7 @@ public class CheckTypes implements CommandExecutor
                     printToLog(2, "No arguments provided, aborting.");
 
                     checkAndAddHeader(commandCost, player);
-                    src.sendMessage(Text.of("\u00A74Error: \u00A7cNo parameters found. Please provide a slot."));
+                    src.sendMessage(Text.of("\u00A74Error: \u00A7cNo parameters found. Provide a Pok\u00E9mon or Dex ID."));
                     printCorrectHelper(commandCost, player);
                     checkAndAddFooter(commandCost, player);
 
@@ -110,6 +122,8 @@ public class CheckTypes implements CommandExecutor
 
                     if (inputString.matches("\\d+"))
                     {
+                        printToLog(3, "Got a number, converting input into Dex ID.");
+
                         inputIsInteger = true;
                         inputInteger = Integer.parseInt(inputString);
 
@@ -123,10 +137,13 @@ public class CheckTypes implements CommandExecutor
                             canContinue = false;
                         }
                         else
-                            returnedPokemon = getPokemonFromID(inputInteger);
+                            returnedPokemon = EnumPokemonList.getPokemonFromID(inputInteger);
                     }
                     else
                     {
+                        printToLog(3, "Checking if input is valid.");
+                        String updatedString = inputString;
+
                         switch (inputString.toUpperCase())
                         {
                             /*                                                        *\
@@ -138,32 +155,39 @@ public class CheckTypes implements CommandExecutor
 
                             // Possibly dodgy inputs and names that are different internally for technical reasons.
                             case "NIDORANF": case "FNIDORAN": case "FEMALENIDORAN": case "NIDORAN♀":
-                                inputString = "NidoranFemale"; break;
+                                updatedString = "NidoranFemale"; break;
                             case "NIDORANM": case "MNIDORAN": case "MALENIDORAN": case "NIDORAN♂":
-                                inputString = "NidoranMale"; break;
+                                updatedString = "NidoranMale"; break;
                             case "FARFETCH'D": case "FARFETCHED":
-                                inputString = "Farfetchd"; break;
+                                updatedString = "Farfetchd"; break;
                             case "MR.MIME": case "MISTERMIME":
-                                inputString = "MrMime"; break;
+                                updatedString = "MrMime"; break;
                             case "MIMEJR.": case "MIMEJUNIOR":
-                                inputString = "MimeJr"; break;
+                                updatedString = "MimeJr"; break;
                             //case "FLABÉBÉ": case "FLABÈBÈ":
-                            //    inputString = "Flabebe"; break;
+                            //    updatedString = "Flabebe"; break;
                             case "TYPE:NULL": case "TYPE:": case "TYPE": // A bit cheeky, but nothing else starts with "type" right now.
-                                inputString = "TypeNull"; break;
+                                updatedString = "TypeNull"; break;
                             case "JANGMO-O":
-                                inputString = "JangmoO"; break;
+                                updatedString = "JangmoO"; break;
                             case "HAKAMO-O":
-                                inputString = "HakamoO"; break;
+                                updatedString = "HakamoO"; break;
                             case "KOMMO-O":
-                                inputString = "KommoO"; break;
+                                updatedString = "KommoO"; break;
                         }
 
-                        returnedPokemon = getPokemonFromName(inputString);
+                        if (!Objects.equals(updatedString, inputString))
+                            printToLog(3, "Found a fixable input! Original: " + inputString + " | Changed to: " + updatedString);
+
+                        inputString = updatedString;
+                        returnedPokemon = EnumPokemonList.getPokemonFromName(inputString);
+
                         if (returnedPokemon == null)
                         {
+                            printToLog(2, "Could not find a Pok\u00E9mon. Input: " + inputString);
+
                             checkAndAddHeader(commandCost, player);
-                            src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid Pok\u00E9mon or Pok\u00E9dex number!"));
+                            src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid Pok\u00E9mon! Check spelling, or try a number."));
                             printCorrectHelper(commandCost, player);
                             checkAndAddFooter(commandCost, player);
 
@@ -194,7 +218,7 @@ public class CheckTypes implements CommandExecutor
 
                                 if (transactionResult.getResult() == ResultType.SUCCESS)
                                 {
-                                    printToLog(1, "Checked Pokémon for input string \"" + inputString + "\", and took " + costToConfirm + " coins.");
+                                    printToLog(1, "Checked Pok\u00E9mon for input string \"" + inputString + "\", and took " + costToConfirm + " coins.");
                                     checkTypes(returnedPokemon, inputIsInteger, inputString, player, showFormMessage, showAlolanMessage);
                                 }
                                 else
@@ -216,12 +240,12 @@ public class CheckTypes implements CommandExecutor
                             printToLog(2, "Got cost but no confirmation; end of the line.");
 
                             src.sendMessage(Text.of("\u00A76Warning: \u00A7eChecking a Pok\u00E9mon's type stats costs \u00A76" + costToConfirm + "\u00A7e coins."));
-                            src.sendMessage(Text.of("\u00A72Ready? Type: \u00A7a/checktypes " + inputString + " -c"));
+                            src.sendMessage(Text.of("\u00A72Ready? Type: \u00A7a" + alias + " " + inputString + " -c"));
                         }
                     }
                     else
                     {
-                        printToLog(2, "Checked Pokémon for input string \"" + inputString + "\". Config price is 0, taking nothing.");
+                        printToLog(2, "Checked Pok\u00E9mon for input string \"" + inputString + "\". Config price is 0, taking nothing.");
                         checkTypes(returnedPokemon, inputIsInteger, inputString, player, showFormMessage, showAlolanMessage);
                     }
                 }
@@ -255,9 +279,9 @@ public class CheckTypes implements CommandExecutor
     private void printCorrectHelper(int cost, Player player)
     {
         if (cost != 0)
-            player.sendMessage(Text.of("\u00A74Usage: \u00A7c/checktypes <Pok\u00E9mon name/number> {-c to confirm}"));
+            player.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <Pok\u00E9mon name/number> {-c to confirm}"));
         else
-            player.sendMessage(Text.of("\u00A74Usage: \u00A7c/checktypes <Pok\u00E9mon name/number>"));
+            player.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <Pok\u00E9mon name/number>"));
     }
 
     private void printToLog(int debugNum, String inputString)
@@ -288,17 +312,16 @@ public class CheckTypes implements CommandExecutor
 
     private void checkTypes(EnumPokemonList returnedPokemon, boolean inputIsInteger, String inputString, Player player, boolean showFormMessage, boolean showAlolanMessage)
     {
-        // Combo flags.
+        /*                                                           *\
+             Check for differently typed forms or Alolan variants.
+        \*                                                           */
         boolean hasForms = true, hasAlolanVariants = true;
-
-        // Let's see if we have any forms or Alolan variants. Yes, this is a bit odd.
-        // It should be super fast, though. Beats using thousands of booleans. Gotta love fallthroughs!
         if (inputIsInteger)
         {
             switch (returnedPokemon.index) // Differently typed forms.
             {
                 case 351: case 413: case 479: case 492: case 555: case 648: case 720: break;
-                default: hasForms = false;
+                default: hasForms = false; // Gotta love fallthroughs!
             }
 
             switch (returnedPokemon.index) // Alolan variants.
@@ -326,12 +349,16 @@ public class CheckTypes implements CommandExecutor
             }
         }
 
-        boolean type2Present = true, needsAbilityMessage = false;
-        boolean hasLevitate = false, hasLightningRod = false, hasMotorDrive = false, hasSapSipper = false;
-        boolean hasStormDrain = false, hasVoltAbsorb = false, hasWaterAbsorb = false, hasFlashFire = false;
-
+        /*                                                        *\
+             Set up internal variables for (almost) EVERYTHING.
+        \*                                                        */
+        boolean type2Present = true;
         int pNumber = returnedPokemon.index;
-        String pName = returnedPokemon.name();
+        String pName = returnedPokemon.name(), nameMessage, typeMessage;
+        EnumType type1 = EnumType.parseType(returnedPokemon.type1);
+        EnumType type2 = EnumType.parseType(returnedPokemon.type2);
+        if (returnedPokemon.type2.contains("EMPTY"))
+            type2Present = false;
 
         String typeString =
                 "\u00A7fNormal, \u00A74Fighting, \u00A79Flying, \u00A75Poison, \u00A76Ground, " +
@@ -345,81 +372,32 @@ public class CheckTypes implements CommandExecutor
                 "Fire, Water, Grass, Electric, Psychic, Ice, Dragon, Dark, Fairy";
         String[] unformattedTypeList = unformattedTypeString.split(", ");
 
-        String levitateString = // Which Pokémon have Levitate, and are thusly immune to Ground?
-                "Gastly, Haunter, Gengar, Koffing, Weezing, Misdreavus, Unown, Vibrava, Flygon, " +
-                "Lunatone, Solrock, Baltoy, Claydol, Duskull, Chimecho, Latias, Latios, Mismagius, " +
-                "Chingling, Bronzor, Bronzong, Carnivine, Rotom, RotomHeat, RotomWash, RotomFrost, " +
-                "RotomFan, RotomMow, Uxie, Mesprit, Azelf, Giratina, Cresselia, Tynamo, Eelektrik, " +
-                "Eelektross, Cryogonal, Hydreigon, Vikavolt";
-
-        String lightningRodString = // Which Pokémon have Lightning Rod, and are thusly immune to Electric?
-                "Cubone, Marowak, Rhyhorn, Rhydon, Electrike, Manectric, Rhyperior, Blitzle, " +
-                "Zebstrika, Pikachu, Raichu, Goldeen, Seaking, Zapdos, Pichu, Plusle, Sceptile " +
-                "MarowakAlolan";
-
-        String motorDriveString = // Which Pokémon have Motor Drive, and are thusly immune to Electric?
-                "Electivire, Blitzle, Zebstrika, Emolga";
-
-        String stormDrainString = // Which Pokémon have Storm Drain, and are thusly immune to Water?
-                "Lileep, Cradily, Shellos, Gastrodon, Finneon, Lumineon, Maractus";
-
-        String voltAbsorbString = // Which Pokémon have Volt Absorb, and are thusly immune to Electric?
-                "Jolteon, Chinchou, Lanturn, Thundurus, Raikou, Minun, Pachirisu";
-
-        String sapSipperString = // Which Pokémon have Sap Sipper, and are thusly immune to Grass?
-                "Deerling, Sawsbuck, Bouffalant, Skiddo, Gogoat, Goomy, Sliggoo, Goodra, Drampa, " +
-                "Marill, Azumarill, Girafarig, Stantler, Miltank, Azurill, Blitzle, Zebstrika";
-
-        String waterAbsorbString = // Which Pokémon have Water Absorb, and are thusly immune to Water?
-                "Poliwag, Poliwhirl, Poliwrath, Lapras, Vaporeon, Politoed, Wooper, Quagsire, " +
-                "Mantine, Mantyke, Maractus, Frillish, Jellicent, Volcanion, Chinchou, Lanturn, " +
-                "Suicune, Cacnea, Cacturne, Tympole, Palpitoad, Seismitoad";
-
-        String flashFireString = // Which Pokémon have Flash Fire, and are thusly immune to Fire?
-                "Vulpix, Ninetales, Growlithe, Arcanine, Ponyta, Rapidash, Flareon, Houndour, " +
-                "Houndoom, Heatran, Litwick, Lampent, Chandelure, Heatmor, Cyndaquil, Quilava, " +
-                "Typhlosion, Entei";
-
-        if (levitateString.contains(pName))
-            hasLevitate = true;
-        if (lightningRodString.contains(pName))
-            hasLightningRod = true;
-        if (motorDriveString.contains(pName))
-            hasMotorDrive = true;
-        if (sapSipperString.contains(pName))
-            hasSapSipper = true;
-        if (stormDrainString.contains(pName))
-            hasStormDrain = true;
-        if (voltAbsorbString.contains(pName))
-            hasVoltAbsorb = true;
-        if (waterAbsorbString.contains(pName))
-            hasWaterAbsorb = true;
-        if (flashFireString.contains(pName))
-            hasFlashFire = true;
-
-        if (Objects.equals(pName, "Shedinja") || hasLevitate || hasLightningRod || hasMotorDrive || hasSapSipper)
-            needsAbilityMessage = true;
-        if (hasStormDrain || hasVoltAbsorb || hasWaterAbsorb || hasFlashFire)
-            needsAbilityMessage = true;
-
-        EnumType type1 = EnumType.parseType(returnedPokemon.type1);
-        EnumType type2 = EnumType.parseType(returnedPokemon.type2);
-        if (returnedPokemon.type2.contains("EMPTY"))
-            type2Present = false;
-
         ArrayList<EnumType> foundTypes = new ArrayList<>();
         foundTypes.add(type1);
-        int indexType1 = Arrays.asList(unformattedTypeList).indexOf(String.valueOf(type1)), indexType2 = 0;
+        int indexType1 = Arrays.asList(unformattedTypeList).indexOf(String.valueOf(type1)), indexType2;
         if (type2Present)
         {
+            printToLog(3, "Found two types on provided Pok\u00E9mon.");
             foundTypes.add(type2);
             indexType2 = Arrays.asList(unformattedTypeList).indexOf(String.valueOf(type2));
+
+            // Used way later, but setting it up now avoids some repeat code.
+            typeMessage = " \u00A7f(" + typeList[indexType1] + "\u00A7f, " + typeList[indexType2] + "\u00A7f)";
+        }
+        else
+        {
+            printToLog(3, "Found one type on provided Pok\u00E9mon.");
+            typeMessage = " \u00A7f(" + typeList[indexType1] + "\u00A7f)";
         }
 
+        /*                                                                         *\
+             Run through the big list of Pokémon and check the target's type(s).
+        \*                                                                         */
         StringBuilder weaknessBuilder2x = new StringBuilder(), weaknessBuilder4x = new StringBuilder();
         StringBuilder strengthBuilder50p = new StringBuilder(), strengthBuilder25p = new StringBuilder();
         StringBuilder immunityBuilder = new StringBuilder();
 
+        printToLog(3, "Building the type list... Loop is go!");
         for (int i = 1; i < 19; i++)
         {
             EnumType typeToTest = EnumType.parseType(unformattedTypeList[i - 1]);
@@ -443,9 +421,11 @@ public class CheckTypes implements CommandExecutor
             }
         }
 
+        /*                                                 *\
+             Fix the shown Pokémon's name, if necessary.
+        \*                                                 */
+        printToLog(3, "Checking whether the Pok\u00E9mon needs its shown name adjusted.");
         player.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
-
-        String nameMessage, typeMessage;
         switch (pName)
         {
             // Forms.
@@ -541,28 +521,27 @@ public class CheckTypes implements CommandExecutor
             // Pokémon is not special, print defaults.
             default:
                 nameMessage = "\u00A71(\u00A79#" + pNumber + "\u00A71) \u00A76" + pName;
+                printToLog(3, "Name did not need to be fixed, showing straight from the list.");
         }
-
-        if (type2Present)
-            typeMessage = " \u00A7f(" + typeList[indexType1] + "\u00A7f, " + typeList[indexType2] + "\u00A7f)";
-        else
-            typeMessage = " \u00A7f(" + typeList[indexType1] + "\u00A7f)";
 
         player.sendMessage(Text.of(nameMessage + typeMessage));
         player.sendMessage(Text.of(""));
 
+        /*                                                                *\
+             Get resistances, weaknesses and immunities. Print to chat.
+        \*                                                                */
         if (weaknessBuilder2x.length() != 0 || weaknessBuilder4x.length() != 0)
         {
             player.sendMessage(Text.of("\u00A7cWeaknesses\u00A76:"));
             if (weaknessBuilder4x.length() != 0)
             {
                 weaknessBuilder4x.setLength(weaknessBuilder4x.length() - 2); // Cut off the last comma.
-                player.sendMessage(Text.of("\\- \u00A7c400% damage\u00A7f: " + weaknessBuilder4x));
+                player.sendMessage(Text.of("\\- \u00A7c400%\u00A7f: " + weaknessBuilder4x));
             }
             if (weaknessBuilder2x.length() != 0)
             {
                 weaknessBuilder2x.setLength(weaknessBuilder2x.length() - 2); // Cut off the last comma.
-                player.sendMessage(Text.of("\\- \u00A7c200% damage\u00A7f: " + weaknessBuilder2x));
+                player.sendMessage(Text.of("\\- \u00A7c200%\u00A7f: " + weaknessBuilder2x));
             }
         }
 
@@ -572,1136 +551,313 @@ public class CheckTypes implements CommandExecutor
             if (strengthBuilder50p.length() != 0)
             {
                 strengthBuilder50p.setLength(strengthBuilder50p.length() - 2); // Cut off the last comma.
-                player.sendMessage(Text.of("\\- \u00A7a50% damage\u00A7f: " + strengthBuilder50p));
+                player.sendMessage(Text.of("\\- \u00A7a50%\u00A7f: " + strengthBuilder50p));
             }
             if (strengthBuilder25p.length() != 0)
             {
                 strengthBuilder25p.setLength(strengthBuilder25p.length() - 2); // Cut off the last comma.
-                player.sendMessage(Text.of("\\- \u00A7a25% damage\u00A7f: " + strengthBuilder25p));
+                player.sendMessage(Text.of("\\- \u00A7a25%\u00A7f: " + strengthBuilder25p));
             }
         }
 
-        if (!needsAbilityMessage && immunityBuilder.length() != 0)
+        /*                                                          *\
+             Find and format a Pokémon's type-relevant abilities.
+        \*                                                          */
+        player.sendMessage(Text.of("\u00A7bImmunities\u00A76:"));
+        printToLog(3, "Grabbing immunities and turning them into a fancy list.");
+
+        // Make a bunch of lists for different type-nullifying abilities.
+        String motorDrive =
+                "Electivire, Blitzle, Zebstrika, Emolga";
+        String suctionCups =
+                "Octillery, Lileep, Cradily, Inkay, Malamar";
+        String voltAbsorb =
+                "Jolteon, Chinchou, Lanturn, Thundurus, Raikou, Minun, Pachirisu";
+        String stormDrain =
+                "Lileep, Cradily, Shellos, Gastrodon, Finneon, Lumineon, Maractus";
+        String drySkin =
+                "Paras, Parasect, Croagunk, Toxicroak, Helioptile, Heliolisk, Jynx";
+        String justified =
+                "Growlithe, Arcanine, Absol, Lucario, Gallade, Cobalion, Terrakion, Virizion, Keldeo";
+        String hyperCutter =
+                "Krabby, Kingler, Pinsir, Gligar, Mawile, Trapinch, Corphish, Crawdaunt, Gliscor, Crabrawler, " +
+                "Crabominable";
+        String soundProof =
+                "Voltorb, Electrode, MrMime, Whismur, Loudred, Exploud, MimeJr, Shieldon, Bastiodon, Snover, " +
+                "Abomasnow, Bouffalant";
+        String bigPecks =
+                "Pidove, Tranquill, Unfezant, Ducklett, Swanna, Vullaby, Mandibuzz, Fletchling, Pidgey," +
+                "Pidgeotto, Pidgeot, Chatot";
+        String clearBody =
+                "Tentacool, Tentacruel, Beldum, Metang, Metagross, Regirock, Regice, Registeel, Carbink, " +
+                "Diancie, Klink, Klang, Klinklang";
+        String sapSipper =
+                "Deerling, Sawsbuck, Bouffalant, Skiddo, Gogoat, Goomy, Sliggoo, Goodra, Drampa, Marill, " +
+                "Azumarill, Girafarig, Stantler, Miltank, Azurill, Blitzle, Zebstrika";
+        String damp =
+                "Psyduck, Golduck, Paras, Parasect, Horsea, Seadra, Kingdra, Mudkip, Marshtomp, Swampert, " +
+                "Frillish, Jellicent, Poliwag, Poliwhirl, Poliwrath, Politoed, Wooper, Quagsire";
+        String lightningRod =
+                "Cubone, Marowak, Rhyhorn, Rhydon, Electrike, Manectric, Rhyperior, Blitzle, Zebstrika, " +
+                "Pikachu, Raichu, Goldeen, Seaking, Zapdos, Pichu, Plusle, Sceptile, MarowakAlolan";
+        String flashFire =
+                "Vulpix, Ninetales, Growlithe, Arcanine, Ponyta, Rapidash, Flareon, Houndour, Houndoom, " +
+                "Heatran, Litwick, Lampent, Chandelure, Heatmor, Cyndaquil, Quilava, Typhlosion, Entei";
+        String waterAbsorb =
+                "Lapras, Vaporeon, Mantine, Mantyke, Maractus, Volcanion, Chinchou, Lanturn, Suicune, Cacnea, " +
+                "Cacturne, Tympole, Palpitoad, Seismitoad, Frillish, Jellicent, Poliwag, Poliwhirl, Poliwrath, " +
+                "Politoed, Wooper, Quagsire";
+        String sturdy =
+                "Geodude, Graveler, Golem, Magnemite, Magneton, Onix, Sudowoodo, Pineco, Forretress, Steelix, " +
+                "Shuckle, Skarmory, Donphan, Nosepass, Aron, Lairon, Aggron, Shieldon, Bastiodon, Bonsly, " +
+                "Magnezone, Probopass, Roggenrola, Boldore, Gigalith, Sawk, Dwebble, Crustle, Tirtouga, " +
+                "Carracosta, Relicanth, Regirock, Tyrunt, Carbink, Bergmite, Avalugg";
+        String levitate =
+                "Gastly, Haunter, Gengar, Koffing, Weezing, Misdreavus, Unown, Vibrava, Flygon, Lunatone, " +
+                "Solrock, Baltoy, Claydol, Duskull, Chimecho, Latias, Latios, Mismagius, Chingling, Bronzor, " +
+                "Bronzong, Carnivine, Rotom, RotomHeat, RotomWash, RotomFrost, RotomFan, RotomMow, Uxie, " +
+                "Mesprit, Azelf, Giratina, Cresselia, Tynamo, Eelektrik, Eelektross, Cryogonal, Hydreigon, " +
+                "Vikavolt";
+
+        // Abilities/hovers are linked. If one has two entries, the other will have two, too!
+        ArrayList<String> abilities = new ArrayList<>(), hovers = new ArrayList<>();
+
+        if (immunityBuilder.length() == 0)
+            immunityBuilder.append("\u00A78None?"); // Shown when a Pokémon isn't immune against anything.
+        else
+            immunityBuilder.setLength(immunityBuilder.length() - 2); // Shank any trailing commas.
+
+        Text immunityStart = Text.of("\\- \u00A7b0%\u00A7f: " + immunityBuilder + "\u00A77 (may have ");
+
+        // Check if Pokémon are on certain lists. Create nice Strings to print to chat and add as hovers.
+        if (motorDrive.contains(pName))
         {
-            player.sendMessage(Text.of("\u00A7bImmunities\u00A76:"));
-            immunityBuilder.setLength(immunityBuilder.length() - 2); // Cut off the last comma.
-            player.sendMessage(Text.of("\\- \u00A7b0% damage\u00A7f: " + immunityBuilder));
+            abilities.add("\u00A7f\u00A7l\u00A7nMotor Drive");
+            hovers.add("\u00A77\u00A7lMotor Drive \u00A7r\u00A77nullifies \u00A7eElectric \u00A77damage.");
         }
-        else if (needsAbilityMessage)
+        if (suctionCups.contains(pName))
         {
-            player.sendMessage(Text.of("\u00A7bImmunities\u00A76:"));
-
-            Text hoverText = Text.of("HOVER ERROR! PLEASE REPORT.");
-            String insertionText = "INSERTION ERROR! PLEASE REPORT.";
-
-            if (hasLevitate)
-            {
-                insertionText = " \u00A77(may have \u00A7f\u00A7l\u00A7nLevitate\u00A7r\u00A77)";
-                hoverText = Text.of("\u00A77\u00A7lLevitate \u00A7r\u00A77nullifies damage from \u00A7eGround \u00A77moves.");
-            }
-            else if (hasLightningRod)
-            {
-                insertionText = " \u00A77(may have \u00A7f\u00A7l\u00A7nLightning Rod\u00A7r\u00A77)";
-                hoverText = Text.of("\u00A77\u00A7lLightning Rod \u00A7r\u00A77nullifies damage from \u00A7eElectric \u00A77moves.");
-            }
-            else if (hasMotorDrive)
-            {
-                insertionText = " \u00A77(may have \u00A7f\u00A7l\u00A7nMotor Drive\u00A7r\u00A77)";
-                hoverText = Text.of("\u00A77\u00A7lMotor Drive \u00A7r\u00A77nullifies damage from \u00A7eElectric \u00A77moves.");
-            }
-            else if (hasSapSipper)
-            {
-                insertionText = " \u00A77(may have \u00A7f\u00A7l\u00A7nSap Sipper\u00A7r\u00A77)";
-                hoverText = Text.of("\u00A77\u00A7lSap Sipper \u00A7r\u00A77nullifies damage from \u00A7aGrass \u00A77moves.");
-            }
-            else if (hasStormDrain)
-            {
-                insertionText = " \u00A77(may have \u00A7f\u00A7l\u00A7nStorm Drain\u00A7r\u00A77)";
-                hoverText = Text.of("\u00A77\u00A7lStorm Drain \u00A7r\u00A77nullifies damage from \u00A73Water \u00A77moves.");
-            }
-            else if (hasVoltAbsorb)
-            {
-                insertionText = " \u00A77(may have \u00A7f\u00A7l\u00A7nVolt Absorb\u00A7r\u00A77)";
-                hoverText = Text.of("\u00A77\u00A7lVolt Absorb \u00A7r\u00A77nullifies damage from \u00A7eElectric \u00A77moves.");
-            }
-            else if (hasWaterAbsorb)
-            {
-                insertionText = " \u00A77(may have \u00A7f\u00A7l\u00A7nWater Absorb\u00A7r\u00A77)";
-                hoverText = Text.of("\u00A77\u00A7lWater Absorb \u00A7r\u00A77nullifies damage from \u00A73Water \u00A77moves.");
-            }
-            else if (hasFlashFire)
-            {
-                insertionText = " \u00A77(may have \u00A7f\u00A7l\u00A7nFlash Fire\u00A7r\u00A77)";
-                hoverText = Text.of("\u00A77\u00A7lFlash Fire \u00A7r\u00A77nullifies damage from \u00A7cFire \u00A77moves.");
-            }
-
-            // Executed after the if/else if block, so it overrides that if necessary.
-            // Should only work like that for Heatmor.
-            switch (pName)
-            {
-                case "Shedinja":
-                {
-                    insertionText = " \u00A77(probably has \u00A7f\u00A7l\u00A7nWonder Guard\u00A7r\u00A77)";
-                    hoverText = Text.of("\u00A77Makes the Pok\u00E9mon immune to attacks that aren't \u00A7nsuper effective\u00A7r\u00A77.");
-                    break;
-                }
-                case "Torkoal":
-                {
-                    insertionText = " \u00A77(may have \u00A7f\u00A7l\u00A7nWhite Smoke\u00A7r\u00A77)";
-                    hoverText = Text.of("\u00A77Makes the Pok\u00E9mon immune to stat reduction.");
-                    break;
-                }
-                case "Heatmor":
-                {
-                    insertionText = " \u00A77(may have \u00A7f\u00A7l\u00A7nWhite Smoke\u00A7r\u00A77 or \u00A7f\u00A7l\u00A7nFlash Fire\u00A7r\u00A77)";
-                    hoverText = Text.of("\u00A77\u00A7lWhite Smoke \u00A7r\u00A77prevents stat lowering, "
-                            + "\u00A77\u00A7lFlash Fire \u00A7r\u00A77nullifies \u00A7cFire \u00A77moves.");
-                    break;
-                }
-            }
-
-            if (immunityBuilder.length() == 0)
-                immunityBuilder.append("\u00A78None?  "); // Two spaces added so it doesn't get shanked below.
-
-            immunityBuilder.setLength(immunityBuilder.length() - 2); // Cut off the last comma.
-
-            Text baseImmunityLine = Text.of("\\- \u00A7b0% damage\u00A7f: " + immunityBuilder + insertionText);
-            Text immunityLine = baseImmunityLine.toBuilder().onHover(TextActions.showText(Text.of(hoverText))).build();
-            player.sendMessage(immunityLine);
+            abilities.add("\u00A7f\u00A7l\u00A7nSuction Cups");
+            hovers.add("\u00A77\u00A7lSuction Cups \u00A7r\u00A77prevents \u00A7nswitch-out\u00A7r\u00A77 moves.");
+        }
+        if (voltAbsorb.contains(pName))
+        {
+            abilities.add("\u00A7f\u00A7l\u00A7nVolt Absorb");
+            hovers.add("\u00A77\u00A7lVolt Absorb \u00A7r\u00A77nullifies \u00A7eElectric \u00A77damage.");
+        }
+        if (stormDrain.contains(pName))
+        {
+            abilities.add("\u00A7f\u00A7l\u00A7nStorm Drain");
+            hovers.add("\u00A77\u00A7lStorm Drain \u00A7r\u00A77nullifies \u00A73Water \u00A77damage.");
+        }
+        if (drySkin.contains(pName))
+        {
+            abilities.add("\u00A7f\u00A7l\u00A7nDry Skin");
+            hovers.add("\u00A77\u00A7lDry Skin \u00A7r\u00A77adds 25% \u00A73Water \u00A77absorbance but \u00A7cFire \u00A77hurts 25% more.");
+        }
+        if (justified.contains(pName))
+        {
+            abilities.add("\u00A7f\u00A7l\u00A7nJustified");
+            hovers.add("\u00A77\u00A7lJustified \u00A7r\u00A77ups \u00A7nAttack\u00A7r\u00A77 by one stage when hit by a \u00A78Dark \u00A77move.");
+        }
+        if (hyperCutter.contains(pName))
+        {
+            abilities.add("\u00A7f\u00A7l\u00A7nHyper Cutter");
+            hovers.add("\u00A77\u00A7lHyper Cutter \u00A7r\u00A77prevents a Pok\u00E9mon's Attack from being dropped.");
+        }
+        if (soundProof.contains(pName))
+        {
+            abilities.add("\u00A7f\u00A7l\u00A7nSoundproof");
+            hovers.add("\u00A77\u00A7lSoundproof \u00A7r\u00A77nullifies \u00A7nsound-based\u00A7r\u00A77 moves.");
+        }
+        if (bigPecks.contains(pName))
+        {
+            abilities.add("\u00A7f\u00A7l\u00A7nBig Pecks");
+            hovers.add("\u00A77\u00A7lBig Pecks \u00A7r\u00A77prevents a Pok\u00E9mon's Defense from being dropped.");
+        }
+        if (clearBody.contains(pName))
+        {
+            abilities.add("\u00A7f\u00A7l\u00A7nClear Body");
+            hovers.add("\u00A77\u00A7lClear Body \u00A7r\u00A77prevents all of a Pok\u00E9mon's stats from being dropped.");
+        }
+        if (sapSipper.contains(pName))
+        {
+            abilities.add("\u00A7f\u00A7l\u00A7nSap Sipper");
+            hovers.add("\u00A77\u00A7lSap Sipper \u00A7r\u00A77nullifies \u00A7aGrass \u00A77damage.");
+        }
+        if (damp.contains(pName))
+        {
+            abilities.add("\u00A7f\u00A7l\u00A7nDamp");
+            hovers.add("\u00A77\u00A7lDamp \u00A7r\u00A77disables \u00A7nSelf-Destruct\u00A7r\u00A77/\u00A7nExplosion\u00A7r\u00A77.");
+        }
+        if (lightningRod.contains(pName))
+        {
+            abilities.add("\u00A7f\u00A7l\u00A7nLightning Rod");
+            hovers.add("\u00A77\u00A7lLightning Rod \u00A7r\u00A77nullifies \u00A7eElectric \u00A77damage.");
+        }
+        if (flashFire.contains(pName))
+        {
+            abilities.add("\u00A7f\u00A7l\u00A7nFlash Fire");
+            hovers.add("\u00A77\u00A7lFlash Fire \u00A7r\u00A77nullifies \u00A7cFire \u00A77damage.");
+        }
+        if (waterAbsorb.contains(pName))
+        {
+            abilities.add("\u00A7f\u00A7l\u00A7nWater Absorb");
+            hovers.add("\u00A77\u00A7lWater Absorb \u00A7r\u00A77nullifies \u00A73Water \u00A77damage.");
+        }
+        if (sturdy.contains(pName))
+        {
+            abilities.add("\u00A7f\u00A7l\u00A7nSturdy");
+            hovers.add("\u00A77\u00A7lSturdy \u00A7r\u00A77prevents \u00A7n1-hit KO\u00A7r\u00A77 attacks.");
+        }
+        if (levitate.contains(pName))
+        {
+            abilities.add("\u00A7f\u00A7l\u00A7nLevitate");
+            hovers.add("\u00A77\u00A7lLevitate \u00A7r\u00A77nullifies \u00A7eGround \u00A77damage.");
         }
 
+        // Check if we have certain unique Pokémon with unique abilities.
+        if (pName.matches("Torkoal|Heatmor")) // Regular expressions! Woo!
+        {
+            abilities.add("\u00A7f\u00A7l\u00A7nWhite Smoke");
+            hovers.add("\u00A77\u00A7lWhite Smoke \u00A77provides immunity to stat reduction.");
+        }
+        else if (pName.contains("Shedinja"))
+        {
+            abilities.add("\u00A7f\u00A7l\u00A7nWonder Guard");
+            hovers.add("\u00A77\u00A7lWonder Guard \u00A77disables all \u00A7nnon-super effective\u00A7r\u00A77 damage.");
+            immunityStart = Text.of("\\- \u00A7b0%\u00A7f: " + immunityBuilder + "\u00A77 (has "); // Less awkward.
+        }
+
+        /*                                                          *\
+             Figure out what to show in chat, and how to show it.
+        \*                                                          */
+        Text immunityPair, immunityPair2, immunityPair3;
+        String immunityEnd = "\u00A7r\u00A77)";
+        if (abilities.size() == 1)
+        {
+            immunityPair = Text.builder(abilities.get(0))
+                    .onHover(TextActions.showText(Text.of(hovers.get(0))))
+                    .build();
+            player.sendMessage(of(immunityStart, immunityPair, immunityEnd));
+        }
+        else if (abilities.size() == 2)
+        {
+            Text orMessage = Text.of("\u00A7r\u00A77 or \u00A7f\u00A7l\u00A7n");
+            immunityPair = Text.builder(abilities.get(0))
+                    .onHover(TextActions.showText(Text.of(hovers.get(0))))
+                    .build();
+            immunityPair2 = Text.builder(abilities.get(1))
+                    .onHover(TextActions.showText(Text.of(hovers.get(1))))
+                    .build();
+
+            player.sendMessage(of(immunityStart, immunityPair, orMessage, immunityPair2, immunityEnd));
+        }
+        else if (abilities.size() == 3)
+        {
+            // Overwrite this here so we can squeeze in more info. Not ideal, but single lines are nice.
+            immunityStart = Text.of("\\- \u00A7b0%\u00A7f: " + immunityBuilder + "\u00A77 (may have type abilities, see below)");
+
+            Text orMessage = Text.of("\u00A7r\u00A77 or \u00A7f\u00A7l\u00A7n");
+            Text newLineFormat = Text.of("\\- \u00A7b=>\u00A7f: ");
+            immunityPair = Text.builder(abilities.get(0))
+                    .onHover(TextActions.showText(Text.of(hovers.get(0))))
+                    .build();
+            immunityPair2 = Text.builder(abilities.get(1))
+                    .onHover(TextActions.showText(Text.of(hovers.get(1))))
+                    .build();
+            immunityPair3 = Text.builder(abilities.get(2))
+                    .onHover(TextActions.showText(Text.of(hovers.get(2))))
+                    .build();
+
+            player.sendMessage(immunityStart);
+            player.sendMessage(of(newLineFormat, immunityPair, orMessage, immunityPair2, orMessage, immunityPair3));
+        }
+        else
+            player.sendMessage(Text.of("\\- \u00A7b0%\u00A7f: " + immunityBuilder));
+
+        /*                                                                              *\
+             Print messages if differently typed forms or Alolan forms are available.
+        \*                                                                              */
         if (hasForms && showFormMessage)
         {
-            String commandHelper = "\u00A7cCheck out: \u00A76/checktypes ";
+            printToLog(3, "Showing forms is enabled, and we can show one! Doing it.");
+            String commandHelper = "\u00A7cCheck out: \u00A76" + alias + " ";
 
             player.sendMessage(Text.of(""));
             player.sendMessage(Text.of("\u00A7dThis Pok\u00E9mon has one or more forms with different types."));
 
-            switch (inputString.toUpperCase())
+            switch (pName)
             {
                 // Big ones. We provide just the names, to keep things manageable. Rotom's super squished by necessity.
-                case "CASTFORM":
+                case "Castform":
                     player.sendMessage(Text.of(commandHelper + "CastformSunny \u00A7f(or \u00A76Rainy\u00A7f/\u00A76Snowy\u00A7f)")); break;
-                case "WORMADAM":
+                case "Wormadam":
                     player.sendMessage(Text.of(commandHelper + "WormadamSandy\u00A7f, \u00A76WormadamTrash\u00A7f")); break;
-                case "ROTOM":
+                case "Rotom":
                     player.sendMessage(Text.of(commandHelper + "RotomHeat \u00A7f(or \u00A76Wash\u00A7f/\u00A76Frost\u00A7f/\u00A76Fan\u00A7f/\u00A76Mow\u00A7f)")); break;
 
                 // Small ones. We can show types on these, like the Alolan variants.
-                case "SHAYMIN":
+                case "Shaymin":
                     player.sendMessage(Text.of(commandHelper + "ShayminSky \u00A7f(\u00A7aGrass\u00A7f, \u00A79Flying\u00A7f)")); break;
-                case "DARMANITAN":
+                case "Darmanitan":
                     player.sendMessage(Text.of(commandHelper + "DarmanitanZen \u00A7f(\u00A7cFire\u00A7f, \u00A7dPsychic\u00A7f)")); break;
-                case "MELOETTA":
+                case "Meloetta":
                     player.sendMessage(Text.of(commandHelper + "MeloettaPirouette \u00A7f(Normal, \u00A74Fighting\u00A7f)")); break;
-                case "HOOPA":
+                case "Hoopa":
                     player.sendMessage(Text.of(commandHelper + "HoopaUnbound \u00A7f(\u00A7dPsychic\u00A7f, \u00A78Dark\u00A7f)")); break;
             }
         }
         else if (hasAlolanVariants && showAlolanMessage)
         {
-            String commandHelper = "\u00A7cCheck out: \u00A76/checktypes ";
+            printToLog(3, "Showing Alolan variants is enabled, and we've got one! Showing.");
+            String commandHelper = "\u00A7cCheck out: \u00A76" + alias + " ";
 
             player.sendMessage(Text.of(""));
             player.sendMessage(Text.of("\u00A7dThis Pok\u00E9mon has an Alolan variant."));
 
-            switch (inputString.toUpperCase())
+            switch (pName)
             {
                 // Alolan variants. Same as above.
-                case "RATTATA":
+                case "Rattata":
                     player.sendMessage(Text.of(commandHelper + "RattataAlolan \u00A7f(\u00A78Dark\u00A7f, Normal)")); break;
-                case "RATICATE":
+                case "Raticate":
                     player.sendMessage(Text.of(commandHelper + "RaticateAlolan \u00A7f(\u00A78Dark\u00A7f, Normal)")); break;
-                case "RAICHU":
+                case "Raichu":
                     player.sendMessage(Text.of(commandHelper + "RaichuAlolan \u00A7f(\u00A7eElectric\u00A7f, \u00A7dPsychic\u00A7f)")); break;
-                case "SANDSHREW":
+                case "Sandshrew":
                     player.sendMessage(Text.of(commandHelper + "SandshrewAlolan \u00A7f(\u00A7bIce\u00A7f, \u00A77Steel\u00A7f)")); break;
-                case "SANDSLASH":
+                case "Sandslash":
                     player.sendMessage(Text.of(commandHelper + "SandslashAlolan \u00A7f(\u00A7bIce\u00A7f, \u00A77Steel\u00A7f)")); break;
-                case "VULPIX":
+                case "Vulpix":
                     player.sendMessage(Text.of(commandHelper + "VulpixAlolan \u00A7f(\u00A7bIce\u00A7f)")); break;
-                case "NINETALES":
+                case "Ninetales":
                     player.sendMessage(Text.of(commandHelper + "NinetalesAlolan \u00A7f(\u00A7bIce\u00A7f, \u00A7dFairy\u00A7f)")); break;
-                case "DIGLETT":
+                case "Diglett":
                     player.sendMessage(Text.of(commandHelper + "DiglettAlolan \u00A7f(\u00A76Ground\u00A7f, \u00A77Steel\u00A7f)")); break;
-                case "DUGTRIO":
+                case "Dugtrio":
                     player.sendMessage(Text.of(commandHelper + "DugtrioAlolan \u00A7f(\u00A76Ground\u00A7f, \u00A77Steel\u00A7f)")); break;
-                case "MEOWTH":
+                case "Meowth":
                     player.sendMessage(Text.of(commandHelper + "MeowthAlolan \u00A7f(\u00A78Dark\u00A7f)")); break;
-                case "PERSIAN":
+                case "Persian":
                     player.sendMessage(Text.of(commandHelper + "PersianAlolan \u00A7f(\u00A78Dark\u00A7f)")); break;
-                case "GEODUDE":
+                case "Geodude":
                     player.sendMessage(Text.of(commandHelper + "GeodudeAlolan \u00A7f(\u00A77Rock\u00A7f, \u00A7eElectric\u00A7f)")); break;
-                case "GRAVELER":
+                case "Graveler":
                     player.sendMessage(Text.of(commandHelper + "GravelerAlolan \u00A7f(\u00A77Rock\u00A7f, \u00A7eElectric\u00A7f)")); break;
-                case "GOLEM":
+                case "Golem":
                     player.sendMessage(Text.of(commandHelper + "GolemAlolan \u00A7f(\u00A77Rock\u00A7f, \u00A7eElectric\u00A7f)")); break;
-                case "GRIMER":
+                case "Grimer":
                     player.sendMessage(Text.of(commandHelper + "GrimerAlolan \u00A7f(\u00A75Poison\u00A7f, \u00A78Dark\u00A7f)")); break;
-                case "MUK":
+                case "Muk":
                     player.sendMessage(Text.of(commandHelper + "MukAlolan \u00A7f(\u00A75Poison\u00A7f, \u00A78Dark\u00A7f)")); break;
-                case "EXEGGUTOR":
+                case "Exeggutor":
                     player.sendMessage(Text.of(commandHelper + "ExeggutorAlolan \u00A7f(\u00A7aGrass\u00A7f, \u00A79Dragon\u00A7f)")); break;
-                case "MAROWAK":
+                case "Marowak":
                     player.sendMessage(Text.of(commandHelper + "MarowakAlolan \u00A7f(\u00A7cFire\u00A7f, \u00A75Ghost\u00A7f)")); break;
             }
         }
 
         player.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
     }
-
-    public enum EnumPokemonList
-    {
-        // Gen 1
-        Bulbasaur(1, "Grass, Poison"),
-        Ivysaur(2, "Grass, Poison"),
-        Venusaur(3, "Grass, Poison"),
-        Charmander(4, "Fire"),
-        Charmeleon(5, "Fire"),
-        Charizard(6, "Fire, Flying"),
-        Squirtle(7, "Water"),
-        Wartortle(8, "Water"),
-        Blastoise(9, "Water"),
-        Caterpie(10, "Bug"),
-        Metapod(11, "Bug"),
-        Butterfree(12, "Bug, Flying"),
-        Weedle(13, "Bug, Poison"),
-        Kakuna(14, "Bug, Poison"),
-        Beedrill(15, "Bug, Poison"),
-        Pidgey(16, "Normal, Flying"),
-        Pidgeotto(17, "Normal, Flying"),
-        Pidgeot(18, "Normal, Flying"),
-        Rattata(19, "Normal"),
-        Raticate(20, "Normal"),
-        Spearow(21, "Normal, Flying"),
-        Fearow(22, "Normal, Flying"),
-        Ekans(23, "Poison"),
-        Arbok(24, "Poison"),
-        Pikachu(25, "Electric"),
-        Raichu(26, "Electric"),
-        Sandshrew(27, "Ground"),
-        Sandslash(28, "Ground"),
-        NidoranFemale(29, "Poison"),
-        Nidorina(30, "Poison"),
-        Nidoqueen(31, "Poison, Ground"),
-        NidoranMale(32, "Poison"),
-        Nidorino(33, "Poison"),
-        Nidoking(34, "Poison, Ground"),
-        Clefairy(35, "Fairy"),
-        Clefable(36, "Fairy"),
-        Vulpix(37, "Fire"),
-        Ninetales(38, "Fire"),
-        Jigglypuff(39, "Normal, Fairy"),
-        Wigglytuff(40, "Normal, Fairy"),
-        Zubat(41, "Poison, Flying"),
-        Golbat(42, "Poison, Flying"),
-        Oddish(43, "Grass, Poison"),
-        Gloom(44, "Grass, Poison"),
-        Vileplume(45, "Grass, Poison"),
-        Paras(46, "Bug, Grass"),
-        Parasect(47, "Bug, Grass"),
-        Venonat(48, "Bug, Poison"),
-        Venomoth(49, "Bug, Poison"),
-        Diglett(50, "Ground"),
-        Dugtrio(51, "Ground"),
-        Meowth(52, "Normal"),
-        Persian(53, "Normal"),
-        Psyduck(54, "Water"), // so tempted
-        Golduck(55, "Water"),
-        Mankey(56, "Fighting"),
-        Primeape(57, "Fighting"),
-        Growlithe(58, "Fire"),
-        Arcanine(59, "Fire"),
-        Poliwag(60, "Water"),
-        Poliwhirl(61, "Water"),
-        Poliwrath(62, "Water, Fighting"),
-        Abra(63, "Psychic"),
-        Kadabra(64, "Psychic"),
-        Alakazam(65, "Psychic"),
-        Machop(66, "Fighting"),
-        Machoke(67, "Fighting"),
-        Machamp(68, "Fighting"),
-        Bellsprout(69, "Grass, Poison"),
-        Weepinbell(70, "Grass, Poison"),
-        Victreebel(71, "Grass, Poison"),
-        Tentacool(72, "Water, Poison"),
-        Tentacruel(73, "Water, Poison"),
-        Geodude(74, "Rock, Ground"),
-        Graveler(75, "Rock, Ground"),
-        Golem(76, "Rock, Ground"),
-        Ponyta(77, "Fire"),
-        Rapidash(78, "Fire"),
-        Slowpoke(79, "Water, Psychic"),
-        Slowbro(80, "Water, Psychic"),
-        Magnemite(81, "Electric, Steel"),
-        Magneton(82, "Electric, Steel"),
-        Farfetchd(83, "Normal, Flying"),
-        Doduo(84, "Normal, Flying"),
-        Dodrio(85, "Normal, Flying"),
-        Seel(86, "Water"),
-        Dewgong(87, "Water, Ice"),
-        Grimer(88, "Poison"),
-        Muk(89, "Poison"),
-        Shellder(90, "Water"),
-        Cloyster(91, "Water, Ice"),
-        Gastly(92, "Ghost, Poison"),
-        Haunter(93, "Ghost, Poison"),
-        Gengar(94, "Ghost, Poison"),
-        Onix(95, "Rock, Ground"),
-        Drowzee(96, "Psychic"),
-        Hypno(97, "Psychic"),
-        Krabby(98, "Water"),
-        Kingler(99, "Water"),
-        Voltorb(100, "Electric"),
-        Electrode(101, "Electric"),
-        Exeggcute(102, "Grass, Psychic"),
-        Exeggutor(103, "Grass, Psychic"),
-        Cubone(104, "Ground"),
-        Marowak(105, "Ground"),
-        Hitmonlee(106, "Fighting"),
-        Hitmonchan(107, "Fighting"),
-        Lickitung(108, "Normal"),
-        Koffing(109, "Poison"),
-        Weezing(110, "Poison"),
-        Rhyhorn(111, "Ground, Rock"),
-        Rhydon(112, "Ground, Rock"),
-        Chansey(113, "Normal"),
-        Tangela(114, "Grass"),
-        Kangaskhan(115, "Normal"),
-        Horsea(116, "Water"),
-        Seadra(117, "Water"),
-        Goldeen(118, "Water"),
-        Seaking(119, "Water"),
-        Staryu(120, "Water"),
-        Starmie(121, "Water, Psychic"),
-        MrMime(122, "Psychic, Fairy"),
-        Scyther(123, "Bug, Flying"),
-        Jynx(124, "Ice, Psychic"),
-        Electabuzz(125, "Electric"),
-        Magmar(126, "Fire"),
-        Pinsir(127, "Bug"),
-        Tauros(128, "Normal"),
-        Magikarp(129, "Water"),
-        Gyarados(130, "Water, Flying"),
-        Lapras(131, "Water, Ice"),
-        Ditto(132, "Normal"),
-        Eevee(133, "Normal"),
-        Vaporeon(134, "Water"),
-        Jolteon(135, "Electric"),
-        Flareon(136, "Fire"),
-        Porygon(137, "Normal"),
-        Omanyte(138, "Rock, Water"),
-        Omastar(139, "Rock, Water"),
-        Kabuto(140, "Rock, Water"),
-        Kabutops(141, "Rock, Water"),
-        Aerodactyl(142, "Rock, Flying"),
-        Snorlax(143, "Normal"),
-        Articuno(144, "Ice, Flying"),
-        Zapdos(145, "Electric, Flying"),
-        Moltres(146, "Fire, Flying"),
-        Dratini(147, "Dragon"),
-        Dragonair(148, "Dragon"),
-        Dragonite(149, "Dragon, Flying"),
-        Mewtwo(150, "Psychic"),
-        Mew(151, "Psychic"),
-
-        // Gen 2 (also known as best gen)
-        Chikorita(152, "Grass"),
-        Bayleef(153, "Grass"),
-        Meganium(154, "Grass"),
-        Cyndaquil(155, "Fire"),
-        Quilava(156, "Fire"),
-        Typhlosion(157, "Fire"),
-        Totodile(158, "Water"),
-        Croconaw(159, "Water"),
-        Feraligatr(160, "Water"),
-        Sentret(161, "Normal"),
-        Furret(162, "Normal"),
-        Hoothoot(163, "Normal, Flying"),
-        Noctowl(164, "Normal, Flying"),
-        Ledyba(165, "Bug, Flying"),
-        Ledian(166, "Bug, Flying"),
-        Spinarak(167, "Bug, Poison"),
-        Ariados(168, "Bug, Poison"),
-        Crobat(169, "Poison, Flying"),
-        Chinchou(170, "Water, Electric"),
-        Lanturn(171, "Water, Electric"),
-        Pichu(172, "Electric"),
-        Cleffa(173, "Fairy"),
-        Igglybuff(174, "Normal, Fairy"),
-        Togepi(175, "Fairy"),
-        Togetic(176, "Fairy, Flying"),
-        Natu(177, "Psychic, Flying"),
-        Xatu(178, "Psychic, Flying"),
-        Mareep(179, "Electric"),
-        Flaaffy(180, "Electric"),
-        Ampharos(181, "Electric"),
-        Bellossom(182, "Grass"),
-        Marill(183, "Water, Fairy"),
-        Azumarill(184, "Water, Fairy"),
-        Sudowoodo(185, "Rock"),
-        Politoed(186, "Water"),
-        Hoppip(187, "Grass, Flying"),
-        Skiploom(188, "Grass, Flying"),
-        Jumpluff(189, "Grass, Flying"),
-        Aipom(190, "Normal"),
-        Sunkern(191, "Grass"),
-        Sunflora(192, "Grass"),
-        Yanma(193, "Bug, Flying"),
-        Wooper(194, "Water, Ground"),
-        Quagsire(195, "Water, Ground"),
-        Espeon(196, "Psychic"),
-        Umbreon(197, "Dark"),
-        Murkrow(198, "Dark, Flying"),
-        Slowking(199, "Water, Psychic"),
-        Misdreavus(200, "Ghost"),
-        Unown(201, "Psychic"),
-        Wobbuffet(202, "Psychic"),
-        Girafarig(203, "Normal, Psychic"),
-        Pineco(204, "Bug"),
-        Forretress(205, "Bug, Steel"),
-        Dunsparce(206, "Normal"),
-        Gligar(207, "Ground, Flying"),
-        Steelix(208, "Steel, Ground"),
-        Snubbull(209, "Fairy"),
-        Granbull(210, "Fairy"),
-        Qwilfish(211, "Water, Poison"),
-        Scizor(212, "Bug, Steel"),
-        Shuckle(213, "Bug, Rock"),
-        Heracross(214, "Bug, Fighting"),
-        Sneasel(215, "Dark, Ice"),
-        Teddiursa(216, "Normal"),
-        Ursaring(217, "Normal"),
-        Slugma(218, "Fire"),
-        Magcargo(219, "Fire, Rock"),
-        Swinub(220, "Ice, Ground"),
-        Piloswine(221, "Ice, Ground"),
-        Corsola(222, "Water, Rock"),
-        Remoraid(223, "Water"),
-        Octillery(224, "Water"),
-        Delibird(225, "Ice, Flying"),
-        Mantine(226, "Water, Flying"),
-        Skarmory(227, "Steel, Flying"),
-        Houndour(228, "Dark, Fire"),
-        Houndoom(229, "Dark, Fire"),
-        Kingdra(230, "Water, Dragon"),
-        Phanpy(231, "Ground"),
-        Donphan(232, "Ground"),
-        Porygon2(233, "Normal"),
-        Stantler(234, "Normal"),
-        Smeargle(235, "Normal"),
-        Tyrogue(236, "Fighting"),
-        Hitmontop(237, "Fighting"),
-        Smoochum(238, "Ice, Psychic"),
-        Elekid(239, "Electric"),
-        Magby(240, "Fire"),
-        Miltank(241, "Normal"),
-        Blissey(242, "Normal"),
-        Raikou(243, "Electric"),
-        Entei(244, "Fire"),
-        Suicune(245, "Water"),
-        Larvitar(246, "Rock, Ground"),
-        Pupitar(247, "Rock, Ground"),
-        Tyranitar(248, "Rock, Dark"),
-        Lugia(249, "Psychic, Flying"),
-        HoOh(250, "Fire, Flying"),
-        Celebi(251, "Psychic, Grass"),
-
-        // Gen 3
-        Treecko(252, "Grass"),
-        Grovyle(253, "Grass"),
-        Sceptile(254, "Grass"),
-        Torchic(255, "Fire"),
-        Combusken(256, "Fire, Fighting"),
-        Blaziken(257, "Fire, Fighting"),
-        Mudkip(258, "Water"),
-        Marshtomp(259, "Water, Ground"),
-        Swampert(260, "Water, Ground"),
-        Poochyena(261, "Dark"),
-        Mightyena(262, "Dark"),
-        Zigzagoon(263, "Normal"),
-        Linoone(264, "Normal"),
-        Wurmple(265, "Bug"),
-        Silcoon(266, "Bug"),
-        Beautifly(267, "Bug, Flying"),
-        Cascoon(268, "Bug"),
-        Dustox(269, "Bug, Poison"),
-        Lotad(270, "Water, Grass"),
-        Lombre(271, "Water, Grass"),
-        Ludicolo(272, "Water, Grass"),
-        Seedot(273, "Grass"),
-        Nuzleaf(274, "Grass, Dark"),
-        Shiftry(275, "Grass, Dark"),
-        Taillow(276, "Normal, Flying"),
-        Swellow(277, "Normal, Flying"),
-        Wingull(278, "Water, Flying"),
-        Pelipper(279, "Water, Flying"),
-        Ralts(280, "Psychic, Fairy"),
-        Kirlia(281, "Psychic, Fairy"),
-        Gardevoir(282, "Psychic, Fairy"),
-        Surskit(283, "Bug, Water"),
-        Masquerain(284, "Bug, Flying"),
-        Shroomish(285, "Grass"),
-        Breloom(286, "Grass, Fighting"),
-        Slakoth(287, "Normal"),
-        Vigoroth(288, "Normal"),
-        Slaking(289, "Normal"),
-        Nincada(290, "Bug, Ground"),
-        Ninjask(291, "Bug, Flying"),
-        Shedinja(292, "Bug, Ghost"),
-        Whismur(293, "Normal"),
-        Loudred(294, "Normal"),
-        Exploud(295, "Normal"),
-        Makuhita(296, "Fighting"),
-        Hariyama(297, "Fighting"),
-        Azurill(298, "Normal, Fairy"),
-        Nosepass(299, "Rock"),
-        Skitty(300, "Normal"),
-        Delcatty(301, "Normal"),
-        Sableye(302, "Dark, Ghost"),
-        Mawile(303, "Steel, Fairy"),
-        Aron(304, "Steel, Rock"),
-        Lairon(305, "Steel, Rock"),
-        Aggron(306, "Steel, Rock"),
-        Meditite(307, "Fighting, Psychic"),
-        Medicham(308, "Fighting, Psychic"),
-        Electrike(309, "Electric"),
-        Manectric(310, "Electric"),
-        Plusle(311, "Electric"),
-        Minun(312, "Electric"),
-        Volbeat(313, "Bug"),
-        Illumise(314, "Bug"),
-        Roselia(315, "Grass, Poison"),
-        Gulpin(316, "Poison"),
-        Swalot(317, "Poison"),
-        Carvanha(318, "Water, Dark"),
-        Sharpedo(319, "Water, Dark"),
-        Wailmer(320, "Water"),
-        Wailord(321, "Water"),
-        Numel(322, "Fire, Ground"),
-        Camerupt(323, "Fire, Ground"),
-        Torkoal(324, "Fire"),
-        Spoink(325, "Psychic"),
-        Grumpig(326, "Psychic"),
-        Spinda(327, "Normal"),
-        Trapinch(328, "Ground"),
-        Vibrava(329, "Ground, Dragon"),
-        Flygon(330, "Ground, Dragon"),
-        Cacnea(331, "Grass"),
-        Cacturne(332, "Grass, Dark"),
-        Swablu(333, "Normal, Flying"),
-        Altaria(334, "Dragon, Flying"),
-        Zangoose(335, "Normal"),
-        Seviper(336, "Poison"),
-        Lunatone(337, "Rock, Psychic"),
-        Solrock(338, "Rock, Psychic"), // Praise the sun!
-        Barboach(339, "Water, Ground"),
-        Whiscash(340, "Water, Ground"),
-        Corphish(341, "Water"),
-        Crawdaunt(342, "Water, Dark"),
-        Baltoy(343, "Ground, Psychic"),
-        Claydol(344, "Ground, Psychic"),
-        Lileep(345, "Rock, Grass"),
-        Cradily(346, "Rock, Grass"),
-        Anorith(347, "Rock, Bug"),
-        Armaldo(348, "Rock, Bug"),
-        Feebas(349, "Water"),
-        Milotic(350, "Water"),
-        Castform(351, "Normal"),
-        Kecleon(352, "Normal"),
-        Shuppet(353, "Ghost"),
-        Banette(354, "Ghost"),
-        Duskull(355, "Ghost"),
-        Dusclops(356, "Ghost"),
-        Tropius(357, "Grass, Flying"),
-        Chimecho(358, "Psychic"),
-        Absol(359, "Dark"),
-        Wynaut(360, "Psychic"), // Why?
-        Snorunt(361, "Ice"),
-        Glalie(362, "Ice"),
-        Spheal(363, "Ice, Water"),
-        Sealeo(364, "Ice, Water"),
-        Walrein(365, "Ice, Water"),
-        Clamperl(366, "Water"),
-        Huntail(367, "Water"),
-        Gorebyss(368, "Water"),
-        Relicanth(369, "Water, Rock"),
-        Luvdisc(370, "Water"),
-        Bagon(371, "Dragon"),
-        Shelgon(372, "Dragon"),
-        Salamence(373, "Dragon, Flying"),
-        Beldum(374, "Steel, Psychic"),
-        Metang(375, "Steel, Psychic"),
-        Metagross(376, "Steel, Psychic"),
-        Regirock(377, "Rock"),
-        Regice(378, "Ice"),
-        Registeel(379, "Steel"),
-        Latias(380, "Dragon, Psychic"),
-        Latios(381, "Dragon, Psychic"),
-        Kyogre(382, "Water"),
-        Groudon(383, "Ground"),
-        Rayquaza(384, "Dragon, Flying"),
-        Jirachi(385, "Steel, Psychic"),
-        Deoxys(386, "Psychic"),
-
-        // Gen 4
-        Turtwig(387, "Grass"),
-        Grotle(388, "Grass"),
-        Torterra(389, "Grass, Ground"),
-        Chimchar(390, "Fire"),
-        Monferno(391, "Fire, Fighting"),
-        Infernape(392, "Fire, Fighting"),
-        Piplup(393, "Water"),
-        Prinplup(394, "Water"),
-        Empoleon(395, "Water, Steel"),
-        Starly(396, "Normal, Flying"),
-        Staravia(397, "Normal, Flying"),
-        Staraptor(398, "Normal, Flying"),
-        Bidoof(399, "Normal"),
-        Bibarel(400, "Normal, Water"),
-        Kricketot(401, "Bug"),
-        Kricketune(402, "Bug"),
-        Shinx(403, "Electric"),
-        Luxio(404, "Electric"),
-        Luxray(405, "Electric"),
-        Budew(406, "Grass, Poison"),
-        Roserade(407, "Grass, Poison"),
-        Cranidos(408, "Rock"),
-        Rampardos(409, "Rock"),
-        Shieldon(410, "Rock, Steel"),
-        Bastiodon(411, "Rock, Steel"),
-        Burmy(412, "Bug"),
-        Wormadam(413, "Bug, Grass"),
-        Mothim(414, "Bug, Flying"),
-        Combee(415, "Bug, Flying"),
-        Vespiquen(416, "Bug, Flying"),
-        Pachirisu(417, "Electric"),
-        Buizel(418, "Water"),
-        Floatzel(419, "Water"),
-        Cherubi(420, "Grass"),
-        Cherrim(421, "Grass"),
-        Shellos(422, "Water"),
-        Gastrodon(423, "Water, Ground"),
-        Ambipom(424, "Normal"),
-        Drifloon(425, "Ghost, Flying"),
-        Drifblim(426, "Ghost, Flying"),
-        Buneary(427, "Normal"),
-        Lopunny(428, "Normal"),
-        Mismagius(429, "Ghost"),
-        Honchkrow(430, "Dark, Flying"),
-        Glameow(431, "Normal"),
-        Purugly(432, "Normal"),
-        Chingling(433, "Psychic"),
-        Stunky(434, "Poison, Dark"),
-        Skuntank(435, "Poison, Dark"),
-        Bronzor(436, "Steel, Psychic"),
-        Bronzong(437, "Steel, Psychic"),
-        Bonsly(438, "Rock"),
-        MimeJr(439, "Psychic, Fairy"),
-        Happiny(440, "Normal"),
-        Chatot(441, "Normal, Flying"),
-        Spiritomb(442, "Ghost, Dark"),
-        Gible(443, "Dragon, Ground"),
-        Gabite(444, "Dragon, Ground"),
-        Garchomp(445, "Dragon, Ground"),
-        Munchlax(446, "Normal"),
-        Riolu(447, "Fighting"),
-        Lucario(448, "Fighting, Steel"),
-        Hippopotas(449, "Ground"),
-        Hippowdon(450, "Ground"),
-        Skorupi(451, "Poison, Bug"),
-        Drapion(452, "Poison, Dark"),
-        Croagunk(453, "Poison, Fighting"),
-        Toxicroak(454, "Poison, Fighting"),
-        Carnivine(455, "Grass"),
-        Finneon(456, "Water"),
-        Lumineon(457, "Water"),
-        Mantyke(458, "Water, Flying"),
-        Snover(459, "Grass, Ice"),
-        Abomasnow(460, "Grass, Ice"),
-        Weavile(461, "Dark, Ice"),
-        Magnezone(462, "Electric, Steel"),
-        Lickilicky(463, "Normal"),
-        Rhyperior(464, "Ground, Rock"),
-        Tangrowth(465, "Grass"),
-        Electivire(466, "Electric"),
-        Magmortar(467, "Fire"),
-        Togekiss(468, "Fairy, Flying"),
-        Yanmega(469, "Bug, Flying"),
-        Leafeon(470, "Grass"),
-        Glaceon(471, "Ice"),
-        Gliscor(472, "Ground, Flying"),
-        Mamoswine(473, "Ice, Ground"),
-        PorygonZ(474, "Normal"),
-        Gallade(475, "Psychic, Fighting"),
-        Probopass(476, "Rock, Steel"),
-        Dusknoir(477, "Ghost"),
-        Froslass(478, "Ice, Ghost"),
-        Rotom(479, "Electric, Ghost"),
-        Uxie(480, "Psychic"),
-        Mesprit(481, "Psychic"),
-        Azelf(482, "Psychic"),
-        Dialga(483, "Steel, Dragon"),
-        Palkia(484, "Water, Dragon"),
-        Heatran(485, "Fire, Steel"),
-        Regigigas(486, "Normal"),
-        Giratina(487, "Ghost, Dragon"),
-        Cresselia(488, "Psychic"),
-        Phione(489, "Water"),
-        Manaphy(490, "Water"),
-        Darkrai(491, "Dark"),
-        Shaymin(492, "Grass"),
-        Arceus(493, "Normal"),
-
-        // Gen 5
-        Victini(494, "Psychic, Fire"),
-        Snivy(495, "Grass"),
-        Servine(496, "Grass"),
-        Serperior(497, "Grass"),
-        Tepig(498, "Fire"),
-        Pignite(499, "Fire, Fighting"),
-        Emboar(500, "Fire, Fighting"),
-        Oshawott(501, "Water"),
-        Dewott(502, "Water"),
-        Samurott(503, "Water"),
-        Patrat(504, "Normal"),
-        Watchog(505, "Normal"),
-        Lillipup(506, "Normal"),
-        Herdier(507, "Normal"),
-        Stoutland(508, "Normal"),
-        Purrloin(509, "Dark"),
-        Liepard(510, "Dark"),
-        Pansage(511, "Grass"),
-        Simisage(512, "Grass"),
-        Pansear(513, "Fire"),
-        Simisear(514, "Fire"),
-        Panpour(515, "Water"),
-        Simipour(516, "Water"),
-        Munna(517, "Psychic"),
-        Musharna(518, "Psychic"),
-        Pidove(519, "Normal, Flying"),
-        Tranquill(520, "Normal, Flying"),
-        Unfezant(521, "Normal, Flying"),
-        Blitzle(522, "Electric"),
-        Zebstrika(523, "Electric"),
-        Roggenrola(524, "Rock"),
-        Boldore(525, "Rock"),
-        Gigalith(526, "Rock"),
-        Woobat(527, "Psychic, Flying"),
-        Swoobat(528, "Psychic, Flying"),
-        Drilbur(529, "Ground"),
-        Excadrill(530, "Ground, Steel"),
-        Audino(531, "Normal"),
-        Timburr(532, "Fighting"),
-        Gurdurr(533, "Fighting"),
-        Conkeldurr(534, "Fighting"),
-        Tympole(535, "Water"),
-        Palpitoad(536, "Water, Ground"),
-        Seismitoad(537, "Water, Ground"),
-        Throh(538, "Fighting"),
-        Sawk(539, "Fighting"),
-        Sewaddle(540, "Bug, Grass"),
-        Swadloon(541, "Bug, Grass"),
-        Leavanny(542, "Bug, Grass"),
-        Venipede(543, "Bug, Poison"),
-        Whirlipede(544, "Bug, Poison"),
-        Scolipede(545, "Bug, Poison"),
-        Cottonee(546, "Grass, Fairy"),
-        Whimsicott(547, "Grass, Fairy"),
-        Petilil(548, "Grass"),
-        Lilligant(549, "Grass"),
-        Basculin(550, "Water"),
-        Sandile(551, "Ground, Dark"),
-        Krokorok(552, "Ground, Dark"),
-        Krookodile(553, "Ground, Dark"),
-        Darumaka(554, "Fire"),
-        Darmanitan(555, "Fire"),
-        Maractus(556, "Grass"),
-        Dwebble(557, "Bug, Rock"),
-        Crustle(558, "Bug, Rock"),
-        Scraggy(559, "Dark, Fighting"),
-        Scrafty(560, "Dark, Fighting"),
-        Sigilyph(561, "Psychic, Flying"),
-        Yamask(562, "Ghost"),
-        Cofagrigus(563, "Ghost"),
-        Tirtouga(564, "Water, Rock"),
-        Carracosta(565, "Water, Rock"),
-        Archen(566, "Rock, Flying"),
-        Archeops(567, "Rock, Flying"),
-        Trubbish(568, "Poison"),
-        Garbodor(569, "Poison"),
-        Zorua(570, "Dark"),
-        Zoroark(571, "Dark"),
-        Minccino(572, "Normal"),
-        Cinccino(573, "Normal"),
-        Gothita(574, "Psychic"),
-        Gothorita(575, "Psychic"),
-        Gothitelle(576, "Psychic"),
-        Solosis(577, "Psychic"),
-        Duosion(578, "Psychic"),
-        Reuniclus(579, "Psychic"),
-        Ducklett(580, "Water, Flying"),
-        Swanna(581, "Water, Flying"),
-        Vanillite(582, "Ice"),
-        Vanillish(583, "Ice"),
-        Vanilluxe(584, "Ice"),
-        Deerling(585, "Normal, Grass"),
-        Sawsbuck(586, "Normal, Grass"),
-        Emolga(587, "Electric, Flying"),
-        Karrablast(588, "Bug"),
-        Escavalier(589, "Bug, Steel"),
-        Foongus(590, "Grass, Poison"),
-        Amoonguss(591, "Grass, Poison"),
-        Frillish(592, "Water, Ghost"),
-        Jellicent(593, "Water, Ghost"),
-        Alomomola(594, "Water"),
-        Joltik(595, "Bug, Electric"),
-        Galvantula(596, "Bug, Electric"),
-        Ferroseed(597, "Grass, Steel"),
-        Ferrothorn(598, "Grass, Steel"),
-        Klink(599, "Steel"),
-        Klang(600, "Steel"),
-        Klinklang(601, "Steel"),
-        Tynamo(602, "Electric"),
-        Eelektrik(603, "Electric"),
-        Eelektross(604, "Electric"),
-        Elgyem(605, "Psychic"),
-        Beheeyem(606, "Psychic"),
-        Litwick(607, "Ghost, Fire"),
-        Lampent(608, "Ghost, Fire"),
-        Chandelure(609, "Ghost, Fire"),
-        Axew(610, "Dragon"),
-        Fraxure(611, "Dragon"),
-        Haxorus(612, "Dragon"),
-        Cubchoo(613, "Ice"),
-        Beartic(614, "Ice"),
-        Cryogonal(615, "Ice"),
-        Shelmet(616, "Bug"),
-        Accelgor(617, "Bug"),
-        Stunfisk(618, "Ground, Electric"),
-        Mienfoo(619, "Fighting"),
-        Mienshao(620, "Fighting"),
-        Druddigon(621, "Dragon"),
-        Golett(622, "Ground, Ghost"),
-        Golurk(623, "Ground, Ghost"),
-        Pawniard(624, "Dark, Steel"),
-        Bisharp(625, "Dark, Steel"),
-        Bouffalant(626, "Normal"),
-        Rufflet(627, "Normal, Flying"),
-        Braviary(628, "Normal, Flying"),
-        Vullaby(629, "Dark, Flying"),
-        Mandibuzz(630, "Dark, Flying"),
-        Heatmor(631, "Fire"),
-        Durant(632, "Bug, Steel"),
-        Deino(633, "Dark, Dragon"),
-        Zweilous(634, "Dark, Dragon"),
-        Hydreigon(635, "Dark, Dragon"),
-        Larvesta(636, "Bug, Fire"),
-        Volcarona(637, "Bug, Fire"),
-        Cobalion(638, "Steel, Fighting"),
-        Terrakion(639, "Rock, Fighting"),
-        Virizion(640, "Grass, Fighting"),
-        Tornadus(641, "Flying"),
-        Thundurus(642, "Electric, Flying"),
-        Reshiram(643, "Dragon, Fire"),
-        Zekrom(644, "Dragon, Electric"),
-        Landorus(645, "Ground, Flying"),
-        Kyurem(646, "Dragon, Ice"),
-        Keldeo(647, "Water, Fighting"),
-        Meloetta(648, "Normal, Psychic"),
-        Genesect(649, "Bug, Steel"),
-
-        // Gen 6
-        Chespin(650, "Grass"),
-        Quilladin(651, "Grass"),
-        Chesnaught(652, "Grass, Fighting"),
-        Fennekin(653, "Fire"),
-        Braixen(654, "Fire"),
-        Delphox(655, "Fire, Psychic"),
-        Froakie(656, "Water"),
-        Frogadier(657, "Water"),
-        Greninja(658, "Water, Dark"),
-        Bunnelby(659, "Normal"),
-        Diggersby(660, "Normal, Ground"),
-        Fletchling(661, "Normal, Flying"),
-        Fletchinder(662, "Fire, Flying"),
-        Talonflame(663, "Fire, Flying"),
-        Scatterbug(664, "Bug"),
-        Spewpa(665, "Bug"),
-        Vivillon(666, "Bug, Flying"),
-        Litleo(667, "Fire, Normal"),
-        Pyroar(668, "Fire, Normal"),
-        Flabebe(669, "Fairy"),
-        Floette(670, "Fairy"),
-        Florges(671, "Fairy"),
-        Skiddo(672, "Grass"),
-        Gogoat(673, "Grass"),
-        Pancham(674, "Fighting"),
-        Pangoro(675, "Fighting, Dark"),
-        Furfrou(676, "Normal"),
-        Espurr(677, "Psychic"),
-        Meowstic(678, "Psychic"),
-        Honedge(679, "Steel, Ghost"),
-        Doublade(680, "Steel, Ghost"),
-        Aegislash(681, "Steel, Ghost"),
-        Spritzee(682, "Fairy"),
-        Aromatisse(683, "Fairy"),
-        Swirlix(684, "Fairy"),
-        Slurpuff(685, "Fairy"),
-        Inkay(686, "Dark, Psychic"),
-        Malamar(687, "Dark, Psychic"),
-        Binacle(688, "Rock, Water"),
-        Barbaracle(689, "Rock, Water"),
-        Skrelp(690, "Poison, Water"),
-        Dragalge(691, "Poison, Dragon"),
-        Clauncher(692, "Water"),
-        Clawitzer(693, "Water"),
-        Helioptile(694, "Electric, Normal"),
-        Heliolisk(695, "Electric, Normal"),
-        Tyrunt(696, "Rock, Dragon"),
-        Tyrantrum(697, "Rock, Dragon"),
-        Amaura(698, "Rock, Ice"),
-        Aurorus(699, "Rock, Ice"),
-        Sylveon(700, "Fairy"),
-        Hawlucha(701, "Fighting, Flying"),
-        Dedenne(702, "Electric, Fairy"),
-        Carbink(703, "Rock, Fairy"),
-        Goomy(704, "Dragon"),
-        Sliggoo(705, "Dragon"),
-        Goodra(706, "Dragon"),
-        Klefki(707, "Steel, Fairy"),
-        Phantump(708, "Ghost, Grass"),
-        Trevenant(709, "Ghost, Grass"),
-        Pumpkaboo(710, "Ghost, Grass"),
-        Gourgeist(711, "Ghost, Grass"),
-        Bergmite(712, "Ice"),
-        Avalugg(713, "Ice"),
-        Noibat(714, "Flying, Dragon"),
-        Noivern(715, "Flying, Dragon"),
-        Xerneas(716, "Fairy"),
-        Yveltal(717, "Dark, Flying"),
-        Zygarde(718, "Dragon, Ground"),
-        Diancie(719, "Rock, Fairy"),
-        Hoopa(720, "Psychic, Ghost"),
-        Volcanion(721, "Fire, Water"),
-
-        // Gen 7
-        Rowlet(722, "Grass, Flying"),
-        Dartrix(723, "Grass, Flying"),
-        Decidueye(724, "Grass, Ghost"),
-        Litten(725, "Fire"),
-        Torracat(726, "Fire"),
-        Incineroar(727, "Fire, Dark"),
-        Popplio(728, "Water"),
-        Brionne(729, "Water"),
-        Primarina(730, "Water, Fairy"),
-        Pikipek(731, "Normal, Flying"),
-        Trumbeak(732, "Normal, Flying"),
-        Toucannon(733, "Normal, Flying"),
-        Yungoos(734, "Normal"),
-        Gumshoos(735, "Normal"),
-        Grubbin(736, "Bug"),
-        Charjabug(737, "Bug, Electric"),
-        Vikavolt(738, "Bug, Electric"),
-        Crabrawler(739, "Fighting"),
-        Crabominable(740, "Fighting, Ice"),
-        Oricorio(741, "Fire, Flying"),
-        Cutiefly(742, "Bug, Fairy"),
-        Ribombee(743, "Bug, Fairy"),
-        Rockruff(744, "Rock"),
-        Lycanroc(745, "Rock"),
-        Wishiwashi(746, "Water"),
-        Mareanie(747, "Poison, Water"),
-        Toxapex(748, "Poison, Water"),
-        Mudbray(749, "Ground"),
-        Mudsdale(750, "Ground"),
-        Dewpider(751, "Water, Bug"),
-        Araquanid(752, "Water, Bug"),
-        Fomantis(753, "Grass"),
-        Lurantis(754, "Grass"),
-        Morelull(755, "Grass, Fairy"),
-        Shiinotic(756, "Grass, Fairy"),
-        Salandit(757, "Poison, Fire"),
-        Salazzle(758, "Poison, Fire"),
-        Stufful(759, "Normal, Fighting"),
-        Bewear(760, "Normal, Fighting"),
-        Bounsweet(761, "Grass"),
-        Steenee(762, "Grass"),
-        Tsareena(763, "Grass"),
-        Comfey(764, "Fairy"),
-        Oranguru(765, "Normal, Psychic"),
-        Passimian(766, "Fighting"),
-        Wimpod(767, "Bug, Water"),
-        Golisopod(768, "Bug, Water"),
-        Sandygast(769, "Ghost, Ground"),
-        Palossand(770, "Ghost, Ground"),
-        Pyukumuku(771, "Water"),
-        TypeNull(772, "Normal"),
-        Silvally(773, "Normal"),
-        Minior(774, "Rock, Flying"),
-        Komala(775, "Normal"),
-        Turtonator(776, "Fire, Dragon"),
-        Togedemaru(777, "Electric, Steel"),
-        Mimikyu(778, "Ghost, Fairy"),
-        Bruxish(779, "Water, Psychic"),
-        Drampa(780, "Normal, Dragon"),
-        Dhelmise(781, "Ghost, Grass"),
-        JangmoO(782, "Dragon"),
-        HakamoO(783, "Dragon, Fighting"),
-        KommoO(784, "Dragon, Fighting"),
-        TapuKoko(785, "Electric, Fairy"),
-        TapuLele(786, "Psychic, Fairy"),
-        TapuBulu(787, "Grass, Fairy"),
-        TapuFini(788, "Water, Fairy"),
-        Cosmog(789, "Psychic"),
-        Cosmoem(790, "Psychic"),
-        Solgaleo(791, "Psychic, Steel"),
-        Lunala(792, "Psychic, Ghost"),
-        Nihilego(793, "Rock, Poison"),
-        Buzzwole(794, "Bug, Fighting"),
-        Pheromosa(795, "Bug, Fighting"),
-        Xurkitree(796, "Electric"),
-        Celesteela(797, "Steel, Flying"),
-        Kartana(798, "Grass, Steel"),
-        Guzzlord(799, "Dark, Dragon"),
-        Necrozma(800, "Psychic"),
-        Magearna(801, "Steel, Fairy"),
-        Marshadow(802, "Fighting, Ghost"),
-
-        // Forms. Be careful -- cannot be accessed or checked through ID, as it disallows checking 0.
-        CastformSunny(0, "Fire"),
-        CastformRainy(0, "Water"),
-        CastformSnowy(0, "Ice"),
-        WormadamSandy(0, "Bug, Ground"),
-        WormadamTrash(0, "Bug, Steel"),
-        RotomHeat(0, "Electric, Fire"),
-        RotomWash(0, "Electric, Water"),
-        RotomFrost(0, "Electric, Ice"),
-        RotomFan(0, "Electric, Flying"),
-        RotomMow(0, "Electric, Grass"),
-        ShayminSky(0, "Grass, Flying"),
-        DarmanitanZen(0, "Fire, Psychic"),
-        MeloettaPirouette(0, "Normal, Fighting"),
-        HoopaUnbound(0, "Psychic, Dark"),
-
-        // Alolan Pokémon variants. Same rules as above.
-        RattataAlolan(0, "Dark, Normal"),
-        RaticateAlolan(0, "Dark, Normal"),
-        RaichuAlolan(0, "Electric, Psychic"),
-        SandshrewAlolan(0, "Ice, Steel"),
-        SandslashAlolan(0, "Ice, Steel"),
-        VulpixAlolan(0, "Ice"),
-        NinetalesAlolan(0, "Ice, Fairy"),
-        DiglettAlolan(0, "Ground, Steel"),
-        DugtrioAlolan(0, "Ground, Steel"),
-        MeowthAlolan(0, "Dark"),
-        PersianAlolan(0, "Dark"),
-        GeodudeAlolan(0, "Rock, Electric"),
-        GravelerAlolan(0, "Rock, Electric"),
-        GolemAlolan(0, "Rock, Electric"),
-        GrimerAlolan(0, "Poison, Dark"),
-        MukAlolan(0, "Poison, Dark"),
-        ExeggutorAlolan(0, "Grass, Dragon"),
-        MarowakAlolan(0, "Fire, Ghost");
-
-        // Set up some variables for the Pokémon check.
-        public int index;
-        public String type1, type2;
-
-        EnumPokemonList(int index, String types)
-        {
-            this.index = index;
-            String[] delimitedTypes = types.split(", ");
-            int typeCount = delimitedTypes.length;
-
-            if (typeCount == 2)
-            {
-                type1 = delimitedTypes[0];
-                type2 = delimitedTypes[1];
-            }
-            else
-            {
-                type1 = delimitedTypes[0];
-                type2 = "EMPTY";
-            }
-        }
-
-        public static EnumPokemonList getPokemonFromID(int index)
-        {
-            EnumPokemonList[] values = values();
-            EnumPokemonList pokemon = values[index - 1];
-
-            if (pokemon != null)
-                return values[index - 1];
-            else
-                return null;
-        }
-
-        public static EnumPokemonList getPokemonFromName(String name)
-        {
-            EnumPokemonList[] allValues = values();
-
-            for (EnumPokemonList pokemon : allValues)
-            {
-                if (pokemon.name().equalsIgnoreCase(name))
-                    return pokemon;
-            }
-            // If the loop does not find and return a Pokémon, do this.
-            return null;
-        }
-    }
-
-    /*
-    //-------------------------------------------------------//
-    // Testing routine for new additions to EnumPokemonList. //
-    // Uncomment this if you need to test further additions. //
-    //-------------------------------------------------------//
-
-    // Taken from http://www.java2s.com/Tutorials/Java/Data_Type_How_to/String/Check_if_enum_contains_a_given_string.htm
-    private static <E extends Enum<E>> boolean contains(Class<E> _enumClass,
-                                                       String value) {
-        try {
-            return EnumSet.allOf(_enumClass)
-                    .contains(Enum.valueOf(_enumClass, value));
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    enum validTypeList
-    {
-        Normal,
-        Fighting,
-        Flying,
-        Poison,
-        Ground,
-        Rock,
-        Bug,
-        Ghost,
-        Steel,
-        Fire,
-        Water,
-        Grass,
-        Electric,
-        Psychic,
-        Ice,
-        Dragon,
-        Dark,
-        Fairy,
-        EMPTY
-    }
-
-    //---------------------------------------------------//
-    // Add the following under the inputIsInteger check. //
-    // Make sure to comment out code it complains about. //
-    //---------------------------------------------------//
-
-    for (int i = 1; i < 803; i++) // UPDATE ME (replace 803 with your last Pokémon's ID, +1)
-    {
-        returnedPokemon = getPokemonFromID(i);
-
-        if (!contains(validTypeList.class, returnedPokemon.type1) || !contains(validTypeList.class, returnedPokemon.type2))
-            PixelUpgrade.log.info("\u00A74Array error found! \u00A7c" + returnedPokemon.index + " | " + returnedPokemon.type1 + " | " + returnedPokemon.type2);
-    }
-    */
 }

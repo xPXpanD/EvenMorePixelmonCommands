@@ -7,48 +7,53 @@ import rs.expand.pixelupgrade.PixelUpgrade;
 
 import java.nio.file.*;
 
-public class GetStatsConfig
+public class UpgradeIVsConfig
 {
     private CommentedConfigurationNode config;
-    private static GetStatsConfig instance = new GetStatsConfig();
-    public static GetStatsConfig getInstance()
+    private static UpgradeIVsConfig instance = new UpgradeIVsConfig();
+    public static UpgradeIVsConfig getInstance()
     {   return instance;    }
 
     private String separator = FileSystems.getDefault().getSeparator();
     private String path = "config" + separator + "PixelUpgrade" + separator;
 
     // Called during initial setup, either when the server is booting up or when /pu reload has been executed.
-    public void loadOrCreateConfig(Path checkPath, ConfigurationLoader<CommentedConfigurationNode> configLoader)
+    public String loadOrCreateConfig(Path checkPath, ConfigurationLoader<CommentedConfigurationNode> configLoader)
     {
         if (Files.notExists(checkPath))
         {
             try
             {
-                PixelUpgrade.log.info("\u00A7eNo \"/getstats\" configuration file found, creating...");
-                Path targetLocation = Paths.get(path, "GetStats.conf");
+                PixelUpgrade.log.info("\u00A7eNo \"/upgradeivs\" configuration file found, creating...");
+                Path targetLocation = Paths.get(path, "UpgradeIVs.conf");
                 // Fetching files from the .jar is tough! But this will survive Github, at least.
-                Files.copy(getClass().getResourceAsStream("/assets/GetStats.conf"), targetLocation);
+                Files.copy(getClass().getResourceAsStream("/assets/UpgradeIVs.conf"), targetLocation);
                 config = configLoader.load();
             }
             catch (Exception F)
             {
-                PixelUpgrade.log.info("\u00A74Error during initial setup of config for command \"/getstats\"!");
+                PixelUpgrade.log.info("\u00A74Error during initial setup of config for command \"/upgradeivs\"!");
                 PixelUpgrade.log.info("\u00A7cPlease report this, along with any useful info you may have (operating system?). Stack trace follows:");
                 F.printStackTrace();
             }
+
+            return "upgrade";
         }
         else
         {
-            PixelUpgrade.log.info("\u00A7aLoading existing config for command \"/getstats\"!");
             try
             {
                 config = configLoader.load();
+                String alias = getConfig().getNode("commandAlias").getString();
+                PixelUpgrade.log.info("\u00A7aLoading existing config for command \"/upgradeivs\", alias \"" + alias + "\"");
+                return alias;
             }
             catch (Exception F)
             {
-                PixelUpgrade.log.info("\u00A7cError during config loading for command \"/getstats\"!");
+                PixelUpgrade.log.info("\u00A7cError during config loading for command \"/upgradeivs\"!");
                 PixelUpgrade.log.info("\u00A7cPlease make sure this config is formatted correctly. Stack trace follows:");
                 F.printStackTrace();
+                return "upgrade";
             }
         }
     }

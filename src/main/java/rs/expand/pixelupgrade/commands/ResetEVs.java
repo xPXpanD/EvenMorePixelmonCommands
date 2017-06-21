@@ -51,6 +51,18 @@ public class ResetEVs implements CommandExecutor
         }
     }
 
+    private static String alias;
+    private void getCommandAlias()
+    {
+        if (!ResetEVsConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
+            alias = "/" + ResetEVsConfig.getInstance().getConfig().getNode("commandAlias").getString();
+        else
+        {
+            PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cConfig variable \"commandAlias\" could not be found!");
+            alias = null;
+        }
+    }
+
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
 	{
         if (src instanceof Player)
@@ -61,8 +73,9 @@ public class ResetEVs implements CommandExecutor
             else
                 PixelUpgrade.log.info("\u00A74ResetEVs // critical: \u00A7cCould not parse config variable \"commandCost\"!");
 
-            // Check the command's debug verbosity mode, as set in the config.
+            // Set up the command's debug verbosity mode and preferred alias.
             getVerbosityMode();
+            getCommandAlias();
 
             if (commandCost == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
@@ -190,7 +203,7 @@ public class ResetEVs implements CommandExecutor
                                 src.sendMessage(Text.of("\u00A76Warning: \u00A7eYou are about to reset this Pok\u00E9mon's EVs to zero!"));
                                 if (commandCost > 0)
                                     src.sendMessage(Text.of("\u00A7eResetting will cost \u00A76" + commandCost + "\u00A7e coins!"));
-                                src.sendMessage(Text.of("\u00A72Ready? Type: \u00A7a/resetevs " + slot + " -c"));
+                                src.sendMessage(Text.of("\u00A72Ready? Type: \u00A7a" + alias + " " + slot + " -c"));
                                 src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
                             }
                         }
@@ -249,9 +262,9 @@ public class ResetEVs implements CommandExecutor
     private void printCorrectHelper(int cost, Player player)
     {
         if (cost != 0)
-            player.sendMessage(Text.of("\u00A74Usage: \u00A7c/resetevs <slot, 1-6> {-c to confirm}"));
+            player.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot, 1-6> {-c to confirm}"));
         else
-            player.sendMessage(Text.of("\u00A74Usage: \u00A7c/resetevs <slot, 1-6>"));
+            player.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot, 1-6>"));
     }
 
     private void printToLog(int debugNum, String inputString)

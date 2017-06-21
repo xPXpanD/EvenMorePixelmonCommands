@@ -18,7 +18,7 @@ public class CheckEggConfig
     private String path = "config" + separator + "PixelUpgrade" + separator;
 
     // Called during initial setup, either when the server is booting up or when /pu reload has been executed.
-    public void loadOrCreateConfig(Path checkPath, ConfigurationLoader<CommentedConfigurationNode> configLoader)
+    public String loadOrCreateConfig(Path checkPath, ConfigurationLoader<CommentedConfigurationNode> configLoader)
     {
         if (Files.notExists(checkPath))
         {
@@ -36,19 +36,24 @@ public class CheckEggConfig
                 PixelUpgrade.log.info("\u00A7cPlease report this, along with any useful info you may have (operating system?). Stack trace follows:");
                 F.printStackTrace();
             }
+
+            return "checkegg";
         }
         else
         {
-            PixelUpgrade.log.info("\u00A7aLoading existing config for command \"/checkegg\"!");
             try
             {
                 config = configLoader.load();
+                String alias = getConfig().getNode("commandAlias").getString();
+                PixelUpgrade.log.info("\u00A7aLoading existing config for command \"/checkegg\", alias \"" + alias + "\"");
+                return alias;
             }
             catch (Exception F)
             {
                 PixelUpgrade.log.info("\u00A7cError during config loading for command \"/checkegg\"!");
                 PixelUpgrade.log.info("\u00A7cPlease make sure this config is formatted correctly. Stack trace follows:");
                 F.printStackTrace();
+                return "checkegg";
             }
         }
     }

@@ -17,15 +17,15 @@ public class ReloadConfigs implements CommandExecutor
         src.sendMessage(Text.of("\u00A73PU Reload // notice: \u00A7bStarting reload of all configs..."));
 
         CheckEggConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdCheckEggPath, PixelUpgrade.getInstance().cmdCheckEggLoader);
+        CheckStatsConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdCheckStatsPath, PixelUpgrade.getInstance().cmdCheckStatsLoader);
+        CheckTypesConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdCheckTypesPath, PixelUpgrade.getInstance().cmdCheckTypesLoader);
         DittoFusionConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdDittoFusionPath, PixelUpgrade.getInstance().cmdDittoFusionLoader);
         FixEVsConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdFixEVsPath, PixelUpgrade.getInstance().cmdFixEVsLoader);
-        ForceStatsConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdForceStatsPath, PixelUpgrade.getInstance().cmdForceStatsLoader);
         ForceHatchConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdForceHatchPath, PixelUpgrade.getInstance().cmdForceHatchLoader);
-        GetStatsConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdGetStatsPath, PixelUpgrade.getInstance().cmdGetStatsLoader);
+        ForceStatsConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdForceStatsPath, PixelUpgrade.getInstance().cmdForceStatsLoader);
         PixelUpgradeInfoConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdPixelUpgradeInfoPath, PixelUpgrade.getInstance().cmdPixelUpgradeInfoLoader);
         ResetEVsConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdResetEVsPath, PixelUpgrade.getInstance().cmdResetEVsLoader);
-        UpgradeConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdUpgradePath, PixelUpgrade.getInstance().cmdUpgradeLoader);
-        CheckTypesConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdCheckTypesPath, PixelUpgrade.getInstance().cmdCheckTypesLoader);
+        UpgradeIVsConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdUpgradeIVsPath, PixelUpgrade.getInstance().cmdUpgradeIVsLoader);
 
         src.sendMessage(Text.of("\u00A73PU Reload // notice: \u00A7bReloading done!"));
         src.sendMessage(Text.of("\u00A73PU Reload // notice: \u00A7bPlease check the console for any errors."));

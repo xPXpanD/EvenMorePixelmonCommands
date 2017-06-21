@@ -18,13 +18,13 @@ public class DittoFusionConfig
     private String path = "config" + separator + "PixelUpgrade" + separator;
 
     // Called during initial setup, either when the server is booting up or when /pu reload has been executed.
-    public void loadOrCreateConfig(Path checkPath, ConfigurationLoader<CommentedConfigurationNode> configLoader)
+    public String loadOrCreateConfig(Path checkPath, ConfigurationLoader<CommentedConfigurationNode> configLoader)
     {
         if (Files.notExists(checkPath))
         {
             try
             {
-                PixelUpgrade.log.info("\u00A7eNo \"/fuseditto\" configuration file found, creating...");
+                PixelUpgrade.log.info("\u00A7eNo \"/dittofusion\" configuration file found, creating...");
                 Path targetLocation = Paths.get(path, "DittoFusion.conf");
                 // Fetching files from the .jar is tough! But this will survive Github, at least.
                 Files.copy(getClass().getResourceAsStream("/assets/DittoFusion.conf"), targetLocation);
@@ -32,23 +32,28 @@ public class DittoFusionConfig
             }
             catch (Exception F)
             {
-                PixelUpgrade.log.info("\u00A74Error during initial setup of config for command \"/fuseditto\"!");
+                PixelUpgrade.log.info("\u00A74Error during initial setup of config for command \"/dittofusion\"!");
                 PixelUpgrade.log.info("\u00A7cPlease report this, along with any useful info you may have (operating system?). Stack trace follows:");
                 F.printStackTrace();
             }
+
+            return "fuse";
         }
         else
         {
-            PixelUpgrade.log.info("\u00A7aLoading existing config for command \"/fuseditto\"!");
             try
             {
                 config = configLoader.load();
+                String alias = getConfig().getNode("commandAlias").getString();
+                PixelUpgrade.log.info("\u00A7aLoading existing config for command \"/dittofusion\", alias \"" + alias + "\"");
+                return alias;
             }
             catch (Exception F)
             {
-                PixelUpgrade.log.info("\u00A7cError during config loading for command \"/fuseditto\"!");
+                PixelUpgrade.log.info("\u00A7cError during config loading for command \"/dittofusion\"!");
                 PixelUpgrade.log.info("\u00A7cPlease make sure this config is formatted correctly. Stack trace follows:");
                 F.printStackTrace();
+                return "fuse";
             }
         }
     }

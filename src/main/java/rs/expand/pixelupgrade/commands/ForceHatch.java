@@ -44,12 +44,25 @@ public class ForceHatch implements CommandExecutor
         }
     }
 
+    private static String alias;
+    private void getCommandAlias()
+    {
+        if (!ForceHatchConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
+            alias = "/" + ForceHatchConfig.getInstance().getConfig().getNode("commandAlias").getString();
+        else
+        {
+            PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cConfig variable \"commandAlias\" could not be found!");
+            alias = null;
+        }
+    }
+
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
     {
         if (src instanceof Player)
         {
-            // Check the command's debug verbosity mode, as set in the config.
+            // Set up the command's debug verbosity mode and preferred alias.
             getVerbosityMode();
+            getCommandAlias();
 
             if (debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
@@ -85,21 +98,21 @@ public class ForceHatch implements CommandExecutor
                                 printToLog(2, "Found a target, but no slot was provided. Abort.");
 
                                 src.sendMessage(Text.of("\u00A74Error: \u00A7cFound a target, but no slot was provided."));
-                                src.sendMessage(Text.of("\u00A74Usage: \u00A7c/forcehatch (optional target) <slot, 1-6>"));
+                                src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " (optional target) <slot, 1-6>"));
                             }
                             else if (targetString.matches("\\d+"))
                             {
                                 printToLog(2, "First argument was numeric, but not valid. Abort.");
 
                                 src.sendMessage(Text.of("\u00A74Error: \u00A7cSlot value out of bounds! Valid values are 1-6."));
-                                src.sendMessage(Text.of("\u00A74Usage: \u00A7c/forcehatch (optional target) <slot, 1-6>"));
+                                src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " (optional target) <slot, 1-6>"));
                             }
                             else
                             {
                                 printToLog(2, "Target does not exist, or is offline. Abort.");
 
                                 src.sendMessage(Text.of("\u00A74Error: \u00A7cYour target does not exist, or is offline."));
-                                src.sendMessage(Text.of("\u00A74Usage: \u00A7c/forcehatch (optional target) <slot, 1-6>"));
+                                src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " (optional target) <slot, 1-6>"));
                             }
 
                             canContinue = false;
@@ -110,7 +123,7 @@ public class ForceHatch implements CommandExecutor
                         printToLog(2, "Provided target does not seem to be present. Abort.");
 
                         src.sendMessage(Text.of("\u00A74Error: \u00A7cYour target does not exist, or is offline."));
-                        src.sendMessage(Text.of("\u00A74Usage: \u00A7c/forcehatch (optional target) <slot, 1-6>"));
+                        src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " (optional target) <slot, 1-6>"));
 
                         canContinue = false;
                     }
@@ -127,7 +140,7 @@ public class ForceHatch implements CommandExecutor
                                 printToLog(2, "Second argument was numeric, but not a valid slot. Abort.");
 
                                 src.sendMessage(Text.of("\u00A74Error: \u00A7cSlot value out of bounds. Valid values are 1-6."));
-                                src.sendMessage(Text.of("\u00A74Usage: \u00A7c/forcehatch (optional target) <slot, 1-6>"));
+                                src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " (optional target) <slot, 1-6>"));
 
                                 canContinue = false;
                             }
@@ -142,7 +155,7 @@ public class ForceHatch implements CommandExecutor
                             printToLog(2, "Slot value was not an integer. Abort.");
 
                             src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid slot value. Valid values are 1-6."));
-                            src.sendMessage(Text.of("\u00A74Usage: \u00A7c/forcehatch (optional target) <slot, 1-6>"));
+                            src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " (optional target) <slot, 1-6>"));
 
                             canContinue = false;
                         }
@@ -153,7 +166,7 @@ public class ForceHatch implements CommandExecutor
                     printToLog(2, "No arguments provided, aborting.");
 
                     src.sendMessage(Text.of("\u00A74Error: \u00A7cNo parameters found. Please provide at least a slot."));
-                    src.sendMessage(Text.of("\u00A74Usage: \u00A7c/forcehatch (optional target) <slot, 1-6>"));
+                    src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " (optional target) <slot, 1-6>"));
 
                     canContinue = false;
                 }

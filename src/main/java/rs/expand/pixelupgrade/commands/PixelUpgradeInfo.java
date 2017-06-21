@@ -70,11 +70,11 @@ public class PixelUpgradeInfo implements CommandExecutor
             Boolean permFixEVs = player.hasPermission("pixelupgrade.command.fixevs");
             Boolean permAdminForceHatch = player.hasPermission("pixelupgrade.command.admin.forcehatch");
             Boolean permAdminForceStats = player.hasPermission("pixelupgrade.command.admin.forcestats");
-            Boolean permGetStats = player.hasPermission("pixelupgrade.command.getstats");
-            Boolean permGetStatsOther = player.hasPermission("pixelupgrade.command.getstats.other");
+            Boolean permCheckStats = player.hasPermission("pixelupgrade.command.checkstats");
+            Boolean permCheckStatsOther = player.hasPermission("pixelupgrade.command.checkstats.other");
             Boolean permResetEVs = player.hasPermission("pixelupgrade.command.resetevs");
-            Boolean permUpgrade = player.hasPermission("pixelupgrade.command.upgradeivs");
-            Boolean permWeakness = player.hasPermission("pixelupgrade.command.weakness");
+            Boolean permUpgradeIVs = player.hasPermission("pixelupgrade.command.upgradeivs");
+            Boolean permCheckTypes = player.hasPermission("pixelupgrade.command.checktypes");
 
 
             if (permCheckEgg)
@@ -94,7 +94,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                         else
                             permissionMessageList.add(Text.of("\u00A76/checkegg <slot> {confirm flag} \u00A77(no perms for target)"));
 
-                        permissionMessageList.add(Text.of("\u00A7f --> \u00A7eCheck an egg to see what's inside! Costs \u00A76" + commandCost + "\u00A7e coins."));
+                        permissionMessageList.add(Text.of("\u00A7f --> \u00A7eCheck an egg to see what's inside. Costs \u00A76" + commandCost + "\u00A7e coins."));
                     }
                     else
                     {
@@ -103,7 +103,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                         else
                             permissionMessageList.add(Text.of("\u00A76/checkegg <slot> \u00A77(no perms for target)"));
 
-                        permissionMessageList.add(Text.of("\u00A7f --> \u00A7eCheck an egg to see what's inside!"));
+                        permissionMessageList.add(Text.of("\u00A7f --> \u00A7eCheck an egg to see what's inside."));
                     }
                 }
             }
@@ -123,7 +123,7 @@ public class PixelUpgradeInfo implements CommandExecutor
             if (permAdminForceHatch)
             {
                 permissionMessageList.add(Text.of("\u00A76/forcehatch <slot or target player> (slot, 1-6, optional)"));
-                permissionMessageList.add(Text.of("\u00A7f --> \u00A7eHatch eggs instantly, without any cooldowns!"));
+                permissionMessageList.add(Text.of("\u00A7f --> \u00A7eHatch eggs instantly, without any cooldowns."));
                 hasNoPermission = false;
             }
             if (permAdminForceStats)
@@ -132,9 +132,9 @@ public class PixelUpgradeInfo implements CommandExecutor
                 permissionMessageList.add(Text.of("\u00A7f --> \u00A7eChange supported stats freely, or pass -f and go crazy."));
                 hasNoPermission = false;
             }
-            if (permGetStats)
+            if (permCheckStats)
             {
-                permissionMessageList.add(Text.of("\u00A76/getstats or /gs (player name, optional) <slot, 1-6>"));
+                permissionMessageList.add(Text.of("\u00A76/checkstats or /stats (player name, optional) <slot, 1-6>"));
                 permissionMessageList.add(Text.of("\u00A7f --> \u00A7eLists many of a Pok\u00E9mon's stats in one place."));
                 hasNoPermission = false;
             }
@@ -144,16 +144,16 @@ public class PixelUpgradeInfo implements CommandExecutor
                 permissionMessageList.add(Text.of("\u00A7f --> \u00A7eResets all EVs down to zero, when confirmed."));
                 hasNoPermission = false;
             }
-            if (permUpgrade)
+            if (permUpgradeIVs)
             {
-                permissionMessageList.add(Text.of("\u00A76/upgrade <slot, 1-6> <IV type> [amount]"));
-                permissionMessageList.add(Text.of("\u00A7f --> \u00A7eBuy upgrades for your Pok\u00E9mon's stats!"));
+                permissionMessageList.add(Text.of("\u00A76/upgradeivs <slot, 1-6> <IV type> [amount]"));
+                permissionMessageList.add(Text.of("\u00A7f --> \u00A7eBuy upgrades for your Pok\u00E9mon's stats."));
                 hasNoPermission = false;
             }
-            if (permWeakness)
+            if (permCheckTypes)
             {
                 permissionMessageList.add(Text.of("\u00A76/weakness <name of Pok\u00E9mon to check> {confirmation flag}"));
-                permissionMessageList.add(Text.of("\u00A7f --> \u00A7eBuy upgrades for your Pok\u00E9mon's stats!"));
+                permissionMessageList.add(Text.of("\u00A7f --> \u00A7eCheck a Pok\u00E9mon's type resistances/weaknesses."));
                 hasNoPermission = false;
             }
 

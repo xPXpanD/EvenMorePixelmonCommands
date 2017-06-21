@@ -24,7 +24,7 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 
 import rs.expand.pixelupgrade.PixelUpgrade;
-import rs.expand.pixelupgrade.configs.UpgradeConfig;
+import rs.expand.pixelupgrade.configs.UpgradeIVsConfig;
 
 import java.math.RoundingMode;
 import java.util.Optional;
@@ -32,7 +32,7 @@ import java.math.BigDecimal;
 
 import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
-public class Upgrade implements CommandExecutor
+public class UpgradeIVs implements CommandExecutor
 {
     // See which messages should be printed by the debug logger. Valid range is 0-3.
     // We set null on hitting an error, and let the main code block handle it from there.
@@ -40,9 +40,9 @@ public class Upgrade implements CommandExecutor
     private void getVerbosityMode()
     {
         // Does the debugVerbosityMode node exist? If so, figure out what's in it.
-        if (!UpgradeConfig.getInstance().getConfig().getNode("debugVerbosityMode").isVirtual())
+        if (!UpgradeIVsConfig.getInstance().getConfig().getNode("debugVerbosityMode").isVirtual())
         {
-            String modeString = UpgradeConfig.getInstance().getConfig().getNode("debugVerbosityMode").getString();
+            String modeString = UpgradeIVsConfig.getInstance().getConfig().getNode("debugVerbosityMode").getString();
 
             if (modeString.matches("^[0-3]"))
                 debugLevel = Integer.parseInt(modeString);
@@ -53,6 +53,18 @@ public class Upgrade implements CommandExecutor
         {
             PixelUpgrade.log.info("\u00A74Upgrade // critical: \u00A7cConfig variable \"debugVerbosityMode\" could not be found!");
             debugLevel = null;
+        }
+    }
+
+    private static String alias;
+    private void getCommandAlias()
+    {
+        if (!UpgradeIVsConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
+            alias = "/" + UpgradeIVsConfig.getInstance().getConfig().getNode("commandAlias").getString();
+        else
+        {
+            PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cConfig variable \"commandAlias\" could not be found!");
+            alias = null;
         }
     }
 
@@ -83,8 +95,9 @@ public class Upgrade implements CommandExecutor
             shinyCap = checkConfigInt("shinyCap", false);
             babyCap = checkConfigInt("babyCap", false);
 
-            // Check the command's debug verbosity mode, as set in the config.
+            // Set up the command's debug verbosity mode and preferred alias.
             getVerbosityMode();
+            getCommandAlias();
 
             if (legendaryAndShinyCap == null || legendaryCap == null || regularCap == null || shinyCap == null || babyCap == null)
                 presenceCheck1 = false;
@@ -531,9 +544,9 @@ public class Upgrade implements CommandExecutor
                                 if (costToConfirm.compareTo(BigDecimal.ZERO) == 1) // Are we above 0 coins?
                                     src.sendMessage(Text.of("\u00A76Warning: \u00A7eYou can't undo upgrades! Make sure this is what you want."));
                                 if (quantity == 1)
-                                    src.sendMessage(Text.of("\u00A7aReady? Use: \u00A72/upgrade " + slot + " " + stat + " -c"));
+                                    src.sendMessage(Text.of("\u00A7aReady? Use: \u00A72" + alias + " " + slot + " " + stat + " -c"));
                                 else
-                                    src.sendMessage(Text.of("\u00A7aReady? Use: \u00A72/upgrade " + slot + " " + stat + " " + upgradeTicker + " -c"));
+                                    src.sendMessage(Text.of("\u00A7aReady? Use: \u00A72" + alias + " " + slot + " " + stat + " " + upgradeTicker + " -c"));
                                 src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
                             }
                         }
@@ -563,7 +576,7 @@ public class Upgrade implements CommandExecutor
 
     private void printCorrectPerm(Player player)
     {
-        player.sendMessage(Text.of("\u00A74Usage: \u00A7c/upgrade <slot> <IV type> [amount?] {-c to confirm}"));
+        player.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> <IV type> [amount?] {-c to confirm}"));
     }
 
     private void printToLog(Integer debugNum, String inputString)
@@ -588,8 +601,8 @@ public class Upgrade implements CommandExecutor
 
     private Integer checkConfigInt(String node, Boolean noMessageMode)
     {
-        if (!UpgradeConfig.getInstance().getConfig().getNode(node).isVirtual())
-            return UpgradeConfig.getInstance().getConfig().getNode(node).getInt();
+        if (!UpgradeIVsConfig.getInstance().getConfig().getNode(node).isVirtual())
+            return UpgradeIVsConfig.getInstance().getConfig().getNode(node).getInt();
         else if (noMessageMode)
             return null;
         else
@@ -601,8 +614,8 @@ public class Upgrade implements CommandExecutor
 
     private Double checkConfigDouble(String node)
     {
-        if (!UpgradeConfig.getInstance().getConfig().getNode(node).isVirtual())
-            return UpgradeConfig.getInstance().getConfig().getNode(node).getDouble();
+        if (!UpgradeIVsConfig.getInstance().getConfig().getNode(node).isVirtual())
+            return UpgradeIVsConfig.getInstance().getConfig().getNode(node).getDouble();
         else
         {
             PixelUpgrade.log.info("\u00A74Upgrade // critical: \u00A7cCould not parse config variable \"" + node + "\"!");
