@@ -61,7 +61,7 @@ public class DittoFusion implements CommandExecutor
             alias = "/" + DittoFusionConfig.getInstance().getConfig().getNode("commandAlias").getString();
         else
         {
-            PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cConfig variable \"commandAlias\" could not be found!");
+            PixelUpgrade.log.info("\u00A74DittoFusion // critical: \u00A7cConfig variable \"commandAlias\" could not be found!");
             alias = null;
         }
     }
@@ -104,7 +104,7 @@ public class DittoFusion implements CommandExecutor
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("\u00A74DittoFusion // critical: \u00A7cCheck your config. If need be, wipe and \\u00A74/pu reload\\u00A7c.");
+                PixelUpgrade.log.info("\u00A74DittoFusion // critical: \u00A7cCheck your config. If need be, wipe and \\u00A74/pixelupgrade reload\\u00A7c.");
             }
             else
             {
@@ -264,8 +264,8 @@ public class DittoFusion implements CommandExecutor
                                         printToLog(3, "Passed the majority of checks, moving on to actual command logic.");
 
                                         UniqueAccount uniqueAccount = optionalAccount.get();
-                                        int HPUpgradeCount = 0, ATKUpgradeCount = 0, DEFUpgradeCount = 0, SPATKUpgradeCount = 0, SPDEFUpgradeCount = 0, SPDUpgradeCount = 0;
-                                        int statToCheck = 0, statToUpgrade;
+                                        int HPPlusNum = 0, ATKPlusNum = 0, DEFPlusNum = 0, SPATKPlusNum = 0;
+                                        int SPDEFPlusNum = 0, SPDPlusNum = 0, statToCheck = 0, statToUpgrade;
 
                                         int targetHP = nbt1.getInteger(NbtKeys.IV_HP);
                                         int targetATK = nbt1.getInteger(NbtKeys.IV_ATTACK);
@@ -285,105 +285,68 @@ public class DittoFusion implements CommandExecutor
                                         {
                                             switch (i)
                                             {
-                                                case 0:
-                                                    statToCheck = sacrificeHP;
-                                                    break;
-                                                case 1:
-                                                    statToCheck = sacrificeATK;
-                                                    break;
-                                                case 2:
-                                                    statToCheck = sacrificeDEF;
-                                                    break;
-                                                case 3:
-                                                    statToCheck = sacrificeSPATK;
-                                                    break;
-                                                case 4:
-                                                    statToCheck = sacrificeSPDEF;
-                                                    break;
-                                                case 5:
-                                                    statToCheck = sacrificeSPD;
-                                                    break;
+                                                case 0: statToCheck = sacrificeHP; break;
+                                                case 1: statToCheck = sacrificeATK; break;
+                                                case 2: statToCheck = sacrificeDEF; break;
+                                                case 3: statToCheck = sacrificeSPATK; break;
+                                                case 4: statToCheck = sacrificeSPDEF; break;
+                                                case 5: statToCheck = sacrificeSPD; break;
                                             }
 
                                             switch (statToCheck / 5)
                                             {
-                                                case 0:
-                                                    statToUpgrade = stat0to5;
-                                                    break; // <5
-                                                case 1:
-                                                    statToUpgrade = stat6to10;
-                                                    break; // <10
-                                                case 2:
-                                                    statToUpgrade = stat11to15;
-                                                    break; // <15
-                                                case 3:
-                                                    statToUpgrade = stat16to20;
-                                                    break; // <20
-                                                case 4:
-                                                    statToUpgrade = stat21to25;
-                                                    break; // <25
-                                                case 5:
-                                                    statToUpgrade = stat26to30;
-                                                    break; // <30
-                                                default:
-                                                    statToUpgrade = stat31plus;
-                                                    break; // 31+
+                                                case 0: statToUpgrade = stat0to5; break; // <5
+                                                case 1: statToUpgrade = stat6to10; break; // <10
+                                                case 2: statToUpgrade = stat11to15; break; // <15
+                                                case 3: statToUpgrade = stat16to20; break; // <20
+                                                case 4: statToUpgrade = stat21to25; break; // <25
+                                                case 5: statToUpgrade = stat26to30; break; // <30
+                                                default: statToUpgrade = stat31plus; break; // 31+
                                             }
 
                                             switch (i)
                                             {
-                                                case 0:
-                                                    HPUpgradeCount = statToUpgrade;
-                                                    break;
-                                                case 1:
-                                                    ATKUpgradeCount = statToUpgrade;
-                                                    break;
-                                                case 2:
-                                                    DEFUpgradeCount = statToUpgrade;
-                                                    break;
-                                                case 3:
-                                                    SPATKUpgradeCount = statToUpgrade;
-                                                    break;
-                                                case 4:
-                                                    SPDEFUpgradeCount = statToUpgrade;
-                                                    break;
-                                                case 5:
-                                                    SPDUpgradeCount = statToUpgrade;
-                                                    break;
+                                                case 0: HPPlusNum = statToUpgrade; break;
+                                                case 1: ATKPlusNum = statToUpgrade; break;
+                                                case 2: DEFPlusNum = statToUpgrade; break;
+                                                case 3: SPATKPlusNum = statToUpgrade; break;
+                                                case 4: SPDEFPlusNum = statToUpgrade; break;
+                                                case 5: SPDPlusNum = statToUpgrade; break;
                                             }
                                         }
 
                                         if (targetHP >= 31)
-                                            HPUpgradeCount = 0;
-                                        else if (HPUpgradeCount + targetHP >= 31)
-                                            HPUpgradeCount = 31 - targetHP;
+                                            HPPlusNum = 0;
+                                        else if (HPPlusNum + targetHP >= 31)
+                                            HPPlusNum = 31 - targetHP;
 
                                         if (targetATK >= 31)
-                                            ATKUpgradeCount = 0;
-                                        else if (ATKUpgradeCount + targetATK >= 31)
-                                            ATKUpgradeCount = 31 - targetATK;
+                                            ATKPlusNum = 0;
+                                        else if (ATKPlusNum + targetATK >= 31)
+                                            ATKPlusNum = 31 - targetATK;
 
                                         if (targetDEF >= 31)
-                                            DEFUpgradeCount = 0;
-                                        else if (DEFUpgradeCount + targetDEF >= 31)
-                                            DEFUpgradeCount = 31 - targetDEF;
+                                            DEFPlusNum = 0;
+                                        else if (DEFPlusNum + targetDEF >= 31)
+                                            DEFPlusNum = 31 - targetDEF;
 
                                         if (targetSPATK >= 31)
-                                            SPATKUpgradeCount = 0;
-                                        else if (SPATKUpgradeCount + targetSPATK >= 31)
-                                            SPATKUpgradeCount = 31 - targetSPATK;
+                                            SPATKPlusNum = 0;
+                                        else if (SPATKPlusNum + targetSPATK >= 31)
+                                            SPATKPlusNum = 31 - targetSPATK;
 
                                         if (targetSPDEF >= 31)
-                                            SPDEFUpgradeCount = 0;
-                                        else if (SPDEFUpgradeCount + targetSPDEF >= 31)
-                                            SPDEFUpgradeCount = 31 - targetSPDEF;
+                                            SPDEFPlusNum = 0;
+                                        else if (SPDEFPlusNum + targetSPDEF >= 31)
+                                            SPDEFPlusNum = 31 - targetSPDEF;
 
                                         if (targetSPD >= 31)
-                                            SPDUpgradeCount = 0;
-                                        else if (SPDUpgradeCount + targetSPD >= 31)
-                                            SPDUpgradeCount = 31 - targetSPD;
+                                            SPDPlusNum = 0;
+                                        else if (SPDPlusNum + targetSPD >= 31)
+                                            SPDPlusNum = 31 - targetSPD;
 
-                                        int totalUpgradeCount = HPUpgradeCount + ATKUpgradeCount + DEFUpgradeCount + SPATKUpgradeCount + SPDEFUpgradeCount + SPDUpgradeCount;
+                                        int totalUpgradeCount = HPPlusNum + ATKPlusNum + DEFPlusNum + SPATKPlusNum;
+                                        totalUpgradeCount = totalUpgradeCount + SPDEFPlusNum + SPDPlusNum;
                                         BigDecimal costToConfirm = BigDecimal.valueOf((totalUpgradeCount * pointMultiplierForCost) + addFlatFee);
                                         BigDecimal nonMultipliedCost = costToConfirm, extraCost = new BigDecimal(0);
 
@@ -407,35 +370,35 @@ public class DittoFusion implements CommandExecutor
                                                 src.sendMessage(Text.of("\u00A7aThe Ditto in slot \u00A72" + slot2 + "\u00A7a was eaten, taking \u00A72" + costToConfirm + " coins \u00A7awith it."));
                                                 src.sendMessage(Text.of(""));
 
-                                                if (HPUpgradeCount != 0)
+                                                if (HPPlusNum != 0)
                                                 {
-                                                    src.sendMessage(Text.of("\u00A7eHP has been upgraded: \u00A77" + targetHP + " \u00A7f-> \u00A7a" + (targetHP + HPUpgradeCount)));
-                                                    nbt1.setInteger(NbtKeys.IV_HP, nbt1.getInteger(NbtKeys.IV_HP) + HPUpgradeCount);
+                                                    src.sendMessage(Text.of("\u00A7eHP has been upgraded: \u00A77" + targetHP + " \u00A7f-> \u00A7a" + (targetHP + HPPlusNum)));
+                                                    nbt1.setInteger(NbtKeys.IV_HP, nbt1.getInteger(NbtKeys.IV_HP) + HPPlusNum);
                                                 }
-                                                if (ATKUpgradeCount != 0)
+                                                if (ATKPlusNum != 0)
                                                 {
-                                                    src.sendMessage(Text.of("\u00A7eAttack has been upgraded: \u00A77" + targetATK + " \u00A7f-> \u00A7a" + (targetATK + ATKUpgradeCount)));
-                                                    nbt1.setInteger(NbtKeys.IV_ATTACK, nbt1.getInteger(NbtKeys.IV_ATTACK) + ATKUpgradeCount);
+                                                    src.sendMessage(Text.of("\u00A7eAttack has been upgraded: \u00A77" + targetATK + " \u00A7f-> \u00A7a" + (targetATK + ATKPlusNum)));
+                                                    nbt1.setInteger(NbtKeys.IV_ATTACK, nbt1.getInteger(NbtKeys.IV_ATTACK) + ATKPlusNum);
                                                 }
-                                                if (DEFUpgradeCount != 0)
+                                                if (DEFPlusNum != 0)
                                                 {
-                                                    src.sendMessage(Text.of("\u00A7eDefence has been upgraded: \u00A77" + targetDEF + " \u00A7f-> \u00A7a" + (targetDEF + DEFUpgradeCount)));
-                                                    nbt1.setInteger(NbtKeys.IV_DEFENCE, nbt1.getInteger(NbtKeys.IV_DEFENCE) + DEFUpgradeCount);
+                                                    src.sendMessage(Text.of("\u00A7eDefence has been upgraded: \u00A77" + targetDEF + " \u00A7f-> \u00A7a" + (targetDEF + DEFPlusNum)));
+                                                    nbt1.setInteger(NbtKeys.IV_DEFENCE, nbt1.getInteger(NbtKeys.IV_DEFENCE) + DEFPlusNum);
                                                 }
-                                                if (SPATKUpgradeCount != 0)
+                                                if (SPATKPlusNum != 0)
                                                 {
-                                                    src.sendMessage(Text.of("\u00A7eSpecial Attack has been upgraded: \u00A77" + targetSPATK + " \u00A7f-> \u00A7a" + (targetSPATK + SPATKUpgradeCount)));
-                                                    nbt1.setInteger(NbtKeys.IV_SP_ATT, nbt1.getInteger(NbtKeys.IV_SP_ATT) + SPATKUpgradeCount);
+                                                    src.sendMessage(Text.of("\u00A7eSpecial Attack has been upgraded: \u00A77" + targetSPATK + " \u00A7f-> \u00A7a" + (targetSPATK + SPATKPlusNum)));
+                                                    nbt1.setInteger(NbtKeys.IV_SP_ATT, nbt1.getInteger(NbtKeys.IV_SP_ATT) + SPATKPlusNum);
                                                 }
-                                                if (SPDEFUpgradeCount != 0)
+                                                if (SPDEFPlusNum != 0)
                                                 {
-                                                    src.sendMessage(Text.of("\u00A7eSpecial Defence has been upgraded: \u00A77" + targetSPDEF + " \u00A7f-> \u00A7a" + (targetSPDEF + SPDEFUpgradeCount)));
-                                                    nbt1.setInteger(NbtKeys.IV_SP_DEF, nbt1.getInteger(NbtKeys.IV_SP_DEF) + SPDEFUpgradeCount);
+                                                    src.sendMessage(Text.of("\u00A7eSpecial Defence has been upgraded: \u00A77" + targetSPDEF + " \u00A7f-> \u00A7a" + (targetSPDEF + SPDEFPlusNum)));
+                                                    nbt1.setInteger(NbtKeys.IV_SP_DEF, nbt1.getInteger(NbtKeys.IV_SP_DEF) + SPDEFPlusNum);
                                                 }
-                                                if (SPDUpgradeCount != 0)
+                                                if (SPDPlusNum != 0)
                                                 {
-                                                    src.sendMessage(Text.of("\u00A7eSpeed has been upgraded: \u00A77" + targetSPD + " \u00A7f-> \u00A7a" + (targetSPD + SPDUpgradeCount)));
-                                                    nbt1.setInteger(NbtKeys.IV_SPEED, nbt1.getInteger(NbtKeys.IV_SPEED) + SPDUpgradeCount);
+                                                    src.sendMessage(Text.of("\u00A7eSpeed has been upgraded: \u00A77" + targetSPD + " \u00A7f-> \u00A7a" + (targetSPD + SPDPlusNum)));
+                                                    nbt1.setInteger(NbtKeys.IV_SPEED, nbt1.getInteger(NbtKeys.IV_SPEED) + SPDPlusNum);
                                                 }
 
                                                 if (sacrificeFuseCount > 0)
@@ -477,18 +440,18 @@ public class DittoFusion implements CommandExecutor
                                             src.sendMessage(Text.of("\u00A7bThe other Ditto in slot \u00A73" + slot2 + "\u00A7b will be \u00A7ldeleted\u00A7r\u00A7b!"));
                                             src.sendMessage(Text.of(""));
 
-                                            if (HPUpgradeCount != 0)
-                                                src.sendMessage(Text.of("\u00A7eHP will be upgraded: \u00A77" + targetHP + " \u00A7f-> \u00A7a" + (targetHP + HPUpgradeCount)));
-                                            if (ATKUpgradeCount != 0)
-                                                src.sendMessage(Text.of("\u00A7eAttack will be upgraded: \u00A77" + targetATK + " \u00A7f-> \u00A7a" + (targetATK + ATKUpgradeCount)));
-                                            if (DEFUpgradeCount != 0)
-                                                src.sendMessage(Text.of("\u00A7eDefence will be upgraded: \u00A77" + targetDEF + " \u00A7f-> \u00A7a" + (targetDEF + DEFUpgradeCount)));
-                                            if (SPATKUpgradeCount != 0)
-                                                src.sendMessage(Text.of("\u00A7eSpecial Attack will be upgraded: \u00A77" + targetSPATK + " \u00A7f-> \u00A7a" + (targetSPATK + SPATKUpgradeCount)));
-                                            if (SPDEFUpgradeCount != 0)
-                                                src.sendMessage(Text.of("\u00A7eSpecial Defence will be upgraded: \u00A77" + targetSPDEF + " \u00A7f-> \u00A7a" + (targetSPDEF + SPDEFUpgradeCount)));
-                                            if (SPDUpgradeCount != 0)
-                                                src.sendMessage(Text.of("\u00A7eSpeed will be upgraded: \u00A77" + targetSPD + " \u00A7f-> \u00A7a" + (targetSPD + SPDUpgradeCount)));
+                                            if (HPPlusNum != 0)
+                                                src.sendMessage(Text.of("\u00A7eHP will be upgraded: \u00A77" + targetHP + " \u00A7f-> \u00A7a" + (targetHP + HPPlusNum)));
+                                            if (ATKPlusNum != 0)
+                                                src.sendMessage(Text.of("\u00A7eAttack will be upgraded: \u00A77" + targetATK + " \u00A7f-> \u00A7a" + (targetATK + ATKPlusNum)));
+                                            if (DEFPlusNum != 0)
+                                                src.sendMessage(Text.of("\u00A7eDefence will be upgraded: \u00A77" + targetDEF + " \u00A7f-> \u00A7a" + (targetDEF + DEFPlusNum)));
+                                            if (SPATKPlusNum != 0)
+                                                src.sendMessage(Text.of("\u00A7eSpecial Attack will be upgraded: \u00A77" + targetSPATK + " \u00A7f-> \u00A7a" + (targetSPATK + SPATKPlusNum)));
+                                            if (SPDEFPlusNum != 0)
+                                                src.sendMessage(Text.of("\u00A7eSpecial Defence will be upgraded: \u00A77" + targetSPDEF + " \u00A7f-> \u00A7a" + (targetSPDEF + SPDEFPlusNum)));
+                                            if (SPDPlusNum != 0)
+                                                src.sendMessage(Text.of("\u00A7eSpeed will be upgraded: \u00A77" + targetSPD + " \u00A7f-> \u00A7a" + (targetSPD + SPDPlusNum)));
 
                                             src.sendMessage(Text.of(""));
                                             src.sendMessage(Text.of("\u00A7bThis upgrade will cost you \u00A73" + costToConfirm + " coins \u00A7bupon confirmation!"));

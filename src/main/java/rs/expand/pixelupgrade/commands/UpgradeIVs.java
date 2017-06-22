@@ -63,7 +63,7 @@ public class UpgradeIVs implements CommandExecutor
             alias = "/" + UpgradeIVsConfig.getInstance().getConfig().getNode("commandAlias").getString();
         else
         {
-            PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cConfig variable \"commandAlias\" could not be found!");
+            PixelUpgrade.log.info("\u00A74Upgrade // critical: \u00A7cConfig variable \"commandAlias\" could not be found!");
             alias = null;
         }
     }
@@ -110,7 +110,7 @@ public class UpgradeIVs implements CommandExecutor
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("\u00A74Upgrade // critical: \u00A7cCheck your config. If need be, wipe and \\u00A74/pu reload\\u00A7c.");
+                PixelUpgrade.log.info("\u00A74Upgrade // critical: \u00A7cCheck your config. If need be, wipe and \\u00A74/pixelupgrade reload\\u00A7c.");
             }
             else
             {
@@ -542,7 +542,7 @@ public class UpgradeIVs implements CommandExecutor
                                 src.sendMessage(Text.of(""));
 
                                 if (costToConfirm.compareTo(BigDecimal.ZERO) == 1) // Are we above 0 coins?
-                                    src.sendMessage(Text.of("\u00A76Warning: \u00A7eYou can't undo upgrades! Make sure this is what you want."));
+                                    src.sendMessage(Text.of("\u00A76Warning: \u00A7eYou can't undo upgrades! Make sure you want this."));
                                 if (quantity == 1)
                                     src.sendMessage(Text.of("\u00A7aReady? Use: \u00A72" + alias + " " + slot + " " + stat + " -c"));
                                 else

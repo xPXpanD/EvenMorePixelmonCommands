@@ -17,7 +17,7 @@ public class CheckStatsConfig
     private String separator = FileSystems.getDefault().getSeparator();
     private String path = "config" + separator + "PixelUpgrade" + separator;
 
-    // Called during initial setup, either when the server is booting up or when /pu reload has been executed.
+    // Called during initial setup, either when the server is booting up or when /pixelupgrade reload has been executed.
     public String loadOrCreateConfig(Path checkPath, ConfigurationLoader<CommentedConfigurationNode> configLoader)
     {
         if (Files.notExists(checkPath))
@@ -37,7 +37,7 @@ public class CheckStatsConfig
                 F.printStackTrace();
             }
 
-            return "stats";
+            return "gs";
         }
         else
         {
@@ -53,7 +53,7 @@ public class CheckStatsConfig
                 PixelUpgrade.log.info("\u00A7cError during config loading for command \"/checkstats\"!");
                 PixelUpgrade.log.info("\u00A7cPlease make sure this config is formatted correctly. Stack trace follows:");
                 F.printStackTrace();
-                return "stats";
+                return "gs";
             }
         }
     }

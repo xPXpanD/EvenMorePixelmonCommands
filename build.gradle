@@ -1,3 +1,5 @@
+// Stock config taken from somewhere on the internet.
+
 buildscript {
     repositories {
         jcenter()

@@ -68,28 +68,38 @@ public class CheckEgg implements CommandExecutor
         }
     }
 
+    // Set up some variables that we'll be using in the egg-checking method.
+    private Boolean showName = null;
+    private Boolean explicitReveal = null;
+    private Boolean competitiveMode = null;
+    private Boolean recheckIsFree = null;
+
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
     {
         if (src instanceof Player)
         {
             boolean presenceCheck = true;
             Integer commandCost = checkConfigInt("commandCost");
-            Integer babyHintPercent = checkConfigInt("babyHintPercent");
-            Boolean explicitReveal = checkConfigBool("explicitReveal");
-            Boolean recheckIsFree = checkConfigBool("recheckIsFree");
+            Integer babyHintPercentage = checkConfigInt("babyHintPercentage");
+            showName = checkConfigBool("showName");
+            explicitReveal = checkConfigBool("explicitReveal");
+            competitiveMode = checkConfigBool("competitiveMode");
+            recheckIsFree = checkConfigBool("recheckIsFree");
 
             // Set up the command's debug verbosity mode and preferred alias.
             getVerbosityMode();
             getCommandAlias();
 
-            if (recheckIsFree == null || explicitReveal == null || commandCost == null || babyHintPercent == null)
+            if (recheckIsFree == null || showName == null || explicitReveal == null)
+                presenceCheck = false;
+            if (competitiveMode == null || commandCost == null || babyHintPercentage == null)
                 presenceCheck = false;
 
             if (!presenceCheck || alias == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCheck your config. If need be, wipe and \\u00A74/pu reload\\u00A7c.");
+                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCheck your config. If need be, wipe and \\u00A74/pixelupgrade reload\\u00A7c.");
             }
             else
             {
@@ -132,7 +142,7 @@ public class CheckEgg implements CommandExecutor
 
                                 canContinue = true;
                             }
-                            else if (Pattern.matches("[a-zA-Z]+", targetString)) // Making an assumption; input is non-numeric so probably not a slot.
+                            else if (Pattern.matches("[a-zA-Z]+", targetString)) // Make an assumption; input is non-numeric so probably not a slot.
                             {
                                 printToLog(2, "First argument was invalid. Input not numeric, assuming misspelled name.");
 
@@ -141,8 +151,8 @@ public class CheckEgg implements CommandExecutor
                                 printCorrectPerm(commandCost, player);
                                 checkAndAddFooter(commandCost, player);
                             }
-                            else  // Throw a "safe" error that works for both missing slots and targets. Might not be as clean, which is why we check patterns above.
-                            {
+                            else  // Throw a "safe" error that works for both missing slots and targets.
+                            { // Might not be as clean, which is why we check patterns above.
                                 printToLog(2, "First argument was invalid, and input has numbers. Throwing generic error.");
                                 throwArg1Error(commandCost, true, player);
                             }
@@ -261,8 +271,7 @@ public class CheckEgg implements CommandExecutor
 
                             if (commandCost == 0 || wasEggChecked)
                             {
-                                src.sendMessage(Text.of("\u00A76There's a healthy \u00A7c" + nbt.getString("Name") + "\u00A76 inside of this egg!"));
-                                printEggResults(nbt, pokemon, babyHintPercent, explicitReveal, recheckIsFree, player);
+                                printEggResults(nbt, pokemon, babyHintPercentage, commandCost, player);
 
                                 // Keep this below the printEggResults call, or your debug message order will look weird.
                                 if (commandCost == 0)
@@ -285,8 +294,7 @@ public class CheckEgg implements CommandExecutor
 
                                         if (transactionResult.getResult() == ResultType.SUCCESS)
                                         {
-                                            src.sendMessage(Text.of("\u00A76There's a healthy \u00A7c" + nbt.getString("Name") + "\u00A76 inside of this egg!"));
-                                            printEggResults(nbt, pokemon, babyHintPercent, explicitReveal, recheckIsFree, player);
+                                            printEggResults(nbt, pokemon, babyHintPercentage, commandCost, player);
 
                                             // Keep this below the printEggResults call, or your debug message order will look weird.
                                             printToLog(1, "Checked egg in slot " + slot + ", and took " + costToConfirm + " coins.");
@@ -421,79 +429,105 @@ public class CheckEgg implements CommandExecutor
         }
     }
 
-    private void printEggResults(NBTTagCompound nbt, EntityPixelmon pokemon, int babyHintPercent, boolean explicitReveal, boolean recheckIsFree, Player player)
+    // I know, this is a bit ugly. Lots of stuff to pass.
+    private void printEggResults(NBTTagCompound nbt, EntityPixelmon pokemon, int babyHintPercentage, int cost, Player player)
     {
-        int IVHP = nbt.getInteger(NbtKeys.IV_HP);
-        int IVATT = nbt.getInteger(NbtKeys.IV_ATTACK);
-        int IVDEF = nbt.getInteger(NbtKeys.IV_DEFENCE);
-        int IVSPATT = nbt.getInteger(NbtKeys.IV_SP_ATT);
-        int IVSPDEF = nbt.getInteger(NbtKeys.IV_SP_DEF);
-        int IVSPD = nbt.getInteger(NbtKeys.IV_SPEED);
-        int totalIVs = IVHP + IVATT + IVDEF + IVSPATT + IVSPDEF + IVSPD;
+        int HPIV = nbt.getInteger(NbtKeys.IV_HP);
+        int attackIV = nbt.getInteger(NbtKeys.IV_ATTACK);
+        int defenceIV = nbt.getInteger(NbtKeys.IV_DEFENCE);
+        int spAttackIV = nbt.getInteger(NbtKeys.IV_SP_ATT);
+        int spDefenceIV = nbt.getInteger(NbtKeys.IV_SP_DEF);
+        int speedIV = nbt.getInteger(NbtKeys.IV_SPEED);
+        int totalIVs = HPIV + attackIV + defenceIV + spAttackIV + spDefenceIV + speedIV;
         int percentIVs = totalIVs * 100 / 186;
+        boolean isShiny = nbt.getInteger(NbtKeys.IS_SHINY) == 1;
+
+        player.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
+        if (showName)
+        {
+            player.sendMessage(Text.of("\u00A7eThere's a healthy \u00A76" + nbt.getString("Name") + "\u00A7e inside of this egg!"));
+            if (explicitReveal)
+                player.sendMessage(Text.of(""));
+        }
 
         if (explicitReveal)
         {
             printToLog(3, "Explicit reveal enabled, printing full IVs and shiny status.");
 
-            String ivs1, ivs2, ivs3, ivs4, ivs5, ivs6;
-            boolean isShiny = nbt.getInteger(NbtKeys.IS_SHINY) == 1;
-
-            if (IVHP == 31)
-                ivs1 = String.valueOf("\u00A7o" + IVHP + " \u00A72HP \u00A7r\u00A7e|\u00A7a ");
+            String ivs1, ivs2, ivs3, ivs4, ivs5, ivs6, configSpAtk, configSpDef, configSpeed;
+            if (competitiveMode)
+            {
+                configSpAtk = "SpA";
+                configSpDef = "SpD";
+                configSpeed = "Spe";
+            }
             else
-                ivs1 = String.valueOf(IVHP + " \u00A72HP \u00A7e|\u00A7a ");
+            {
+                configSpAtk = "SAtk";
+                configSpDef = "SDef";
+                configSpeed = "Spd";
+            }
 
-            if (IVATT == 31)
-                ivs2 = String.valueOf("\u00A7o" + IVATT + " \u00A72ATK \u00A7r\u00A7e|\u00A7a ");
+            if (HPIV == 31)
+                ivs1 = String.valueOf("\u00A7l" + HPIV + " \u00A72HP \u00A7r\u00A7f|\u00A7a ");
             else
-                ivs2 = String.valueOf(IVATT + " \u00A72ATK \u00A7e|\u00A7a ");
+                ivs1 = String.valueOf(HPIV + " \u00A72HP \u00A7f|\u00A7a ");
 
-            if (IVDEF == 31)
-                ivs3 = String.valueOf("\u00A7o" + IVDEF + " \u00A72DEF \u00A7r\u00A7e|\u00A7a ");
+            if (attackIV == 31)
+                ivs2 = String.valueOf("\u00A7l" + attackIV + " \u00A72Atk \u00A7r\u00A7f|\u00A7a ");
             else
-                ivs3 = String.valueOf(IVDEF + " \u00A72DEF \u00A7e|\u00A7a ");
+                ivs2 = String.valueOf(attackIV + " \u00A72Atk \u00A7f|\u00A7a ");
 
-            if (IVSPATT == 31)
-                ivs4 = String.valueOf("\u00A7o" + IVSPATT + " \u00A72Sp. ATK \u00A7r\u00A7e|\u00A7a ");
+            if (defenceIV == 31)
+                ivs3 = String.valueOf("\u00A7l" + defenceIV + " \u00A72Def \u00A7r\u00A7f|\u00A7a ");
             else
-                ivs4 = String.valueOf(IVSPATT + " \u00A72Sp. ATK \u00A7e|\u00A7a ");
+                ivs3 = String.valueOf(defenceIV + " \u00A72Def \u00A7f|\u00A7a ");
 
-            if (IVSPDEF == 31)
-                ivs5 = String.valueOf("\u00A7o" + IVSPDEF + " \u00A72Sp. DEF \u00A7r\u00A7e|\u00A7a ");
+            if (spAttackIV == 31)
+                ivs4 = String.valueOf("\u00A7l" + spAttackIV + " \u00A72" + configSpAtk + " \u00A7r\u00A7f|\u00A7a ");
             else
-                ivs5 = String.valueOf(IVSPDEF + " \u00A72Sp. DEF \u00A7e|\u00A7a ");
+                ivs4 = String.valueOf(spAttackIV + " \u00A72" + configSpAtk + " \u00A7f|\u00A7a ");
 
-            if (IVSPD == 31)
-                ivs6 = String.valueOf("\u00A7o" + IVSPD + " \u00A72SPD");
+            if (spDefenceIV == 31)
+                ivs5 = String.valueOf("\u00A7l" + spDefenceIV + " \u00A72" + configSpDef + " \u00A7r\u00A7f|\u00A7a ");
             else
-                ivs6 = String.valueOf(IVSPD + " \u00A72SPD");
+                ivs5 = String.valueOf(spDefenceIV + " \u00A72" + configSpDef + " \u00A7f|\u00A7a ");
 
-            player.sendMessage(Text.of("\u00A7eTotal IVs: \u00A7a" + totalIVs + "\u00A7e/\u00A7a186\u00A7e (\u00A7a" + percentIVs + "%\u00A7e)"));
-            player.sendMessage(Text.of("\u00A7eIVs: \u00A7a" + ivs1 + "" + ivs2 + "" + ivs3 + "" + ivs4 + "" + ivs5 + "" + ivs6));
+            if (speedIV == 31)
+                ivs6 = String.valueOf("\u00A7l" + speedIV + " \u00A72" + configSpeed + "");
+            else
+                ivs6 = String.valueOf(speedIV + " \u00A72" + configSpeed + "");
+
+            player.sendMessage(Text.of("\u00A7bTotal IVs\u00A7f: \u00A7a" + totalIVs + "\u00A7f/\u00A7a186\u00A7f (\u00A7a" + percentIVs + "%\u00A7f)"));
+            player.sendMessage(Text.of("\u00A7bIVs\u00A7f: \u00A7a" + ivs1 + "" + ivs2 + "" + ivs3 + "" + ivs4 + "" + ivs5 + "" + ivs6));
             if (isShiny)
-                player.sendMessage(Text.of("\u00A76Congratulations! \u00A7eThis baby is shiny!"));
+            {
+                player.sendMessage(Text.of(""));
+                player.sendMessage(Text.of("\u00A76\u00A7lCongratulations! \u00A7r\u00A7eThis baby is shiny!"));
+            }
         }
         else
         {
             printToLog(3, "Explicit reveal disabled, printing vague status.");
 
-            if (percentIVs >= babyHintPercent && nbt.getInteger(NbtKeys.IS_SHINY) != 1)
-                player.sendMessage(Text.of("\u00A76What's this? \u00A7eThis baby seems to be bursting with energy..."));
-            else if (!(percentIVs >= babyHintPercent) && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
-                player.sendMessage(Text.of("\u00A76What's this? \u00A7eThis baby seems to have an odd sheen to it..."));
-            else if (percentIVs >= babyHintPercent && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
+            if (percentIVs >= babyHintPercentage && nbt.getInteger(NbtKeys.IS_SHINY) != 1)
+                player.sendMessage(Text.of("\u00A76What's this? \u00A7eThis baby seems to be bursting with energy!"));
+            else if (!(percentIVs >= babyHintPercentage) && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
+                player.sendMessage(Text.of("\u00A76What's this? \u00A7eThis baby seems to have an odd sheen to it!"));
+            else if (percentIVs >= babyHintPercentage && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
                 player.sendMessage(Text.of("\u00A76What's this? \u00A7eSomething about this baby seems real special!"));
             else
                 player.sendMessage(Text.of("\u00A7eThis baby seems to be fairly ordinary..."));
         }
 
-        if (pokemon.getEntityData().getBoolean("hadEggChecked") && recheckIsFree)
+        if (pokemon.getEntityData().getBoolean("hadEggChecked") && recheckIsFree && cost > 0)
         {
-            player.sendMessage(Text.of(""));
-            player.sendMessage(Text.of("\u00A7aThis egg has been checked before, so this check was free!"));
+            if (!isShiny || !explicitReveal)
+                player.sendMessage(Text.of(""));
+            player.sendMessage(Text.of("\u00A7dThis egg has been checked before, so this check was free!"));
         }
 
+        player.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
         pokemon.getEntityData().setBoolean("hadEggChecked", true);
     }
 }

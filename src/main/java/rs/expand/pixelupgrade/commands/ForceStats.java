@@ -51,7 +51,7 @@ public class ForceStats implements CommandExecutor
             alias = "/" + ForceStatsConfig.getInstance().getConfig().getNode("commandAlias").getString();
         else
         {
-            PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cConfig variable \"commandAlias\" could not be found!");
+            PixelUpgrade.log.info("\u00A74ForceStats // critical: \u00A7cConfig variable \"commandAlias\" could not be found!");
             alias = null;
         }
     }
@@ -68,7 +68,7 @@ public class ForceStats implements CommandExecutor
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("\u00A74ForceStats // critical: \u00A7cCheck your config. If need be, wipe and \\u00A74/pu reload\\u00A7c.");
+                PixelUpgrade.log.info("\u00A74ForceStats // critical: \u00A7cCheck your config. If need be, wipe and \\u00A74/pixelupgrade reload\\u00A7c.");
             }
             else
             {
@@ -267,7 +267,11 @@ public class ForceStats implements CommandExecutor
                         }
                         else if (!forceValue && valueIsInt)
                         {
-                            String[] validIVEV = new String[]{"IVHP", "IVAttack", "IVDefence", "IVSpAtt", "IVSpDef", "IVSpeed", "EVHP", "EVAttack", "EVDefence", "EVSpecialAttack", "EVSpecialDefence", "EVSpeed"};
+                            String[] validIVEV = new String[]
+                            {
+                                "IVHP", "IVAttack", "IVDefence", "IVSpAtt", "IVSpDef", "IVSpeed",
+                                "EVHP", "EVAttack", "EVDefence", "EVSpecialAttack", "EVSpecialDefence", "EVSpeed"
+                            };
 
                             printToLog(3, "Value is not forced, but is valid. Let's patch up the player's input.");
                             printToLog(3, "Found stat \u00A72" + stat + "\u00A7a, trying adjustment... It is now \u00A72" + fixedStat + "\u00A7a.");
@@ -332,8 +336,8 @@ public class ForceStats implements CommandExecutor
                             {
                                 printToLog(3, "Found a known stat in force mode. Checking and fixing, just in case...");
 
-                                src.sendMessage(Text.of("\u00A75Note: \u00AddA known stat was found, and was checked and possibly corrected."));
-                                src.sendMessage(Text.of("\u00A75Provided stat: \u00Add" + stat + "\u00A75, changed to: \u00A7d" + fixedStat));
+                                src.sendMessage(Text.of("\u00A75Note: \u00A7dKnown stat found! Validating it."));
+                                src.sendMessage(Text.of("\u00A75Provided stat: \u00A7d" + stat + "\u00A75 | Changed to: \u00A7d" + fixedStat));
 
                                 stat = fixedStat;
                             }

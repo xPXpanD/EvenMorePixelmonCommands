@@ -11,6 +11,7 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.game.state.GameConstructionEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.service.ChangeServiceProviderEvent;
@@ -42,6 +43,7 @@ import java.nio.file.Paths;
 //TODO: See if recoloring Pokémon is possible.
 //TODO: Look into name colors.
 //TODO: Make a Pokéball changing command, get it to write the old ball to the Pokémon for ball sale purposes.
+//TODO: Unify the message format across all commands.
 
 //TODO: Redo Checkstats styling to fit weakness. Checkegg, too.
 
@@ -73,6 +75,7 @@ public class PixelUpgrade
     public Path cmdCheckTypesPath = Paths.get(path, "CheckTypes.conf");
     public Path cmdDittoFusionPath = Paths.get(path, "DittoFusion.conf");
     public Path cmdFixEVsPath = Paths.get(path, "FixEVs.conf");
+    public Path cmdFixLevelPath = Paths.get(path, "FixLevel.conf");
     public Path cmdForceHatchPath = Paths.get(path, "ForceHatch.conf");
     public Path cmdForceStatsPath = Paths.get(path, "ForceStats.conf");
     public Path cmdPixelUpgradeInfoPath = Paths.get(path, "PixelUpgradeInfo.conf");
@@ -84,18 +87,23 @@ public class PixelUpgrade
     public ConfigurationLoader<CommentedConfigurationNode> cmdCheckTypesLoader = HoconConfigurationLoader.builder().setPath(cmdCheckTypesPath).build();
     public ConfigurationLoader<CommentedConfigurationNode> cmdDittoFusionLoader = HoconConfigurationLoader.builder().setPath(cmdDittoFusionPath).build();
     public ConfigurationLoader<CommentedConfigurationNode> cmdFixEVsLoader = HoconConfigurationLoader.builder().setPath(cmdFixEVsPath).build();
+    public ConfigurationLoader<CommentedConfigurationNode> cmdFixLevelLoader = HoconConfigurationLoader.builder().setPath(cmdFixLevelPath).build();
     public ConfigurationLoader<CommentedConfigurationNode> cmdForceHatchLoader = HoconConfigurationLoader.builder().setPath(cmdForceHatchPath).build();
     public ConfigurationLoader<CommentedConfigurationNode> cmdForceStatsLoader = HoconConfigurationLoader.builder().setPath(cmdForceStatsPath).build();
     public ConfigurationLoader<CommentedConfigurationNode> cmdPixelUpgradeInfoLoader = HoconConfigurationLoader.builder().setPath(cmdPixelUpgradeInfoPath).build();
     public ConfigurationLoader<CommentedConfigurationNode> cmdResetEVsLoader = HoconConfigurationLoader.builder().setPath(cmdResetEVsPath).build();
     public ConfigurationLoader<CommentedConfigurationNode> cmdUpgradeIVsLoader = HoconConfigurationLoader.builder().setPath(cmdUpgradeIVsPath).build();
 
-    @Listener
+    @Listener // Needed for economy support.
     public void onChangeServiceProvider(ChangeServiceProviderEvent event)
     {
         if (event.getService().equals(EconomyService.class))
             economyService = (EconomyService) event.getNewProviderRegistration().getProvider();
     }
+
+    @Listener // Needed for the reload command.
+    public void shareInstance(GameConstructionEvent event)
+    {   instance = this;    }
 
     /*                       *\
          Utility commands.
@@ -164,6 +172,15 @@ public class PixelUpgrade
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
             .build();
 
+    private CommandSpec fixlevel = CommandSpec.builder()
+            .description(Text.of("Lowers a capped Pok\u00E9mon's level so they can gather more EVs."))
+            .permission("pixelupgrade.command.fixlevel")
+            .executor(new FixLevel())
+            .arguments(
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
+                    GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
+            .build();
+
     private CommandSpec forcehatch = CommandSpec.builder()
             .description(Text.of("Forcefully hatches a remote or local Pok\u00E9mon egg."))
             .permission("pixelupgrade.command.admin.forcehatch")
@@ -212,6 +229,7 @@ public class PixelUpgrade
         String checkTypesAlias = CheckTypesConfig.getInstance().loadOrCreateConfig(cmdCheckTypesPath, cmdCheckTypesLoader);
         String dittoFusionAlias = DittoFusionConfig.getInstance().loadOrCreateConfig(cmdDittoFusionPath, cmdDittoFusionLoader);
         String fixEVsAlias = FixEVsConfig.getInstance().loadOrCreateConfig(cmdFixEVsPath, cmdFixEVsLoader);
+        String fixLevelAlias = FixLevelConfig.getInstance().loadOrCreateConfig(cmdFixLevelPath, cmdFixLevelLoader);
         String forceHatchAlias = ForceHatchConfig.getInstance().loadOrCreateConfig(cmdForceHatchPath, cmdForceHatchLoader);
         String forceStatsAlias = ForceStatsConfig.getInstance().loadOrCreateConfig(cmdForceStatsPath, cmdForceStatsLoader);
         String puInfoAlias = PixelUpgradeInfoConfig.getInstance().loadOrCreateConfig(cmdPixelUpgradeInfoPath, cmdPixelUpgradeInfoLoader);
@@ -223,6 +241,7 @@ public class PixelUpgrade
         Sponge.getCommandManager().register(this, checktypes, "checktypes", "checktype", "typecheck", "weakness", checkTypesAlias);
         Sponge.getCommandManager().register(this, dittofusion, "dittofusion", "fuseditto", "amalgamate", dittoFusionAlias); // There you go, Xen. /amalgamate is now a thing!
         Sponge.getCommandManager().register(this, fixevs, "fixevs", "fixev", fixEVsAlias);
+        Sponge.getCommandManager().register(this, fixlevel, "fixlevel", "fixlevels", fixLevelAlias);
         Sponge.getCommandManager().register(this, forcehatch, "forcehatch", "adminhatch", forceHatchAlias);
         Sponge.getCommandManager().register(this, forcestats, "forcestats", "forcestat", "adminstats", "adminstat", forceStatsAlias);
         Sponge.getCommandManager().register(this, pixelupgradeinfo, "pixelupgrade", "pixelupgradeinfo", puInfoAlias);

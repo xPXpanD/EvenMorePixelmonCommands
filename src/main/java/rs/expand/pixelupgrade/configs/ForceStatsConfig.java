@@ -17,7 +17,7 @@ public class ForceStatsConfig
     private String separator = FileSystems.getDefault().getSeparator();
     private String path = "config" + separator + "PixelUpgrade" + separator;
 
-    // Called during initial setup, either when the server is booting up or when /pu reload has been executed.
+    // Called during initial setup, either when the server is booting up or when /pixelupgrade reload has been executed.
     public String loadOrCreateConfig(Path checkPath, ConfigurationLoader<CommentedConfigurationNode> configLoader)
     {
         if (Files.notExists(checkPath))
