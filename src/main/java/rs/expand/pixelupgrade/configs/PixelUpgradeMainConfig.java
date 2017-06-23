@@ -5,7 +5,10 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 
 import rs.expand.pixelupgrade.PixelUpgrade;
 
-import java.nio.file.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 // This is the loader for the main PixelUpgrade config. It includes some globally-used variables.
 

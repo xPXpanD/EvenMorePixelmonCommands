@@ -182,7 +182,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                         String alias = DittoFusionConfig.getInstance().getConfig().getNode("commandAlias").getString();
                         printToLog(3, "\u00A72/dittofusion \u00A7apermission found, adding helper to list.");
 
-                        permissionMessageList.add(Text.of("\u00A76/" + alias + " <target slot> <sacrifice slot> [confirm flag]"));
+                        permissionMessageList.add(Text.of("\u00A76/" + alias + " <target slot> <sacrifice slot> {confirm flag}"));
                         permissionMessageList.add(Text.of("\u00A7f --> \u00A7eSacrifice one Ditto to make another stronger, for a price."));
                         hasNoPermission = false;
                     }
@@ -308,7 +308,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                         String alias = UpgradeIVsConfig.getInstance().getConfig().getNode("commandAlias").getString();
                         printToLog(3, "\u00A72/upgradeivs \u00A7apermission found, adding helper to list.");
 
-                        permissionMessageList.add(Text.of("\u00A76/" + alias + " <slot> <IV type> [amount?] {confirm flag}"));
+                        permissionMessageList.add(Text.of("\u00A76/" + alias + " <slot> <IV type> [optional amount] {confirm flag}"));
                         permissionMessageList.add(Text.of("\u00A7f --> \u00A7eBuy upgrades for your Pok\u00E9mon's IVs."));
                         hasNoPermission = false;
                     }
@@ -323,7 +323,8 @@ public class PixelUpgradeInfo implements CommandExecutor
                 permissionMessageList.add(Text.of("\u00A7cPlease contact staff if you believe this to be in error."));
             }
 
-            //TODO: Remove title color once Sponge bug is fixed. Written 22/5/2017. Messages should still look right once this gets fixed, as there's a fallback.
+            // TODO: Remove title color once Sponge bug is fixed. Written 22/5/2017, last checked 24/6/2017.
+            // Messages should still look right once this gets fixed, as there's a fallback.
             PaginationList.builder()
                     .title(Text.of(TextColors.DARK_PURPLE, header))
                     .contents(permissionMessageList)

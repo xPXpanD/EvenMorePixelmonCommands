@@ -23,7 +23,9 @@ import org.spongepowered.api.text.Text;
 import rs.expand.pixelupgrade.commands.*;
 import rs.expand.pixelupgrade.configs.*;
 
+import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -55,7 +57,7 @@ import java.nio.file.Paths;
 (
         id = "pixelupgrade",
         name = "PixelUpgrade",
-        version = "2.0-pre1",
+        version = "2.0-pre2",
         dependencies = @Dependency(id = "pixelmon"),
         description = "Adds a whole bunch of utility commands to Pixelmon, and some economy-integrated commands, too.",
         authors = "XpanD"
@@ -80,7 +82,8 @@ public class PixelUpgrade
     // Config-related setup.
     private String separator = FileSystems.getDefault().getSeparator();
     private String privatePath = "config" + separator;
-    public String path = "config" + separator + "PixelUpgrade";
+    public String path = "config" + separator + "PixelUpgrade" + separator;
+    private Path configPath = Paths.get("config" + separator + "PixelUpgrade" + separator);
 
     // Create an instance that other classes can access.
     private static PixelUpgrade instance;
@@ -140,6 +143,8 @@ public class PixelUpgrade
 
     private CommandSpec pixelupgradeinfo = CommandSpec.builder()
             .executor(new PixelUpgradeInfo())
+            .arguments( // Ignore all arguments, don't error on anything. Command doesn't use them, anyways.
+                    GenericArguments.optional(GenericArguments.remainingJoinedStrings(Text.of(""))))
             .build();
 
     /*                    *\
@@ -236,6 +241,15 @@ public class PixelUpgrade
     @Listener
     public void onPreInitializationEvent(GameInitializationEvent event)
     {
+        // Create a config directory if it doesn't exist.
+        try
+        {
+            Files.createDirectory(configPath);
+            log.info("\u00A7dDid not find a PixelUpgrade config folder. Creating it!");
+        }
+        catch (IOException F)
+        {   log.info("\u00A7dFound a PixelUpgrade config folder. Trying to load!");   }
+
         // Let's load up the main config on boot.
         PixelUpgradeMainConfig.getInstance().loadOrCreateConfig(primaryConfigPath, primaryConfigLoader);
 
@@ -266,7 +280,7 @@ public class PixelUpgrade
         Sponge.getCommandManager().register(this, resetevs, "resetevs", "resetev", resetEVsAlias);
         Sponge.getCommandManager().register(this, upgradeivs, "upgradeivs", "upgradeiv", upgradeIVsAlias);
 
-        log.info("\u00A7bCommands registered!");
+        log.info("\u00A7dCommands registered!");
     }
 
     @Listener

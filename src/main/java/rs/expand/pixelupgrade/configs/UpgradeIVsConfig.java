@@ -5,7 +5,10 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 
 import rs.expand.pixelupgrade.PixelUpgrade;
 
-import java.nio.file.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Objects;
 
 public class UpgradeIVsConfig
@@ -49,7 +52,7 @@ public class UpgradeIVsConfig
 
                 if (!Objects.equals(alias, null))
                 {
-                    PixelUpgrade.log.info("\u00A7aLoaded existing config for command \"/upgrade\", alias \"" + alias + "\"");
+                    PixelUpgrade.log.info("\u00A7aLoaded existing config for command \"/upgradeivs\", alias \"" + alias + "\"");
                     return alias;
                 }
                 else
