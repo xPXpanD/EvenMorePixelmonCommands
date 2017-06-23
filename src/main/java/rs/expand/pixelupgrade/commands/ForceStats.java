@@ -3,7 +3,6 @@ package rs.expand.pixelupgrade.commands;
 import java.util.Arrays;
 import java.util.Optional;
 
-import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
@@ -57,7 +56,7 @@ public class ForceStats implements CommandExecutor
         }
     }
 
-	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
+	public CommandResult execute(CommandSource src, CommandContext args)
     {
         if (src instanceof Player)
         {
@@ -75,7 +74,7 @@ public class ForceStats implements CommandExecutor
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("\u00A74ForceStats // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pixelupgrade reload\u00A7c.");
+                PixelUpgrade.log.info("\u00A74ForceStats // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pureload\u00A7c.");
             }
             else if (useBritishSpelling == null)
             {
@@ -97,7 +96,7 @@ public class ForceStats implements CommandExecutor
 
                     src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
                     src.sendMessage(Text.of("\u00A74Error: \u00A7cNo parameters found. See below."));
-                    src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> <stat> <value> (-f to force)"));
+                    src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> <stat> <value> {-f to force}"));
                     src.sendMessage(Text.of(""));
                     src.sendMessage(Text.of("\u00A75Please note: \u00A7dPassing the -f flag will disable safety checks."));
                     src.sendMessage(Text.of("\u00A7dThis may lead to crashes or even corruption. Handle with care!"));
@@ -120,7 +119,7 @@ public class ForceStats implements CommandExecutor
 
                         src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
                         src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid slot value. Valid values are 1-6."));
-                        src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> <stat> <value> (-f to force)"));
+                        src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> <stat> <value> {-f to force}"));
                         src.sendMessage(Text.of(""));
                         src.sendMessage(Text.of("\u00A75Please note: \u00A7dPassing the -f flag will disable safety checks."));
                         src.sendMessage(Text.of("\u00A7dThis may lead to crashes or even corruption. Handle with care!"));
@@ -195,7 +194,7 @@ public class ForceStats implements CommandExecutor
 
                         src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
                         src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid stat provided. See below for valid stats."));
-                        src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> <stat> <value> (-f to force)"));
+                        src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> <stat> <value> {-f to force}"));
                         src.sendMessage(Text.of(""));
 
                         if (useBritishSpelling)
@@ -224,7 +223,7 @@ public class ForceStats implements CommandExecutor
 
                     src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
                     src.sendMessage(Text.of("\u00A74Error: \u00A7cNo stat provided. See below for valid stats."));
-                    src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> <stat> <value> (-f to force)"));
+                    src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> <stat> <value> {-f to force}"));
                     src.sendMessage(Text.of(""));
 
                     if (useBritishSpelling)
@@ -253,7 +252,7 @@ public class ForceStats implements CommandExecutor
 
                     src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
                     src.sendMessage(Text.of("\u00A74Error: \u00A7cNo value or amount was provided."));
-                    src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> <stat> <value> (-f to force)"));
+                    src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> <stat> <value> {-f to force}"));
                     src.sendMessage(Text.of(""));
                     src.sendMessage(Text.of("\u00A75Please note: \u00A7dPassing the -f flag will disable safety checks."));
                     src.sendMessage(Text.of("\u00A7dThis may lead to crashes or even corruption. Handle with care!"));
@@ -346,7 +345,7 @@ public class ForceStats implements CommandExecutor
 
                             src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
                             src.sendMessage(Text.of("\u00A74Error: \u00A7cGot a non-integer value, but no flag. Try a number."));
-                            src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> <stat> <value> (-f to force)"));
+                            src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> <stat> <value> {-f to force}"));
                             src.sendMessage(Text.of(""));
                             src.sendMessage(Text.of("\u00A75Please note: \u00A7dPassing the -f flag will disable safety checks."));
                             src.sendMessage(Text.of("\u00A7dThis may lead to crashes or even corruption. Handle with care!"));

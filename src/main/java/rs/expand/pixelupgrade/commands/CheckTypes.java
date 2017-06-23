@@ -3,7 +3,6 @@ package rs.expand.pixelupgrade.commands;
 
 import com.pixelmonmod.pixelmon.enums.EnumType;
 
-import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
@@ -30,7 +29,7 @@ import static com.pixelmonmod.pixelmon.enums.EnumType.getTotalEffectiveness;
 import static org.spongepowered.api.text.TextTemplate.of;
 import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
-// TODO: Some super long lists like " + alias + " 599 cause minor visual issues. Fixing that would be nice polish.
+// TODO: Some super long lists like /checktypes 599 cause minor visual issues. Fixing that would be nice polish.
 // TODO: Maybe look into paginated lists that you can move through. Lots of work, but would be real neat for evolutions.
 
 public class CheckTypes implements CommandExecutor
@@ -69,7 +68,7 @@ public class CheckTypes implements CommandExecutor
         }
     }
 
-    public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
+    public CommandResult execute(CommandSource src, CommandContext args)
     {
         if (src instanceof Player)
         {
@@ -93,7 +92,7 @@ public class CheckTypes implements CommandExecutor
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("\u00A74CheckTypes // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pixelupgrade reload\u00A7c.");
+                PixelUpgrade.log.info("\u00A74CheckTypes // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pureload\u00A7c.");
             }
             else
             {

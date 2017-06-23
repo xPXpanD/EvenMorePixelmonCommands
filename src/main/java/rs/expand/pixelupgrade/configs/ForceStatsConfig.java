@@ -6,6 +6,7 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 import rs.expand.pixelupgrade.PixelUpgrade;
 
 import java.nio.file.*;
+import java.util.Objects;
 
 public class ForceStatsConfig
 {
@@ -17,7 +18,7 @@ public class ForceStatsConfig
     private String separator = FileSystems.getDefault().getSeparator();
     private String path = "config" + separator + "PixelUpgrade" + separator;
 
-    // Called during initial setup, either when the server is booting up or when /pixelupgrade reload has been executed.
+    // Called during initial setup, either when the server is booting up or when /pureload has been executed.
     public String loadOrCreateConfig(Path checkPath, ConfigurationLoader<CommentedConfigurationNode> configLoader)
     {
         if (Files.notExists(checkPath))
@@ -45,8 +46,18 @@ public class ForceStatsConfig
             {
                 config = configLoader.load();
                 String alias = getConfig().getNode("commandAlias").getString();
-                PixelUpgrade.log.info("\u00A7aLoaded existing config for command \"/forcestats\", alias \"" + alias + "\"");
-                return alias;
+
+                if (!Objects.equals(alias, null))
+                {
+                    PixelUpgrade.log.info("\u00A7aLoaded existing config for command \"/forcestats\", alias \"" + alias + "\"");
+                    return alias;
+                }
+                else
+                {
+                    PixelUpgrade.log.info("\u00A7cForceStats: Could not read command variable \u00A74\"commandAlias\"\u00A7c, setting defaults.");
+                    PixelUpgrade.log.info("\u00A7cForceStats: Check this command's config, or wipe it and \u00A74/pureload\u00A7c.");
+                    return "fstats";
+                }
             }
             catch (Exception F)
             {

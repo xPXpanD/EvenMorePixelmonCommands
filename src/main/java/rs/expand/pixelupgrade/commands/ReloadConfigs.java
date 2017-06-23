@@ -1,6 +1,5 @@
 package rs.expand.pixelupgrade.commands;
 
-import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
@@ -12,7 +11,7 @@ import rs.expand.pixelupgrade.configs.*;
 
 public class ReloadConfigs implements CommandExecutor
 {
-    public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
+    public CommandResult execute(CommandSource src, CommandContext args)
     {
         boolean showError = false;
 
@@ -80,7 +79,7 @@ public class ReloadConfigs implements CommandExecutor
                 src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid config provided. See below for valid configs."));
             else
                 src.sendMessage(Text.of("\u00A74Error: \u00A7cNo config provided. See below for valid configs."));
-            src.sendMessage(Text.of("\u00A74Usage: \u00A7c/pixelupgrade reload <config>"));
+            src.sendMessage(Text.of("\u00A74Usage: \u00A7c/pureload <config>"));
             src.sendMessage(Text.of(""));
             src.sendMessage(Text.of("\u00A76Commands: \u00A7eCheckEgg, CheckStats, CheckTypes, DittoFusion"));
             src.sendMessage(Text.of("\u00A76Commands: \u00A7eFixEVs, FixLevel, ForceHatch, ForceStats"));

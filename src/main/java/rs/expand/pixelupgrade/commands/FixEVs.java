@@ -3,7 +3,6 @@ package rs.expand.pixelupgrade.commands;
 import java.math.BigDecimal;
 import java.util.Optional;
 
-import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
@@ -70,7 +69,7 @@ public class FixEVs implements CommandExecutor
     // Set up a variable that we'll be using in the EV-fixing method.
     private Boolean useBritishSpelling = null;
 
-	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
+	public CommandResult execute(CommandSource src, CommandContext args)
 	{
 	    if (src instanceof Player)
         {
@@ -92,7 +91,7 @@ public class FixEVs implements CommandExecutor
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("\u00A74FixEVs // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pixelupgrade reload\u00A7c.");
+                PixelUpgrade.log.info("\u00A74FixEVs // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pureload\u00A7c.");
             }
             else if (useBritishSpelling == null)
             {

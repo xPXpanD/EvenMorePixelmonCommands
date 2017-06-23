@@ -27,32 +27,47 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+// New things:
 //TODO: Maybe make a /showstats or /printstats.
 //TODO: Consider making a shiny upgrade command and a gender swapper.
 //TODO: Make a Pokémon transfer command.
 //TODO: Check if setting stuff to player entities works, too!
-//TODO: UpgradeIVs token support?
 //TODO: Maybe make a heal command with a hour-long cooldown.
 //TODO: Make a /pokesell, maybe one that sells based on ball worth.
 //TODO: Make a hidden ability switcher, maybe.
-//TODO: Make an admin command that de-flags upgraded/fused Pokémon.
+//TODO: Make an admin command that de-flags upgraded/fused Pokémon. /resetflags <flag>?
 //TODO: Check public static final String PC_RAVE = "rave";
-//TODO: Tab completion on player names.
 //TODO: See if recoloring Pokémon is possible.
 //TODO: Look into name colors?
 //TODO: Make a Pokéball changing command, get it to write the old ball to the Pokémon for ball sale purposes.
+
+// Improvements to existing things:
+//TODO: Patch up command loaders so their messages are the same no matter the error.
 //TODO: Find out how to actually use EntityPixelmon's .updateStats() or otherwise refresh after an NBT change.
+//TODO: Tab completion on player names.
+//TODO: UpgradeIVs token support?
+//TODO: Fancy hovers on /checkstats?
+//TODO: It would be nice to just have a credits block and then a single line list of loaded commands on startup.
+//TODO: Add natures to /checkegg explicit mode.
+//TODO: Check for heavyweight executor methods that can be optimizied through grabbing from NBT/private variables.
 
 @Plugin
 (
         id = "pixelupgrade",
         name = "PixelUpgrade",
-        version = "1.9",
+        version = "2.0-pre1",
         dependencies = @Dependency(id = "pixelmon"),
         description = "Adds a whole bunch of utility commands to Pixelmon, and some economy-integrated commands, too.",
         authors = "XpanD"
-        // Not listed but certainly appreciated: A lot of early help from Xenoyia, plus breakthrough snippets from...
-        // NickImpact (NBT editing), Proxying (writing to entities in a copy-persistent manner) and Karanum (fancy paginated command list)!
+
+        // Not listed but certainly appreciated:
+
+        // NickImpact (actually writing NBTs)
+        // Proxying (writing to entities in a copy-persistent manner)
+        // Karanum (fancy paginated command list)
+        // Xenoyia (a LOT of early help, and some serious later stuff too)
+
+        // Thanks for helping make PU what it is now, people!
 )
 
 public class PixelUpgrade
@@ -116,8 +131,7 @@ public class PixelUpgrade
     /*                       *\
          Utility commands.
     \*                       */
-    private CommandSpec reload = CommandSpec.builder()
-            .description(Text.of("Reloads all of the PixelUpgrade command configs, or recreates them if missing."))
+    private CommandSpec reloadconfigs = CommandSpec.builder()
             .permission("pixelupgrade.command.admin.reload")
             .executor(new ReloadConfigs())
             .arguments(
@@ -125,9 +139,7 @@ public class PixelUpgrade
             .build();
 
     private CommandSpec pixelupgradeinfo = CommandSpec.builder()
-            .description(Text.of("Shows the PixelUpgrade subcommand listing."))
             .executor(new PixelUpgradeInfo())
-            .child(reload, "reload")
             .build();
 
     /*                    *\
@@ -135,7 +147,6 @@ public class PixelUpgrade
     \*                    */
 
     private CommandSpec checkegg = CommandSpec.builder()
-            .description(Text.of("Checks the contents of an egg. Can be set to vague or explicit."))
             .permission("pixelupgrade.command.checkegg")
             .executor(new CheckEgg())
             .arguments(
@@ -145,7 +156,6 @@ public class PixelUpgrade
             .build();
 
     private CommandSpec checkstats = CommandSpec.builder()
-            .description(Text.of("Shows a comprehensive list of Pok\u00E9mon stats, such as EVs/IVs/natures."))
             .permission("pixelupgrade.command.checkstats")
             .executor(new CheckStats())
             .arguments(
@@ -155,7 +165,6 @@ public class PixelUpgrade
             .build();
 
     private CommandSpec checktypes = CommandSpec.builder()
-            .description(Text.of("Shows resistances and weaknesses for any Pok\u00E9mon."))
             .permission("pixelupgrade.command.checktypes")
             .executor(new CheckTypes())
             .arguments(
@@ -164,7 +173,6 @@ public class PixelUpgrade
             .build();
 
     private CommandSpec dittofusion = CommandSpec.builder()
-            .description(Text.of("Fuse Dittos together for economy balance, improving their stats!"))
             .permission("pixelupgrade.command.dittofusion")
             .executor(new DittoFusion())
             .arguments(
@@ -174,7 +182,6 @@ public class PixelUpgrade
             .build();
 
     private CommandSpec fixevs = CommandSpec.builder()
-            .description(Text.of("Lowers EVs that are above 252, avoiding wasted points."))
             .permission("pixelupgrade.command.fixevs")
             .executor(new FixEVs())
             .arguments(
@@ -183,7 +190,6 @@ public class PixelUpgrade
             .build();
 
     private CommandSpec fixlevel = CommandSpec.builder()
-            .description(Text.of("Lowers a capped Pok\u00E9mon's level so they can gather more EVs."))
             .permission("pixelupgrade.command.fixlevel")
             .executor(new FixLevel())
             .arguments(
@@ -192,7 +198,6 @@ public class PixelUpgrade
             .build();
 
     private CommandSpec forcehatch = CommandSpec.builder()
-            .description(Text.of("Forcefully hatches a remote or local Pok\u00E9mon egg."))
             .permission("pixelupgrade.command.admin.forcehatch")
             .executor(new ForceHatch())
             .arguments(
@@ -201,7 +206,6 @@ public class PixelUpgrade
             .build();
 
     private CommandSpec forcestats = CommandSpec.builder()
-            .description(Text.of("Allows free setting of IVs and EVs on any Pok\u00E9mon."))
             .permission("pixelupgrade.command.admin.forcestats")
             .executor(new ForceStats())
             .arguments(
@@ -212,7 +216,6 @@ public class PixelUpgrade
             .build();
 
     private CommandSpec resetevs = CommandSpec.builder()
-            .description(Text.of("Completely wipes a local Pok\u00E9mon's EVs."))
             .permission("pixelupgrade.command.resetevs")
             .executor(new ResetEVs())
             .arguments(
@@ -221,7 +224,6 @@ public class PixelUpgrade
             .build();
 
     private CommandSpec upgradeivs = CommandSpec.builder()
-            .description(Text.of("Enables upgrading of Pok\u00E9mon IVs, for economy balance."))
             .permission("pixelupgrade.command.upgradeivs")
             .executor(new UpgradeIVs())
             .arguments(
@@ -260,6 +262,7 @@ public class PixelUpgrade
         Sponge.getCommandManager().register(this, forcehatch, "forcehatch", "adminhatch", forceHatchAlias);
         Sponge.getCommandManager().register(this, forcestats, "forcestats", "forcestat", "adminstats", "adminstat", forceStatsAlias);
         Sponge.getCommandManager().register(this, pixelupgradeinfo, "pixelupgrade", "pixelupgradeinfo", puInfoAlias);
+        Sponge.getCommandManager().register(this, reloadconfigs, "pureload", "pixelupgradereload");
         Sponge.getCommandManager().register(this, resetevs, "resetevs", "resetev", resetEVsAlias);
         Sponge.getCommandManager().register(this, upgradeivs, "upgradeivs", "upgradeiv", upgradeIVsAlias);
 

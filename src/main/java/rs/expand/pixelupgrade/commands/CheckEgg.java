@@ -5,7 +5,6 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
@@ -75,7 +74,7 @@ public class CheckEgg implements CommandExecutor
     private Boolean recheckIsFree = null;
     private Boolean competitiveMode = null;
 
-    public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
+    public CommandResult execute(CommandSource src, CommandContext args)
     {
         if (src instanceof Player)
         {
@@ -103,7 +102,7 @@ public class CheckEgg implements CommandExecutor
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pixelupgrade reload\u00A7c.");
+                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pureload\u00A7c.");
             }
             else if (competitiveMode == null)
             {
@@ -120,7 +119,7 @@ public class CheckEgg implements CommandExecutor
                 boolean targetAcquired = false, commandConfirmed = false, canContinue = false, hasOtherPerm = false;
                 Player player = (Player) src, target = player;
 
-                if (src.hasPermission("pixelupgrade.command.getstats.other"))
+                if (src.hasPermission("pixelupgrade.command.checkegg.other"))
                     hasOtherPerm = true;
 
                 if (args.<String>getOne("target or slot").isPresent())

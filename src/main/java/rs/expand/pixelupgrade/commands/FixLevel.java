@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 import com.pixelmonmod.pixelmon.config.PixelmonConfig;
-import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
@@ -66,7 +65,7 @@ public class FixLevel implements CommandExecutor
         }
     }
 
-    public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
+    public CommandResult execute(CommandSource src, CommandContext args)
     {
         if (src instanceof Player)
         {
@@ -84,7 +83,7 @@ public class FixLevel implements CommandExecutor
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("\u00A74FixLevel // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pixelupgrade reload\u00A7c.");
+                PixelUpgrade.log.info("\u00A74FixLevel // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pureload\u00A7c.");
             }
             else
             {
@@ -222,10 +221,12 @@ public class FixLevel implements CommandExecutor
                                 {
                                     printToLog(2, "Got cost but no confirmation; end of the line.");
 
+                                    src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
                                     src.sendMessage(Text.of("\u00A76Warning: \u00A7eYou're about to lower this Pok\u00E9mon's level to \u00A76" + (configLevel - 1) + "\u00A7e."));
                                     if (commandCost > 0)
                                         src.sendMessage(Text.of("\u00A76Doing this will cost you \u00A7c" + commandCost + "\u00A76 coins."));
                                     src.sendMessage(Text.of("\u00A72Ready? Type: \u00A7a" + alias + " " + slot + " -c"));
+                                    src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
                                 }
                             }
                         }

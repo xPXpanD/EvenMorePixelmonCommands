@@ -5,7 +5,6 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
@@ -84,7 +83,7 @@ public class CheckStats implements CommandExecutor
     //boolean targetAcquired, boolean showEVs, boolean showFixEVsHelper,
     //boolean showUpgradeHelper, boolean showDittoFusionHelper,
 
-    public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
+    public CommandResult execute(CommandSource src, CommandContext args)
     {
         if (src instanceof Player)
         {
@@ -134,7 +133,7 @@ public class CheckStats implements CommandExecutor
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("\u00A74CheckStats // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pixelupgrade reload\u00A7c.");
+                PixelUpgrade.log.info("\u00A74CheckStats // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pureload\u00A7c.");
                 canContinue = false;
             }
             else if (competitiveMode == null)
@@ -148,19 +147,19 @@ public class CheckStats implements CommandExecutor
                 if (!fusionPresenceCheck && upgradePresenceCheck && showDittoFusionHelper)
                 {
                     printToLog(0, "Ditto Fusion integration has been disabled!");
-                    printToLog(0, "If need be, remove the file and \u00A74/pixelupgrade reload\u00A7c.");
+                    printToLog(0, "If need be, remove the file and \u00A74/pureload\u00A7c.");
                     showDittoFusionHelper = false;
                 }
                 else if (fusionPresenceCheck && showUpgradeHelper)
                 {
                     printToLog(0, "Upgrade integration has been disabled!");
-                    printToLog(0, "If need be, remove the file and \u00A74/pixelupgrade reload\u00A7c.");
+                    printToLog(0, "If need be, remove the file and \u00A74/pureload\u00A7c.");
                     showUpgradeHelper = false;
                 }
                 else if (showDittoFusionHelper && showUpgradeHelper)
                 {
                     printToLog(0, "Integration for both commands has been disabled!");
-                    printToLog(0, "If need be, remove the file and \u00A76/pixelupgrade reload\u00A7e.");
+                    printToLog(0, "If need be, remove the file and \u00A76/pureload\u00A7e.");
                     showDittoFusionHelper = false;
                     showUpgradeHelper = false;
                 }
