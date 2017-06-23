@@ -24,6 +24,7 @@ import org.spongepowered.api.text.Text;
 
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.configs.DittoFusionConfig;
+import rs.expand.pixelupgrade.configs.PixelUpgradeMainConfig;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -70,8 +71,8 @@ public class DittoFusion implements CommandExecutor
     {
         if (src instanceof Player)
         {
-            boolean presenceCheck1 = true, presenceCheck2 = true, presenceCheck3 = true;
-            Boolean passOnShinyStatus;
+            boolean presenceCheck = true;
+            Boolean passOnShinyStatus, useBritishSpelling = null;
             Integer stat0to5, stat6to10, stat11to15, stat16to20, stat21to25, stat26to30, stat31plus;
             Integer regularCap, shinyCap, previouslyUpgradedMultiplier, pointMultiplierForCost, addFlatFee;
 
@@ -89,22 +90,32 @@ public class DittoFusion implements CommandExecutor
             pointMultiplierForCost = checkConfigInt("pointMultiplierForCost");
             addFlatFee = checkConfigInt("addFlatFee");
 
+            // Grab the useBritishSpelling value from the main config.
+            if (!PixelUpgradeMainConfig.getInstance().getConfig().getNode("useBritishSpelling").isVirtual())
+                useBritishSpelling = PixelUpgradeMainConfig.getInstance().getConfig().getNode("useBritishSpelling").getBoolean();
+
             // Set up the command's debug verbosity mode and preferred alias.
             getVerbosityMode();
             getCommandAlias();
 
-            if (passOnShinyStatus == null || debugLevel == null || regularCap == null || shinyCap == null)
-                presenceCheck1 = false;
-            if (stat0to5 == null || stat6to10 == null || stat11to15 == null || stat16to20 == null || stat21to25 == null || stat26to30 == null)
-                presenceCheck2 = false;
-            if (stat31plus == null || previouslyUpgradedMultiplier == null || pointMultiplierForCost == null || addFlatFee == null)
-                presenceCheck3 = false;
+            if (passOnShinyStatus == null || regularCap == null || shinyCap == null || stat0to5 == null || stat6to10 == null)
+                presenceCheck = false;
+            else if (stat11to15 == null || stat16to20 == null || stat21to25 == null || stat26to30 == null || stat31plus == null)
+                presenceCheck = false;
+            else if (previouslyUpgradedMultiplier == null || pointMultiplierForCost == null || addFlatFee == null)
+                presenceCheck = false;
 
-            if (!presenceCheck1 || !presenceCheck2 || !presenceCheck3 || debugLevel >= 4 || debugLevel < 0)
+            if (!presenceCheck || alias == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("\u00A74DittoFusion // critical: \u00A7cCheck your config. If need be, wipe and \\u00A74/pixelupgrade reload\\u00A7c.");
+                PixelUpgrade.log.info("\u00A74DittoFusion // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pixelupgrade reload\u00A7c.");
+            }
+            else if (useBritishSpelling == null)
+            {
+                src.sendMessage(Text.of("\u00A74Error: \u00A7cCould not parse main config. Please report to staff."));
+                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCouldn't get value of \"useBritishSpelling\" from the main config.");
+                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cPlease check (or wipe and reload) your PixelUpgrade.conf file.");
             }
             else
             {
@@ -366,60 +377,78 @@ public class DittoFusion implements CommandExecutor
                                             TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(), costToConfirm, Cause.source(this).build());
                                             if (transactionResult.getResult() == ResultType.SUCCESS)
                                             {
-                                                src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-                                                src.sendMessage(Text.of("\u00A7aThe Ditto in slot \u00A72" + slot2 + "\u00A7a was eaten, taking \u00A72" + costToConfirm + " coins \u00A7awith it."));
+                                                player.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
+                                                src.sendMessage(Text.of("\u00A7eThe \u00A76Ditto \u00A7ein slot \u00A76" + slot2 +
+                                                    "\u00A7e was eaten, taking \u00A76" + costToConfirm + "\u00A7e coins with it."));
                                                 src.sendMessage(Text.of(""));
 
                                                 if (HPPlusNum != 0)
                                                 {
-                                                    src.sendMessage(Text.of("\u00A7eHP has been upgraded: \u00A77" + targetHP + " \u00A7f-> \u00A7a" + (targetHP + HPPlusNum)));
+                                                    src.sendMessage(Text.of("\u00A7bUpgraded HP!"));
+                                                    src.sendMessage(Text.of("\u00A77" + targetHP + " \u00A7f-> \u00A7a" + (targetHP + HPPlusNum)));
                                                     nbt1.setInteger(NbtKeys.IV_HP, nbt1.getInteger(NbtKeys.IV_HP) + HPPlusNum);
                                                 }
                                                 if (ATKPlusNum != 0)
                                                 {
-                                                    src.sendMessage(Text.of("\u00A7eAttack has been upgraded: \u00A77" + targetATK + " \u00A7f-> \u00A7a" + (targetATK + ATKPlusNum)));
+                                                    src.sendMessage(Text.of("\u00A7bUpgraded Attack!"));
+                                                    src.sendMessage(Text.of("\u00A77" + targetATK + " \u00A7f-> \u00A7a" + (targetATK + ATKPlusNum)));
                                                     nbt1.setInteger(NbtKeys.IV_ATTACK, nbt1.getInteger(NbtKeys.IV_ATTACK) + ATKPlusNum);
                                                 }
                                                 if (DEFPlusNum != 0)
                                                 {
-                                                    src.sendMessage(Text.of("\u00A7eDefence has been upgraded: \u00A77" + targetDEF + " \u00A7f-> \u00A7a" + (targetDEF + DEFPlusNum)));
+                                                    if (useBritishSpelling)
+                                                        src.sendMessage(Text.of("\u00A7bUpgraded Defence!"));
+                                                    else
+                                                        src.sendMessage(Text.of("\u00A7bUpgraded Defense!"));
+
+                                                    src.sendMessage(Text.of("\u00A77" + targetDEF + " \u00A7f-> \u00A7a" + (targetDEF + DEFPlusNum)));
                                                     nbt1.setInteger(NbtKeys.IV_DEFENCE, nbt1.getInteger(NbtKeys.IV_DEFENCE) + DEFPlusNum);
                                                 }
                                                 if (SPATKPlusNum != 0)
                                                 {
-                                                    src.sendMessage(Text.of("\u00A7eSpecial Attack has been upgraded: \u00A77" + targetSPATK + " \u00A7f-> \u00A7a" + (targetSPATK + SPATKPlusNum)));
+                                                    src.sendMessage(Text.of("\u00A7bUpgraded Special Attack!"));
+                                                    src.sendMessage(Text.of("\u00A77" + targetSPATK + " \u00A7f-> \u00A7a" + (targetSPATK + SPATKPlusNum)));
                                                     nbt1.setInteger(NbtKeys.IV_SP_ATT, nbt1.getInteger(NbtKeys.IV_SP_ATT) + SPATKPlusNum);
                                                 }
                                                 if (SPDEFPlusNum != 0)
                                                 {
-                                                    src.sendMessage(Text.of("\u00A7eSpecial Defence has been upgraded: \u00A77" + targetSPDEF + " \u00A7f-> \u00A7a" + (targetSPDEF + SPDEFPlusNum)));
+                                                    if (useBritishSpelling)
+                                                        src.sendMessage(Text.of("\u00A7bUpgraded Special Defence!"));
+                                                    else
+                                                        src.sendMessage(Text.of("\u00A7bUpgraded Special Defense!"));
+
+                                                    src.sendMessage(Text.of("\u00A77" + targetSPDEF + " \u00A7f-> \u00A7a" + (targetSPDEF + SPDEFPlusNum)));
                                                     nbt1.setInteger(NbtKeys.IV_SP_DEF, nbt1.getInteger(NbtKeys.IV_SP_DEF) + SPDEFPlusNum);
                                                 }
                                                 if (SPDPlusNum != 0)
                                                 {
-                                                    src.sendMessage(Text.of("\u00A7eSpeed has been upgraded: \u00A77" + targetSPD + " \u00A7f-> \u00A7a" + (targetSPD + SPDPlusNum)));
+                                                    src.sendMessage(Text.of("\u00A7bUpgraded Speed!"));
+                                                    src.sendMessage(Text.of("\u00A77" + targetSPD + " \u00A7f-> \u00A7a" + (targetSPD + SPDPlusNum)));
                                                     nbt1.setInteger(NbtKeys.IV_SPEED, nbt1.getInteger(NbtKeys.IV_SPEED) + SPDPlusNum);
                                                 }
 
                                                 if (sacrificeFuseCount > 0)
                                                 {
                                                     src.sendMessage(Text.of(""));
-                                                    src.sendMessage(Text.of("\u00A7bSacrifice had prior upgrades. You paid an extra \u00A73" + extraCost + "\u00A7b coins."));
-                                                    src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+                                                    src.sendMessage(Text.of("\u00A7dSacrifice had prior upgrades. You paid an extra \u00A75" + extraCost + "\u00A7d coins."));
                                                 }
-                                                else
-                                                    src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
 
                                                 if (nbt2.getInteger(NbtKeys.IS_SHINY) == 1 && passOnShinyStatus)
                                                 {
                                                     printToLog(3, "Passing on shinyness is enabled, and sacrifice is shiny. Go go go!");
 
+                                                    // Not sure which one I need, so I set both. Doesn't seem to matter much.
                                                     nbt1.setInteger(NbtKeys.IS_SHINY, 1);
                                                     nbt1.setInteger(NbtKeys.SHINY, 1);
+
+                                                    src.sendMessage(Text.of("\u00A7dPlease reconnect to update your fused \u00A75Ditto\u00A7d's shiny status!"));
                                                 }
+
+                                                player.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
 
                                                 targetPokemon.getEntityData().setInteger("fuseCount", targetFuseCount + 1);
                                                 storageCompleted.changePokemonAndAssignID(slot2 - 1, null);
+                                                //storageCompleted.update(targetPokemon, EnumUpdateType.Status);
 
                                                 printToLog(1, "Transaction successful. Took: " + costToConfirm + " and a Ditto. Current cash: " + uniqueAccount.getBalance(economyService.getDefaultCurrency()));
                                             }
@@ -435,38 +464,63 @@ public class DittoFusion implements CommandExecutor
                                         {
                                             printToLog(2, "Got cost but no confirmation; end of the line.");
 
-                                            src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-                                            src.sendMessage(Text.of("\u00A7bYou are about to upgrade the Ditto in slot \u00A73" + slot1 + "\u00A7b."));
-                                            src.sendMessage(Text.of("\u00A7bThe other Ditto in slot \u00A73" + slot2 + "\u00A7b will be \u00A7ldeleted\u00A7r\u00A7b!"));
+                                            player.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
+                                            if (nbt2.getInteger(NbtKeys.IS_SHINY) == 1 && passOnShinyStatus)
+                                                src.sendMessage(Text.of("\u00A7eThe Ditto in slot \u00A76" + slot1 + "\u00A7e will be upgraded. Transferring shiny status!"));
+                                            else
+                                                src.sendMessage(Text.of("\u00A7eYou are about to upgrade the Ditto in slot \u00A76" + slot1 + "\u00A7e."));
+
                                             src.sendMessage(Text.of(""));
 
                                             if (HPPlusNum != 0)
-                                                src.sendMessage(Text.of("\u00A7eHP will be upgraded: \u00A77" + targetHP + " \u00A7f-> \u00A7a" + (targetHP + HPPlusNum)));
+                                            {
+                                                src.sendMessage(Text.of("\u00A7bHP will be upgraded."));
+                                                src.sendMessage(Text.of("\u00A77" + targetHP + " \u00A7f-> \u00A7a" + (targetHP + HPPlusNum)));
+                                            }
                                             if (ATKPlusNum != 0)
-                                                src.sendMessage(Text.of("\u00A7eAttack will be upgraded: \u00A77" + targetATK + " \u00A7f-> \u00A7a" + (targetATK + ATKPlusNum)));
+                                            {
+                                                src.sendMessage(Text.of("\u00A7bAttack will be upgraded."));
+                                                src.sendMessage(Text.of("\u00A77" + targetATK + " \u00A7f-> \u00A7a" + (targetATK + ATKPlusNum)));
+                                            }
                                             if (DEFPlusNum != 0)
-                                                src.sendMessage(Text.of("\u00A7eDefence will be upgraded: \u00A77" + targetDEF + " \u00A7f-> \u00A7a" + (targetDEF + DEFPlusNum)));
+                                            {
+                                                if (useBritishSpelling)
+                                                    src.sendMessage(Text.of("\u00A7bDefence will be upgraded."));
+                                                else
+                                                    src.sendMessage(Text.of("\u00A7bDefense will be upgraded."));
+
+                                                src.sendMessage(Text.of("\u00A77" + targetDEF + " \u00A7f-> \u00A7a" + (targetDEF + DEFPlusNum)));
+                                            }
                                             if (SPATKPlusNum != 0)
-                                                src.sendMessage(Text.of("\u00A7eSpecial Attack will be upgraded: \u00A77" + targetSPATK + " \u00A7f-> \u00A7a" + (targetSPATK + SPATKPlusNum)));
+                                            {
+                                                src.sendMessage(Text.of("\u00A7bSpecial Attack will be upgraded."));
+                                                src.sendMessage(Text.of("\u00A77" + targetSPATK + " \u00A7f-> \u00A7a" + (targetSPATK + SPATKPlusNum)));
+                                            }
                                             if (SPDEFPlusNum != 0)
-                                                src.sendMessage(Text.of("\u00A7eSpecial Defence will be upgraded: \u00A77" + targetSPDEF + " \u00A7f-> \u00A7a" + (targetSPDEF + SPDEFPlusNum)));
+                                            {
+                                                if (useBritishSpelling)
+                                                    src.sendMessage(Text.of("\u00A7bSpecial Defence will be upgraded."));
+                                                else
+                                                    src.sendMessage(Text.of("\u00A7bSpecial Defense will be upgraded."));
+
+                                                src.sendMessage(Text.of("\u00A77" + targetSPDEF + " \u00A7f-> \u00A7a" + (targetSPDEF + SPDEFPlusNum)));
+                                            }
                                             if (SPDPlusNum != 0)
-                                                src.sendMessage(Text.of("\u00A7eSpeed will be upgraded: \u00A77" + targetSPD + " \u00A7f-> \u00A7a" + (targetSPD + SPDPlusNum)));
+                                            {
+                                                src.sendMessage(Text.of("\u00A7bSpeed will be upgraded."));
+                                                src.sendMessage(Text.of("\u00A77" + targetSPD + " \u00A7f-> \u00A7a" + (targetSPD + SPDPlusNum)));
+                                            }
 
                                             src.sendMessage(Text.of(""));
-                                            src.sendMessage(Text.of("\u00A7bThis upgrade will cost you \u00A73" + costToConfirm + " coins \u00A7bupon confirmation!"));
                                             if (sacrificeFuseCount > 0)
-                                                src.sendMessage(Text.of("\u00A7dThis includes an extra \u00A75" + extraCost + "\u00A7d coins from prior upgrades."));
+                                                src.sendMessage(Text.of("\u00A7eFusing costs \u00A76" + costToConfirm + "\u00A7e coins plus \u00A76"
+                                                    + extraCost + "\u00A7e coins from prior upgrades."));
+                                            else
+                                                src.sendMessage(Text.of("\u00A7eThis upgrade will cost you \u00A76" + costToConfirm + "\u00A7e coins."));
                                             src.sendMessage(Text.of("\u00A7aReady? Use: \u00A72" + alias + " " + slot1 + " " + slot2 + " -c"));
 
-                                            if (nbt2.getInteger(NbtKeys.IS_SHINY) == 1)
-                                                src.sendMessage(Text.of(""));
-                                            if (nbt2.getInteger(NbtKeys.IS_SHINY) == 1 && !passOnShinyStatus)
-                                                src.sendMessage(Text.of("\u00A74Warning: \u00A7cYour sacrifice is shiny. This will not be transferred!"));
-                                            else if (nbt2.getInteger(NbtKeys.IS_SHINY) == 1)
-                                                src.sendMessage(Text.of("\u00A73Good news! \u00A73Your sacrifice's shiny status will be transferred!"));
-
-                                            src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+                                            src.sendMessage(Text.of("\u00A74Warning: \u00A7cThe Ditto in slot \u00A74" + slot2 + "\u00A7c will be \u00A7ldeleted\u00A7r\u00A7c!"));
+                                            player.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
                                         }
                                     }
                                 }

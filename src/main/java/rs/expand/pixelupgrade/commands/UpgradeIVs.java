@@ -24,6 +24,7 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 
 import rs.expand.pixelupgrade.PixelUpgrade;
+import rs.expand.pixelupgrade.configs.PixelUpgradeMainConfig;
 import rs.expand.pixelupgrade.configs.UpgradeIVsConfig;
 
 import java.math.RoundingMode;
@@ -68,49 +69,58 @@ public class UpgradeIVs implements CommandExecutor
         }
     }
 
+    // Set up a variable that we'll be using in command helper messages.
+    private Boolean useBritishSpelling = null;
+
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
 	{
         if (src instanceof Player)
         {
-            boolean presenceCheck1 = true, presenceCheck2 = true, presenceCheck3 = true;
-            Double legendaryAndShinyMult, legendaryMult, regularMult, shinyMult, babyMult;
-            Integer legendaryAndShinyCap, legendaryCap, regularCap, shinyCap, babyCap;
-            Integer mathPower, mathDivisor, upgradesFreeBelow, addFlatFee, debugVerbosityMode;
+            boolean presenceCheck = true;
+            Double mathMultiplier = checkConfigDouble("mathMultiplier");
+            Integer upgradesFreeBelow = checkConfigInt("upgradesFreeBelow");
+            Integer addFlatFee = checkConfigInt("addFlatFee");
 
-            legendaryAndShinyMult = checkConfigDouble("legendaryAndShinyMult");
-            legendaryMult = checkConfigDouble("legendaryMult");
-            regularMult = checkConfigDouble("regularMult");
-            shinyMult = checkConfigDouble("shinyMult");
-            babyMult = checkConfigDouble("babyMult");
+            Double legendaryAndShinyMult = checkConfigDouble("legendaryAndShinyMult");
+            Double legendaryMult = checkConfigDouble("legendaryMult");
+            Double regularMult = checkConfigDouble("regularMult");
+            Double shinyMult = checkConfigDouble("shinyMult");
+            Double babyMult = checkConfigDouble("babyMult");
 
-            debugVerbosityMode = checkConfigInt("debugVerbosityMode", false);
-            mathPower = checkConfigInt("mathPower", false);
-            mathDivisor = checkConfigInt("mathDivisor", false);
-            upgradesFreeBelow = checkConfigInt("upgradesFreeBelow", false);
-            addFlatFee = checkConfigInt("addFlatFee", false);
+            Integer legendaryAndShinyCap = checkConfigInt("legendaryAndShinyCap");
+            Integer legendaryCap = checkConfigInt("legendaryCap");
+            Integer regularCap = checkConfigInt("regularCap");
+            Integer shinyCap = checkConfigInt("shinyCap");
+            Integer babyCap = checkConfigInt("babyCap");
 
-            legendaryAndShinyCap = checkConfigInt("legendaryAndShinyCap", false);
-            legendaryCap = checkConfigInt("legendaryCap", false);
-            regularCap = checkConfigInt("regularCap", false);
-            shinyCap = checkConfigInt("shinyCap", false);
-            babyCap = checkConfigInt("babyCap", false);
+            // Grab the useBritishSpelling value from the main config.
+            if (!PixelUpgradeMainConfig.getInstance().getConfig().getNode("useBritishSpelling").isVirtual())
+                useBritishSpelling = PixelUpgradeMainConfig.getInstance().getConfig().getNode("useBritishSpelling").getBoolean();
 
             // Set up the command's debug verbosity mode and preferred alias.
             getVerbosityMode();
             getCommandAlias();
 
-            if (legendaryAndShinyCap == null || legendaryCap == null || regularCap == null || shinyCap == null || babyCap == null)
-                presenceCheck1 = false;
-            if (legendaryAndShinyMult == null || legendaryMult == null || regularMult == null || shinyMult == null || babyMult == null)
-                presenceCheck2 = false;
-            if (mathPower == null || mathDivisor == null || upgradesFreeBelow == null || addFlatFee == null || debugVerbosityMode == null)
-                presenceCheck3 = false;
+            if (legendaryAndShinyCap == null || legendaryCap == null || regularCap == null || shinyCap == null)
+                presenceCheck = false;
+            else if (babyCap == null || legendaryAndShinyMult == null || legendaryMult == null || regularMult == null)
+                presenceCheck = false;
+            else if (shinyMult == null || babyMult == null || mathMultiplier == null || upgradesFreeBelow == null)
+                presenceCheck = false;
+            else if (addFlatFee == null)
+                presenceCheck = false;
 
-            if (!presenceCheck1 || !presenceCheck2 || !presenceCheck3 || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
+            if (!presenceCheck || alias == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("\u00A74Upgrade // critical: \u00A7cCheck your config. If need be, wipe and \\u00A74/pixelupgrade reload\\u00A7c.");
+                PixelUpgrade.log.info("\u00A74Upgrade // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pixelupgrade reload\u00A7c.");
+            }
+            else if (useBritishSpelling == null)
+            {
+                src.sendMessage(Text.of("\u00A74Error: \u00A7cCould not parse main config. Please report to staff."));
+                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCouldn't get value of \"useBritishSpelling\" from the main config.");
+                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cPlease check (or wipe and reload) your PixelUpgrade.conf file.");
             }
             else
             {
@@ -164,21 +174,30 @@ public class UpgradeIVs implements CommandExecutor
                             fixedStat = "IVHP";
                             cleanStat = "HP";
                             break;
-                        case "ATTACK": case "ATK": case "IVATTACK": case "IV_ATTACK":
+                        case "ATTACK": case "ATK": case "ATT": case "IVATTACK": case "IV_ATTACK":
                             fixedStat = "IVAttack";
                             cleanStat = "Attack";
                             break;
-                        case "DEFENCE": case "DEFENSE": case "DEF": case "IVDEFENCE": case "IV_DEFENCE":
+                        case "DEFENCE": case "DEFENSE": case "DEF": case "IVDEFENCE":
+                        case "IV_DEFENCE": case "IVDEFENSE": case "IV_DEFENSE":
                             fixedStat = "IVDefence";
-                            cleanStat = "Defence";
+                            if (useBritishSpelling)
+                                cleanStat = "Defence";
+                            else
+                                cleanStat = "Defense";
                             break;
-                        case "SPECIALATTACK": case "SPATT": case "SPATK": case "SPATTACK": case "IVSPATT": case "IV_SP_ATT":
+                        case "SPECIALATTACK": case "SPATT": case "SPATK": case "SPATTACK": case "IVSPATT":
+                        case "IV_SP_ATT": case "IV_SP_ATK": case "IV_SPATK":
                             fixedStat = "IVSpAtt";
-                            cleanStat = "Sp. Attack";
+                            cleanStat = "Special Attack";
                             break;
-                        case "SPECIALDEFENSE": case "SPECIALDEFENCE": case "SPDEF": case "SPDEFENCE": case "SPDEFENSE": case "IVSPDEF": case "IV_SP_DEF":
+                        case "SPECIALDEFENSE": case "SPECIALDEFENCE": case "SPDEF": case "SPDEFENCE":
+                        case "SPDEFENSE": case "IVSPDEF": case "IV_SP_DEF":
                             fixedStat = "IVSpDef";
-                            cleanStat = "Sp. Defence";
+                            if (useBritishSpelling)
+                                cleanStat = "Special Defence";
+                            else
+                                cleanStat = "Special Defense";
                             break;
                         case "SPEED": case "SPD": case "IVSPEED": case "IV_SPEED":
                             fixedStat = "IVSpeed";
@@ -415,7 +434,7 @@ public class UpgradeIVs implements CommandExecutor
                                     freeUpgrade = true;
                                 else
                                 {
-                                    iteratedValue += Math.pow(Double.valueOf(loopValue), mathPower) / mathDivisor;
+                                    iteratedValue += Math.exp(Double.valueOf(loopValue) * mathMultiplier);
                                     paidUpgrade = true;
                                 }
 
@@ -430,6 +449,9 @@ public class UpgradeIVs implements CommandExecutor
 
                             if (commandConfirmed)
                             {
+                                String name = nbt.getString("Name");
+                                String upgradeString = "\u00A7eYou upgraded your \u00A76" + name + "\u00A7e's \u00A76" + cleanStat;
+
                                 if (isShiny && isLegendary)
                                     upgradeCount = legendaryAndShinyCap - remainder;
                                 else if (isShiny)
@@ -442,26 +464,27 @@ public class UpgradeIVs implements CommandExecutor
                                     upgradeCount = regularCap - remainder;
 
                                 // A bit confusing, but an output of 0 on the below statement means we're at 0 cost. 1 is above, -1 is below.
-                                if (costToConfirm.compareTo(BigDecimal.ZERO) == 0)
+                                if (costToConfirm.signum() == 0)
                                 {
-                                    printToLog(3, "Entering final stage, with confirmation. No cost due to low stats.");
-
-                                    String name = nbt.getString("Name");
+                                    printToLog(3, "Entering final stage, got confirmation. No cost due to low stats or config.");
 
                                     nbt.setInteger(fixedStat, nbt.getInteger(fixedStat) + upgradeTicker);
                                     pokemon.getEntityData().setInteger("upgradeCount", upgradeCount);
 
+                                    player.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
                                     if (singleUpgrade)
-                                        player.sendMessage(Text.of("\u00A7aYou upgraded your \u00A72" + name + "\u00A7a's \u00A72" + cleanStat + "\u00A7a stat by \u00A72one \u00A7apoint!"));
+                                        player.sendMessage(Text.of(upgradeString + "\u00A7e stat by \u00A76one \u00A7epoint!"));
                                     else
-                                        player.sendMessage(Text.of("\u00A7aYou upgraded your \u00A72" + name + "\u00A7a's \u00A72" + cleanStat + "\u00A7a stat by \u00A72" + upgradeTicker + "\u00A7a points!"));
+                                        player.sendMessage(Text.of(upgradeString + "\u00A7e stat by \u00A76" + upgradeTicker + "\u00A7e points!"));
+                                    player.sendMessage(Text.of(""));
 
                                     if (remainder == 1)
-                                        src.sendMessage(Text.of("\u00A7aThis upgrade was free. You have \u00A72one \u00A7aupgrade remaining..."));
+                                        src.sendMessage(Text.of("\u00A7dThis upgrade was free. You have \u00A75one \u00A7dupgrade remaining..."));
                                     else if (remainder > 1)
-                                        src.sendMessage(Text.of("\u00A7aThis upgrade was free. You have \u00A72" + remainder + " \u00A7aupgrades remaining."));
+                                        src.sendMessage(Text.of("\u00A7dThis upgrade was free. You have \u00A75" + remainder + " \u00A7dupgrades remaining."));
                                     else
-                                        src.sendMessage(Text.of("\u00A7aThis upgrade was free. You've now hit this Pok\u00E9mon's limits."));
+                                        src.sendMessage(Text.of("\u00A7dThis upgrade was free. This Pok\u00E9mon is now at its limits."));
+                                    player.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
                                 }
                                 else
                                 {
@@ -471,30 +494,44 @@ public class UpgradeIVs implements CommandExecutor
                                     {
                                         UniqueAccount uniqueAccount = optionalAccount.get();
                                         BigDecimal newTotal = uniqueAccount.getBalance(economyService.getDefaultCurrency());
-                                        printToLog(1, "Entering final stage, with confirmation. Current cash: \u00A76" + newTotal + "\u00A7e.");
+                                        printToLog(1, "Entering final stage, got confirmation. Current cash: \u00A76" + newTotal + "\u00A7e.");
 
                                         TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(), costToConfirm, Cause.source(this).build());
                                         if (transactionResult.getResult() == ResultType.SUCCESS)
                                         {
-                                            String name = nbt.getString("Name");
-
                                             nbt.setInteger(fixedStat, nbt.getInteger(fixedStat) + upgradeTicker);
                                             pokemon.getEntityData().setInteger("upgradeCount", upgradeCount);
 
+                                            player.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
                                             if (singleUpgrade)
-                                                player.sendMessage(Text.of("\u00A7aYou upgraded your \u00A72" + name + "\u00A7a's \u00A72" + cleanStat + "\u00A7a stat by \u00A72one \u00A7apoint!"));
+                                                player.sendMessage(Text.of(upgradeString + "\u00A7e stat by \u00A76one \u00A7epoint!"));
                                             else
-                                                player.sendMessage(Text.of("\u00A7aYou upgraded your \u00A72" + name + "\u00A7a's \u00A72" + cleanStat + "\u00A7a stat by \u00A72" + upgradeTicker + "\u00A7a points!"));
+                                                player.sendMessage(Text.of(upgradeString + "\u00A7e stat by \u00A76" + upgradeTicker + "\u00A7e points!"));
 
-                                            if (costToConfirm.compareTo(BigDecimal.ZERO) == 0)
+                                            if (costToConfirm.signum() == 1) // 1 = we've got a cost. 0 = cost is zero. -1 would be negative.
                                             {
+                                                String paidString = "\u00A7dYou paid \u00A75" + costToConfirm + "\u00A7d coins";
+                                                player.sendMessage(Text.of(""));
+
                                                 if (remainder == 1)
-                                                    src.sendMessage(Text.of("\u00A7aYou paid \u00A72" + costToConfirm + " coins\u00A7a. \u00A72One \u00A7aupgrade remains..."));
+                                                    src.sendMessage(Text.of(paidString + ". \u00A75One \u00A7dupgrade remains..."));
                                                 else if (remainder > 1)
-                                                    src.sendMessage(Text.of("\u00A7aYou paid \u00A72" + costToConfirm + " coins\u00A7a. \u00A72" + remainder + " \u00A7aupgrades remain."));
+                                                    src.sendMessage(Text.of(paidString + ". \u00A75" + remainder + " \u00A7dupgrades remain."));
                                                 else
-                                                    src.sendMessage(Text.of("\u00A7aYou paid \u00A72" + costToConfirm + " coins\u00A7a, and reached this Pok\u00E9mon's limits."));
+                                                    src.sendMessage(Text.of(paidString + ", and reached this Pok\u00E9mon's limits."));
                                             }
+                                            else if (costToConfirm.signum() == 0) // Cost is zero, either due to low stats or config.
+                                            {
+                                                player.sendMessage(Text.of(""));
+
+                                                if (remainder == 1)
+                                                    src.sendMessage(Text.of("\u00A75One \u00A7dupgrade remains..."));
+                                                else if (remainder > 1)
+                                                    src.sendMessage(Text.of("\u00A75" + remainder + " \u00A7dupgrades remain..."));
+                                                else
+                                                    src.sendMessage(Text.of("You've now reached this Pok\u00E9mon's limits."));
+                                            }
+                                            player.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
 
                                             newTotal = uniqueAccount.getBalance(economyService.getDefaultCurrency());
                                             printToLog(1, "Upgraded an IV, and took \u00A77" + costToConfirm + "\u00A7e coins. New total: \u00A76" + newTotal);
@@ -513,41 +550,44 @@ public class UpgradeIVs implements CommandExecutor
                                         src.sendMessage(Text.of("\u00A74Error: \u00A7cNo economy account found. Please contact staff!"));
                                     }
                                 }
-
                             }
                             else
                             {
                                 printToLog(2, "Got no confirmation; end of the line.");
 
-                                src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-                                if (quantity == 1)
-                                    src.sendMessage(Text.of("\u00A7bThe \u00A73" + cleanStat + "\u00A7b stat will be upgraded by \u00A73one \u00A7bpoint!"));
-                                else if (quantity > (31 - statOld))
-                                    src.sendMessage(Text.of("\u00A7bThe \u00A73" + cleanStat + "\u00A7b stat will be upgraded by \u00A73" + upgradeTicker + "\u00A7b points, up to the cap!"));
-                                else
-                                    src.sendMessage(Text.of("\u00A7bThe \u00A73" + cleanStat + "\u00A7b stat will be upgraded by \u00A73" + upgradeTicker + "\u00A7b points!"));
+                                player.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
+                                String helperString = "\u00A7eThe \u00A76" + cleanStat + "\u00A7e stat will be upgraded by \u00A76";
+                                String quantityString = "\u00A7aReady? Use: \u00A72" + alias + " " + slot + " " + stat;
 
-                                if (freeUpgrade && !paidUpgrade && remainder > 0)
-                                    src.sendMessage(Text.of("\u00A7bThis upgrade will be free due to your Pok\u00E9mon's low stats."));
-                                else if (freeUpgrade && !paidUpgrade)
-                                    src.sendMessage(Text.of("\u00A7bThis final upgrade will be free due to your Pok\u00E9mon's low stats."));
-                                else if (freeUpgrade && remainder > 0)
-                                    src.sendMessage(Text.of("\u00A7bThis upgrade costs \u00A73" + costToConfirm + " coins\u00A7b, with low stat compensation."));
-                                else if (freeUpgrade)
-                                    src.sendMessage(Text.of("\u00A7bThis final upgrade costs \u00A73" + costToConfirm + " coins\u00A7b, with low stat compensation."));
-                                else if (remainder == 0)
-                                    src.sendMessage(Text.of("\u00A7bThis final upgrade will cost \u00A73" + costToConfirm + " coins\u00A7b upon confirmation."));
+                                if (quantity == 1)
+                                    src.sendMessage(Text.of(helperString + "one \u00A7epoint!"));
+                                else if (quantity > (31 - statOld))
+                                    src.sendMessage(Text.of(helperString + upgradeTicker + "\u00A7e points, up to the cap!"));
                                 else
-                                    src.sendMessage(Text.of("\u00A7bThis upgrade will cost \u00A73" + costToConfirm + " coins\u00A7b upon confirmation."));
+                                    src.sendMessage(Text.of(helperString + upgradeTicker + "\u00A7e points!"));
+
+                                if (freeUpgrade && !paidUpgrade && remainder > 0 && costToConfirm.signum() == 0)
+                                    src.sendMessage(Text.of("\u00A7eThis upgrade will be free due to your Pok\u00E9mon's low stats."));
+                                else if (freeUpgrade && !paidUpgrade && costToConfirm.signum() == 0)
+                                    src.sendMessage(Text.of("\u00A7eThis final upgrade will be free due to low stats."));
+                                else if (freeUpgrade && remainder > 0)
+                                    src.sendMessage(Text.of("\u00A7eThis upgrade costs \u00A76" + costToConfirm + " coins\u00A7e, with low stat compensation."));
+                                else if (freeUpgrade) // Lacking space. Slightly awkward message, but it'll do.
+                                    src.sendMessage(Text.of("\u00A7eThis last upgrade costs \u00A76" + costToConfirm + " coins\u00A7e with low stat compensation."));
+                                else if (remainder == 0)
+                                    src.sendMessage(Text.of("\u00A7eThis final upgrade will cost \u00A76" + costToConfirm + " coins\u00A7e upon confirmation."));
+                                else
+                                    src.sendMessage(Text.of("\u00A7eThis upgrade will cost \u00A76" + costToConfirm + " coins\u00A7e upon confirmation."));
                                 src.sendMessage(Text.of(""));
 
                                 if (costToConfirm.compareTo(BigDecimal.ZERO) == 1) // Are we above 0 coins?
-                                    src.sendMessage(Text.of("\u00A76Warning: \u00A7eYou can't undo upgrades! Make sure you want this."));
+                                    src.sendMessage(Text.of("\u00A75Warning: \u00A7dYou can't undo upgrades! Make sure you want this."));
+
                                 if (quantity == 1)
-                                    src.sendMessage(Text.of("\u00A7aReady? Use: \u00A72" + alias + " " + slot + " " + stat + " -c"));
+                                    src.sendMessage(Text.of(quantityString + " -c"));
                                 else
-                                    src.sendMessage(Text.of("\u00A7aReady? Use: \u00A72" + alias + " " + slot + " " + stat + " " + upgradeTicker + " -c"));
-                                src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+                                    src.sendMessage(Text.of(quantityString + " " + upgradeTicker + " -c"));
+                                player.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
                             }
                         }
                     }
@@ -567,7 +607,10 @@ public class UpgradeIVs implements CommandExecutor
 
     private void checkAndAddFooter(Player player)
     {
-        player.sendMessage(Text.of("\u00A72Valid types: \u00A7aHP, Attack, Defence, SpAtt, SpDef, Speed"));
+        if (useBritishSpelling)
+            player.sendMessage(Text.of("\u00A72Valid types: \u00A7aHP, Attack, Defence, SpAtt, SpDef, Speed"));
+        else
+            player.sendMessage(Text.of("\u00A72Valid types: \u00A7aHP, Attack, Defense, SpAtt, SpDef, Speed"));
         player.sendMessage(Text.of(""));
         player.sendMessage(Text.of("\u00A76Warning: \u00A7eAdd the -c flag only if you're sure!"));
         player.sendMessage(Text.of("\u00A7eConfirming will immediately take your money, if you have enough!"));
@@ -579,32 +622,25 @@ public class UpgradeIVs implements CommandExecutor
         player.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> <IV type> [amount?] {-c to confirm}"));
     }
 
-    private void printToLog(Integer debugNum, String inputString)
+    private void printToLog(int debugNum, String inputString)
     {
-        Integer debugVerbosityMode = checkConfigInt("debugVerbosityMode", true);
-
-        if (debugVerbosityMode == null)
-            debugVerbosityMode = 4;
-
-        if (debugNum <= debugVerbosityMode)
+        if (debugNum <= debugLevel)
         {
             if (debugNum == 0)
-                PixelUpgrade.log.info("\u00A74Upgrade // critical: \u00A7c" + inputString);
+                PixelUpgrade.log.info("\u00A74DittoFusion // critical: \u00A7c" + inputString);
             else if (debugNum == 1)
-                PixelUpgrade.log.info("\u00A76Upgrade // important: \u00A7e" + inputString);
+                PixelUpgrade.log.info("\u00A76DittoFusion // important: \u00A7e" + inputString);
             else if (debugNum == 2)
-                PixelUpgrade.log.info("\u00A73Upgrade // start/end: \u00A7b" + inputString);
+                PixelUpgrade.log.info("\u00A73DittoFusion // start/end: \u00A7b" + inputString);
             else
-                PixelUpgrade.log.info("\u00A72Upgrade // debug: \u00A7a" + inputString);
+                PixelUpgrade.log.info("\u00A72DittoFusion // debug: \u00A7a" + inputString);
         }
     }
 
-    private Integer checkConfigInt(String node, Boolean noMessageMode)
+    private Integer checkConfigInt(String node)
     {
         if (!UpgradeIVsConfig.getInstance().getConfig().getNode(node).isVirtual())
             return UpgradeIVsConfig.getInstance().getConfig().getNode(node).getInt();
-        else if (noMessageMode)
-            return null;
         else
         {
             PixelUpgrade.log.info("\u00A74Upgrade // critical: \u00A7cCould not parse config variable \"" + node + "\"!");

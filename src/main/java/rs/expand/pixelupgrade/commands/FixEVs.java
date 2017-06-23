@@ -27,6 +27,7 @@ import net.minecraft.world.World;
 
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.configs.FixEVsConfig;
+import rs.expand.pixelupgrade.configs.PixelUpgradeMainConfig;
 
 import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
@@ -66,6 +67,9 @@ public class FixEVs implements CommandExecutor
         }
     }
 
+    // Set up a variable that we'll be using in the EV-fixing method.
+    private Boolean useBritishSpelling = null;
+
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
 	{
 	    if (src instanceof Player)
@@ -76,15 +80,25 @@ public class FixEVs implements CommandExecutor
             else
                 PixelUpgrade.log.info("\u00A74FixEVs // critical: \u00A7cCould not parse config variable \"commandCost\"!");
 
+            // Grab the useBritishSpelling value from the main config.
+            if (!PixelUpgradeMainConfig.getInstance().getConfig().getNode("useBritishSpelling").isVirtual())
+                useBritishSpelling = PixelUpgradeMainConfig.getInstance().getConfig().getNode("useBritishSpelling").getBoolean();
+
             // Set up the command's debug verbosity mode and preferred alias.
             getVerbosityMode();
             getCommandAlias();
 
-            if (commandCost == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
+            if (commandCost == null || alias == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("\u00A74FixEVs // critical: \u00A7cCheck your config. If need be, wipe and \\u00A74/pixelupgrade reload\\u00A7c.");
+                PixelUpgrade.log.info("\u00A74FixEVs // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pixelupgrade reload\u00A7c.");
+            }
+            else if (useBritishSpelling == null)
+            {
+                src.sendMessage(Text.of("\u00A74Error: \u00A7cCould not parse main config. Please report to staff."));
+                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCouldn't get value of \"useBritishSpelling\" from the main config.");
+                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cPlease check (or wipe and reload) your PixelUpgrade.conf file.");
             }
             else
             {
@@ -158,31 +172,33 @@ public class FixEVs implements CommandExecutor
                         else
                         {
                             EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
-                            int eHP = pokemon.stats.EVs.HP;
-                            int eATK = pokemon.stats.EVs.Attack;
-                            int eDEF = pokemon.stats.EVs.Defence;
-                            int eSPATK = pokemon.stats.EVs.SpecialAttack;
-                            int eSPDEF = pokemon.stats.EVs.SpecialDefence;
-                            int eSPD = pokemon.stats.EVs.Speed;
-                            int totalEVs = eHP + eATK + eDEF + eSPATK + eSPDEF + eSPD;
-                            boolean wasOptimized = false, allEVsGood = false;
+                            int HPEV = pokemon.stats.EVs.HP;
+                            int attackEV = pokemon.stats.EVs.Attack;
+                            int defenceEV = pokemon.stats.EVs.Defence;
+                            int spAttackEV = pokemon.stats.EVs.SpecialAttack;
+                            int spDefenceEV = pokemon.stats.EVs.SpecialDefence;
+                            int speedEV = pokemon.stats.EVs.Speed;
+                            int totalEVs = HPEV + attackEV + defenceEV + spAttackEV + spDefenceEV + speedEV;
+                            boolean allEVsGood = false;
 
-                            if (eHP < 253 && eHP >= 0 && eATK < 253 && eATK >= 0 && eDEF < 253 && eDEF >= 0 && eSPATK < 253 && eSPATK >= 0 && eSPDEF < 253 && eSPDEF >= 0 && eSPD < 253 && eSPD >= 0)
+                            if (HPEV < 253 && HPEV >= 0 && attackEV < 253 && attackEV >= 0 && defenceEV < 253 &&
+                                    defenceEV >= 0 &&spAttackEV < 253 && spAttackEV >= 0 && spDefenceEV < 253 &&
+                                    spDefenceEV >= 0 && speedEV < 253 && speedEV >= 0)
                                 allEVsGood = true;
 
-                            if (eHP == 0 && eATK == 0 && eDEF == 0 && eSPATK == 0 && eSPDEF == 0 && eSPD == 0)
+                            if (HPEV == 0 && attackEV == 0 && defenceEV == 0 && spAttackEV == 0 && spDefenceEV == 0 && speedEV == 0)
                             {
                                 printToLog(2, "All EVs were at zero, no upgrades needed to be done. Abort.");
                                 src.sendMessage(Text.of("\u00A7dNo EVs were found. Go faint some wild Pok\u00E9mon!"));
                                 canContinue = false;
                             }
-                            else if (eHP > 255 || eATK > 255 || eDEF > 255 || eSPATK > 255 || eSPDEF > 255 || eSPD > 255)
+                            else if (HPEV > 255 || attackEV > 255 || defenceEV > 255 || spAttackEV > 255 || spDefenceEV > 255 || speedEV > 255)
                             {
                                 printToLog(2, "Found one or more EVs above 255. Probably set by staff, so abort.");
-                                src.sendMessage(Text.of("\u00A74Error: \u00A7cOne or more EVs are above the limit. Please contact staff."));
+                                src.sendMessage(Text.of("\u00A74Error: \u00A7cOne or more EVs are above the limit. Contact staff."));
                                 canContinue = false;
                             }
-                            else if (eHP < 0 || eATK < 0 || eDEF < 0 || eSPATK < 0 || eSPDEF < 0 || eSPD < 0)
+                            else if (HPEV < 0 || attackEV < 0 || defenceEV < 0 || spAttackEV < 0 || spDefenceEV < 0 || speedEV < 0)
                             {
                                 printToLog(2, "Found one or more negative EVs. Let's let staff handle this -- abort.");
                                 src.sendMessage(Text.of("\u00A74Error: \u00A7cOne or more EVs are negative. Please contact staff."));
@@ -216,8 +232,7 @@ public class FixEVs implements CommandExecutor
                                         if (transactionResult.getResult() == ResultType.SUCCESS)
                                         {
                                             printToLog(1, "Fixed EVs for slot " + slot + ", and took " + costToConfirm + " coins.");
-                                            fixPlayerEVs(nbt, player, eHP, eATK, eDEF, eSPATK, eSPDEF, eSPD);
-                                            wasOptimized = true;
+                                            fixPlayerEVs(nbt, player, HPEV, attackEV, defenceEV, spAttackEV, spDefenceEV, speedEV);
                                         }
                                         else
                                         {
@@ -248,23 +263,17 @@ public class FixEVs implements CommandExecutor
                             else
                             {
                                 printToLog(1, "Fixed EVs for slot " + slot + ". Config price is 0, taking nothing.");
-                                fixPlayerEVs(nbt, player, eHP, eATK, eDEF, eSPATK, eSPDEF, eSPD);
-                                wasOptimized = true;
+                                fixPlayerEVs(nbt, player, HPEV, attackEV, defenceEV, spAttackEV, spDefenceEV, speedEV);
                             }
 
                             if (canContinue)
                             {
-                                if (wasOptimized)
-                                {
-                                    printToLog(2, "Succesfully optimized a Pok\u00E9mon!");
+                                printToLog(2, "Succesfully optimized a Pok\u00E9mon!");
 
-                                    if (nbt.getString("Nickname").equals(""))
-                                        src.sendMessage(Text.of("\u00A76" + nbt.getString("Name") + "\u00A7e has been checked and optimized!"));
-                                    else
-                                        src.sendMessage(Text.of("\u00A7eYour \u00A76" + nbt.getString("Nickname") + "\u00A7e has been checked and optimized!"));
-                                }
+                                if (nbt.getString("Nickname").equals(""))
+                                    src.sendMessage(Text.of("\u00A76" + nbt.getString("Name") + "\u00A7e has been checked and optimized!"));
                                 else
-                                    src.sendMessage(Text.of("\u00A7aNo EV-related problems found! No changes were made."));
+                                    src.sendMessage(Text.of("\u00A7eYour \u00A76" + nbt.getString("Nickname") + "\u00A7e has been checked and optimized!"));
                             }
                         }
                     }
@@ -277,34 +286,40 @@ public class FixEVs implements CommandExecutor
         return CommandResult.success();
 	}
 
-	private void fixPlayerEVs(NBTTagCompound nbt, Player player, int eHP, int eATK, int eDEF, int eSPATK, int eSPDEF, int eSPD)
+	private void fixPlayerEVs(NBTTagCompound nbt, Player player, int HPEV, int attackEV, int defenceEV, int spAttackEV, int spDefenceEV, int speedEV)
     {
-        if (eHP > 252)
+        if (HPEV > 252)
         {
             player.sendMessage(Text.of("\u00A7aStat \u00A72HP \u00A7ais above 252 and has been fixed!"));
             nbt.setInteger(NbtKeys.EV_HP, 252);
         }
-        if (eATK > 252)
+        if (attackEV > 252)
         {
             player.sendMessage(Text.of("\u00A7aStat \u00A72Attack \u00A7ais above 252 and has been fixed!"));
             nbt.setInteger(NbtKeys.EV_ATTACK, 252);
         }
-        if (eDEF > 252)
+        if (defenceEV > 252)
         {
-            player.sendMessage(Text.of("\u00A7aStat \u00A72Defence \u00A7ais above 252 and has been fixed!"));
+            if (useBritishSpelling)
+                player.sendMessage(Text.of("\u00A7aStat \u00A72Defence \u00A7ais above 252 and has been fixed!"));
+            else
+                player.sendMessage(Text.of("\u00A7aStat \u00A72Defense \u00A7ais above 252 and has been fixed!"));
             nbt.setInteger(NbtKeys.EV_DEFENCE, 252);
         }
-        if (eSPATK > 252)
+        if (spAttackEV > 252)
         {
             player.sendMessage(Text.of("\u00A7aStat \u00A72Special Attack \u00A7ais above 252 and has been fixed!"));
             nbt.setInteger(NbtKeys.EV_SPECIAL_ATTACK, 252);
         }
-        if (eSPDEF > 252)
+        if (spDefenceEV > 252)
         {
-            player.sendMessage(Text.of("\u00A7aStat \u00A72Special Defence \u00A7ais above 252 and has been fixed!"));
+            if (useBritishSpelling)
+                player.sendMessage(Text.of("\u00A7aStat \u00A72Special Defence \u00A7ais above 252 and has been fixed!"));
+            else
+                player.sendMessage(Text.of("\u00A7aStat \u00A72Special Defense \u00A7ais above 252 and has been fixed!"));
             nbt.setInteger(NbtKeys.EV_SPECIAL_DEFENCE, 252);
         }
-        if (eSPD > 252)
+        if (speedEV > 252)
         {
             player.sendMessage(Text.of("\u00A7aStat \u00A72Speed \u00A7ais above 252 and has been fixed!"));
             nbt.setInteger(NbtKeys.EV_SPEED, 252);

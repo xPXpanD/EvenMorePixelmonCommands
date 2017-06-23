@@ -19,6 +19,7 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.configs.ForceStatsConfig;
+import rs.expand.pixelupgrade.configs.PixelUpgradeMainConfig;
 
 public class ForceStats implements CommandExecutor
 {
@@ -60,15 +61,27 @@ public class ForceStats implements CommandExecutor
     {
         if (src instanceof Player)
         {
+            Boolean useBritishSpelling = null;
+
+            // Grab the useBritishSpelling value from the main config.
+            if (!PixelUpgradeMainConfig.getInstance().getConfig().getNode("useBritishSpelling").isVirtual())
+                useBritishSpelling = PixelUpgradeMainConfig.getInstance().getConfig().getNode("useBritishSpelling").getBoolean();
+
             // Set up the command's debug verbosity mode and preferred alias.
             getVerbosityMode();
             getCommandAlias();
 
-            if (debugLevel == null || debugLevel >= 4 || debugLevel < 0)
+            if (alias == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("\u00A74ForceStats // critical: \u00A7cCheck your config. If need be, wipe and \\u00A74/pixelupgrade reload\\u00A7c.");
+                PixelUpgrade.log.info("\u00A74ForceStats // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pixelupgrade reload\u00A7c.");
+            }
+            else if (useBritishSpelling == null)
+            {
+                src.sendMessage(Text.of("\u00A74Error: \u00A7cCould not parse main config. Please check the console."));
+                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCouldn't get value of \"useBritishSpelling\" from the main config.");
+                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cPlease check (or wipe and reload) your PixelUpgrade.conf file.");
             }
             else
             {
@@ -184,9 +197,19 @@ public class ForceStats implements CommandExecutor
                         src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid stat provided. See below for valid stats."));
                         src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> <stat> <value> (-f to force)"));
                         src.sendMessage(Text.of(""));
-                        src.sendMessage(Text.of("\u00A76IVs: \u00A7eIVHP, IVAttack, IVDefence, IVSpAtt, IVSpDef, IVSpeed"));
-                        src.sendMessage(Text.of("\u00A76EVs: \u00A7eEVHP, EVAttack, EVDefence, EVSpAtt, EVSpDef, EVSpeed"));
+
+                        if (useBritishSpelling)
+                        {
+                            src.sendMessage(Text.of("\u00A76IVs: \u00A7eIVHP, IVAttack, IVDefence, IVSpAtt, IVSpDef, IVSpeed"));
+                            src.sendMessage(Text.of("\u00A76EVs: \u00A7eEVHP, EVAttack, EVDefence, EVSpAtt, EVSpDef, EVSpeed"));
+                        }
+                        else
+                        {
+                            src.sendMessage(Text.of("\u00A76IVs: \u00A7eIVHP, IVAttack, IVDefense, IVSpAtt, IVSpDef, IVSpeed"));
+                            src.sendMessage(Text.of("\u00A76EVs: \u00A7eEVHP, EVAttack, EVDefense, EVSpAtt, EVSpDef, EVSpeed"));
+                        }
                         src.sendMessage(Text.of("\u00A76Others: \u00A7eGrowth, Nature, Shiny"));
+
                         src.sendMessage(Text.of(""));
                         src.sendMessage(Text.of("\u00A75Please note: \u00A7dPassing the -f flag will disable safety checks."));
                         src.sendMessage(Text.of("\u00A7dThis may lead to crashes or even corruption. Handle with care!"));
@@ -203,9 +226,19 @@ public class ForceStats implements CommandExecutor
                     src.sendMessage(Text.of("\u00A74Error: \u00A7cNo stat provided. See below for valid stats."));
                     src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> <stat> <value> (-f to force)"));
                     src.sendMessage(Text.of(""));
-                    src.sendMessage(Text.of("\u00A76IVs: \u00A7eIVHP, IVAttack, IVDefence, IVSpAtt, IVSpDef, IVSpeed"));
-                    src.sendMessage(Text.of("\u00A76EVs: \u00A7eEVHP, EVAttack, EVDefence, EVSpAtt, EVSpDef, EVSpeed"));
+
+                    if (useBritishSpelling)
+                    {
+                        src.sendMessage(Text.of("\u00A76IVs: \u00A7eIVHP, IVAttack, IVDefence, IVSpAtt, IVSpDef, IVSpeed"));
+                        src.sendMessage(Text.of("\u00A76EVs: \u00A7eEVHP, EVAttack, EVDefence, EVSpAtt, EVSpDef, EVSpeed"));
+                    }
+                    else
+                    {
+                        src.sendMessage(Text.of("\u00A76IVs: \u00A7eIVHP, IVAttack, IVDefense, IVSpAtt, IVSpDef, IVSpeed"));
+                        src.sendMessage(Text.of("\u00A76EVs: \u00A7eEVHP, EVAttack, EVDefense, EVSpAtt, EVSpDef, EVSpeed"));
+                    }
                     src.sendMessage(Text.of("\u00A76Others: \u00A7eGrowth, Nature, Shiny"));
+
                     src.sendMessage(Text.of(""));
                     src.sendMessage(Text.of("\u00A75Please note: \u00A7dPassing the -f flag will disable safety checks."));
                     src.sendMessage(Text.of("\u00A7dThis may lead to crashes or even corruption. Handle with care!"));

@@ -31,15 +31,13 @@ import net.minecraft.world.World;
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.configs.DittoFusionConfig;
 import rs.expand.pixelupgrade.configs.CheckStatsConfig;
+import rs.expand.pixelupgrade.configs.PixelUpgradeMainConfig;
 import rs.expand.pixelupgrade.configs.UpgradeIVsConfig;
 
 import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
 public class CheckStats implements CommandExecutor
 {
-    private static Integer regularFusionCap, shinyFusionCap, legendaryAndShinyUpgradeCap;
-    private static Integer legendaryUpgradeCap, regularUpgradeCap, shinyUpgradeCap, babyUpgradeCap;
-
     // See which messages should be printed by the debug logger. Valid range is 0-3.
     // We set null on hitting an error, and let the main code block handle it from there.
     private static Integer debugLevel;
@@ -80,6 +78,8 @@ public class CheckStats implements CommandExecutor
     private Boolean showUpgradeHelper = null;
     private Boolean showDittoFusionHelper = null;
     private Boolean competitiveMode = null;
+    private Integer regularFusionCap, shinyFusionCap, legendaryAndShinyUpgradeCap;
+    private Integer legendaryUpgradeCap, regularUpgradeCap, shinyUpgradeCap, babyUpgradeCap;
 
     //boolean targetAcquired, boolean showEVs, boolean showFixEVsHelper,
     //boolean showUpgradeHelper, boolean showDittoFusionHelper,
@@ -97,7 +97,6 @@ public class CheckStats implements CommandExecutor
             showFixEVsHelper = checkConfigBool("showFixEVsHelper");
             showUpgradeHelper = checkConfigBool("showUpgradeHelper");
             showDittoFusionHelper = checkConfigBool("showDittoFusionHelper");
-            competitiveMode = checkConfigBool("competitiveMode");
             Integer commandCost = checkConfigInt();
 
             // Load up Ditto Fusion config values. Used for showing fusion limits.
@@ -112,15 +111,17 @@ public class CheckStats implements CommandExecutor
             shinyUpgradeCap = checkUpgradeConfigInt("shinyCap");
             babyUpgradeCap = checkUpgradeConfigInt("babyCap");
 
+            // Grab the competitiveMode value from the main config.
+            if (!PixelUpgradeMainConfig.getInstance().getConfig().getNode("competitiveMode").isVirtual())
+                competitiveMode = PixelUpgradeMainConfig.getInstance().getConfig().getNode("competitiveMode").getBoolean();
+
             // Set up the command's debug verbosity mode and preferred alias.
             getVerbosityMode();
             getCommandAlias();
 
             if (enableCheckEggIntegration == null || showTeamWhenSlotEmpty == null || commandCost == null)
                 presenceCheck = false;
-            if (showEVs == null || showFixEVsHelper == null || showUpgradeHelper == null)
-                presenceCheck = false;
-            if (showDittoFusionHelper == null || competitiveMode == null)
+            else if (showEVs == null || showFixEVsHelper == null || showUpgradeHelper == null || showDittoFusionHelper == null)
                 presenceCheck = false;
             if (regularFusionCap == null || shinyFusionCap == null)
                 fusionPresenceCheck = false;
@@ -129,12 +130,18 @@ public class CheckStats implements CommandExecutor
             else if (shinyUpgradeCap == null || babyUpgradeCap == null)
                 upgradePresenceCheck = false;
 
-            if (!presenceCheck || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
+            if (!presenceCheck || alias == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("\u00A74CheckStats // critical: \u00A7cCheck your config. If need be, wipe and \\u00A74/pixelupgrade reload\\u00A7c.");
+                PixelUpgrade.log.info("\u00A74CheckStats // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pixelupgrade reload\u00A7c.");
                 canContinue = false;
+            }
+            else if (competitiveMode == null)
+            {
+                src.sendMessage(Text.of("\u00A74Error: \u00A7cCould not parse main config. Please report to staff."));
+                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCouldn't get value of \"competitiveMode\" from the main config.");
+                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cPlease check (or wipe and reload) your PixelUpgrade.conf file.");
             }
             else if (!fusionPresenceCheck || !upgradePresenceCheck)
             { // These errors are shown after the config checker method's errors.

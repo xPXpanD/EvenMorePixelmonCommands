@@ -29,6 +29,7 @@ import net.minecraft.world.World;
 
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.configs.CheckEggConfig;
+import rs.expand.pixelupgrade.configs.PixelUpgradeMainConfig;
 
 import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
@@ -71,8 +72,8 @@ public class CheckEgg implements CommandExecutor
     // Set up some variables that we'll be using in the egg-checking method.
     private Boolean showName = null;
     private Boolean explicitReveal = null;
-    private Boolean competitiveMode = null;
     private Boolean recheckIsFree = null;
+    private Boolean competitiveMode = null;
 
     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException
     {
@@ -83,8 +84,11 @@ public class CheckEgg implements CommandExecutor
             Integer babyHintPercentage = checkConfigInt("babyHintPercentage");
             showName = checkConfigBool("showName");
             explicitReveal = checkConfigBool("explicitReveal");
-            competitiveMode = checkConfigBool("competitiveMode");
             recheckIsFree = checkConfigBool("recheckIsFree");
+
+            // Grab the competitiveMode value from the main config.
+            if (!PixelUpgradeMainConfig.getInstance().getConfig().getNode("competitiveMode").isVirtual())
+                competitiveMode = PixelUpgradeMainConfig.getInstance().getConfig().getNode("competitiveMode").getBoolean();
 
             // Set up the command's debug verbosity mode and preferred alias.
             getVerbosityMode();
@@ -92,14 +96,20 @@ public class CheckEgg implements CommandExecutor
 
             if (recheckIsFree == null || showName == null || explicitReveal == null)
                 presenceCheck = false;
-            if (competitiveMode == null || commandCost == null || babyHintPercentage == null)
+            else if (commandCost == null || babyHintPercentage == null)
                 presenceCheck = false;
 
             if (!presenceCheck || alias == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCheck your config. If need be, wipe and \\u00A74/pixelupgrade reload\\u00A7c.");
+                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pixelupgrade reload\u00A7c.");
+            }
+            else if (competitiveMode == null)
+            {
+                src.sendMessage(Text.of("\u00A74Error: \u00A7cCould not parse main config. Please report to staff."));
+                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCouldn't get value of \"competitiveMode\" from the main config.");
+                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cPlease check (or wipe and reload) your PixelUpgrade.conf file.");
             }
             else
             {

@@ -27,7 +27,6 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-//TODO: Add fixlevel.
 //TODO: Maybe make a /showstats or /printstats.
 //TODO: Consider making a shiny upgrade command and a gender swapper.
 //TODO: Make a Pokémon transfer command.
@@ -37,15 +36,12 @@ import java.nio.file.Paths;
 //TODO: Make a /pokesell, maybe one that sells based on ball worth.
 //TODO: Make a hidden ability switcher, maybe.
 //TODO: Make an admin command that de-flags upgraded/fused Pokémon.
-//TODO: Check if the proper events are called on commands like forcehatch?
 //TODO: Check public static final String PC_RAVE = "rave";
 //TODO: Tab completion on player names.
 //TODO: See if recoloring Pokémon is possible.
-//TODO: Look into name colors.
+//TODO: Look into name colors?
 //TODO: Make a Pokéball changing command, get it to write the old ball to the Pokémon for ball sale purposes.
-//TODO: Unify the message format across all commands.
-
-//TODO: Redo Checkstats styling to fit weakness. Checkegg, too.
+//TODO: Find out how to actually use EntityPixelmon's .updateStats() or otherwise refresh after an NBT change.
 
 @Plugin
 (
@@ -53,7 +49,7 @@ import java.nio.file.Paths;
         name = "PixelUpgrade",
         version = "1.9",
         dependencies = @Dependency(id = "pixelmon"),
-        description = "Adds a whole bunch of utility commands to Pixelmon, and also a good few economy-paid upgrades.",
+        description = "Adds a whole bunch of utility commands to Pixelmon, and some economy-integrated commands, too.",
         authors = "XpanD"
         // Not listed but certainly appreciated: A lot of early help from Xenoyia, plus breakthrough snippets from...
         // NickImpact (NBT editing), Proxying (writing to entities in a copy-persistent manner) and Karanum (fancy paginated command list)!
@@ -61,15 +57,26 @@ import java.nio.file.Paths;
 
 public class PixelUpgrade
 {
+    // Primary setup.
     private static final String name = "PixelUpgrade";
     public static final Logger log = LoggerFactory.getLogger(name);
     public static EconomyService economyService;
-    public String path = "config" + FileSystems.getDefault().getSeparator() + "PixelUpgrade";
 
+    // Config-related setup.
+    private String separator = FileSystems.getDefault().getSeparator();
+    private String privatePath = "config" + separator;
+    public String path = "config" + separator + "PixelUpgrade";
+
+    // Create an instance that other classes can access.
     private static PixelUpgrade instance;
     public static PixelUpgrade getInstance()
-    {   return instance;    }
+    {   return instance;   }
 
+    // Set up the primary config.
+    public Path primaryConfigPath = Paths.get(privatePath, "PixelUpgrade.conf");
+    public ConfigurationLoader<CommentedConfigurationNode> primaryConfigLoader = HoconConfigurationLoader.builder().setPath(primaryConfigPath).build();
+
+    // Set up the command config paths.
     public Path cmdCheckEggPath = Paths.get(path, "CheckEgg.conf");
     public Path cmdCheckStatsPath = Paths.get(path, "CheckStats.conf");
     public Path cmdCheckTypesPath = Paths.get(path, "CheckTypes.conf");
@@ -82,6 +89,7 @@ public class PixelUpgrade
     public Path cmdResetEVsPath = Paths.get(path, "ResetEVs.conf");
     public Path cmdUpgradeIVsPath = Paths.get(path, "UpgradeIVs.conf");
 
+    // Load the command configs.
     public ConfigurationLoader<CommentedConfigurationNode> cmdCheckEggLoader = HoconConfigurationLoader.builder().setPath(cmdCheckEggPath).build();
     public ConfigurationLoader<CommentedConfigurationNode> cmdCheckStatsLoader = HoconConfigurationLoader.builder().setPath(cmdCheckStatsPath).build();
     public ConfigurationLoader<CommentedConfigurationNode> cmdCheckTypesLoader = HoconConfigurationLoader.builder().setPath(cmdCheckTypesPath).build();
@@ -112,6 +120,8 @@ public class PixelUpgrade
             .description(Text.of("Reloads all of the PixelUpgrade command configs, or recreates them if missing."))
             .permission("pixelupgrade.command.admin.reload")
             .executor(new ReloadConfigs())
+            .arguments(
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("config"))))
             .build();
 
     private CommandSpec pixelupgradeinfo = CommandSpec.builder()
@@ -224,6 +234,11 @@ public class PixelUpgrade
     @Listener
     public void onPreInitializationEvent(GameInitializationEvent event)
     {
+        // Let's load up the main config on boot.
+        PixelUpgradeMainConfig.getInstance().loadOrCreateConfig(primaryConfigPath, primaryConfigLoader);
+
+        // Also, load up the command configs.
+        // They return an alias from their matching configs, so we also assign that for re-use.
         String checkEggAlias = CheckEggConfig.getInstance().loadOrCreateConfig(cmdCheckEggPath, cmdCheckEggLoader);
         String checkStatsAlias = CheckStatsConfig.getInstance().loadOrCreateConfig(cmdCheckStatsPath, cmdCheckStatsLoader);
         String checkTypesAlias = CheckTypesConfig.getInstance().loadOrCreateConfig(cmdCheckTypesPath, cmdCheckTypesLoader);
@@ -248,12 +263,10 @@ public class PixelUpgrade
         Sponge.getCommandManager().register(this, resetevs, "resetevs", "resetev", resetEVsAlias);
         Sponge.getCommandManager().register(this, upgradeivs, "upgradeivs", "upgradeiv", upgradeIVsAlias);
 
-        log.info("\u00A7aCommands registered!");
+        log.info("\u00A7bCommands registered!");
     }
 
     @Listener
     public void onServerStart(GameStartedServerEvent event)
-    {
-        log.info("\u00A7bAll systems nominal.");
-    }
+    {   log.info("\u00A7bAll systems nominal.");   }
 }

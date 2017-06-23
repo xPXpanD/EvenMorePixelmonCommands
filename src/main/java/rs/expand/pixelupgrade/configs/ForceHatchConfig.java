@@ -45,7 +45,7 @@ public class ForceHatchConfig
             {
                 config = configLoader.load();
                 String alias = getConfig().getNode("commandAlias").getString();
-                PixelUpgrade.log.info("\u00A7aLoading existing config for command \"/forcehatch\", alias \"" + alias + "\"");
+                PixelUpgrade.log.info("\u00A7aLoaded existing config for command \"/forcehatch\", alias \"" + alias + "\"");
                 return alias;
             }
             catch (Exception F)
