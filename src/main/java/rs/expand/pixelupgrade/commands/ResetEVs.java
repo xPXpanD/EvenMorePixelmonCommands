@@ -171,7 +171,6 @@ public class ResetEVs implements CommandExecutor
                                         {
                                             resetPlayerEVs(nbt, player);
                                             printToLog(1, "Reset EVs for slot " + slot + ", and took " + costToConfirm + " coins.");
-                                            src.sendMessage(Text.of("\u00A76Your " + nbt.getString("Name") + "\u00A7e had their EVs successfully wiped!"));
                                         }
                                         else
                                         {
@@ -191,7 +190,6 @@ public class ResetEVs implements CommandExecutor
                                 {
                                     resetPlayerEVs(nbt, player);
                                     printToLog(1, "Reset EVs for slot " + slot + ". Config price is 0, taking nothing.");
-                                    src.sendMessage(Text.of("\u00A76Your " + nbt.getString("Name") + "\u00A7e had their EVs successfully wiped!"));
                                 }
                             }
                             else
