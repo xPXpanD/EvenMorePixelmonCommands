@@ -1,6 +1,7 @@
 package rs.expand.pixelupgrade.commands;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -32,6 +33,7 @@ import rs.expand.pixelupgrade.configs.DittoFusionConfig;
 import rs.expand.pixelupgrade.configs.CheckStatsConfig;
 import rs.expand.pixelupgrade.configs.PixelUpgradeMainConfig;
 import rs.expand.pixelupgrade.configs.UpgradeIVsConfig;
+import rs.expand.pixelupgrade.utilities.GetPokemonInfo;
 
 import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
@@ -576,6 +578,7 @@ public class CheckStats implements CommandExecutor
     {
         EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
 
+        // Set up IVs and matching math.
         int HPIV = nbt.getInteger(NbtKeys.IV_HP);
         int attackIV = nbt.getInteger(NbtKeys.IV_ATTACK);
         int defenceIV = nbt.getInteger(NbtKeys.IV_DEFENCE);
@@ -585,6 +588,7 @@ public class CheckStats implements CommandExecutor
         int totalIVs = HPIV + attackIV + defenceIV + spAttackIV + spDefenceIV + speedIV;
         int percentIVs = totalIVs * 100 / 186;
 
+        // Set up EVs and matching math.
         int HPEV = nbt.getInteger(NbtKeys.EV_HP);
         int attackEV = nbt.getInteger(NbtKeys.EV_ATTACK);
         int defenceEV = nbt.getInteger(NbtKeys.EV_DEFENCE);
@@ -594,21 +598,8 @@ public class CheckStats implements CommandExecutor
         int totalEVs = HPEV + attackEV + defenceEV + spAttackEV + spDefenceEV + speedEV;
         int percentEVs = totalEVs * 100 / 510;
 
-        int natureNum = nbt.getInteger(NbtKeys.NATURE);
-        int growthNum = nbt.getInteger(NbtKeys.GROWTH);
-        int genderNum = nbt.getInteger(NbtKeys.GENDER);
-        int fuseCount = pokemon.getEntityData().getInteger("fuseCount");
-        int upgradeCount = pokemon.getEntityData().getInteger("upgradeCount");
-
-        String natureName = "", plusVal = "", minusVal = "", growthName = "", genderName = "";
-        String ivs1, ivs2, ivs3, ivs4, ivs5, ivs6;
-        String evs1, evs2, evs3, evs4, evs5, evs6;
-        String extraInfo1, extraInfo2, configSpAtk, configSpDef, configSpeed;
-        String pName = nbt.getString("Name");
-
-        boolean isShiny, isLegendary, isBaby = false, showedCapMessage = false;
-        boolean isDitto = nbt.getString("Name").equals("Ditto");
-
+        // Figure out if we're using competitive standards or my personal preferences.
+        String configSpAtk, configSpDef, configSpeed;
         if (competitiveMode)
         {
             configSpAtk = "SpA";
@@ -622,41 +613,62 @@ public class CheckStats implements CommandExecutor
             configSpeed = "Spd";
         }
 
-        isShiny = nbt.getInteger(NbtKeys.IS_SHINY) == 1;
+        // Get a bunch of stuff from our GetPokemonInfo utility class. Used for messages.
+        ArrayList<String> natureArray =
+                GetPokemonInfo.getNatureStrings(nbt.getInteger(NbtKeys.NATURE), configSpAtk, configSpDef, configSpeed);
+        String natureName = natureArray.get(0);
+        String plusVal = natureArray.get(1);
+        String minusVal = natureArray.get(2);
+        String growthName = GetPokemonInfo.getGrowthName(nbt.getInteger(NbtKeys.GROWTH));
+        String genderCharacter = GetPokemonInfo.getGenderCharacter(nbt.getInteger(NbtKeys.GENDER));
+
+        String ivs1, ivs2, ivs3, ivs4, ivs5, ivs6;
+        String evs1, evs2, evs3, evs4, evs5, evs6;
+        String extraInfo1, extraInfo2;
+        String pName = nbt.getString("Name");
+        int fuseCount = pokemon.getEntityData().getInteger("fuseCount");
+        int upgradeCount = pokemon.getEntityData().getInteger("upgradeCount");
+
+        boolean isLegendary = EnumPokemon.legendaries.contains(nbt.getString("Name"));
+        boolean isDitto = nbt.getString("Name").equals("Ditto");
+        boolean isShiny = nbt.getInteger(NbtKeys.IS_SHINY) == 1;
+        boolean isBaby = false, showedCapMessage = false;
         if (pName.equals("Riolu") || pName.equals("Mime Jr.") || pName.equals("Happiny"))
             isBaby = true;
-        isLegendary = EnumPokemon.legendaries.contains(nbt.getString("Name"));
 
-        if (HPIV >= 31)
-            ivs1 = String.valueOf("\u00A7l" + HPIV + " \u00A72HP \u00A7r\u00A7f|\u00A7a ");
-        else
-            ivs1 = String.valueOf(HPIV + " \u00A72HP \u00A7f|\u00A7a ");
+        // Format the IVs for use later, using some funky-but-fast math to see whether we're below 31.
+        switch (HPIV / 31)
+        {
+            case 0: ivs1 = String.valueOf(HPIV + " \u00A72HP \u00A7f|\u00A7a "); break; // We are below 31.
+            default: ivs1 = String.valueOf("\u00A7l" + HPIV + " \u00A72HP \u00A7r\u00A7f|\u00A7a ");
+        }
+        switch (attackIV / 31)
+        {
+            case 0: ivs2 = String.valueOf(attackIV + " \u00A72Atk \u00A7f|\u00A7a "); break;
+            default: ivs2 = String.valueOf("\u00A7l" + attackIV + " \u00A72Atk \u00A7r\u00A7f|\u00A7a ");
+        }
+        switch (defenceIV / 31)
+        {
+            case 0: ivs3 = String.valueOf(defenceIV + " \u00A72Def \u00A7f|\u00A7a "); break;
+            default: ivs3 = String.valueOf("\u00A7l" + defenceIV + " \u00A72Def \u00A7r\u00A7f|\u00A7a ");
+        }
+        switch (spAttackIV / 31)
+        {
+            case 0: ivs4 = String.valueOf(spAttackIV + " \u00A72" + configSpAtk + " \u00A7f|\u00A7a "); break;
+            default: ivs4 = String.valueOf("\u00A7l" + spAttackIV + " \u00A72" + configSpAtk + " \u00A7r\u00A7f|\u00A7a ");
+        }
+        switch (spDefenceIV / 31)
+        {
+            case 0: ivs5 = String.valueOf(spDefenceIV + " \u00A72" + configSpDef + " \u00A7f|\u00A7a "); break;
+            default: ivs5 = String.valueOf("\u00A7l" + spDefenceIV + " \u00A72" + configSpDef + " \u00A7r\u00A7f|\u00A7a ");
+        }
+        switch (speedIV / 31)
+        {
+            case 0: ivs6 = String.valueOf(speedIV + " \u00A72" + configSpeed + ""); break;
+            default: ivs6 = String.valueOf("\u00A7l" + speedIV + " \u00A72" + configSpeed + ""); break;
+        }
 
-        if (attackIV >= 31)
-            ivs2 = String.valueOf("\u00A7l" + attackIV + " \u00A72Atk \u00A7r\u00A7f|\u00A7a ");
-        else
-            ivs2 = String.valueOf(attackIV + " \u00A72Atk \u00A7f|\u00A7a ");
-
-        if (defenceIV >= 31)
-            ivs3 = String.valueOf("\u00A7l" + defenceIV + " \u00A72Def \u00A7r\u00A7f|\u00A7a ");
-        else
-            ivs3 = String.valueOf(defenceIV + " \u00A72Def \u00A7f|\u00A7a ");
-
-        if (spAttackIV >= 31)
-            ivs4 = String.valueOf("\u00A7l" + spAttackIV + " \u00A72" + configSpAtk + " \u00A7r\u00A7f|\u00A7a ");
-        else
-            ivs4 = String.valueOf(spAttackIV + " \u00A72" + configSpAtk + " \u00A7f|\u00A7a ");
-
-        if (spDefenceIV >= 31)
-            ivs5 = String.valueOf("\u00A7l" + spDefenceIV + " \u00A72" + configSpDef + " \u00A7r\u00A7f|\u00A7a ");
-        else
-            ivs5 = String.valueOf(spDefenceIV + " \u00A72" + configSpDef + " \u00A7f|\u00A7a ");
-
-        if (speedIV >= 31)
-            ivs6 = String.valueOf("\u00A7l" + speedIV + " \u00A72" + configSpeed + "");
-        else
-            ivs6 = String.valueOf(speedIV + " \u00A72" + configSpeed + "");
-
+        // Figure out what to print on the EV end, too.
         if (HPEV > 255 || HPEV == 252)
             evs1 = String.valueOf("\u00A7l" + HPEV + " \u00A72HP \u00A7r\u00A7f|\u00A7a ");
         else if (HPEV > 252 && HPEV < 256 && showFixEVsHelper)
@@ -699,157 +711,9 @@ public class CheckStats implements CommandExecutor
         else
             evs6 = String.valueOf(speedEV + " \u00A72" + configSpeed + "");
 
-        switch (natureNum)
-        {
-            case 0:
-                natureName = "Hardy";
-                plusVal = "+None";
-                minusVal = "-None";
-                break;
-            case 1:
-                natureName = "Serious";
-                plusVal = "+None";
-                minusVal = "-None";
-                break;
-            case 2:
-                natureName = "Docile";
-                plusVal = "+None";
-                minusVal = "-None";
-                break;
-            case 3:
-                natureName = "Bashful";
-                plusVal = "+None";
-                minusVal = "-None";
-                break;
-            case 4:
-                natureName = "Quirky";
-                plusVal = "+None";
-                minusVal = "-None";
-                break;
-            case 5:
-                natureName = "Lonely";
-                plusVal = "+Atk";
-                minusVal = "-Def";
-                break;
-            case 6:
-                natureName = "Brave";
-                plusVal = "+Atk";
-                minusVal = "-" + configSpeed;
-                break;
-            case 7:
-                natureName = "Adamant";
-                plusVal = "+Atk";
-                minusVal = "-" + configSpAtk;
-                break;
-            case 8:
-                natureName = "Naughty";
-                plusVal = "+Atk";
-                minusVal = "-" + configSpDef;
-                break;
-            case 9:
-                natureName = "Bold";
-                plusVal = "+Def";
-                minusVal = "-Atk";
-                break;
-            case 10:
-                natureName = "Relaxed";
-                plusVal = "+Def";
-                minusVal = "-" + configSpeed;
-                break;
-            case 11:
-                natureName = "Impish";
-                plusVal = "+Def";
-                minusVal = "-" + configSpAtk;
-                break;
-            case 12:
-                natureName = "Lax";
-                plusVal = "+Def";
-                minusVal = "-" + configSpDef;
-                break;
-            case 13:
-                natureName = "Timid";
-                plusVal = "+" + configSpeed;
-                minusVal = "-Atk";
-                break;
-            case 14:
-                natureName = "Hasty";
-                plusVal = "+" + configSpeed;
-                minusVal = "-Def";
-                break;
-            case 15:
-                natureName = "Jolly";
-                plusVal = "+" + configSpeed;
-                minusVal = "-" + configSpAtk;
-                break;
-            case 16:
-                natureName = "Naive";
-                plusVal = "+" + configSpeed;
-                minusVal = "-" + configSpDef;
-                break;
-            case 17:
-                natureName = "Modest";
-                plusVal = "+" + configSpAtk;
-                minusVal = "-Atk";
-                break;
-            case 18:
-                natureName = "Mild";
-                plusVal = "+" + configSpAtk;
-                minusVal = "-Def";
-                break;
-            case 19:
-                natureName = "Quiet";
-                plusVal = "+" + configSpAtk;
-                minusVal = "-" + configSpeed;
-                break;
-            case 20:
-                natureName = "Rash";
-                plusVal = "+" + configSpAtk;
-                minusVal = "-" + configSpDef;
-                break;
-            case 21:
-                natureName = "Calm";
-                plusVal = "+" + configSpDef;
-                minusVal = "-Atk";
-                break;
-            case 22:
-                natureName = "Gentle";
-                plusVal = "+" + configSpDef;
-                minusVal = "-Def";
-                break;
-            case 23:
-                natureName = "Sassy";
-                plusVal = "+" + configSpDef;
-                minusVal = "-" + configSpeed;
-                break;
-            case 24:
-                natureName = "Careful";
-                plusVal = "+" + configSpDef;
-                minusVal = "-" + configSpAtk;
-                break;
-        }
-
-        switch (growthNum)
-        {
-            case 0: growthName = "Pygmy"; break;
-            case 1: growthName = "Runt"; break;
-            case 2: growthName = "Small"; break;
-            case 3: growthName = "Ordinary"; break;
-            case 4: growthName = "Huge"; break;
-            case 5: growthName = "Giant"; break;
-            case 6: growthName = "Enormous"; break;
-            case 7: growthName = "\u00A7cGinormous"; break;
-            case 8: growthName = "\u00A7aMicroscopic"; break;
-        }
-
-        switch (genderNum)
-        {
-            case 0: genderName = "\u2642"; break;
-            case 1: genderName = "\u2640"; break;
-            case 2: genderName = "\u26A5"; break;
-        }
-
         player.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
 
+        // Format and show the target Pokémon's name.
         if (targetAcquired)
         {
             String startString = "\u00A7eStats of \u00A76" + target.getName() + "\u00A7e's \u00A76" + nbt.getString("Name");
@@ -879,12 +743,14 @@ public class CheckStats implements CommandExecutor
                 player.sendMessage(Text.of(startString));
         }
 
+        // Print out IVs using previously formatted Strings.
         player.sendMessage(Text.of(""));
         player.sendMessage(Text.of("\u00A7bTotal IVs\u00A7f: \u00A7a" + totalIVs +
             "\u00A7f/\u00A7a186\u00A7f (\u00A7a" + percentIVs + "%\u00A7f)"));
         player.sendMessage(Text.of("\u00A7bIVs\u00A7f: \u00A7a" +
             ivs1 + "" + ivs2 + "" + ivs3 + "" + ivs4 + "" + ivs5 + "" + ivs6));
 
+        // Do the same for EVs, if enabled in the config.
         if (showEVs)
         {
             player.sendMessage(Text.of("\u00A7bTotal EVs\u00A7f: \u00A7a" + totalEVs +
@@ -893,15 +759,16 @@ public class CheckStats implements CommandExecutor
                     evs1 + "" + evs2 + "" + evs3 + "" + evs4 + "" + evs5 + "" + evs6));
         }
 
-        extraInfo1 = String.valueOf("\u00A7bGender\u00A7f: " + genderName +
+        // Show extra info, which we grabbed from GetPokemonInfo.
+        extraInfo1 = String.valueOf("\u00A7bGender\u00A7f: " + genderCharacter +
                 "\u00A7f | \u00A7bSize\u00A7f: " + growthName + "\u00A7f | ");
         extraInfo2 = String.valueOf("\u00A7bNature\u00A7f: " + natureName +
                 "\u00A7f (\u00A7a" + plusVal + "\u00A7f/\u00A7c" + minusVal + "\u00A7f)");
         player.sendMessage(Text.of(extraInfo1 + extraInfo2));
 
+        // Check and show whether the Pokémon can be upgraded/fused further, if enabled in config.
         if (showDittoFusionHelper && isDitto || showUpgradeHelper && !isDitto)
             player.sendMessage(Text.of(""));
-
         if (showDittoFusionHelper && isDitto)
         {
             if (isShiny)
@@ -990,6 +857,7 @@ public class CheckStats implements CommandExecutor
             showedCapMessage = true;
         }
 
+        // Show the wasted EVs helper message if, again, it's enabled in the config. Configs are awesome.
         if (showFixEVsHelper && showEVs && !targetAcquired)
         {
             if (!showedCapMessage)

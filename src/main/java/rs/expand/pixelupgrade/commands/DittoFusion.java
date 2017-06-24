@@ -303,16 +303,20 @@ public class DittoFusion implements CommandExecutor
                                                 case 5: statToCheck = sacrificeSPD; break;
                                             }
 
-                                            switch (statToCheck / 5)
-                                            {
-                                                case 0: statToUpgrade = stat0to5; break; // <5
-                                                case 1: statToUpgrade = stat6to10; break; // <10
-                                                case 2: statToUpgrade = stat11to15; break; // <15
-                                                case 3: statToUpgrade = stat16to20; break; // <20
-                                                case 4: statToUpgrade = stat21to25; break; // <25
-                                                case 5: statToUpgrade = stat26to30; break; // <30
-                                                default: statToUpgrade = stat31plus; break; // 31+
-                                            }
+                                            if (statToCheck < 6) // my fancy old switched range check didn't work right... how embarassing!
+                                                statToUpgrade = stat0to5;
+                                            else if (statToCheck < 11)
+                                                statToUpgrade = stat6to10;
+                                            else if (statToCheck < 16)
+                                                statToUpgrade = stat11to15;
+                                            else if (statToCheck < 21)
+                                                statToUpgrade = stat16to20;
+                                            else if (statToCheck < 26)
+                                                statToUpgrade = stat21to25;
+                                            else if (statToCheck < 31)
+                                                statToUpgrade = stat26to30;
+                                            else
+                                                statToUpgrade = stat31plus;
 
                                             switch (i)
                                             {

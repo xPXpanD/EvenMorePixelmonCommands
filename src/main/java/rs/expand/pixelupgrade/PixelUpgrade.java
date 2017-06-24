@@ -37,27 +37,24 @@ import java.nio.file.Paths;
 //TODO: Maybe make a heal command with a hour-long cooldown.
 //TODO: Make a /pokesell, maybe one that sells based on ball worth.
 //TODO: Make a hidden ability switcher, maybe.
-//TODO: Make an admin command that de-flags upgraded/fused Pokémon. /resetflags <flag>?
 //TODO: Check public static final String PC_RAVE = "rave";
 //TODO: See if recoloring Pokémon is possible.
 //TODO: Look into name colors?
 //TODO: Make a Pokéball changing command, get it to write the old ball to the Pokémon for ball sale purposes.
 
 // Improvements to existing things:
-//TODO: Patch up command loaders so their messages are the same no matter the error.
 //TODO: Find out how to actually use EntityPixelmon's .updateStats() or otherwise refresh after an NBT change.
 //TODO: Tab completion on player names.
-//TODO: UpgradeIVs token support?
 //TODO: Fancy hovers on /checkstats?
 //TODO: It would be nice to just have a credits block and then a single line list of loaded commands on startup.
 //TODO: Add natures to /checkegg explicit mode.
-//TODO: Check for heavyweight executor methods that can be optimizied through grabbing from NBT/private variables.
+//TODO: Check for heavyweight executor methods that can be optimized through grabbing from NBT/private variables.
 
 @Plugin
 (
         id = "pixelupgrade",
         name = "PixelUpgrade",
-        version = "2.0-pre2",
+        version = "2.0-pre3",
         dependencies = @Dependency(id = "pixelmon"),
         description = "Adds a whole bunch of utility commands to Pixelmon, and some economy-integrated commands, too.",
         authors = "XpanD"
