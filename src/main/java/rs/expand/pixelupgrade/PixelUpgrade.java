@@ -245,7 +245,7 @@ public class PixelUpgrade
         try
         {
             Files.createDirectory(configPath);
-            log.info("\u00A7dDid not find a PixelUpgrade config folder. Creating it!");
+            log.info("\u00A7dCould not find a PixelUpgrade config folder. Creating it!");
         }
         catch (IOException F)
         {   log.info("\u00A7dFound a PixelUpgrade config folder. Trying to load!");   }

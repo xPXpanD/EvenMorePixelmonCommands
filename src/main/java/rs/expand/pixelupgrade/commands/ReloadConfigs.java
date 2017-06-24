@@ -9,6 +9,12 @@ import org.spongepowered.api.text.Text;
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.configs.*;
 
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 public class ReloadConfigs implements CommandExecutor
 {
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -18,6 +24,17 @@ public class ReloadConfigs implements CommandExecutor
         if (args.<String>getOne("config").isPresent())
         {
             String configString = args.<String>getOne("config").get();
+            String separator = FileSystems.getDefault().getSeparator();
+            Path configPath = Paths.get("config" + separator + "PixelUpgrade" + separator);
+
+            // Create a config directory if it doesn't exist.
+            try
+            {
+                Files.createDirectory(configPath);
+                PixelUpgrade.log.info("\u00A7dCould not find a PixelUpgrade config folder. Creating it!");
+            }
+            catch (IOException F)
+            {   PixelUpgrade.log.info("\u00A7dFound a PixelUpgrade config folder. Trying to load!");   }
 
             switch (configString.toUpperCase())
             {
@@ -68,6 +85,8 @@ public class ReloadConfigs implements CommandExecutor
                 default:
                     showError = true;
             }
+
+            PixelUpgrade.log.info("\u00A7dCommand reload finished!");
         }
         else
             showError = true;
@@ -100,6 +119,7 @@ public class ReloadConfigs implements CommandExecutor
 
     private void loadEVERYTHING()
     {
+        PixelUpgradeMainConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().primaryConfigPath, PixelUpgrade.getInstance().primaryConfigLoader);
         CheckEggConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdCheckEggPath, PixelUpgrade.getInstance().cmdCheckEggLoader);
         CheckStatsConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdCheckStatsPath, PixelUpgrade.getInstance().cmdCheckStatsLoader);
         CheckTypesConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdCheckTypesPath, PixelUpgrade.getInstance().cmdCheckTypesLoader);

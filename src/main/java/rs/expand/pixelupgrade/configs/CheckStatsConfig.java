@@ -41,7 +41,7 @@ public class CheckStatsConfig
                 F.printStackTrace();
             }
 
-            return "gs";
+            return "cs";
         }
         else
         {
@@ -59,7 +59,7 @@ public class CheckStatsConfig
                 {
                     PixelUpgrade.log.info("\u00A7cCheckStats: Could not read command variable \u00A74\"commandAlias\"\u00A7c, setting defaults.");
                     PixelUpgrade.log.info("\u00A7cCheckStats: Check this command's config, or wipe it and \u00A74/pureload\u00A7c.");
-                    return "gs";
+                    return "cs";
                 }
             }
             catch (Exception F)
@@ -67,7 +67,7 @@ public class CheckStatsConfig
                 PixelUpgrade.log.info("\u00A7cError during config loading for command \"/checkstats\"!");
                 PixelUpgrade.log.info("\u00A7cPlease make sure this config is formatted correctly. Stack trace follows:");
                 F.printStackTrace();
-                return "gs";
+                return "cs";
             }
         }
     }
