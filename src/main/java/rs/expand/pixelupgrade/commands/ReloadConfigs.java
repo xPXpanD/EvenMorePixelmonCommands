@@ -74,6 +74,9 @@ public class ReloadConfigs implements CommandExecutor
                 case "PIXELUPGRADEINFO": case "INFO":
                     PixelUpgradeInfoConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdPixelUpgradeInfoPath, PixelUpgrade.getInstance().cmdPixelUpgradeInfoLoader);
                     break;
+                case "RESETCOUNT":
+                    ResetCountConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdResetCountPath, PixelUpgrade.getInstance().cmdResetCountLoader);
+                    break;
                 case "RESETEVS":
                     ResetEVsConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdResetEVsPath, PixelUpgrade.getInstance().cmdResetEVsLoader);
                     break;
@@ -102,7 +105,7 @@ public class ReloadConfigs implements CommandExecutor
             src.sendMessage(Text.of(""));
             src.sendMessage(Text.of("\u00A76Commands: \u00A7eCheckEgg, CheckStats, CheckTypes, DittoFusion"));
             src.sendMessage(Text.of("\u00A76Commands: \u00A7eFixEVs, FixLevel, ForceHatch, ForceStats"));
-            src.sendMessage(Text.of("\u00A76Commands: \u00A7ePixelUpgradeInfo (or \"Info\"), ResetEVs, UpgradeIVs"));
+            src.sendMessage(Text.of("\u00A76Commands: \u00A7eInfo, ResetCount, ResetEVs, UpgradeIVs"));
             src.sendMessage(Text.of("\u00A76Other: \u00A7eAll (reloads ALL configs!), MainConfig (or \"Main\")"));
             src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
         }
@@ -129,6 +132,7 @@ public class ReloadConfigs implements CommandExecutor
         ForceHatchConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdForceHatchPath, PixelUpgrade.getInstance().cmdForceHatchLoader);
         ForceStatsConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdForceStatsPath, PixelUpgrade.getInstance().cmdForceStatsLoader);
         PixelUpgradeInfoConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdPixelUpgradeInfoPath, PixelUpgrade.getInstance().cmdPixelUpgradeInfoLoader);
+        ResetCountConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdResetCountPath, PixelUpgrade.getInstance().cmdResetCountLoader);
         ResetEVsConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdResetEVsPath, PixelUpgrade.getInstance().cmdResetEVsLoader);
         UpgradeIVsConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdUpgradeIVsPath, PixelUpgrade.getInstance().cmdUpgradeIVsLoader);
     }

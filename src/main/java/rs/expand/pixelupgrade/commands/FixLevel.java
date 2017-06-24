@@ -151,7 +151,7 @@ public class FixLevel implements CommandExecutor
                         }
                         else if (nbt.getBoolean("isEgg"))
                         {
-                            printToLog(2, "Tried to fix EVs on an egg. Aborting...");
+                            printToLog(2, "Tried to fix level on an egg. Aborting...");
                             src.sendMessage(Text.of("\u00A74Error: \u00A7cThat's an egg! Go hatch it, first."));
                         }
                         else

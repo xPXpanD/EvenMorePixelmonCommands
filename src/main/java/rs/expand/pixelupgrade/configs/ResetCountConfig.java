@@ -13,30 +13,30 @@ import rs.expand.pixelupgrade.PixelUpgrade;
 
 import static rs.expand.pixelupgrade.utilities.ConfigOperations.printMessages;
 
-public class FixLevelConfig
+public class ResetCountConfig
 {
     private CommentedConfigurationNode config;
-    private static FixLevelConfig instance = new FixLevelConfig();
-    public static FixLevelConfig getInstance()
+    private static ResetCountConfig instance = new ResetCountConfig();
+    public static ResetCountConfig getInstance()
     {   return instance;    }
 
     // Called during initial setup, either when the server is booting up or when /pureload has been executed.
     public String loadOrCreateConfig(Path checkPath, ConfigurationLoader<CommentedConfigurationNode> configLoader)
     {
-        String fallbackAlias = "fixlevel";
+        String fallbackAlias = "resetcount";
 
         if (Files.notExists(checkPath))
         {
             try
             {
-                printMessages(1, "fixlevel", "");
-                Path targetLocation = Paths.get(PixelUpgrade.getInstance().path, "FixLevel.conf");
-                Files.copy(getClass().getResourceAsStream("/assets/FixLevel.conf"), targetLocation);
+                printMessages(1, "resetcount", "");
+                Path targetLocation = Paths.get(PixelUpgrade.getInstance().path, "ResetCount.conf");
+                Files.copy(getClass().getResourceAsStream("/assets/ResetCount.conf"), targetLocation);
                 config = configLoader.load();
             }
             catch (IOException F)
             {
-                printMessages(2, "FixLevel", "");
+                printMessages(2, "ResetCount", "");
                 F.printStackTrace();
             }
 
@@ -49,18 +49,18 @@ public class FixLevelConfig
 
             if (!Objects.equals(alias, null))
             {
-                printMessages(3, "fixlevel", alias);
+                printMessages(3, "resetcount", alias);
                 return alias;
             }
             else
             {
-                printMessages(4, "FixLevel", "");
+                printMessages(4, "ResetCount", "");
                 return fallbackAlias;
             }
         }
         catch (IOException F)
         {
-            printMessages(5, "fixlevel", "");
+            printMessages(5, "resetcount", "");
             F.printStackTrace();
             return fallbackAlias;
         }

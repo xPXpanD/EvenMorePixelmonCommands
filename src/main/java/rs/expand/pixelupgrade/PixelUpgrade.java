@@ -104,6 +104,7 @@ public class PixelUpgrade
     public Path cmdForceHatchPath = Paths.get(path, "ForceHatch.conf");
     public Path cmdForceStatsPath = Paths.get(path, "ForceStats.conf");
     public Path cmdPixelUpgradeInfoPath = Paths.get(path, "PixelUpgradeInfo.conf");
+    public Path cmdResetCountPath = Paths.get(path, "ResetCount.conf");
     public Path cmdResetEVsPath = Paths.get(path, "ResetEVs.conf");
     public Path cmdUpgradeIVsPath = Paths.get(path, "UpgradeIVs.conf");
 
@@ -117,6 +118,7 @@ public class PixelUpgrade
     public ConfigurationLoader<CommentedConfigurationNode> cmdForceHatchLoader = HoconConfigurationLoader.builder().setPath(cmdForceHatchPath).build();
     public ConfigurationLoader<CommentedConfigurationNode> cmdForceStatsLoader = HoconConfigurationLoader.builder().setPath(cmdForceStatsPath).build();
     public ConfigurationLoader<CommentedConfigurationNode> cmdPixelUpgradeInfoLoader = HoconConfigurationLoader.builder().setPath(cmdPixelUpgradeInfoPath).build();
+    public ConfigurationLoader<CommentedConfigurationNode> cmdResetCountLoader = HoconConfigurationLoader.builder().setPath(cmdResetCountPath).build();
     public ConfigurationLoader<CommentedConfigurationNode> cmdResetEVsLoader = HoconConfigurationLoader.builder().setPath(cmdResetEVsPath).build();
     public ConfigurationLoader<CommentedConfigurationNode> cmdUpgradeIVsLoader = HoconConfigurationLoader.builder().setPath(cmdUpgradeIVsPath).build();
 
@@ -135,7 +137,7 @@ public class PixelUpgrade
          Utility commands.
     \*                       */
     private CommandSpec reloadconfigs = CommandSpec.builder()
-            .permission("pixelupgrade.command.admin.reload")
+            .permission("pixelupgrade.command.staff.reload")
             .executor(new ReloadConfigs())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("config"))))
@@ -203,7 +205,7 @@ public class PixelUpgrade
             .build();
 
     private CommandSpec forcehatch = CommandSpec.builder()
-            .permission("pixelupgrade.command.admin.forcehatch")
+            .permission("pixelupgrade.command.staff.forcehatch")
             .executor(new ForceHatch())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("target or slot"))),
@@ -211,13 +213,22 @@ public class PixelUpgrade
             .build();
 
     private CommandSpec forcestats = CommandSpec.builder()
-            .permission("pixelupgrade.command.admin.forcestats")
+            .permission("pixelupgrade.command.staff.forcestats")
             .executor(new ForceStats())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("stat"))),
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("value"))),
                     GenericArguments.flags().flag("f").buildWith(GenericArguments.none()))
+            .build();
+
+    private CommandSpec resetcount = CommandSpec.builder()
+            .permission("pixelupgrade.command.staff.resetcount")
+            .executor(new ResetCount())
+            .arguments(
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("count"))),
+                    GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
             .build();
 
     private CommandSpec resetevs = CommandSpec.builder()
@@ -264,6 +275,7 @@ public class PixelUpgrade
         String forceHatchAlias = ForceHatchConfig.getInstance().loadOrCreateConfig(cmdForceHatchPath, cmdForceHatchLoader);
         String forceStatsAlias = ForceStatsConfig.getInstance().loadOrCreateConfig(cmdForceStatsPath, cmdForceStatsLoader);
         String puInfoAlias = PixelUpgradeInfoConfig.getInstance().loadOrCreateConfig(cmdPixelUpgradeInfoPath, cmdPixelUpgradeInfoLoader);
+        String resetCountAlias = ResetCountConfig.getInstance().loadOrCreateConfig(cmdResetCountPath, cmdResetCountLoader);
         String resetEVsAlias = ResetEVsConfig.getInstance().loadOrCreateConfig(cmdResetEVsPath, cmdResetEVsLoader);
         String upgradeIVsAlias = UpgradeIVsConfig.getInstance().loadOrCreateConfig(cmdUpgradeIVsPath, cmdUpgradeIVsLoader);
 
@@ -277,6 +289,7 @@ public class PixelUpgrade
         Sponge.getCommandManager().register(this, forcestats, "forcestats", "forcestat", "adminstats", "adminstat", forceStatsAlias);
         Sponge.getCommandManager().register(this, pixelupgradeinfo, "pixelupgrade", "pixelupgradeinfo", puInfoAlias);
         Sponge.getCommandManager().register(this, reloadconfigs, "pureload", "pixelupgradereload");
+        Sponge.getCommandManager().register(this, resetcount, "resetcount", "resetcounts", resetCountAlias);
         Sponge.getCommandManager().register(this, resetevs, "resetevs", "resetev", resetEVsAlias);
         Sponge.getCommandManager().register(this, upgradeivs, "upgradeivs", "upgradeiv", upgradeIVsAlias);
 

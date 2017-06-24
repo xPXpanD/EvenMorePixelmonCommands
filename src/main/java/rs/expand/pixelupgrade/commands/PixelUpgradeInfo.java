@@ -75,9 +75,10 @@ public class PixelUpgradeInfo implements CommandExecutor
             Boolean permDittoFusion = player.hasPermission("pixelupgrade.command.dittofusion");
             Boolean permFixEVs = player.hasPermission("pixelupgrade.command.fixevs");
             Boolean permFixLevel = player.hasPermission("pixelupgrade.command.fixlevel");
-            Boolean permAdminForceHatch = player.hasPermission("pixelupgrade.command.admin.forcehatch");
-            Boolean permAdminForceStats = player.hasPermission("pixelupgrade.command.admin.forcestats");
-            Boolean permReloadConfig = player.hasPermission("pixelupgrade.command.admin.reload");
+            Boolean permAdminForceHatch = player.hasPermission("pixelupgrade.command.staff.forcehatch");
+            Boolean permAdminForceStats = player.hasPermission("pixelupgrade.command.staff.forcestats");
+            Boolean permReloadConfig = player.hasPermission("pixelupgrade.command.staff.reload");
+            Boolean permResetCount = player.hasPermission("pixelupgrade.command.staff.resetcount");
             Boolean permResetEVs = player.hasPermission("pixelupgrade.command.resetevs");
             Boolean permUpgradeIVs = player.hasPermission("pixelupgrade.command.upgradeivs");
 
@@ -277,6 +278,24 @@ public class PixelUpgradeInfo implements CommandExecutor
                 permissionMessageList.add(Text.of("\u00A76/pureload <config>"));
                 permissionMessageList.add(Text.of("\u00A7f --> \u00A7eReload one or more of the configs on the fly."));
                 hasNoPermission = false;
+            }
+
+            if (permResetCount)
+            {
+                if (Files.exists(Paths.get("config" + separator + "PixelUpgrade" + separator + "ResetCount.conf")))
+                {
+                    if (ResetCountConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
+                    {
+                        String alias = ResetCountConfig.getInstance().getConfig().getNode("commandAlias").getString();
+                        printToLog(3, "\u00A72/resetcount \u00A7apermission found, adding helper to list.");
+
+                        permissionMessageList.add(Text.of("\u00A76/" + alias + " <slot, 1-6> <count> {confirm flag}"));
+                        permissionMessageList.add(Text.of("\u00A7f --> \u00A7eIf you want a Pok\u00E9mon to upgrade further, use this."));
+                        hasNoPermission = false;
+                    }
+                    else printMalformedError("/resetcount");
+                }
+                else printMalformedError("/resetcount");
             }
 
             if (permResetEVs)
