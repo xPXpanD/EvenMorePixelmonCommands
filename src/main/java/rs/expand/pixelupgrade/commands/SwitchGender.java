@@ -149,9 +149,9 @@ public class SwitchGender implements CommandExecutor
                             printToLog(2, "Tried to switch gender on an egg. Aborting...");
                             src.sendMessage(Text.of("§4Error: §cThat's an egg! Go hatch it, first."));
                         }
-                        else if (nbt.getInteger(NbtKeys.GENDER) == 2)
+                        else if (nbt.getInteger(NbtKeys.GENDER) != 0 && nbt.getInteger(NbtKeys.GENDER) != 1)
                         {
-                            printToLog(2, "Tried to switch gender on a genderless Pokémon. Abort.");
+                            printToLog(2, "Tried to switch gender on a genderless (or broken?) Pokémon. Abort.");
                             src.sendMessage(Text.of("§4Error: §cYou can only switch genders on a gendered Pokémon!"));
                         }
                         else
@@ -220,17 +220,25 @@ public class SwitchGender implements CommandExecutor
         return CommandResult.success();
     }
 
-    private void switchGenders(NBTTagCompound nbt, Player player, int gender)
+    private void switchGenders(NBTTagCompound nbt, Player player, int genderNum)
     {
-        if (gender == 0) // male
-            nbt.setInteger(NbtKeys.GENDER, 1); // female
-        else // female (we checked for ungendered Pokémon earlier)
-            nbt.setInteger(NbtKeys.GENDER, 0); // male
-
+        String pokemonName, genderName;
         if (nbt.getString("Nickname").equals(""))
-            player.sendMessage(Text.of("§2" + nbt.getString("Name") + "§a had its gender switched!"));
+            pokemonName = nbt.getString("Name");
         else
-            player.sendMessage(Text.of("§aYour §2" + nbt.getString("Nickname") + "§a had its gender switched!"));
+            pokemonName = nbt.getString("Nickname");
+
+        switch (genderNum)
+        {
+            case 0: // male
+                nbt.setInteger(NbtKeys.GENDER, 1); // female
+                genderName = "female"; break;
+            default: // female, no worries here as we check for non-binary Pokémon earlier
+                nbt.setInteger(NbtKeys.GENDER, 0); // male
+                genderName = "male"; break;
+        }
+
+        player.sendMessage(Text.of("§aMagic! Your §2" + pokemonName + "§a just turned into a " + genderName + "!"));
     }
 
     private void checkAndAddFooter(int cost, Player player)
