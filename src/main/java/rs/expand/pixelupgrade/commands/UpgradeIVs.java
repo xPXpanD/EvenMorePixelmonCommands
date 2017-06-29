@@ -478,11 +478,11 @@ public class UpgradeIVs implements CommandExecutor
                                     player.sendMessage(Text.of(""));
 
                                     if (remainder == 1)
-                                        src.sendMessage(Text.of("§dThis upgrade was free. You have §5one §dupgrade remaining..."));
+                                        src.sendMessage(Text.of("§aThis upgrade was free. You have §2one §aupgrade remaining..."));
                                     else if (remainder > 1)
-                                        src.sendMessage(Text.of("§dThis upgrade was free. You have §5" + remainder + " §dupgrades remaining."));
+                                        src.sendMessage(Text.of("§aThis upgrade was free. You have §2" + remainder + " §aupgrades remaining."));
                                     else
-                                        src.sendMessage(Text.of("§dThis upgrade was free. This Pokémon is now at its limits."));
+                                        src.sendMessage(Text.of("§aThis upgrade was free. This Pokémon is now at its limits."));
                                     player.sendMessage(Text.of("§7-----------------------------------------------------"));
                                 }
                                 else
@@ -509,13 +509,13 @@ public class UpgradeIVs implements CommandExecutor
 
                                             if (costToConfirm.signum() == 1) // 1 = we've got a cost. 0 = cost is zero. -1 would be negative.
                                             {
-                                                String paidString = "§dYou paid §5" + costToConfirm + "§d coins";
+                                                String paidString = "§aYou paid §2" + costToConfirm + "§a coins";
                                                 player.sendMessage(Text.of(""));
 
                                                 if (remainder == 1)
-                                                    src.sendMessage(Text.of(paidString + ". §5One §dupgrade remains..."));
+                                                    src.sendMessage(Text.of(paidString + ". §2One §aupgrade remains..."));
                                                 else if (remainder > 1)
-                                                    src.sendMessage(Text.of(paidString + ". §5" + remainder + " §dupgrades remain."));
+                                                    src.sendMessage(Text.of(paidString + ". §2" + remainder + " §aupgrades remain."));
                                                 else
                                                     src.sendMessage(Text.of(paidString + ", and reached this Pokémon's limits."));
                                             }
@@ -524,9 +524,9 @@ public class UpgradeIVs implements CommandExecutor
                                                 player.sendMessage(Text.of(""));
 
                                                 if (remainder == 1)
-                                                    src.sendMessage(Text.of("§5One §dupgrade remains..."));
+                                                    src.sendMessage(Text.of("§2One §aupgrade remains..."));
                                                 else if (remainder > 1)
-                                                    src.sendMessage(Text.of("§5" + remainder + " §dupgrades remain..."));
+                                                    src.sendMessage(Text.of("§2" + remainder + " §aupgrades remain..."));
                                                 else
                                                     src.sendMessage(Text.of("You've now reached this Pokémon's limits."));
                                             }

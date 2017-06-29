@@ -94,7 +94,7 @@ public class SwitchGender implements CommandExecutor
 
                     player.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
-                    printCorrectHelper(commandCost, player);
+                    src.sendMessage(Text.of("§4Usage: §c" + alias + " <slot, 1-6> {-c to confirm}"));
                     checkAndAddFooter(commandCost, player);
 
                     canContinue = false;
@@ -114,7 +114,7 @@ public class SwitchGender implements CommandExecutor
 
                         player.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
-                        printCorrectHelper(commandCost, player);
+                        src.sendMessage(Text.of("§4Usage: §c" + alias + " <slot, 1-6> {-c to confirm}"));
                         checkAndAddFooter(commandCost, player);
 
                         canContinue = false;
@@ -248,14 +248,6 @@ public class SwitchGender implements CommandExecutor
         if (cost > 0)
             player.sendMessage(Text.of("§eConfirming will cost you §6" + cost + "§e coins."));
         player.sendMessage(Text.of("§5-----------------------------------------------------"));
-    }
-
-    private void printCorrectHelper(int cost, Player player)
-    {
-        if (cost != 0)
-            player.sendMessage(Text.of("§4Usage: §c" + alias + " <slot, 1-6> {-c to confirm}"));
-        else
-            player.sendMessage(Text.of("§4Usage: §c" + alias + " <slot, 1-6>"));
     }
 
     private void printToLog(int debugNum, String inputString)
