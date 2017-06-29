@@ -31,24 +31,19 @@ import java.nio.file.Paths;
 
 // New things:
 //TODO: Maybe make a /showstats or /printstats.
-//TODO: Consider making a shiny upgrade command and a gender swapper.
 //TODO: Make a Pokémon transfer command.
-//TODO: Check if setting stuff to player entities works, too!
-//TODO: Maybe make a heal command with a hour-long cooldown.
+//TODO: Maybe make a heal command with a hour-long cooldown?
 //TODO: Make a /pokesell, maybe one that sells based on ball worth.
-//TODO: Make a hidden ability switcher, maybe.
 //TODO: Check public static final String PC_RAVE = "rave";
 //TODO: See if recoloring Pokémon is possible.
 //TODO: Look into name colors?
 //TODO: Make a Pokéball changing command, get it to write the old ball to the Pokémon for ball sale purposes.
 
 // Improvements to existing things:
-//TODO: Find out how to actually use EntityPixelmon's .updateStats() or otherwise refresh after an NBT change.
 //TODO: Tab completion on player names.
 //TODO: Fancy hovers on /checkstats?
 //TODO: It would be nice to just have a credits block and then a single line list of loaded commands on startup.
 //TODO: Add natures to /checkegg explicit mode.
-//TODO: Check for heavyweight executor methods that can be optimized through grabbing from NBT/private variables.
 
 @Plugin
 (
@@ -61,9 +56,10 @@ import java.nio.file.Paths;
 
         // Not listed but certainly appreciated:
 
-        // NickImpact (actually writing NBTs)
+        // NickImpact (helping me understand how to manipulate NBTs)
         // Proxying (writing to entities in a copy-persistent manner)
-        // Karanum (fancy paginated command list)
+        // Karanum (fancy paginated command lists)
+        // Hiroku (tip + snippet for setting up UTF-8 encoding; made § work)
         // Xenoyia (a LOT of early help, and some serious later stuff too)
 
         // Thanks for helping make PU what it is now, people!
@@ -103,6 +99,7 @@ public class PixelUpgrade
     public Path cmdPixelUpgradeInfoPath = Paths.get(path, "PixelUpgradeInfo.conf");
     public Path cmdResetCountPath = Paths.get(path, "ResetCount.conf");
     public Path cmdResetEVsPath = Paths.get(path, "ResetEVs.conf");
+    public Path cmdSwitchGenderPath = Paths.get(path, "SwitchGender.conf");
     public Path cmdUpgradeIVsPath = Paths.get(path, "UpgradeIVs.conf");
 
     // Load the command configs.
@@ -117,6 +114,7 @@ public class PixelUpgrade
     public ConfigurationLoader<CommentedConfigurationNode> cmdPixelUpgradeInfoLoader = HoconConfigurationLoader.builder().setPath(cmdPixelUpgradeInfoPath).build();
     public ConfigurationLoader<CommentedConfigurationNode> cmdResetCountLoader = HoconConfigurationLoader.builder().setPath(cmdResetCountPath).build();
     public ConfigurationLoader<CommentedConfigurationNode> cmdResetEVsLoader = HoconConfigurationLoader.builder().setPath(cmdResetEVsPath).build();
+    public ConfigurationLoader<CommentedConfigurationNode> cmdSwitchGenderLoader = HoconConfigurationLoader.builder().setPath(cmdSwitchGenderPath).build();
     public ConfigurationLoader<CommentedConfigurationNode> cmdUpgradeIVsLoader = HoconConfigurationLoader.builder().setPath(cmdUpgradeIVsPath).build();
 
     @Listener // Needed for economy support.
@@ -236,6 +234,14 @@ public class PixelUpgrade
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
             .build();
 
+    private CommandSpec switchgender = CommandSpec.builder()
+            .permission("pixelupgrade.command.switchgender")
+            .executor(new SwitchGender())
+            .arguments(
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
+                    GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
+            .build();
+
     private CommandSpec upgradeivs = CommandSpec.builder()
             .permission("pixelupgrade.command.upgradeivs")
             .executor(new UpgradeIVs())
@@ -253,10 +259,10 @@ public class PixelUpgrade
         try
         {
             Files.createDirectory(configPath);
-            log.info("\u00A7dCould not find a PixelUpgrade config folder. Creating it!");
+            log.info("§dCould not find a PixelUpgrade config folder. Creating it!");
         }
         catch (IOException F)
-        {   log.info("\u00A7dFound a PixelUpgrade config folder. Trying to load!");   }
+        {   log.info("§dFound a PixelUpgrade config folder. Trying to load!");   }
 
         // Let's load up the main config on boot.
         PixelUpgradeMainConfig.getInstance().loadOrCreateConfig(primaryConfigPath, primaryConfigLoader);
@@ -274,6 +280,7 @@ public class PixelUpgrade
         String puInfoAlias = PixelUpgradeInfoConfig.getInstance().loadOrCreateConfig(cmdPixelUpgradeInfoPath, cmdPixelUpgradeInfoLoader);
         String resetCountAlias = ResetCountConfig.getInstance().loadOrCreateConfig(cmdResetCountPath, cmdResetCountLoader);
         String resetEVsAlias = ResetEVsConfig.getInstance().loadOrCreateConfig(cmdResetEVsPath, cmdResetEVsLoader);
+        String switchGenderAlias = SwitchGenderConfig.getInstance().loadOrCreateConfig(cmdSwitchGenderPath, cmdSwitchGenderLoader);
         String upgradeIVsAlias = UpgradeIVsConfig.getInstance().loadOrCreateConfig(cmdUpgradeIVsPath, cmdUpgradeIVsLoader);
 
         Sponge.getCommandManager().register(this, checkegg, "checkegg", "eggcheck", checkEggAlias);
@@ -288,12 +295,13 @@ public class PixelUpgrade
         Sponge.getCommandManager().register(this, reloadconfigs, "pureload", "pixelupgradereload");
         Sponge.getCommandManager().register(this, resetcount, "resetcount", "resetcounts", resetCountAlias);
         Sponge.getCommandManager().register(this, resetevs, "resetevs", "resetev", resetEVsAlias);
+        Sponge.getCommandManager().register(this, switchgender, "switchgender", switchGenderAlias);
         Sponge.getCommandManager().register(this, upgradeivs, "upgradeivs", "upgradeiv", upgradeIVsAlias);
 
-        log.info("\u00A7dCommands registered!");
+        log.info("§dCommands registered!");
     }
 
     @Listener
     public void onServerStart(GameStartedServerEvent event)
-    {   log.info("\u00A7bAll systems nominal.");   }
+    {   log.info("§bAll systems nominal.");   }
 }

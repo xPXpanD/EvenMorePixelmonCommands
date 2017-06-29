@@ -14,9 +14,9 @@ public class GetPokemonInfo
 
         switch (genderNum)
         {
-            case 0: genderName = "\u2642"; break;
-            case 1: genderName = "\u2640"; break;
-            case 2: genderName = "\u26A5"; break;
+            case 0: genderName = "♂"; break;
+            case 1: genderName = "♀"; break;
+            case 2: genderName = "⚥"; break;
         }
 
         return genderName;
@@ -28,15 +28,15 @@ public class GetPokemonInfo
 
         switch (growthNum)
         {
-            case 0: growthName = "PygmyY"; break;
+            case 0: growthName = "Pygmy"; break;
             case 1: growthName = "Runt"; break;
             case 2: growthName = "Small"; break;
             case 3: growthName = "Ordinary"; break;
             case 4: growthName = "Huge"; break;
             case 5: growthName = "Giant"; break;
             case 6: growthName = "Enormous"; break;
-            case 7: growthName = "\u00A7cGinormous"; break;
-            case 8: growthName = "\u00A7aMicroscopic"; break;
+            case 7: growthName = "§cGinormous"; break; // Now with fancy red color!
+            case 8: growthName = "§aMicroscopic"; break; // Now with fancy green color!
         }
 
         return growthName;

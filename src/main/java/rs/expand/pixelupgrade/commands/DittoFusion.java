@@ -45,11 +45,11 @@ public class DittoFusion implements CommandExecutor
             if (modeString.matches("^[0-3]"))
                 debugLevel = Integer.parseInt(modeString);
             else
-                PixelUpgrade.log.info("\u00A74DittoFusion // critical: \u00A7cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
+                PixelUpgrade.log.info("§4DittoFusion // critical: §cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
         }
         else
         {
-            PixelUpgrade.log.info("\u00A74DittoFusion // critical: \u00A7cConfig variable \"debugVerbosityMode\" could not be found!");
+            PixelUpgrade.log.info("§4DittoFusion // critical: §cConfig variable \"debugVerbosityMode\" could not be found!");
             debugLevel = null;
         }
     }
@@ -61,7 +61,7 @@ public class DittoFusion implements CommandExecutor
             alias = "/" + DittoFusionConfig.getInstance().getConfig().getNode("commandAlias").getString();
         else
         {
-            PixelUpgrade.log.info("\u00A74DittoFusion // critical: \u00A7cConfig variable \"commandAlias\" could not be found!");
+            PixelUpgrade.log.info("§4DittoFusion // critical: §cConfig variable \"commandAlias\" could not be found!");
             alias = null;
         }
     }
@@ -107,18 +107,18 @@ public class DittoFusion implements CommandExecutor
             if (!presenceCheck || alias == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
-                src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("\u00A74DittoFusion // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pureload\u00A7c.");
+                src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
+                PixelUpgrade.log.info("§4DittoFusion // critical: §cCheck your config. If need be, wipe and §4/pureload§c.");
             }
             else if (useBritishSpelling == null)
             {
-                src.sendMessage(Text.of("\u00A74Error: \u00A7cCould not parse main config. Please report to staff."));
-                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCouldn't get value of \"useBritishSpelling\" from the main config.");
-                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cPlease check (or wipe and reload) your PixelUpgrade.conf file.");
+                src.sendMessage(Text.of("§4Error: §cCould not parse main config. Please report to staff."));
+                PixelUpgrade.log.info("§4CheckEgg // critical: §cCouldn't get value of \"useBritishSpelling\" from the main config.");
+                PixelUpgrade.log.info("§4CheckEgg // critical: §cPlease check (or wipe and reload) your PixelUpgrade.conf file.");
             }
             else
             {
-                printToLog(2, "Called by player \u00A73" + src.getName() + "\u00A7b. Starting!");
+                printToLog(2, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 Player player = (Player) src;
                 int slot1 = 0, slot2 = 0;
@@ -128,8 +128,8 @@ public class DittoFusion implements CommandExecutor
                 {
                     printToLog(2, "No arguments provided, aborting.");
 
-                    src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-                    src.sendMessage(Text.of("\u00A74Error: \u00A7cNo slots were provided. Please provide two valid slots."));
+                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                    src.sendMessage(Text.of("§4Error: §cNo slots were provided. Please provide two valid slots."));
                     checkAndAddFooter(player);
 
                     canContinue = false;
@@ -145,10 +145,10 @@ public class DittoFusion implements CommandExecutor
                     }
                     else
                     {
-                        printToLog(2, "Invalid slot for target Pok\u00E9mon. Aborting.");
+                        printToLog(2, "Invalid slot for target Pokémon. Aborting.");
 
-                        src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-                        src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid value on target slot. Valid values are 1-6."));
+                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                        src.sendMessage(Text.of("§4Error: §cInvalid value on target slot. Valid values are 1-6."));
                         checkAndAddFooter(player);
 
                         canContinue = false;
@@ -157,10 +157,10 @@ public class DittoFusion implements CommandExecutor
 
                 if (!args.<String>getOne("sacrifice slot").isPresent() && canContinue)
                 {
-                    printToLog(2, "No sacrifice Pok\u00E9mon slot provided. Aborting.");
+                    printToLog(2, "No sacrifice Pokémon slot provided. Aborting.");
 
-                    src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-                    src.sendMessage(Text.of("\u00A74Error: \u00A7cNo sacrifice provided. Please provide two valid slots."));
+                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                    src.sendMessage(Text.of("§4Error: §cNo sacrifice provided. Please provide two valid slots."));
                     checkAndAddFooter(player);
 
                     canContinue = false;
@@ -176,17 +176,17 @@ public class DittoFusion implements CommandExecutor
 
                         if (slot2 == slot1)
                         {
-                            printToLog(2, "Caught " + src.getName() + " attempting to upgrade a Pok\u00E9mon with itself. Abort.");
-                            src.sendMessage(Text.of("\u00A74Error: \u00A7cYou can't fuse a Pok\u00E9mon with itself."));
+                            printToLog(2, "Caught " + src.getName() + " attempting to upgrade a Pokémon with itself. Abort.");
+                            src.sendMessage(Text.of("§4Error: §cYou can't fuse a Pokémon with itself."));
                             canContinue = false;
                         }
                     }
                     else
                     {
-                        printToLog(2, "Invalid slot for sacrifice Pok\u00E9mon. Aborting.");
+                        printToLog(2, "Invalid slot for sacrifice Pokémon. Aborting.");
 
-                        src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-                        src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid value on sacrifice slot. Valid values are 1-6."));
+                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                        src.sendMessage(Text.of("§4Error: §cInvalid value on sacrifice slot. Valid values are 1-6."));
                         checkAndAddFooter(player);
 
                         canContinue = false;
@@ -203,8 +203,8 @@ public class DittoFusion implements CommandExecutor
 
                     if (!storage.isPresent())
                     {
-                        printToLog(0, "\u00A74" + src.getName() + "\u00A7c does not have a Pixelmon storage, aborting. May be a bug?");
-                        src.sendMessage(Text.of("\u00A74Error: \u00A7cNo Pixelmon storage found. Please contact staff!"));
+                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. May be a bug?");
+                        src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
                     }
                     else
                     {
@@ -214,18 +214,18 @@ public class DittoFusion implements CommandExecutor
 
                         if (nbt1 == null && nbt2 != null)
                         {
-                            printToLog(2, "No NBT found for target Pok\u00E9mon, slot probably empty. Aborting.");
-                            src.sendMessage(Text.of("\u00A74Error: \u00A7cThe target Pok\u00E9mon does not seem to exist."));
+                            printToLog(2, "No NBT found for target Pokémon, slot probably empty. Aborting.");
+                            src.sendMessage(Text.of("§4Error: §cThe target Pokémon does not seem to exist."));
                         }
                         else if (nbt1 != null && nbt2 == null)
                         {
-                            printToLog(2, "No NBT found for sacrifice Pok\u00E9mon, slot probably empty. Aborting.");
-                            src.sendMessage(Text.of("\u00A74Error: \u00A7cThe sacrifice Pok\u00E9mon does not seem to exist."));
+                            printToLog(2, "No NBT found for sacrifice Pokémon, slot probably empty. Aborting.");
+                            src.sendMessage(Text.of("§4Error: §cThe sacrifice Pokémon does not seem to exist."));
                         }
                         else if (nbt1 == null)
                         {
                             printToLog(2, "No NBT found for target not sacrifice, slots probably empty. Aborting.");
-                            src.sendMessage(Text.of("\u00A74Error: \u00A7cBoth the target and sacrifice do not seem to exist."));
+                            src.sendMessage(Text.of("§4Error: §cBoth the target and sacrifice do not seem to exist."));
                         }
                         else
                         {
@@ -236,17 +236,17 @@ public class DittoFusion implements CommandExecutor
                                 if (!nbt1.getString("Name").equals("Ditto") && nbt2.getString("Name").equals("Ditto"))
                                 {
                                     printToLog(2, "Target was not a Ditto. Abort, abort!");
-                                    src.sendMessage(Text.of("\u00A74Error: \u00A7cYour target Pok\u00E9mon is not a Ditto."));
+                                    src.sendMessage(Text.of("§4Error: §cYour target Pokémon is not a Ditto."));
                                 }
                                 else if (nbt1.getString("Name").equals("Ditto") && !nbt2.getString("Name").equals("Ditto"))
                                 {
                                     printToLog(2, "Sacrifice was not a Ditto. Abort, abort!");
-                                    src.sendMessage(Text.of("\u00A74Error: \u00A7cSorry, but the sacrifice needs to be a Ditto."));
+                                    src.sendMessage(Text.of("§4Error: §cSorry, but the sacrifice needs to be a Ditto."));
                                 }
                                 else if (!nbt1.getString("Name").equals("Ditto") && !nbt2.getString("Name").equals("Ditto"))
                                 {
                                     printToLog(2, "No Dittos in provided slots; Let's not create some unholy abomination. Abort.");
-                                    src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command only works on Dittos."));
+                                    src.sendMessage(Text.of("§4Error: §cThis command only works on Dittos."));
                                 }
                                 else
                                 {
@@ -259,15 +259,15 @@ public class DittoFusion implements CommandExecutor
                                     {
                                         printToLog(2, "Hit the shiny cap on target Ditto. Aborting.");
 
-                                        src.sendMessage(Text.of("\u00A74Error: \u00A7cYour target shiny Ditto cannot grow any further."));
-                                        src.sendMessage(Text.of("\u00A76Tip: \u00A7eYou could still sacrifice \u00A7othis\u00A7r\u00A7e Ditto... You monster."));
+                                        src.sendMessage(Text.of("§4Error: §cYour target shiny Ditto cannot grow any further."));
+                                        src.sendMessage(Text.of("§6Tip: §eYou could still sacrifice §othis§r§e Ditto... You monster."));
                                     }
                                     else if (targetFuseCount >= regularCap && nbt1.getInteger(NbtKeys.IS_SHINY) != 1)
                                     {
                                         printToLog(2, "Hit the non-shiny cap on target Ditto. Aborting.");
 
-                                        src.sendMessage(Text.of("\u00A74Error: \u00A7cYour target Ditto cannot grow any further."));
-                                        src.sendMessage(Text.of("\u00A76Tip: \u00A7eYou could still sacrifice \u00A7othis\u00A7r\u00A7e Ditto... You monster."));
+                                        src.sendMessage(Text.of("§4Error: §cYour target Ditto cannot grow any further."));
+                                        src.sendMessage(Text.of("§6Tip: §eYou could still sacrifice §othis§r§e Ditto... You monster."));
                                     }
                                     else
                                     {
@@ -373,67 +373,67 @@ public class DittoFusion implements CommandExecutor
                                         if (totalUpgradeCount == 0)
                                         {
                                             printToLog(2, "Sacrifice was too weak to add any stats, apparently. Wow. Abort.");
-                                            src.sendMessage(Text.of("\u00A74Error: \u00A7cYour sacrificial Ditto is too weak to make a difference."));
+                                            src.sendMessage(Text.of("§4Error: §cYour sacrificial Ditto is too weak to make a difference."));
                                         }
                                         else if (commandConfirmed)
                                         {
                                             TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(), costToConfirm, Cause.source(this).build());
                                             if (transactionResult.getResult() == ResultType.SUCCESS)
                                             {
-                                                player.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
-                                                src.sendMessage(Text.of("\u00A7eThe \u00A76Ditto \u00A7ein slot \u00A76" + slot2 +
-                                                    "\u00A7e was eaten, taking \u00A76" + costToConfirm + "\u00A7e coins with it."));
+                                                player.sendMessage(Text.of("§7-----------------------------------------------------"));
+                                                src.sendMessage(Text.of("§eThe §6Ditto §ein slot §6" + slot2 +
+                                                    "§e was eaten, taking §6" + costToConfirm + "§e coins with it."));
                                                 src.sendMessage(Text.of(""));
 
                                                 if (HPPlusNum != 0)
                                                 {
-                                                    src.sendMessage(Text.of("\u00A7bUpgraded HP!"));
-                                                    src.sendMessage(Text.of("\u00A77" + targetHP + " \u00A7f-> \u00A7a" + (targetHP + HPPlusNum)));
+                                                    src.sendMessage(Text.of("§bUpgraded HP!"));
+                                                    src.sendMessage(Text.of("§7" + targetHP + " §f-> §a" + (targetHP + HPPlusNum)));
                                                     nbt1.setInteger(NbtKeys.IV_HP, nbt1.getInteger(NbtKeys.IV_HP) + HPPlusNum);
                                                 }
                                                 if (ATKPlusNum != 0)
                                                 {
-                                                    src.sendMessage(Text.of("\u00A7bUpgraded Attack!"));
-                                                    src.sendMessage(Text.of("\u00A77" + targetATK + " \u00A7f-> \u00A7a" + (targetATK + ATKPlusNum)));
+                                                    src.sendMessage(Text.of("§bUpgraded Attack!"));
+                                                    src.sendMessage(Text.of("§7" + targetATK + " §f-> §a" + (targetATK + ATKPlusNum)));
                                                     nbt1.setInteger(NbtKeys.IV_ATTACK, nbt1.getInteger(NbtKeys.IV_ATTACK) + ATKPlusNum);
                                                 }
                                                 if (DEFPlusNum != 0)
                                                 {
                                                     if (useBritishSpelling)
-                                                        src.sendMessage(Text.of("\u00A7bUpgraded Defence!"));
+                                                        src.sendMessage(Text.of("§bUpgraded Defence!"));
                                                     else
-                                                        src.sendMessage(Text.of("\u00A7bUpgraded Defense!"));
+                                                        src.sendMessage(Text.of("§bUpgraded Defense!"));
 
-                                                    src.sendMessage(Text.of("\u00A77" + targetDEF + " \u00A7f-> \u00A7a" + (targetDEF + DEFPlusNum)));
+                                                    src.sendMessage(Text.of("§7" + targetDEF + " §f-> §a" + (targetDEF + DEFPlusNum)));
                                                     nbt1.setInteger(NbtKeys.IV_DEFENCE, nbt1.getInteger(NbtKeys.IV_DEFENCE) + DEFPlusNum);
                                                 }
                                                 if (SPATKPlusNum != 0)
                                                 {
-                                                    src.sendMessage(Text.of("\u00A7bUpgraded Special Attack!"));
-                                                    src.sendMessage(Text.of("\u00A77" + targetSPATK + " \u00A7f-> \u00A7a" + (targetSPATK + SPATKPlusNum)));
+                                                    src.sendMessage(Text.of("§bUpgraded Special Attack!"));
+                                                    src.sendMessage(Text.of("§7" + targetSPATK + " §f-> §a" + (targetSPATK + SPATKPlusNum)));
                                                     nbt1.setInteger(NbtKeys.IV_SP_ATT, nbt1.getInteger(NbtKeys.IV_SP_ATT) + SPATKPlusNum);
                                                 }
                                                 if (SPDEFPlusNum != 0)
                                                 {
                                                     if (useBritishSpelling)
-                                                        src.sendMessage(Text.of("\u00A7bUpgraded Special Defence!"));
+                                                        src.sendMessage(Text.of("§bUpgraded Special Defence!"));
                                                     else
-                                                        src.sendMessage(Text.of("\u00A7bUpgraded Special Defense!"));
+                                                        src.sendMessage(Text.of("§bUpgraded Special Defense!"));
 
-                                                    src.sendMessage(Text.of("\u00A77" + targetSPDEF + " \u00A7f-> \u00A7a" + (targetSPDEF + SPDEFPlusNum)));
+                                                    src.sendMessage(Text.of("§7" + targetSPDEF + " §f-> §a" + (targetSPDEF + SPDEFPlusNum)));
                                                     nbt1.setInteger(NbtKeys.IV_SP_DEF, nbt1.getInteger(NbtKeys.IV_SP_DEF) + SPDEFPlusNum);
                                                 }
                                                 if (SPDPlusNum != 0)
                                                 {
-                                                    src.sendMessage(Text.of("\u00A7bUpgraded Speed!"));
-                                                    src.sendMessage(Text.of("\u00A77" + targetSPD + " \u00A7f-> \u00A7a" + (targetSPD + SPDPlusNum)));
+                                                    src.sendMessage(Text.of("§bUpgraded Speed!"));
+                                                    src.sendMessage(Text.of("§7" + targetSPD + " §f-> §a" + (targetSPD + SPDPlusNum)));
                                                     nbt1.setInteger(NbtKeys.IV_SPEED, nbt1.getInteger(NbtKeys.IV_SPEED) + SPDPlusNum);
                                                 }
 
                                                 if (sacrificeFuseCount > 0)
                                                 {
                                                     src.sendMessage(Text.of(""));
-                                                    src.sendMessage(Text.of("\u00A7dSacrifice had prior upgrades. You paid an extra \u00A75" + extraCost + "\u00A7d coins."));
+                                                    src.sendMessage(Text.of("§dSacrifice had prior upgrades. You paid an extra §5" + extraCost + "§d coins."));
                                                 }
 
                                                 if (nbt2.getInteger(NbtKeys.IS_SHINY) == 1 && passOnShinyStatus)
@@ -444,10 +444,11 @@ public class DittoFusion implements CommandExecutor
                                                     nbt1.setInteger(NbtKeys.IS_SHINY, 1);
                                                     nbt1.setInteger(NbtKeys.SHINY, 1);
 
-                                                    src.sendMessage(Text.of("\u00A7dPlease reconnect to update your fused \u00A75Ditto\u00A7d's shiny status!"));
+                                                    // Force the client to update.
+                                                    storageCompleted.sendUpdatedList();
                                                 }
 
-                                                player.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
+                                                player.sendMessage(Text.of("§7-----------------------------------------------------"));
 
                                                 targetPokemon.getEntityData().setInteger("fuseCount", targetFuseCount + 1);
                                                 storageCompleted.changePokemonAndAssignID(slot2 - 1, null);
@@ -458,80 +459,80 @@ public class DittoFusion implements CommandExecutor
                                             else
                                             {
                                                 BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                                printToLog(2, "Not enough coins! Cost: \u00A73" + costToConfirm + "\u00A7b, lacking: \u00A73" + balanceNeeded);
+                                                printToLog(2, "Not enough coins! Cost: §3" + costToConfirm + "§b, lacking: §3" + balanceNeeded);
 
-                                                src.sendMessage(Text.of("\u00A74Error: \u00A7cYou need \u00A74" + balanceNeeded + "\u00A7c more coins to do this."));
+                                                src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
                                             }
                                         }
                                         else
                                         {
                                             printToLog(2, "Got cost but no confirmation; end of the line.");
 
-                                            player.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
+                                            player.sendMessage(Text.of("§7-----------------------------------------------------"));
                                             if (nbt2.getInteger(NbtKeys.IS_SHINY) == 1 && passOnShinyStatus)
-                                                src.sendMessage(Text.of("\u00A7eThe Ditto in slot \u00A76" + slot1 + "\u00A7e will be upgraded. Transferring shiny status!"));
+                                                src.sendMessage(Text.of("§eThe Ditto in slot §6" + slot1 + "§e will be upgraded. Transferring shiny status!"));
                                             else
-                                                src.sendMessage(Text.of("\u00A7eYou are about to upgrade the Ditto in slot \u00A76" + slot1 + "\u00A7e."));
+                                                src.sendMessage(Text.of("§eYou are about to upgrade the Ditto in slot §6" + slot1 + "§e."));
 
                                             src.sendMessage(Text.of(""));
 
                                             if (HPPlusNum != 0)
                                             {
-                                                src.sendMessage(Text.of("\u00A7bHP will be upgraded."));
-                                                src.sendMessage(Text.of("\u00A77" + targetHP + " \u00A7f-> \u00A7a" + (targetHP + HPPlusNum)));
+                                                src.sendMessage(Text.of("§bHP will be upgraded."));
+                                                src.sendMessage(Text.of("§7" + targetHP + " §f-> §a" + (targetHP + HPPlusNum)));
                                             }
                                             if (ATKPlusNum != 0)
                                             {
-                                                src.sendMessage(Text.of("\u00A7bAttack will be upgraded."));
-                                                src.sendMessage(Text.of("\u00A77" + targetATK + " \u00A7f-> \u00A7a" + (targetATK + ATKPlusNum)));
+                                                src.sendMessage(Text.of("§bAttack will be upgraded."));
+                                                src.sendMessage(Text.of("§7" + targetATK + " §f-> §a" + (targetATK + ATKPlusNum)));
                                             }
                                             if (DEFPlusNum != 0)
                                             {
                                                 if (useBritishSpelling)
-                                                    src.sendMessage(Text.of("\u00A7bDefence will be upgraded."));
+                                                    src.sendMessage(Text.of("§bDefence will be upgraded."));
                                                 else
-                                                    src.sendMessage(Text.of("\u00A7bDefense will be upgraded."));
+                                                    src.sendMessage(Text.of("§bDefense will be upgraded."));
 
-                                                src.sendMessage(Text.of("\u00A77" + targetDEF + " \u00A7f-> \u00A7a" + (targetDEF + DEFPlusNum)));
+                                                src.sendMessage(Text.of("§7" + targetDEF + " §f-> §a" + (targetDEF + DEFPlusNum)));
                                             }
                                             if (SPATKPlusNum != 0)
                                             {
-                                                src.sendMessage(Text.of("\u00A7bSpecial Attack will be upgraded."));
-                                                src.sendMessage(Text.of("\u00A77" + targetSPATK + " \u00A7f-> \u00A7a" + (targetSPATK + SPATKPlusNum)));
+                                                src.sendMessage(Text.of("§bSpecial Attack will be upgraded."));
+                                                src.sendMessage(Text.of("§7" + targetSPATK + " §f-> §a" + (targetSPATK + SPATKPlusNum)));
                                             }
                                             if (SPDEFPlusNum != 0)
                                             {
                                                 if (useBritishSpelling)
-                                                    src.sendMessage(Text.of("\u00A7bSpecial Defence will be upgraded."));
+                                                    src.sendMessage(Text.of("§bSpecial Defence will be upgraded."));
                                                 else
-                                                    src.sendMessage(Text.of("\u00A7bSpecial Defense will be upgraded."));
+                                                    src.sendMessage(Text.of("§bSpecial Defense will be upgraded."));
 
-                                                src.sendMessage(Text.of("\u00A77" + targetSPDEF + " \u00A7f-> \u00A7a" + (targetSPDEF + SPDEFPlusNum)));
+                                                src.sendMessage(Text.of("§7" + targetSPDEF + " §f-> §a" + (targetSPDEF + SPDEFPlusNum)));
                                             }
                                             if (SPDPlusNum != 0)
                                             {
-                                                src.sendMessage(Text.of("\u00A7bSpeed will be upgraded."));
-                                                src.sendMessage(Text.of("\u00A77" + targetSPD + " \u00A7f-> \u00A7a" + (targetSPD + SPDPlusNum)));
+                                                src.sendMessage(Text.of("§bSpeed will be upgraded."));
+                                                src.sendMessage(Text.of("§7" + targetSPD + " §f-> §a" + (targetSPD + SPDPlusNum)));
                                             }
 
                                             src.sendMessage(Text.of(""));
                                             if (sacrificeFuseCount > 0)
-                                                src.sendMessage(Text.of("\u00A7eFusing costs \u00A76" + costToConfirm + "\u00A7e coins plus \u00A76"
-                                                    + extraCost + "\u00A7e coins from prior upgrades."));
+                                                src.sendMessage(Text.of("§eFusing costs §6" + costToConfirm + "§e coins plus §6"
+                                                    + extraCost + "§e coins from prior upgrades."));
                                             else
-                                                src.sendMessage(Text.of("\u00A7eThis upgrade will cost you \u00A76" + costToConfirm + "\u00A7e coins."));
-                                            src.sendMessage(Text.of("\u00A7aReady? Use: \u00A72" + alias + " " + slot1 + " " + slot2 + " -c"));
+                                                src.sendMessage(Text.of("§eThis upgrade will cost you §6" + costToConfirm + "§e coins."));
+                                            src.sendMessage(Text.of("§aReady? Use: §2" + alias + " " + slot1 + " " + slot2 + " -c"));
 
-                                            src.sendMessage(Text.of("\u00A74Warning: \u00A7cThe Ditto in slot \u00A74" + slot2 + "\u00A7c will be \u00A7ldeleted\u00A7r\u00A7c!"));
-                                            player.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
+                                            src.sendMessage(Text.of("§4Warning: §cThe Ditto in slot §4" + slot2 + "§c will be §ldeleted§r§c!"));
+                                            player.sendMessage(Text.of("§7-----------------------------------------------------"));
                                         }
                                     }
                                 }
                             }
                             else
                             {
-                                src.sendMessage(Text.of("\u00A74Error: \u00A7cNo economy account found. Please contact staff!"));
-                                printToLog(0, "\u00A74" + src.getName() + "\u00A7c does not have an economy account, aborting. May be a bug?");
+                                src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
+                                printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. May be a bug?");
                             }
                         }
                     }
@@ -549,13 +550,13 @@ public class DittoFusion implements CommandExecutor
         if (debugNum <= debugLevel)
         {
             if (debugNum == 0)
-                PixelUpgrade.log.info("\u00A74DittoFusion // critical: \u00A7c" + inputString);
+                PixelUpgrade.log.info("§4DittoFusion // critical: §c" + inputString);
             else if (debugNum == 1)
-                PixelUpgrade.log.info("\u00A76DittoFusion // important: \u00A7e" + inputString);
+                PixelUpgrade.log.info("§6DittoFusion // important: §e" + inputString);
             else if (debugNum == 2)
-                PixelUpgrade.log.info("\u00A73DittoFusion // start/end: \u00A7b" + inputString);
+                PixelUpgrade.log.info("§3DittoFusion // start/end: §b" + inputString);
             else
-                PixelUpgrade.log.info("\u00A72DittoFusion // debug: \u00A7a" + inputString);
+                PixelUpgrade.log.info("§2DittoFusion // debug: §a" + inputString);
         }
     }
 
@@ -565,7 +566,7 @@ public class DittoFusion implements CommandExecutor
             return DittoFusionConfig.getInstance().getConfig().getNode("passOnShinyStatus").getBoolean();
         else
         {
-            PixelUpgrade.log.info("\u00A74DittoFusion // critical: \u00A7cCould not parse config variable \"passOnShinyStatus\"!");
+            PixelUpgrade.log.info("§4DittoFusion // critical: §cCould not parse config variable \"passOnShinyStatus\"!");
             return null;
         }
     }
@@ -576,16 +577,16 @@ public class DittoFusion implements CommandExecutor
             return DittoFusionConfig.getInstance().getConfig().getNode(node).getInt();
         else
         {
-            PixelUpgrade.log.info("\u00A74DittoFusion // critical: \u00A7cCould not parse config variable \"" + node + "\"!");
+            PixelUpgrade.log.info("§4DittoFusion // critical: §cCould not parse config variable \"" + node + "\"!");
             return null;
         }
     }
 
     private void checkAndAddFooter(Player player)
     {
-        player.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <target slot> <sacrifice slot> {-c to confirm}"));
+        player.sendMessage(Text.of("§4Usage: §c" + alias + " <target slot> <sacrifice slot> {-c to confirm}"));
         player.sendMessage(Text.of(""));
-        player.sendMessage(Text.of("\u00A76Warning: \u00A7eAdd the -c flag only if you're ready to spend money!"));
-        player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+        player.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're ready to spend money!"));
+        player.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
 }

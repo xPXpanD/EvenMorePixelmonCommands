@@ -37,11 +37,11 @@ public class PixelUpgradeInfo implements CommandExecutor
             if (modeString.matches("^[0-3]"))
                 debugLevel = Integer.parseInt(modeString);
             else
-                PixelUpgrade.log.info("\u00A74PUInfo // critical: \u00A7cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
+                PixelUpgrade.log.info("§4PUInfo // critical: §cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
         }
         else
         {
-            PixelUpgrade.log.info("\u00A74PUInfo // critical: \u00A7cConfig variable \"debugVerbosityMode\" could not be found!");
+            PixelUpgrade.log.info("§4PUInfo // critical: §cConfig variable \"debugVerbosityMode\" could not be found!");
             debugLevel = null;
         }
     }
@@ -56,13 +56,13 @@ public class PixelUpgradeInfo implements CommandExecutor
         if (numLinesPerPage == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
         {
             // Specific errors are already called earlier on -- this is tacked on to the end.
-            src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
-            PixelUpgrade.log.info("\u00A74PUInfo // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pureload\u00A7c.");
+            src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
+            PixelUpgrade.log.info("§4PUInfo // critical: §cCheck your config. If need be, wipe and §4/pureload§c.");
         }
         else
         {
             Player player = (Player) src;
-            String header = "\u00A75================ \u00A7dPixelUpgrade commands \u00A75================";
+            String header = "§5================ §dPixelUpgrade commands §5================";
             String separator = FileSystems.getDefault().getSeparator();
             Boolean hasNoPermission = true;
             List<Text> permissionMessageList = new ArrayList<>();
@@ -80,6 +80,7 @@ public class PixelUpgradeInfo implements CommandExecutor
             Boolean permReloadConfig = player.hasPermission("pixelupgrade.command.staff.reload");
             Boolean permResetCount = player.hasPermission("pixelupgrade.command.staff.resetcount");
             Boolean permResetEVs = player.hasPermission("pixelupgrade.command.resetevs");
+            Boolean permSwitchGender = player.hasPermission("pixelupgrade.command.switchgender");
             Boolean permUpgradeIVs = player.hasPermission("pixelupgrade.command.upgradeivs");
 
             if (permCheckEgg)
@@ -91,24 +92,24 @@ public class PixelUpgradeInfo implements CommandExecutor
                     if (commandCost != null && CheckEggConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
                         String alias = CheckEggConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printToLog(3, "\u00A72/checkegg \u00A7apermission found, adding helper to list.");
+                        printToLog(3, "§2/checkegg §apermission found, adding helper to list.");
 
                         if (commandCost > 0)
                         {
                             if (permCheckEggOther)
-                                permissionMessageList.add(Text.of("\u00A76/" + alias + " [optional target] <slot> {confirm flag}"));
+                                permissionMessageList.add(Text.of("§6/" + alias + " [optional target] <slot> {confirm flag}"));
                             else
-                                permissionMessageList.add(Text.of("\u00A76/" + alias + " <slot> {confirm flag} \u00A77(no perms for target)"));
+                                permissionMessageList.add(Text.of("§6/" + alias + " <slot> {confirm flag} §7(no perms for target)"));
                         }
                         else
                         {
                             if (permCheckEggOther)
-                                permissionMessageList.add(Text.of("\u00A76/" + alias + " [optional target] <slot>"));
+                                permissionMessageList.add(Text.of("§6/" + alias + " [optional target] <slot>"));
                             else
-                                permissionMessageList.add(Text.of("\u00A76/" + alias + " <slot> \u00A77(no perms for target)"));
+                                permissionMessageList.add(Text.of("§6/" + alias + " <slot> §7(no perms for target)"));
                         }
 
-                        permissionMessageList.add(Text.of("\u00A7f --> \u00A7eCheck an egg to see what's inside."));
+                        permissionMessageList.add(Text.of("§f --> §eCheck an egg to see what's inside."));
                         hasNoPermission = false;
                     }
                     else printMalformedError("/checkegg");
@@ -125,24 +126,24 @@ public class PixelUpgradeInfo implements CommandExecutor
                     if (commandCost != null && CheckStatsConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
                         String alias = CheckStatsConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printToLog(3, "\u00A72/checkstats \u00A7apermission found, adding helper to list.");
+                        printToLog(3, "§2/checkstats §apermission found, adding helper to list.");
 
                         if (commandCost > 0)
                         {
                             if (permCheckStatsOther)
-                                permissionMessageList.add(Text.of("\u00A76/" + alias + " [optional target] <slot> {confirm flag}"));
+                                permissionMessageList.add(Text.of("§6/" + alias + " [optional target] <slot> {confirm flag}"));
                             else
-                                permissionMessageList.add(Text.of("\u00A76/" + alias + " <slot> {confirm flag} \u00A77(no perms for target)"));
+                                permissionMessageList.add(Text.of("§6/" + alias + " <slot> {confirm flag} §7(no perms for target)"));
                         }
                         else
                         {
                             if (permCheckStatsOther)
-                                permissionMessageList.add(Text.of("\u00A76/" + alias + " [optional target] <slot>"));
+                                permissionMessageList.add(Text.of("§6/" + alias + " [optional target] <slot>"));
                             else
-                                permissionMessageList.add(Text.of("\u00A76/" + alias + " <slot> \u00A77(no perms for target)"));
+                                permissionMessageList.add(Text.of("§6/" + alias + " <slot> §7(no perms for target)"));
                         }
 
-                        permissionMessageList.add(Text.of("\u00A7f --> \u00A7eLists a Pok\u00E9mon's IVs, nature, size and more."));
+                        permissionMessageList.add(Text.of("§f --> §eLists a Pokémon's IVs, nature, size and more."));
                         hasNoPermission = false;
                     }
                     else printMalformedError("/checkstats");
@@ -159,14 +160,14 @@ public class PixelUpgradeInfo implements CommandExecutor
                     if (commandCost != null && CheckTypesConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
                         String alias = CheckTypesConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printToLog(3, "\u00A72/checktypes \u00A7apermission found, adding helper to list.");
+                        printToLog(3, "§2/checktypes §apermission found, adding helper to list.");
 
                         if (commandCost != 0)
-                            permissionMessageList.add(Text.of("\u00A76/" + alias + " <Pok\u00E9mon name/number> {confirm flag}"));
+                            permissionMessageList.add(Text.of("§6/" + alias + " <Pokémon name/number> {confirm flag}"));
                         else
-                            permissionMessageList.add(Text.of("\u00A76/" + alias + " <Pok\u00E9mon name/number>"));
+                            permissionMessageList.add(Text.of("§6/" + alias + " <Pokémon name/number>"));
 
-                        permissionMessageList.add(Text.of("\u00A7f --> \u00A7eSee any Pok\u00E9mon's resistances, weaknesses and more."));
+                        permissionMessageList.add(Text.of("§f --> §eSee any Pokémon's resistances, weaknesses and more."));
                         hasNoPermission = false;
                     }
                     else printMalformedError("/checktypes");
@@ -181,10 +182,10 @@ public class PixelUpgradeInfo implements CommandExecutor
                     if (DittoFusionConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
                         String alias = DittoFusionConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printToLog(3, "\u00A72/dittofusion \u00A7apermission found, adding helper to list.");
+                        printToLog(3, "§2/dittofusion §apermission found, adding helper to list.");
 
-                        permissionMessageList.add(Text.of("\u00A76/" + alias + " <target slot> <sacrifice slot> {confirm flag}"));
-                        permissionMessageList.add(Text.of("\u00A7f --> \u00A7eSacrifice one Ditto to make another stronger, for a price."));
+                        permissionMessageList.add(Text.of("§6/" + alias + " <target slot> <sacrifice slot> {confirm flag}"));
+                        permissionMessageList.add(Text.of("§f --> §eSacrifice one Ditto to make another stronger, for a price."));
                         hasNoPermission = false;
                     }
                     else printMalformedError("/dittofusion");
@@ -201,14 +202,14 @@ public class PixelUpgradeInfo implements CommandExecutor
                     if (commandCost != null && FixEVsConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
                         String alias = FixEVsConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printToLog(3, "\u00A72/fixevs \u00A7apermission found, adding helper to list.");
+                        printToLog(3, "§2/fixevs §apermission found, adding helper to list.");
 
                         if (commandCost != 0)
-                            permissionMessageList.add(Text.of("\u00A76/" + alias + " <slot> {confirm flag}"));
+                            permissionMessageList.add(Text.of("§6/" + alias + " <slot> {confirm flag}"));
                         else
-                            permissionMessageList.add(Text.of("\u00A76/" + alias + " <slot>"));
+                            permissionMessageList.add(Text.of("§6/" + alias + " <slot>"));
 
-                        permissionMessageList.add(Text.of("\u00A7f --> \u00A7eEVs above 252 are wasted. This will fix them!"));
+                        permissionMessageList.add(Text.of("§f --> §eEVs above 252 are wasted. This will fix them!"));
                         hasNoPermission = false;
                     }
                     else printMalformedError("/fixevs");
@@ -225,10 +226,10 @@ public class PixelUpgradeInfo implements CommandExecutor
                     if (commandCost != null && FixLevelConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
                         String alias = FixLevelConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printToLog(3, "\u00A72/fixlevel \u00A7apermission found, adding helper to list.");
+                        printToLog(3, "§2/fixlevel §apermission found, adding helper to list.");
 
-                        permissionMessageList.add(Text.of("\u00A76/" + alias + " <slot> {confirm flag}"));
-                        permissionMessageList.add(Text.of("\u00A7f --> \u00A7eWant to lower your level to get more EVs? Try this."));
+                        permissionMessageList.add(Text.of("§6/" + alias + " <slot> {confirm flag}"));
+                        permissionMessageList.add(Text.of("§f --> §eWant to lower your level to get more EVs? Try this."));
                         hasNoPermission = false;
                     }
                     else printMalformedError("/fixlevel");
@@ -243,10 +244,10 @@ public class PixelUpgradeInfo implements CommandExecutor
                     if (ForceHatchConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
                         String alias = ForceHatchConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printToLog(3, "\u00A72/forcehatch \u00A7apermission found, adding helper to list.");
+                        printToLog(3, "§2/forcehatch §apermission found, adding helper to list.");
 
-                        permissionMessageList.add(Text.of("\u00A76/" + alias + " (optional target) <slot>"));
-                        permissionMessageList.add(Text.of("\u00A7f --> \u00A7eHatch any eggs instantly. Supports remote players!"));
+                        permissionMessageList.add(Text.of("§6/" + alias + " (optional target) <slot>"));
+                        permissionMessageList.add(Text.of("§f --> §eHatch any eggs instantly. Supports remote players!"));
                         hasNoPermission = false;
                     }
                     else printMalformedError("/forcehatch");
@@ -261,10 +262,10 @@ public class PixelUpgradeInfo implements CommandExecutor
                     if (ForceStatsConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
                         String alias = ForceStatsConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printToLog(3, "\u00A72/forcestats \u00A7apermission found, adding helper to list.");
+                        printToLog(3, "§2/forcestats §apermission found, adding helper to list.");
 
-                        permissionMessageList.add(Text.of("\u00A76/" + alias + " <slot> <stat> <value> {force flag}"));
-                        permissionMessageList.add(Text.of("\u00A7f --> \u00A7eChange supported stats freely, or pass -f and go crazy."));
+                        permissionMessageList.add(Text.of("§6/" + alias + " <slot> <stat> <value> {force flag}"));
+                        permissionMessageList.add(Text.of("§f --> §eChange supported stats freely, or pass -f and go crazy."));
                         hasNoPermission = false;
                     }
                     else printMalformedError("/forcestats");
@@ -274,9 +275,9 @@ public class PixelUpgradeInfo implements CommandExecutor
 
             if (permReloadConfig)
             {
-                printToLog(3, "\u00A72/pureload \u00A7apermission found, adding helper to list.");
-                permissionMessageList.add(Text.of("\u00A76/pureload <config>"));
-                permissionMessageList.add(Text.of("\u00A7f --> \u00A7eReload one or more of the configs on the fly."));
+                printToLog(3, "§2/pureload §apermission found, adding helper to list.");
+                permissionMessageList.add(Text.of("§6/pureload <config>"));
+                permissionMessageList.add(Text.of("§f --> §eReload one or more of the configs on the fly."));
                 hasNoPermission = false;
             }
 
@@ -287,10 +288,10 @@ public class PixelUpgradeInfo implements CommandExecutor
                     if (ResetCountConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
                         String alias = ResetCountConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printToLog(3, "\u00A72/resetcount \u00A7apermission found, adding helper to list.");
+                        printToLog(3, "§2/resetcount §apermission found, adding helper to list.");
 
-                        permissionMessageList.add(Text.of("\u00A76/" + alias + " <slot, 1-6> <count> {confirm flag}"));
-                        permissionMessageList.add(Text.of("\u00A7f --> \u00A7eIf you want a Pok\u00E9mon to upgrade further, use this."));
+                        permissionMessageList.add(Text.of("§6/" + alias + " <slot, 1-6> <count> {confirm flag}"));
+                        permissionMessageList.add(Text.of("§f --> §eIf you want a Pokémon to upgrade further, use this."));
                         hasNoPermission = false;
                     }
                     else printMalformedError("/resetcount");
@@ -307,15 +308,35 @@ public class PixelUpgradeInfo implements CommandExecutor
                     if (commandCost != null && ResetEVsConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
                         String alias = ResetEVsConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printToLog(3, "\u00A72/resetevs \u00A7apermission found, adding helper to list.");
+                        printToLog(3, "§2/resetevs §apermission found, adding helper to list.");
 
-                        permissionMessageList.add(Text.of("\u00A76/" + alias + " <slot> {confirm flag}"));
-                        permissionMessageList.add(Text.of("\u00A7f --> \u00A7eNot happy with your EV spread? This wipes all EVs."));
+                        permissionMessageList.add(Text.of("§6/" + alias + " <slot> {confirm flag}"));
+                        permissionMessageList.add(Text.of("§f --> §eNot happy with your EV spread? This wipes all EVs."));
                         hasNoPermission = false;
                     }
                     else printMalformedError("/resetevs");
                 }
                 else printMalformedError("/resetevs");
+            }
+
+            if (permSwitchGender)
+            {
+                Integer commandCost = checkSwitchGenderInt();
+
+                if (Files.exists(Paths.get("config" + separator + "PixelUpgrade" + separator + "SwitchGender.conf")))
+                {
+                    if (commandCost != null && SwitchGenderConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
+                    {
+                        String alias = SwitchGenderConfig.getInstance().getConfig().getNode("commandAlias").getString();
+                        printToLog(3, "§2/switchgender §apermission found, adding helper to list.");
+
+                        permissionMessageList.add(Text.of("§6/" + alias + " <slot> {confirm flag}"));
+                        permissionMessageList.add(Text.of("§f --> §eWant to change a Pokémon's gender? This'll do the job."));
+                        hasNoPermission = false;
+                    }
+                    else printMalformedError("/switchgender");
+                }
+                else printMalformedError("/switchgender");
             }
 
             if (permUpgradeIVs)
@@ -325,10 +346,10 @@ public class PixelUpgradeInfo implements CommandExecutor
                     if (UpgradeIVsConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
                         String alias = UpgradeIVsConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printToLog(3, "\u00A72/upgradeivs \u00A7apermission found, adding helper to list.");
+                        printToLog(3, "§2/upgradeivs §apermission found, adding helper to list.");
 
-                        permissionMessageList.add(Text.of("\u00A76/" + alias + " <slot> <IV type> [optional amount] {confirm flag}"));
-                        permissionMessageList.add(Text.of("\u00A7f --> \u00A7eBuy upgrades for your Pok\u00E9mon's IVs."));
+                        permissionMessageList.add(Text.of("§6/" + alias + " <slot> <IV type> [optional amount] {confirm flag}"));
+                        permissionMessageList.add(Text.of("§f --> §eBuy upgrades for your Pokémon's IVs."));
                         hasNoPermission = false;
                     }
                     else printMalformedError("/upgradeivs");
@@ -338,8 +359,8 @@ public class PixelUpgradeInfo implements CommandExecutor
 
             if (hasNoPermission)
             {
-                permissionMessageList.add(Text.of("\u00A7cYou have no permissions for any PixelUpgrade commands."));
-                permissionMessageList.add(Text.of("\u00A7cPlease contact staff if you believe this to be in error."));
+                permissionMessageList.add(Text.of("§cYou have no permissions for any PixelUpgrade commands."));
+                permissionMessageList.add(Text.of("§cPlease contact staff if you believe this to be in error."));
             }
 
             // TODO: Remove title color once Sponge bug is fixed. Written 22/5/2017, last checked 24/6/2017.
@@ -358,7 +379,7 @@ public class PixelUpgradeInfo implements CommandExecutor
 	private void printMalformedError(String command)
     {
         // There's a line in the default config saying debugNum "1" means malformed configs here.
-        printToLog(1, "Malformed config on \u00A76" + command + "\u00A7e, hiding from list.");
+        printToLog(1, "Malformed config on §6" + command + "§e, hiding from list.");
     }
 
     private void printToLog(Integer debugNum, String inputString)
@@ -366,13 +387,13 @@ public class PixelUpgradeInfo implements CommandExecutor
         if (debugNum <= debugLevel)
         {
             if (debugNum == 0)
-                PixelUpgrade.log.info("\u00A74PUInfo // critical: \u00A7c" + inputString);
+                PixelUpgrade.log.info("§4PUInfo // critical: §c" + inputString);
             else // if (debugNum == 1)
-                PixelUpgrade.log.info("\u00A76PUInfo // important: \u00A7e" + inputString);
+                PixelUpgrade.log.info("§6PUInfo // important: §e" + inputString);
             /* else if (debugNum == 2)
-                PixelUpgrade.log.info("\u00A73PUInfo // start/end: \u00A7b" + inputString);
+                PixelUpgrade.log.info("§3PUInfo // start/end: §b" + inputString);
             else
-                PixelUpgrade.log.info("\u00A72PUInfo // debug: \u00A7a" + inputString); */
+                PixelUpgrade.log.info("§2PUInfo // debug: §a" + inputString); */
         }
     }
 
@@ -384,7 +405,7 @@ public class PixelUpgradeInfo implements CommandExecutor
 
             if (numLinesPerPage < 2 || numLinesPerPage > 50)
             {
-                PixelUpgrade.log.info("\u00A74PUInfo // critical: \u00A7cConfig variable \"numLinesPerPage\" is out of bounds. Valid range: 2-50");
+                PixelUpgrade.log.info("§4PUInfo // critical: §cConfig variable \"numLinesPerPage\" is out of bounds. Valid range: 2-50");
                 return null;
             }
             else
@@ -392,7 +413,7 @@ public class PixelUpgradeInfo implements CommandExecutor
         }
         else
         {
-            PixelUpgrade.log.info("\u00A74PUInfo // critical: \u00A7cCould not parse config variable \"numLinesPerPage\"!");
+            PixelUpgrade.log.info("§4PUInfo // critical: §cCould not parse config variable \"numLinesPerPage\"!");
             return null;
         }
     }
@@ -441,6 +462,14 @@ public class PixelUpgradeInfo implements CommandExecutor
     {
         if (!ResetEVsConfig.getInstance().getConfig().getNode("commandCost").isVirtual())
             return ResetEVsConfig.getInstance().getConfig().getNode("commandCost").getInt();
+        else
+            return null;
+    }
+
+    private Integer checkSwitchGenderInt()
+    {
+        if (!SwitchGenderConfig.getInstance().getConfig().getNode("commandCost").isVirtual())
+            return SwitchGenderConfig.getInstance().getConfig().getNode("commandCost").getInt();
         else
             return null;
     }

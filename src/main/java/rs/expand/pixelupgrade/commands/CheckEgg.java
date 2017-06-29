@@ -1,6 +1,7 @@
 package rs.expand.pixelupgrade.commands;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -29,6 +30,7 @@ import net.minecraft.world.World;
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.configs.CheckEggConfig;
 import rs.expand.pixelupgrade.configs.PixelUpgradeMainConfig;
+import rs.expand.pixelupgrade.utilities.GetPokemonInfo;
 
 import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
@@ -47,11 +49,11 @@ public class CheckEgg implements CommandExecutor
             if (modeString.matches("^[0-3]"))
                 debugLevel = Integer.parseInt(modeString);
             else
-                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
+                PixelUpgrade.log.info("§4CheckEgg // critical: §cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
         }
         else
         {
-            PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cConfig variable \"debugVerbosityMode\" could not be found!");
+            PixelUpgrade.log.info("§4CheckEgg // critical: §cConfig variable \"debugVerbosityMode\" could not be found!");
             debugLevel = null;
         }
     }
@@ -63,7 +65,7 @@ public class CheckEgg implements CommandExecutor
             alias = "/" + CheckEggConfig.getInstance().getConfig().getNode("commandAlias").getString();
         else
         {
-            PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cConfig variable \"commandAlias\" could not be found!");
+            PixelUpgrade.log.info("§4CheckEgg // critical: §cConfig variable \"commandAlias\" could not be found!");
             alias = null;
         }
     }
@@ -73,6 +75,7 @@ public class CheckEgg implements CommandExecutor
     private Boolean explicitReveal = null;
     private Boolean recheckIsFree = null;
     private Boolean competitiveMode = null;
+    private Integer babyHintPercentage = null;
 
     public CommandResult execute(CommandSource src, CommandContext args)
     {
@@ -80,7 +83,7 @@ public class CheckEgg implements CommandExecutor
         {
             boolean presenceCheck = true;
             Integer commandCost = checkConfigInt("commandCost");
-            Integer babyHintPercentage = checkConfigInt("babyHintPercentage");
+            babyHintPercentage = checkConfigInt("babyHintPercentage");
             showName = checkConfigBool("showName");
             explicitReveal = checkConfigBool("explicitReveal");
             recheckIsFree = checkConfigBool("recheckIsFree");
@@ -101,18 +104,18 @@ public class CheckEgg implements CommandExecutor
             if (!presenceCheck || alias == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
-                src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pureload\u00A7c.");
+                src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
+                PixelUpgrade.log.info("§4CheckEgg // critical: §cCheck your config. If need be, wipe and §4/pureload§c.");
             }
             else if (competitiveMode == null)
             {
-                src.sendMessage(Text.of("\u00A74Error: \u00A7cCould not parse main config. Please report to staff."));
-                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCouldn't get value of \"competitiveMode\" from the main config.");
-                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cPlease check (or wipe and reload) your PixelUpgrade.conf file.");
+                src.sendMessage(Text.of("§4Error: §cCould not parse main config. Please report to staff."));
+                PixelUpgrade.log.info("§4CheckEgg // critical: §cCouldn't get value of \"competitiveMode\" from the main config.");
+                PixelUpgrade.log.info("§4CheckEgg // critical: §cPlease check (or wipe and reload) your PixelUpgrade.conf file.");
             }
             else
             {
-                printToLog(2, "Called by player \u00A73" + src.getName() + "\u00A7b. Starting!");
+                printToLog(2, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 int slot = 0;
                 String targetString = null, slotString;
@@ -156,7 +159,7 @@ public class CheckEgg implements CommandExecutor
                                 printToLog(2, "First argument was invalid. Input not numeric, assuming misspelled name.");
 
                                 checkAndAddHeader(commandCost, player);
-                                src.sendMessage(Text.of("\u00A74Error: \u00A7cCould not find the given target. Check your spelling."));
+                                src.sendMessage(Text.of("§4Error: §cCould not find the given target. Check your spelling."));
                                 printCorrectPerm(commandCost, player);
                                 checkAndAddFooter(commandCost, player);
                             }
@@ -178,7 +181,7 @@ public class CheckEgg implements CommandExecutor
                     printToLog(2, "No arguments found, aborting.");
 
                     checkAndAddHeader(commandCost, player);
-                    src.sendMessage(Text.of("\u00A74Error: \u00A7cNo arguments found. Please provide at least a slot."));
+                    src.sendMessage(Text.of("§4Error: §cNo arguments found. Please provide at least a slot."));
                     printCorrectPerm(commandCost, player);
                     checkAndAddFooter(commandCost, player);
 
@@ -209,9 +212,9 @@ public class CheckEgg implements CommandExecutor
 
                             checkAndAddHeader(commandCost, player);
                             if (commandCost > 0)
-                                player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid slot or flag on second argument. See below."));
+                                player.sendMessage(Text.of("§4Error: §cInvalid slot or flag on second argument. See below."));
                             else
-                                player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid slot provided. See below."));
+                                player.sendMessage(Text.of("§4Error: §cInvalid slot provided. See below."));
                             printCorrectPerm(commandCost, player);
                             checkAndAddFooter(commandCost, player);
 
@@ -235,7 +238,7 @@ public class CheckEgg implements CommandExecutor
                     printToLog(2, "Failed final check, no slot was found. Abort.");
 
                     checkAndAddHeader(commandCost, player);
-                    player.sendMessage(Text.of("\u00A74Error: \u00A7cCould not find a valid slot. See below."));
+                    player.sendMessage(Text.of("§4Error: §cCould not find a valid slot. See below."));
                     printCorrectPerm(commandCost, player);
                     checkAndAddFooter(commandCost, player);
 
@@ -254,8 +257,8 @@ public class CheckEgg implements CommandExecutor
 
                     if (!storage.isPresent())
                     {
-                        src.sendMessage(Text.of("\u00A74Error: \u00A7cNo Pixelmon storage found. Please contact staff!"));
-                        printToLog(0, "\u00A74" + src.getName() + "\u00A7c does not have a Pixelmon storage, aborting. May be a bug?");
+                        src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
+                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. May be a bug?");
                     }
                     else
                     {
@@ -266,8 +269,8 @@ public class CheckEgg implements CommandExecutor
 
                         if (nbt == null || !nbt.getBoolean("isEgg"))
                         {
-                            printToLog(2, "Could not find an egg in the provided slot, or no Pok\u00E9mon was found. Abort.");
-                            src.sendMessage(Text.of("\u00A74Error: \u00A7cCould not find an egg in the provided slot."));
+                            printToLog(2, "Could not find an egg in the provided slot, or no Pokémon was found. Abort.");
+                            src.sendMessage(Text.of("§4Error: §cCould not find an egg in the provided slot."));
                         }
                         else
                         {
@@ -280,7 +283,7 @@ public class CheckEgg implements CommandExecutor
 
                             if (commandCost == 0 || wasEggChecked)
                             {
-                                printEggResults(nbt, pokemon, babyHintPercentage, commandCost, player);
+                                printEggResults(nbt, pokemon, commandCost, player);
 
                                 // Keep this below the printEggResults call, or your debug message order will look weird.
                                 if (commandCost == 0)
@@ -303,7 +306,7 @@ public class CheckEgg implements CommandExecutor
 
                                         if (transactionResult.getResult() == ResultType.SUCCESS)
                                         {
-                                            printEggResults(nbt, pokemon, babyHintPercentage, commandCost, player);
+                                            printEggResults(nbt, pokemon, commandCost, player);
 
                                             // Keep this below the printEggResults call, or your debug message order will look weird.
                                             printToLog(1, "Checked egg in slot " + slot + ", and took " + costToConfirm + " coins.");
@@ -311,15 +314,15 @@ public class CheckEgg implements CommandExecutor
                                         else
                                         {
                                             BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                            printToLog(2, "Not enough coins! Cost: \u00A73" + costToConfirm + "\u00A7b, lacking: \u00A73" + balanceNeeded);
+                                            printToLog(2, "Not enough coins! Cost: §3" + costToConfirm + "§b, lacking: §3" + balanceNeeded);
 
-                                            src.sendMessage(Text.of("\u00A74Error: \u00A7cYou need \u00A74" + balanceNeeded + "\u00A7c more coins to do this."));
+                                            src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
                                         }
                                     }
                                     else
                                     {
-                                        printToLog(0, "\u00A74" + src.getName() + "\u00A7c does not have an economy account, aborting. May be a bug?");
-                                        src.sendMessage(Text.of("\u00A74Error: \u00A7cNo economy account found. Please contact staff!"));
+                                        printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. May be a bug?");
+                                        src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
                                     }
                                 }
                                 else
@@ -329,13 +332,13 @@ public class CheckEgg implements CommandExecutor
                                     if (targetAcquired)
                                     {
                                         slot = Integer.parseInt(args.<String>getOne("slot").get());
-                                        src.sendMessage(Text.of("\u00A76Warning: \u00A7eChecking this egg's status costs \u00A76" + costToConfirm + "\u00A7e coins."));
-                                        src.sendMessage(Text.of("\u00A72Ready? Type: \u00A7a" + alias + " " + targetString + " " + slot + " -c"));
+                                        src.sendMessage(Text.of("§6Warning: §eChecking this egg's status costs §6" + costToConfirm + "§e coins."));
+                                        src.sendMessage(Text.of("§2Ready? Type: §a" + alias + " " + targetString + " " + slot + " -c"));
                                     }
                                     else
                                     {
-                                        src.sendMessage(Text.of("\u00A76Warning: \u00A7eChecking an egg's status costs \u00A76" + costToConfirm + "\u00A7e coins."));
-                                        src.sendMessage(Text.of("\u00A72Ready? Type: \u00A7a" + alias + " " + slot + " -c"));
+                                        src.sendMessage(Text.of("§6Warning: §eChecking an egg's status costs §6" + costToConfirm + "§e coins."));
+                                        src.sendMessage(Text.of("§2Ready? Type: §a" + alias + " " + slot + " -c"));
                                     }
                                 }
                             }
@@ -354,7 +357,7 @@ public class CheckEgg implements CommandExecutor
     {
         if (cost > 0)
         {
-            player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+            player.sendMessage(Text.of("§5-----------------------------------------------------"));
         }
     }
 
@@ -363,9 +366,9 @@ public class CheckEgg implements CommandExecutor
         if (cost != 0)
         {
             player.sendMessage(Text.of(""));
-            player.sendMessage(Text.of("\u00A76Warning: \u00A7eAdd the -c flag only if you're sure!"));
-            player.sendMessage(Text.of("\u00A7eConfirming will cost you \u00A76" + cost + "\u00A7e coins."));
-            player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+            player.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're sure!"));
+            player.sendMessage(Text.of("§eConfirming will cost you §6" + cost + "§e coins."));
+            player.sendMessage(Text.of("§5-----------------------------------------------------"));
         }
     }
 
@@ -375,16 +378,16 @@ public class CheckEgg implements CommandExecutor
         if (cost != 0)
         {
             if (player.hasPermission("pixelupgrade.command.checkegg.other"))
-                player.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " [optional target] <slot, 1-6> {-c to confirm}"));
+                player.sendMessage(Text.of("§4Usage: §c" + alias + " [optional target] <slot, 1-6> {-c to confirm}"));
             else
-                player.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> {-c to confirm} \u00A77(no perms for target)"));
+                player.sendMessage(Text.of("§4Usage: §c" + alias + " <slot> {-c to confirm} §7(no perms for target)"));
         }
         else
         {
             if (player.hasPermission("pixelupgrade.command.checkegg.other"))
-                player.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " [optional target] <slot, 1-6>"));
+                player.sendMessage(Text.of("§4Usage: §c" + alias + " [optional target] <slot, 1-6>"));
             else
-                player.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot> \u00A77(no perms for target)"));
+                player.sendMessage(Text.of("§4Usage: §c" + alias + " <slot> §7(no perms for target)"));
         }
     }
 
@@ -392,11 +395,11 @@ public class CheckEgg implements CommandExecutor
     {
         checkAndAddHeader(cost, player);
         if (hasOtherPerm)
-            player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid target or slot on first argument. See below."));
+            player.sendMessage(Text.of("§4Error: §cInvalid target or slot on first argument. See below."));
         else if (cost > 0)
-            player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid slot provided on first argument. See below."));
+            player.sendMessage(Text.of("§4Error: §cInvalid slot provided on first argument. See below."));
         else
-            player.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid slot provided. See below."));
+            player.sendMessage(Text.of("§4Error: §cInvalid slot provided. See below."));
         printCorrectPerm(cost, player);
         checkAndAddFooter(cost, player);
     }
@@ -406,13 +409,13 @@ public class CheckEgg implements CommandExecutor
         if (debugNum <= debugLevel)
         {
             if (debugNum == 0)
-                PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7c" + inputString);
+                PixelUpgrade.log.info("§4CheckEgg // critical: §c" + inputString);
             else if (debugNum == 1)
-                PixelUpgrade.log.info("\u00A76CheckEgg // important: \u00A7e" + inputString);
+                PixelUpgrade.log.info("§6CheckEgg // important: §e" + inputString);
             else if (debugNum == 2)
-                PixelUpgrade.log.info("\u00A73CheckEgg // start/end: \u00A7b" + inputString);
+                PixelUpgrade.log.info("§3CheckEgg // start/end: §b" + inputString);
             else
-                PixelUpgrade.log.info("\u00A72CheckEgg // debug: \u00A7a" + inputString);
+                PixelUpgrade.log.info("§2CheckEgg // debug: §a" + inputString);
         }
     }
 
@@ -422,7 +425,7 @@ public class CheckEgg implements CommandExecutor
             return CheckEggConfig.getInstance().getConfig().getNode(node).getBoolean();
         else
         {
-            PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCould not parse config variable \"" + node + "\"!");
+            PixelUpgrade.log.info("§4CheckEgg // critical: §cCould not parse config variable \"" + node + "\"!");
             return null;
         }
     }
@@ -433,13 +436,13 @@ public class CheckEgg implements CommandExecutor
             return CheckEggConfig.getInstance().getConfig().getNode(node).getInt();
         else
         {
-            PixelUpgrade.log.info("\u00A74CheckEgg // critical: \u00A7cCould not parse config variable \"" + node + "\"!");
+            PixelUpgrade.log.info("§4CheckEgg // critical: §cCould not parse config variable \"" + node + "\"!");
             return null;
         }
     }
 
     // I know, this is a bit ugly. Lots of stuff to pass.
-    private void printEggResults(NBTTagCompound nbt, EntityPixelmon pokemon, int babyHintPercentage, int cost, Player player)
+    private void printEggResults(NBTTagCompound nbt, EntityPixelmon pokemon, int cost, Player player)
     {
         int HPIV = nbt.getInteger(NbtKeys.IV_HP);
         int attackIV = nbt.getInteger(NbtKeys.IV_ATTACK);
@@ -451,19 +454,20 @@ public class CheckEgg implements CommandExecutor
         int percentIVs = totalIVs * 100 / 186;
         boolean isShiny = nbt.getInteger(NbtKeys.IS_SHINY) == 1;
 
-        player.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
+        player.sendMessage(Text.of("§7-----------------------------------------------------"));
         if (showName)
         {
-            player.sendMessage(Text.of("\u00A7eThere's a healthy \u00A76" + nbt.getString("Name") + "\u00A7e inside of this egg!"));
+            player.sendMessage(Text.of("§eThere's a healthy §6" + nbt.getString("Name") + "§e inside of this egg!"));
             if (explicitReveal)
                 player.sendMessage(Text.of(""));
         }
 
         if (explicitReveal)
         {
-            printToLog(3, "Explicit reveal enabled, printing full IVs and shiny status.");
+            printToLog(3, "Explicit reveal enabled. Printing full IVs, shiny-ness and other info.");
 
-            String ivs1, ivs2, ivs3, ivs4, ivs5, ivs6, configSpAtk, configSpDef, configSpeed;
+            // Figure out if we're using competitive standards or my personal preferences.
+            String configSpAtk, configSpDef, configSpeed;
             if (competitiveMode)
             {
                 configSpAtk = "SpA";
@@ -477,66 +481,87 @@ public class CheckEgg implements CommandExecutor
                 configSpeed = "Spd";
             }
 
-            if (HPIV == 31)
-                ivs1 = String.valueOf("\u00A7l" + HPIV + " \u00A72HP \u00A7r\u00A7f|\u00A7a ");
+            // Format the IVs for use later, so we can print them.
+            String ivs1, ivs2, ivs3, ivs4, ivs5, ivs6;
+            if (HPIV < 31)
+                ivs1 = String.valueOf(HPIV + " §2HP §f|§a ");
             else
-                ivs1 = String.valueOf(HPIV + " \u00A72HP \u00A7f|\u00A7a ");
+                ivs1 = String.valueOf("§l" + HPIV + " §2HP §r§f|§a ");
 
-            if (attackIV == 31)
-                ivs2 = String.valueOf("\u00A7l" + attackIV + " \u00A72Atk \u00A7r\u00A7f|\u00A7a ");
+            if (attackIV < 31)
+                ivs2 = String.valueOf(attackIV + " §2Atk §f|§a ");
             else
-                ivs2 = String.valueOf(attackIV + " \u00A72Atk \u00A7f|\u00A7a ");
+                ivs2 = String.valueOf("§l" + attackIV + " §2Atk §r§f|§a ");
 
-            if (defenceIV == 31)
-                ivs3 = String.valueOf("\u00A7l" + defenceIV + " \u00A72Def \u00A7r\u00A7f|\u00A7a ");
+            if (defenceIV < 31)
+                ivs3 = String.valueOf(defenceIV + " §2Def §f|§a ");
             else
-                ivs3 = String.valueOf(defenceIV + " \u00A72Def \u00A7f|\u00A7a ");
+                ivs3 = String.valueOf("§l" + defenceIV + " §2Def §r§f|§a ");
 
-            if (spAttackIV == 31)
-                ivs4 = String.valueOf("\u00A7l" + spAttackIV + " \u00A72" + configSpAtk + " \u00A7r\u00A7f|\u00A7a ");
+            if (spAttackIV < 31)
+                ivs4 = String.valueOf(spAttackIV + " §2" + configSpAtk + " §f|§a ");
             else
-                ivs4 = String.valueOf(spAttackIV + " \u00A72" + configSpAtk + " \u00A7f|\u00A7a ");
+                ivs4 = String.valueOf("§l" + spAttackIV + " §2" + configSpAtk + " §r§f|§a ");
 
-            if (spDefenceIV == 31)
-                ivs5 = String.valueOf("\u00A7l" + spDefenceIV + " \u00A72" + configSpDef + " \u00A7r\u00A7f|\u00A7a ");
+            if (spDefenceIV < 31)
+                ivs5 = String.valueOf(spDefenceIV + " §2" + configSpDef + " §f|§a ");
             else
-                ivs5 = String.valueOf(spDefenceIV + " \u00A72" + configSpDef + " \u00A7f|\u00A7a ");
+                ivs5 = String.valueOf("§l" + spDefenceIV + " §2" + configSpDef + " §r§f|§a ");
 
-            if (speedIV == 31)
-                ivs6 = String.valueOf("\u00A7l" + speedIV + " \u00A72" + configSpeed + "");
+            if (speedIV < 31)
+                ivs6 = String.valueOf(speedIV + " §2" + configSpeed + "");
             else
-                ivs6 = String.valueOf(speedIV + " \u00A72" + configSpeed + "");
+                ivs6 = String.valueOf("§l" + speedIV + " §2" + configSpeed + "");
 
-            player.sendMessage(Text.of("\u00A7bTotal IVs\u00A7f: \u00A7a" + totalIVs + "\u00A7f/\u00A7a186\u00A7f (\u00A7a" + percentIVs + "%\u00A7f)"));
-            player.sendMessage(Text.of("\u00A7bIVs\u00A7f: \u00A7a" + ivs1 + "" + ivs2 + "" + ivs3 + "" + ivs4 + "" + ivs5 + "" + ivs6));
+            player.sendMessage(Text.of("§bTotal IVs§f: §a" + totalIVs + "§f/§a186§f (§a" + percentIVs + "%§f)"));
+            player.sendMessage(Text.of("§bIVs§f: §a" + ivs1 + "" + ivs2 + "" + ivs3 + "" + ivs4 + "" + ivs5 + "" + ivs6));
+
+            // Get a bunch of data from our GetPokemonInfo utility class.
+            ArrayList<String> natureArray =
+                    GetPokemonInfo.getNatureStrings(nbt.getInteger(NbtKeys.NATURE), configSpAtk, configSpDef, configSpeed);
+            String natureName = natureArray.get(0);
+            String plusVal = natureArray.get(1);
+            String minusVal = natureArray.get(2);
+            String growthName = GetPokemonInfo.getGrowthName(nbt.getInteger(NbtKeys.GROWTH));
+            String genderCharacter = GetPokemonInfo.getGenderCharacter(nbt.getInteger(NbtKeys.GENDER));
+
+            // Show said data.
+            String extraInfo1 = String.valueOf("§bGender§f: " + genderCharacter +
+                    "§f | §bSize§f: " + growthName + "§f | ");
+            String extraInfo2 = String.valueOf("§bNature§f: " + natureName +
+                    "§f (§a" + plusVal + "§f/§c" + minusVal + "§f)");
+            player.sendMessage(Text.of(extraInfo1 + extraInfo2));
+
+            // Lucky!
             if (isShiny)
             {
                 player.sendMessage(Text.of(""));
-                player.sendMessage(Text.of("\u00A76\u00A7lCongratulations! \u00A7r\u00A7eThis baby is shiny!"));
+                player.sendMessage(Text.of("§6§lCongratulations! §r§eThis baby is shiny!"));
             }
         }
         else
         {
             printToLog(3, "Explicit reveal disabled, printing vague status.");
 
+            // Figure out whether the baby is anything special. Uses a config-set percentage for stat checks.
             if (percentIVs >= babyHintPercentage && nbt.getInteger(NbtKeys.IS_SHINY) != 1)
-                player.sendMessage(Text.of("\u00A76What's this? \u00A7eThis baby seems to be bursting with energy!"));
+                player.sendMessage(Text.of("§6What's this? §eThis baby seems to be bursting with energy!"));
             else if (!(percentIVs >= babyHintPercentage) && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
-                player.sendMessage(Text.of("\u00A76What's this? \u00A7eThis baby seems to have an odd sheen to it!"));
+                player.sendMessage(Text.of("§6What's this? §eThis baby seems to have an odd sheen to it!"));
             else if (percentIVs >= babyHintPercentage && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
-                player.sendMessage(Text.of("\u00A76What's this? \u00A7eSomething about this baby seems real special!"));
+                player.sendMessage(Text.of("§6What's this? §eSomething about this baby seems real special!"));
             else
-                player.sendMessage(Text.of("\u00A7eThis baby seems to be fairly ordinary..."));
+                player.sendMessage(Text.of("§eThis baby seems to be fairly ordinary..."));
         }
 
         if (pokemon.getEntityData().getBoolean("hadEggChecked") && recheckIsFree && cost > 0)
         {
             if (!isShiny || !explicitReveal)
                 player.sendMessage(Text.of(""));
-            player.sendMessage(Text.of("\u00A7dThis egg has been checked before, so this check was free!"));
+            player.sendMessage(Text.of("§dThis egg has been checked before, so this check was free!"));
         }
 
-        player.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
+        player.sendMessage(Text.of("§7-----------------------------------------------------"));
         pokemon.getEntityData().setBoolean("hadEggChecked", true);
     }
 }

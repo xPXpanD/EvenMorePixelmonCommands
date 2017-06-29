@@ -44,11 +44,11 @@ public class FixLevel implements CommandExecutor
             if (modeString.matches("^[0-3]"))
                 debugLevel = Integer.parseInt(modeString);
             else
-                PixelUpgrade.log.info("\u00A74FixLevel // critical: \u00A7cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
+                PixelUpgrade.log.info("§4FixLevel // critical: §cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
         }
         else
         {
-            PixelUpgrade.log.info("\u00A74FixLevel // critical: \u00A7cConfig variable \"debugVerbosityMode\" could not be found!");
+            PixelUpgrade.log.info("§4FixLevel // critical: §cConfig variable \"debugVerbosityMode\" could not be found!");
             debugLevel = null;
         }
     }
@@ -60,7 +60,7 @@ public class FixLevel implements CommandExecutor
             alias = "/" + FixLevelConfig.getInstance().getConfig().getNode("commandAlias").getString();
         else
         {
-            PixelUpgrade.log.info("\u00A74FixLevel // critical: \u00A7cConfig variable \"commandAlias\" could not be found!");
+            PixelUpgrade.log.info("§4FixLevel // critical: §cConfig variable \"commandAlias\" could not be found!");
             alias = null;
         }
     }
@@ -73,7 +73,7 @@ public class FixLevel implements CommandExecutor
             if (!FixLevelConfig.getInstance().getConfig().getNode("commandCost").isVirtual())
                 commandCost = FixLevelConfig.getInstance().getConfig().getNode("commandCost").getInt();
             else
-                PixelUpgrade.log.info("\u00A74FixLevel // critical: \u00A7cCould not parse config variable \"commandCost\"!");
+                PixelUpgrade.log.info("§4FixLevel // critical: §cCould not parse config variable \"commandCost\"!");
 
             // Set up the command's debug verbosity mode and preferred alias.
             getVerbosityMode();
@@ -82,12 +82,12 @@ public class FixLevel implements CommandExecutor
             if (commandCost == null || alias == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
-                src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("\u00A74FixLevel // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pureload\u00A7c.");
+                src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
+                PixelUpgrade.log.info("§4FixLevel // critical: §cCheck your config. If need be, wipe and §4/pureload§c.");
             }
             else
             {
-                printToLog(2, "Called by player \u00A73" + src.getName() + "\u00A7b. Starting!");
+                printToLog(2, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 Player player = (Player) src;
                 boolean canContinue = true, commandConfirmed = false;
@@ -97,9 +97,9 @@ public class FixLevel implements CommandExecutor
                 {
                     printToLog(2, "No arguments provided, aborting.");
 
-                    checkAndAddHeader(commandCost, player);
-                    src.sendMessage(Text.of("\u00A74Error: \u00A7cNo parameters found. Please provide a slot."));
-                    src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot, 1-6> {-c to confirm}"));
+                    player.sendMessage(Text.of("§5-----------------------------------------------------"));
+                    src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
+                    src.sendMessage(Text.of("§4Usage: §c" + alias + " <slot, 1-6> {-c to confirm}"));
                     checkAndAddFooter(commandCost, player);
 
                     canContinue = false;
@@ -117,9 +117,9 @@ public class FixLevel implements CommandExecutor
                     {
                         printToLog(2, "Invalid slot provided. Aborting.");
 
-                        checkAndAddHeader(commandCost, player);
-                        src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid slot value. Valid values are 1-6."));
-                        src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot, 1-6> {-c to confirm}"));
+                        player.sendMessage(Text.of("§5-----------------------------------------------------"));
+                        src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
+                        src.sendMessage(Text.of("§4Usage: §c" + alias + " <slot, 1-6> {-c to confirm}"));
                         checkAndAddFooter(commandCost, player);
 
                         canContinue = false;
@@ -136,8 +136,8 @@ public class FixLevel implements CommandExecutor
 
                     if (!storage.isPresent())
                     {
-                        printToLog(0, "\u00A74" + player.getName() + "\u00A7c does not have a Pixelmon storage, aborting. May be a bug?");
-                        src.sendMessage(Text.of("\u00A74Error: \u00A7cNo Pixelmon storage found. Please contact staff!"));
+                        printToLog(0, "§4" + player.getName() + "§c does not have a Pixelmon storage, aborting. May be a bug?");
+                        src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
                     }
                     else
                     {
@@ -147,12 +147,12 @@ public class FixLevel implements CommandExecutor
                         if (nbt == null)
                         {
                             printToLog(2, "No NBT found in slot, probably empty. Aborting...");
-                            src.sendMessage(Text.of("\u00A74Error: \u00A7cYou don't have anything in that slot!"));
+                            src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
                         }
                         else if (nbt.getBoolean("isEgg"))
                         {
                             printToLog(2, "Tried to fix level on an egg. Aborting...");
-                            src.sendMessage(Text.of("\u00A74Error: \u00A7cThat's an egg! Go hatch it, first."));
+                            src.sendMessage(Text.of("§4Error: §cThat's an egg! Go hatch it, first."));
                         }
                         else
                         {
@@ -161,8 +161,8 @@ public class FixLevel implements CommandExecutor
 
                             if (pokemonLevel != configLevel)
                             {
-                                printToLog(2, "Config max level and provided Pok\u00E9mon's level did not match. Abort.");
-                                src.sendMessage(Text.of("\u00A74Error: \u00A7cYour Pok\u00E9mon is not at level \u00A74" + configLevel + "\u00A7c, yet."));
+                                printToLog(2, "Config max level and provided Pokémon's level did not match. Abort.");
+                                src.sendMessage(Text.of("§4Error: §cYour Pokémon is not at level §4" + configLevel + "§c, yet."));
                             }
                             else
                             {
@@ -187,16 +187,16 @@ public class FixLevel implements CommandExecutor
                                             else
                                             {
                                                 BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                                printToLog(2, "Not enough coins! Cost: \u00A73" + costToConfirm + "\u00A7b, lacking: \u00A73" + balanceNeeded);
+                                                printToLog(2, "Not enough coins! Cost: §3" + costToConfirm + "§b, lacking: §3" + balanceNeeded);
 
-                                                src.sendMessage(Text.of("\u00A74Error: \u00A7cYou need \u00A74" + balanceNeeded + "\u00A7c more coins to do this."));
+                                                src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
                                                 canContinue = false;
                                             }
                                         }
                                         else
                                         {
-                                            printToLog(0, "\u00A74" + src.getName() + "\u00A7c does not have an economy account, aborting. May be a bug?");
-                                            src.sendMessage(Text.of("\u00A74Error: \u00A7cNo economy account found. Please contact staff!"));
+                                            printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. May be a bug?");
+                                            src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
                                             canContinue = false;
                                         }
                                     }
@@ -208,25 +208,25 @@ public class FixLevel implements CommandExecutor
 
                                     if (canContinue)
                                     {
-                                        printToLog(2, "Succesfully fixed the level of a Pok\u00E9mon!");
+                                        printToLog(2, "Succesfully fixed the level of a Pokémon!");
 
                                         if (nbt.getString("Nickname").equals(""))
-                                            src.sendMessage(Text.of("\u00A76" + nbt.getString("Name") + "\u00A7e has had its level fixed!"));
+                                            src.sendMessage(Text.of("§6" + nbt.getString("Name") + "§e has had its level fixed!"));
                                         else
-                                            src.sendMessage(Text.of("\u00A7eYour \u00A76" + nbt.getString("Nickname") + "\u00A7e has had its level fixed!"));
-                                        src.sendMessage(Text.of("\u00A72Note: \u00A7aPlease reconnect for changes to save and show."));
+                                            src.sendMessage(Text.of("§eYour §6" + nbt.getString("Nickname") + "§e has had its level fixed!"));
+                                        src.sendMessage(Text.of("§2Note: §aPlease reconnect for changes to save and show."));
                                     }
                                 }
                                 else
                                 {
                                     printToLog(2, "Got cost but no confirmation; end of the line.");
 
-                                    src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-                                    src.sendMessage(Text.of("\u00A76Warning: \u00A7eYou're about to lower this Pok\u00E9mon's level to \u00A76" + (configLevel - 1) + "\u00A7e."));
+                                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                                    src.sendMessage(Text.of("§6Warning: §eYou're about to lower this Pokémon's level to §6" + (configLevel - 1) + "§e."));
                                     if (commandCost > 0)
-                                        src.sendMessage(Text.of("\u00A76Doing this will cost you \u00A7c" + commandCost + "\u00A76 coins."));
-                                    src.sendMessage(Text.of("\u00A72Ready? Type: \u00A7a" + alias + " " + slot + " -c"));
-                                    src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+                                        src.sendMessage(Text.of("§6Doing this will cost you §c" + commandCost + "§6 coins."));
+                                    src.sendMessage(Text.of("§2Ready? Type: §a" + alias + " " + slot + " -c"));
+                                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
                                 }
                             }
                         }
@@ -240,21 +240,13 @@ public class FixLevel implements CommandExecutor
         return CommandResult.success();
     }
 
-    private void checkAndAddHeader(int cost, Player player)
-    {
-        if (cost > 0)
-            player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-    }
-
     private void checkAndAddFooter(int cost, Player player)
     {
         player.sendMessage(Text.of(""));
-        player.sendMessage(Text.of("\u00A76Warning: \u00A7eAdd the -c flag only if you're sure!"));
+        player.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're sure!"));
         if (cost > 0)
-        {
-            player.sendMessage(Text.of("\u00A7eConfirming will cost you \u00A76" + cost + "\u00A7e coins."));
-            player.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-        }
+            player.sendMessage(Text.of("§eConfirming will cost you §6" + cost + "§e coins."));
+        player.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
 
     private void printToLog(int debugNum, String inputString)
@@ -262,13 +254,13 @@ public class FixLevel implements CommandExecutor
         if (debugNum <= debugLevel)
         {
             if (debugNum == 0)
-                PixelUpgrade.log.info("\u00A74FixLevel // critical: \u00A7c" + inputString);
+                PixelUpgrade.log.info("§4FixLevel // critical: §c" + inputString);
             else if (debugNum == 1)
-                PixelUpgrade.log.info("\u00A76FixLevel // important: \u00A7e" + inputString);
+                PixelUpgrade.log.info("§6FixLevel // important: §e" + inputString);
             else if (debugNum == 2)
-                PixelUpgrade.log.info("\u00A73FixLevel // start/end: \u00A7b" + inputString);
+                PixelUpgrade.log.info("§3FixLevel // start/end: §b" + inputString);
             else
-                PixelUpgrade.log.info("\u00A72FixLevel // debug: \u00A7a" + inputString);
+                PixelUpgrade.log.info("§2FixLevel // debug: §a" + inputString);
         }
     }
 }

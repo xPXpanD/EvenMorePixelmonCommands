@@ -34,11 +34,11 @@ public class ResetCount implements CommandExecutor
             if (modeString.matches("^[0-3]"))
                 debugLevel = Integer.parseInt(modeString);
             else
-                PixelUpgrade.log.info("\u00A74ResetCount // critical: \u00A7cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
+                PixelUpgrade.log.info("§4ResetCount // critical: §cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
         }
         else
         {
-            PixelUpgrade.log.info("\u00A74ResetCount // critical: \u00A7cConfig variable \"debugVerbosityMode\" could not be found!");
+            PixelUpgrade.log.info("§4ResetCount // critical: §cConfig variable \"debugVerbosityMode\" could not be found!");
             debugLevel = null;
         }
     }
@@ -50,7 +50,7 @@ public class ResetCount implements CommandExecutor
             alias = "/" + ResetCountConfig.getInstance().getConfig().getNode("commandAlias").getString();
         else
         {
-            PixelUpgrade.log.info("\u00A74ResetCount // critical: \u00A7cConfig variable \"commandAlias\" could not be found!");
+            PixelUpgrade.log.info("§4ResetCount // critical: §cConfig variable \"commandAlias\" could not be found!");
             alias = null;
         }
     }
@@ -66,12 +66,12 @@ public class ResetCount implements CommandExecutor
             if (alias == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
-                src.sendMessage(Text.of("\u00A74Error: \u00A7cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("\u00A74ResetEVs // critical: \u00A7cCheck your config. If need be, wipe and \u00A74/pureload\u00A7c.");
+                src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
+                PixelUpgrade.log.info("§4ResetEVs // critical: §cCheck your config. If need be, wipe and §4/pureload§c.");
             }
             else
             {
-                printToLog(2, "Called by player \u00A73" + src.getName() + "\u00A7b. Starting!");
+                printToLog(2, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 Player player = (Player) src;
                 boolean canContinue = true, commandConfirmed = false, printError = false;
@@ -82,15 +82,9 @@ public class ResetCount implements CommandExecutor
                 {
                     printToLog(2, "No arguments provided, aborting.");
 
-                    src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-                    src.sendMessage(Text.of("\u00A74Error: \u00A7cNo parameters found. Please provide a slot."));
-                    src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot, 1-6> <count> {-c to confirm}"));
-                    src.sendMessage(Text.of(""));
-                    src.sendMessage(Text.of("\u00A76Valid counts: \u00A7eUpgrade, Fusion"));
-                    src.sendMessage(Text.of(""));
-                    src.sendMessage(Text.of("\u00A75Warning: \u00A7dThe -c flag immediately wipes the chosen count!"));
-                    src.sendMessage(Text.of("\u00A7d(these counts are a Pok\u00E9mon's upgrade/fusion totals)"));
-                    src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                    src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
+                    addFooter(player);
 
                     canContinue = false;
                 }
@@ -107,15 +101,9 @@ public class ResetCount implements CommandExecutor
                     {
                         printToLog(2, "Invalid slot provided. Aborting.");
 
-                        src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-                        src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid slot value. Valid values are 1-6."));
-                        src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot, 1-6> <count> {-c to confirm}"));
-                        src.sendMessage(Text.of(""));
-                        src.sendMessage(Text.of("\u00A76Valid counts: \u00A7eUpgrade/Fusion/All"));
-                        src.sendMessage(Text.of(""));
-                        src.sendMessage(Text.of("\u00A75Warning: \u00A7dThe -c flag immediately wipes the chosen count!"));
-                        src.sendMessage(Text.of("\u00A7d(these counts are a Pok\u00E9mon's upgrade/fusion totals)"));
-                        src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                        src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
+                        addFooter(player);
 
                         canContinue = false;
                     }
@@ -143,15 +131,9 @@ public class ResetCount implements CommandExecutor
                 {
                     printToLog(2, "Could not find a valid count to reset. Aborting.");
 
-                    src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
-                    src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid count provided. See below for valid ones."));
-                    src.sendMessage(Text.of("\u00A74Usage: \u00A7c" + alias + " <slot, 1-6> <count> {-c to confirm}"));
-                    src.sendMessage(Text.of(""));
-                    src.sendMessage(Text.of("\u00A76Valid counts: \u00A7eUpgrade/Fusion/All"));
-                    src.sendMessage(Text.of(""));
-                    src.sendMessage(Text.of("\u00A75Warning: \u00A7dThe -c flag immediately wipes the chosen count!"));
-                    src.sendMessage(Text.of("\u00A7d(these counts are a Pok\u00E9mon's upgrade/fusion totals)"));
-                    src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+                    player.sendMessage(Text.of("§5-----------------------------------------------------"));
+                    player.sendMessage(Text.of("§4Error: §cInvalid count provided. See below for valid ones."));
+                    addFooter(player);
 
                     canContinue = false;
                 }
@@ -166,8 +148,8 @@ public class ResetCount implements CommandExecutor
 
                     if (!storage.isPresent())
                     {
-                        printToLog(0, "\u00A74" + player.getName() + "\u00A7c does not have a Pixelmon storage, aborting. May be a bug?");
-                        src.sendMessage(Text.of("\u00A74Error: \u00A7cNo Pixelmon storage found. Please contact staff!"));
+                        printToLog(0, "§4" + player.getName() + "§c does not have a Pixelmon storage, aborting. May be a bug?");
+                        src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
                     }
                     else
                     {
@@ -177,7 +159,7 @@ public class ResetCount implements CommandExecutor
                         if (nbt == null)
                         {
                             printToLog(2, "No NBT found in slot, probably empty. Aborting...");
-                            src.sendMessage(Text.of("\u00A74Error: \u00A7cYou don't have anything in that slot!"));
+                            src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
                         }
                         else
                         {
@@ -194,17 +176,17 @@ public class ResetCount implements CommandExecutor
                                 if (fixedCount.matches("Fusion"))
                                 {
                                     printToLog(1, "Resetting Fusion count on target Pokémon. Old count: " + fuseCount);
-                                    src.sendMessage(Text.of("\u00A7aThis Pok\u00E9mon's Fusion count has been reset!"));
+                                    src.sendMessage(Text.of("§aThis Pokémon's Fusion count has been reset!"));
                                     if (!isDitto)
-                                        src.sendMessage(Text.of("\u00A7eThis isn't a Ditto -- you may want to wipe Upgrade instead."));
+                                        src.sendMessage(Text.of("§eThis isn't a Ditto -- you may want to wipe Upgrade instead."));
                                     pokemon.getEntityData().setInteger("fuseCount", 0);
                                 }
                                 else if (fixedCount.matches("Upgrade"))
                                 {
                                     printToLog(1, "Resetting Upgrade count on target Pokémon. Old count: " + upgradeCount);
-                                    src.sendMessage(Text.of("\u00A7aThis Pok\u00E9mon's Upgrade count has been reset!"));
+                                    src.sendMessage(Text.of("§aThis Pokémon's Upgrade count has been reset!"));
                                     if (isDitto)
-                                        src.sendMessage(Text.of("\u00A7eThis is a Ditto -- you may want to wipe Fusion instead."));
+                                        src.sendMessage(Text.of("§eThis is a Ditto -- you may want to wipe Fusion instead."));
                                     pokemon.getEntityData().setInteger("upgradeCount", 0);
                                 }
 
@@ -214,13 +196,13 @@ public class ResetCount implements CommandExecutor
                             {
                                 printToLog(2, "No confirmation provided, printing warning and aborting.");
 
-                                src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+                                src.sendMessage(Text.of("§5-----------------------------------------------------"));
                                 if (fixedCount.matches("all"))
-                                    src.sendMessage(Text.of("\u00A76Warning: \u00A7eYou're about to reset all of this Pok\u00E9mon's improvement counts!"));
+                                    src.sendMessage(Text.of("§6Warning: §eYou're about to reset all of this Pokémon's improvement counts!"));
                                 else
-                                    src.sendMessage(Text.of("\u00A76Warning: \u00A7eYou are about to reset this Pok\u00E9mon's \u00A76" + fixedCount + "\u00A7e count!"));
-                                src.sendMessage(Text.of("\u00A72Ready? Type: \u00A7a" + alias + " " + slot + " -c"));
-                                src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+                                    src.sendMessage(Text.of("§6Warning: §eYou are about to reset this Pokémon's §6" + fixedCount + "§e count!"));
+                                src.sendMessage(Text.of("§2Ready? Type: §a" + alias + " " + slot + " -c"));
+                                src.sendMessage(Text.of("§5-----------------------------------------------------"));
                             }
                         }
                     }
@@ -233,18 +215,29 @@ public class ResetCount implements CommandExecutor
         return CommandResult.success();
     }
 
+    private void addFooter(Player player)
+    {
+        player.sendMessage(Text.of("§4Usage: §c" + alias + " <slot, 1-6> <count> {-c to confirm}"));
+        player.sendMessage(Text.of(""));
+        player.sendMessage(Text.of("§6Valid counts: §eUpgrade§6, §eFusion"));
+        player.sendMessage(Text.of(""));
+        player.sendMessage(Text.of("§5Warning: §dThe -c flag immediately wipes the chosen count!"));
+        player.sendMessage(Text.of("§d(these counts are a Pokémon's upgrade/fusion totals)"));
+        player.sendMessage(Text.of("§5-----------------------------------------------------"));
+    }
+
     private void printToLog(int debugNum, String inputString)
     {
         if (debugNum <= debugLevel)
         {
             if (debugNum == 0)
-                PixelUpgrade.log.info("\u00A74ResetCount // critical: \u00A7c" + inputString);
+                PixelUpgrade.log.info("§4ResetCount // critical: §c" + inputString);
             else if (debugNum == 1)
-                PixelUpgrade.log.info("\u00A76ResetCount // important: \u00A7e" + inputString);
+                PixelUpgrade.log.info("§6ResetCount // important: §e" + inputString);
             else if (debugNum == 2)
-                PixelUpgrade.log.info("\u00A73ResetCount // start/end: \u00A7b" + inputString);
+                PixelUpgrade.log.info("§3ResetCount // start/end: §b" + inputString);
             else
-                PixelUpgrade.log.info("\u00A72ResetCount // debug: \u00A7a" + inputString);
+                PixelUpgrade.log.info("§2ResetCount // debug: §a" + inputString);
         }
     }
 }

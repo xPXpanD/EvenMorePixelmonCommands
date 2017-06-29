@@ -1,8 +1,10 @@
 package rs.expand.pixelupgrade.commands;
 
-import java.math.BigDecimal;
-import java.util.Optional;
-
+import com.pixelmonmod.pixelmon.storage.NbtKeys;
+import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
+import com.pixelmonmod.pixelmon.storage.PlayerStorage;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.nbt.NBTTagCompound;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
@@ -13,20 +15,16 @@ import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
-
-import com.pixelmonmod.pixelmon.storage.NbtKeys;
-import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
-import com.pixelmonmod.pixelmon.storage.PlayerStorage;
-
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
-
 import rs.expand.pixelupgrade.PixelUpgrade;
-import rs.expand.pixelupgrade.configs.ResetEVsConfig;
+import rs.expand.pixelupgrade.configs.SwitchGenderConfig;
+
+import java.math.BigDecimal;
+import java.util.Optional;
 
 import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
-public class ResetEVs implements CommandExecutor
+// Ohhhh, the cheeky jokes I could make here.
+public class SwitchGender implements CommandExecutor
 {
     // See which messages should be printed by the debug logger. Valid range is 0-3.
     // We set null on hitting an error, and let the main code block handle it from there.
@@ -34,18 +32,18 @@ public class ResetEVs implements CommandExecutor
     private void getVerbosityMode()
     {
         // Does the debugVerbosityMode node exist? If so, figure out what's in it.
-        if (!ResetEVsConfig.getInstance().getConfig().getNode("debugVerbosityMode").isVirtual())
+        if (!SwitchGenderConfig.getInstance().getConfig().getNode("debugVerbosityMode").isVirtual())
         {
-            String modeString = ResetEVsConfig.getInstance().getConfig().getNode("debugVerbosityMode").getString();
+            String modeString = SwitchGenderConfig.getInstance().getConfig().getNode("debugVerbosityMode").getString();
 
             if (modeString.matches("^[0-3]"))
                 debugLevel = Integer.parseInt(modeString);
             else
-                PixelUpgrade.log.info("§4ResetEVs // critical: §cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
+                PixelUpgrade.log.info("§4SwitchGender // critical: §cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
         }
         else
         {
-            PixelUpgrade.log.info("§4ResetEVs // critical: §cConfig variable \"debugVerbosityMode\" could not be found!");
+            PixelUpgrade.log.info("§4SwitchGender // critical: §cConfig variable \"debugVerbosityMode\" could not be found!");
             debugLevel = null;
         }
     }
@@ -53,24 +51,24 @@ public class ResetEVs implements CommandExecutor
     private static String alias;
     private void getCommandAlias()
     {
-        if (!ResetEVsConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
-            alias = "/" + ResetEVsConfig.getInstance().getConfig().getNode("commandAlias").getString();
+        if (!SwitchGenderConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
+            alias = "/" + SwitchGenderConfig.getInstance().getConfig().getNode("commandAlias").getString();
         else
         {
-            PixelUpgrade.log.info("§4ResetEVs // critical: §cConfig variable \"commandAlias\" could not be found!");
+            PixelUpgrade.log.info("§4SwitchGender // critical: §cConfig variable \"commandAlias\" could not be found!");
             alias = null;
         }
     }
 
-	public CommandResult execute(CommandSource src, CommandContext args)
-	{
+    public CommandResult execute(CommandSource src, CommandContext args)
+    {
         if (src instanceof Player)
         {
             Integer commandCost = null;
-            if (!ResetEVsConfig.getInstance().getConfig().getNode("commandCost").isVirtual())
-                commandCost = ResetEVsConfig.getInstance().getConfig().getNode("commandCost").getInt();
+            if (!SwitchGenderConfig.getInstance().getConfig().getNode("commandCost").isVirtual())
+                commandCost = SwitchGenderConfig.getInstance().getConfig().getNode("commandCost").getInt();
             else
-                PixelUpgrade.log.info("§4ResetEVs // critical: §cCould not parse config variable \"commandCost\"!");
+                PixelUpgrade.log.info("§4SwitchGender // critical: §cCould not parse config variable \"commandCost\"!");
 
             // Set up the command's debug verbosity mode and preferred alias.
             getVerbosityMode();
@@ -80,7 +78,7 @@ public class ResetEVs implements CommandExecutor
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("§4ResetEVs // critical: §cCheck your config. If need be, wipe and §4/pureload§c.");
+                PixelUpgrade.log.info("§4SwitchGender // critical: §cCheck your config. If need be, wipe and §4/pureload§c.");
             }
             else
             {
@@ -94,7 +92,7 @@ public class ResetEVs implements CommandExecutor
                 {
                     printToLog(2, "No arguments provided, aborting.");
 
-                    checkAndAddHeader(commandCost, player);
+                    player.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
                     printCorrectHelper(commandCost, player);
                     checkAndAddFooter(commandCost, player);
@@ -114,7 +112,7 @@ public class ResetEVs implements CommandExecutor
                     {
                         printToLog(2, "Invalid slot provided. Aborting.");
 
-                        checkAndAddHeader(commandCost, player);
+                        player.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
                         printCorrectHelper(commandCost, player);
                         checkAndAddFooter(commandCost, player);
@@ -148,14 +146,20 @@ public class ResetEVs implements CommandExecutor
                         }
                         else if (nbt.getBoolean("isEgg"))
                         {
-                            printToLog(2, "Tried to reset EVs on an egg. Aborting...");
+                            printToLog(2, "Tried to switch gender on an egg. Aborting...");
                             src.sendMessage(Text.of("§4Error: §cThat's an egg! Go hatch it, first."));
+                        }
+                        else if (nbt.getInteger(NbtKeys.GENDER) == 2)
+                        {
+                            printToLog(2, "Tried to switch gender on a genderless Pokémon. Abort.");
+                            src.sendMessage(Text.of("§4Error: §cYou can only switch genders on a gendered Pokémon!"));
                         }
                         else
                         {
                             if (commandConfirmed)
                             {
                                 printToLog(3, "Command was confirmed, checking balances.");
+                                int gender = nbt.getInteger(NbtKeys.GENDER);
 
                                 if (commandCost > 0)
                                 {
@@ -169,8 +173,9 @@ public class ResetEVs implements CommandExecutor
 
                                         if (transactionResult.getResult() == ResultType.SUCCESS)
                                         {
-                                            resetPlayerEVs(nbt, player);
-                                            printToLog(1, "Reset EVs for slot " + slot + ", and took " + costToConfirm + " coins.");
+                                            printToLog(1, "Switched gender for slot " + slot + ", and took " + costToConfirm + " coins.");
+                                            switchGenders(nbt, player, gender);
+                                            storageCompleted.sendUpdatedList();
                                         }
                                         else
                                         {
@@ -188,8 +193,9 @@ public class ResetEVs implements CommandExecutor
                                 }
                                 else
                                 {
-                                    resetPlayerEVs(nbt, player);
-                                    printToLog(1, "Reset EVs for slot " + slot + ". Config price is 0, taking nothing.");
+                                    printToLog(1, "Switched gender for slot " + slot + ". Config price is 0, taking nothing.");
+                                    switchGenders(nbt, player, gender);
+                                    storageCompleted.sendUpdatedList();
                                 }
                             }
                             else
@@ -197,9 +203,9 @@ public class ResetEVs implements CommandExecutor
                                 printToLog(2, "No confirmation provided, printing warning and aborting.");
 
                                 src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                                src.sendMessage(Text.of("§6Warning: §eYou are about to reset this Pokémon's EVs to zero!"));
+                                src.sendMessage(Text.of("§6Warning: §eYou are about to switch this Pokémon's gender!"));
                                 if (commandCost > 0)
-                                    src.sendMessage(Text.of("§eResetting will cost §6" + commandCost + "§e coins!"));
+                                    src.sendMessage(Text.of("§eSwitching will cost §6" + commandCost + "§e coins!"));
                                 src.sendMessage(Text.of("§2Ready? Type: §a" + alias + " " + slot + " -c"));
                                 src.sendMessage(Text.of("§5-----------------------------------------------------"));
                             }
@@ -212,48 +218,28 @@ public class ResetEVs implements CommandExecutor
             printToLog(0, "This command cannot run from the console or command blocks.");
 
         return CommandResult.success();
-	}
-
-	private void resetPlayerEVs(NBTTagCompound nbt, Player player)
-    {
-        int EVHP = nbt.getInteger(NbtKeys.EV_HP);
-        int EVATT = nbt.getInteger(NbtKeys.EV_ATTACK);
-        int EVDEF = nbt.getInteger(NbtKeys.EV_DEFENCE);
-        int EVSPATT = nbt.getInteger(NbtKeys.EV_SPECIAL_ATTACK);
-        int EVSPDEF = nbt.getInteger(NbtKeys.EV_SPECIAL_DEFENCE);
-        int EVSPD = nbt.getInteger(NbtKeys.EV_SPEED);
-
-        printToLog(1, "Command has been confirmed, printing old EVs...");
-        printToLog(1, "HP: " + EVHP + " | ATK: " + EVATT + " | DEF: " + EVDEF + " | SPATK: " + EVSPATT + " | SPDEF: " + EVSPDEF + " | SPD: " + EVSPD);
-
-        nbt.setInteger(NbtKeys.EV_HP, 0);
-        nbt.setInteger(NbtKeys.EV_ATTACK, 0);
-        nbt.setInteger(NbtKeys.EV_DEFENCE, 0);
-        nbt.setInteger(NbtKeys.EV_SPECIAL_ATTACK, 0);
-        nbt.setInteger(NbtKeys.EV_SPECIAL_DEFENCE, 0);
-        nbt.setInteger(NbtKeys.EV_SPEED, 0);
-
-        if (nbt.getString("Nickname").equals(""))
-            player.sendMessage(Text.of("§2" + nbt.getString("Name") + "§a had its EVs wiped!"));
-        else
-            player.sendMessage(Text.of("§aYour §2" + nbt.getString("Nickname") + "§a had its EVs wiped!"));
     }
 
-    private void checkAndAddHeader(int cost, Player player)
+    private void switchGenders(NBTTagCompound nbt, Player player, int gender)
     {
-        if (cost > 0)
-            player.sendMessage(Text.of("§5-----------------------------------------------------"));
+        if (gender == 0) // male
+            nbt.setInteger(NbtKeys.GENDER, 1); // female
+        else // female (we checked for ungendered Pokémon earlier)
+            nbt.setInteger(NbtKeys.GENDER, 0); // male
+
+        if (nbt.getString("Nickname").equals(""))
+            player.sendMessage(Text.of("§2" + nbt.getString("Name") + "§a had its gender switched!"));
+        else
+            player.sendMessage(Text.of("§aYour §2" + nbt.getString("Nickname") + "§a had its gender switched!"));
     }
 
     private void checkAndAddFooter(int cost, Player player)
     {
+        player.sendMessage(Text.of(""));
+        player.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're sure!"));
         if (cost > 0)
-        {
-            player.sendMessage(Text.of(""));
-            player.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're sure!"));
             player.sendMessage(Text.of("§eConfirming will cost you §6" + cost + "§e coins."));
-            player.sendMessage(Text.of("§5-----------------------------------------------------"));
-        }
+        player.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
 
     private void printCorrectHelper(int cost, Player player)
@@ -269,13 +255,13 @@ public class ResetEVs implements CommandExecutor
         if (debugNum <= debugLevel)
         {
             if (debugNum == 0)
-                PixelUpgrade.log.info("§4ResetEVs // critical: §c" + inputString);
+                PixelUpgrade.log.info("§4SwitchGender // critical: §c" + inputString);
             else if (debugNum == 1)
-                PixelUpgrade.log.info("§6ResetEVs // important: §e" + inputString);
+                PixelUpgrade.log.info("§6SwitchGender // important: §e" + inputString);
             else if (debugNum == 2)
-                PixelUpgrade.log.info("§3ResetEVs // start/end: §b" + inputString);
+                PixelUpgrade.log.info("§3SwitchGender // start/end: §b" + inputString);
             else
-                PixelUpgrade.log.info("§2ResetEVs // debug: §a" + inputString);
+                PixelUpgrade.log.info("§2SwitchGender // debug: §a" + inputString);
         }
     }
 }

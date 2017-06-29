@@ -31,10 +31,10 @@ public class ReloadConfigs implements CommandExecutor
             try
             {
                 Files.createDirectory(configPath);
-                PixelUpgrade.log.info("\u00A7dCould not find a PixelUpgrade config folder. Creating it!");
+                PixelUpgrade.log.info("§dCould not find a PixelUpgrade config folder. Creating it!");
             }
             catch (IOException F)
-            {   PixelUpgrade.log.info("\u00A7dFound a PixelUpgrade config folder. Trying to load!");   }
+            {   PixelUpgrade.log.info("§dFound a PixelUpgrade config folder. Trying to load!");   }
 
             switch (configString.toUpperCase())
             {
@@ -80,6 +80,9 @@ public class ReloadConfigs implements CommandExecutor
                 case "RESETEVS":
                     ResetEVsConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdResetEVsPath, PixelUpgrade.getInstance().cmdResetEVsLoader);
                     break;
+                case "SWITCHGENDER":
+                    SwitchGenderConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdSwitchGenderPath, PixelUpgrade.getInstance().cmdSwitchGenderLoader);
+                    break;
                 case "UPGRADEIVS":
                     UpgradeIVsConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdUpgradeIVsPath, PixelUpgrade.getInstance().cmdUpgradeIVsLoader);
                     break;
@@ -89,32 +92,32 @@ public class ReloadConfigs implements CommandExecutor
                     showError = true;
             }
 
-            PixelUpgrade.log.info("\u00A7dCommand reload finished!");
+            PixelUpgrade.log.info("§dCommand reload finished!");
         }
         else
             showError = true;
 
         if (showError)
         {
-            src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+            src.sendMessage(Text.of("§5-----------------------------------------------------"));
             if (args.<String>getOne("config").isPresent())
-                src.sendMessage(Text.of("\u00A74Error: \u00A7cInvalid config provided. See below for valid configs."));
+                src.sendMessage(Text.of("§4Error: §cInvalid config provided. See below for valid configs."));
             else
-                src.sendMessage(Text.of("\u00A74Error: \u00A7cNo config provided. See below for valid configs."));
-            src.sendMessage(Text.of("\u00A74Usage: \u00A7c/pureload <config>"));
+                src.sendMessage(Text.of("§4Error: §cNo config provided. See below for valid configs."));
+            src.sendMessage(Text.of("§4Usage: §c/pureload <config>"));
             src.sendMessage(Text.of(""));
-            src.sendMessage(Text.of("\u00A76Commands: \u00A7eCheckEgg, CheckStats, CheckTypes, DittoFusion"));
-            src.sendMessage(Text.of("\u00A76Commands: \u00A7eFixEVs, FixLevel, ForceHatch, ForceStats"));
-            src.sendMessage(Text.of("\u00A76Commands: \u00A7eInfo, ResetCount, ResetEVs, UpgradeIVs"));
-            src.sendMessage(Text.of("\u00A76Other: \u00A7eAll (reloads ALL configs!), MainConfig (or \"Main\")"));
-            src.sendMessage(Text.of("\u00A75-----------------------------------------------------"));
+            src.sendMessage(Text.of("§6Commands: §eCheckEgg, CheckStats, CheckTypes, DittoFusion"));
+            src.sendMessage(Text.of("§6Commands: §eFixEVs, FixLevel, ForceHatch, ForceStats, Info"));
+            src.sendMessage(Text.of("§6Commands: §eResetCount, ResetEVs, SwitchGender, UpgradeIVs"));
+            src.sendMessage(Text.of("§6Other: §eAll (reloads ALL configs!), MainConfig (or \"Main\")"));
+            src.sendMessage(Text.of("§5-----------------------------------------------------"));
         }
         else
         {
-            src.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
-            src.sendMessage(Text.of("\u00A73PU Reload // notice: \u00A7bReloaded the provided config(s)!"));
-            src.sendMessage(Text.of("\u00A73PU Reload // notice: \u00A7bPlease check the console for any errors."));
-            src.sendMessage(Text.of("\u00A77-----------------------------------------------------"));
+            src.sendMessage(Text.of("§7-----------------------------------------------------"));
+            src.sendMessage(Text.of("§3PU Reload // notice: §bReloaded the provided config(s)!"));
+            src.sendMessage(Text.of("§3PU Reload // notice: §bPlease check the console for any errors."));
+            src.sendMessage(Text.of("§7-----------------------------------------------------"));
         }
 
         return CommandResult.success();
@@ -134,6 +137,7 @@ public class ReloadConfigs implements CommandExecutor
         PixelUpgradeInfoConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdPixelUpgradeInfoPath, PixelUpgrade.getInstance().cmdPixelUpgradeInfoLoader);
         ResetCountConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdResetCountPath, PixelUpgrade.getInstance().cmdResetCountLoader);
         ResetEVsConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdResetEVsPath, PixelUpgrade.getInstance().cmdResetEVsLoader);
+        SwitchGenderConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdSwitchGenderPath, PixelUpgrade.getInstance().cmdSwitchGenderLoader);
         UpgradeIVsConfig.getInstance().loadOrCreateConfig(PixelUpgrade.getInstance().cmdUpgradeIVsPath, PixelUpgrade.getInstance().cmdUpgradeIVsLoader);
     }
 }
