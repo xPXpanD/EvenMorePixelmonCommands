@@ -12,7 +12,6 @@ import org.spongepowered.api.text.format.TextColors;
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.configs.*;
 
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -22,6 +21,7 @@ import java.util.List;
 // [] = optional, {} = flag, <> = required, () = add comment here
 // Make comments gray (color 7) so they don't look like part of the syntax. Useful for showing missing arg perms.
 
+// Todo: Make numLinesPerPage work. Currently disabled because of issues, seems to be Sponge-related.
 public class PixelUpgradeInfo implements CommandExecutor
 {
     // See which messages should be printed by the debug logger. Valid range is 0-3.
@@ -48,12 +48,12 @@ public class PixelUpgradeInfo implements CommandExecutor
 
 	public CommandResult execute(CommandSource src, CommandContext args)
 	{
-        Integer numLinesPerPage = checkConfigInt();
+        //Integer numLinesPerPage = checkConfigInt();
 
         // Check the command's debug verbosity mode, as set in the config.
         getVerbosityMode();
 
-        if (numLinesPerPage == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
+        if (/*numLinesPerPage == null || */debugLevel == null || debugLevel >= 4 || debugLevel < 0)
         {
             // Specific errors are already called earlier on -- this is tacked on to the end.
             src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
@@ -63,14 +63,13 @@ public class PixelUpgradeInfo implements CommandExecutor
         {
             Player player = (Player) src;
             String header = "§5================ §dPixelUpgrade commands §5================";
-            String separator = FileSystems.getDefault().getSeparator();
             Boolean hasNoPermission = true;
             List<Text> permissionMessageList = new ArrayList<>();
 
             Boolean permCheckEgg = player.hasPermission("pixelupgrade.command.checkegg");
-            Boolean permCheckEggOther = player.hasPermission("pixelupgrade.command.checkegg.other");
+            Boolean permCheckEggOther = player.hasPermission("pixelupgrade.command.other.checkegg");
             Boolean permCheckStats = player.hasPermission("pixelupgrade.command.checkstats");
-            Boolean permCheckStatsOther = player.hasPermission("pixelupgrade.command.checkstats.other");
+            Boolean permCheckStatsOther = player.hasPermission("pixelupgrade.command.other.checkstats");
             Boolean permCheckTypes = player.hasPermission("pixelupgrade.command.checktypes");
             Boolean permDittoFusion = player.hasPermission("pixelupgrade.command.dittofusion");
             Boolean permFixEVs = player.hasPermission("pixelupgrade.command.fixevs");
@@ -87,7 +86,7 @@ public class PixelUpgradeInfo implements CommandExecutor
             {
                 Integer commandCost = checkCheckEggInt();
 
-                if (Files.exists(Paths.get("config" + separator + "PixelUpgrade" + separator + "CheckEgg.conf")))
+                if (Files.exists(Paths.get(PixelUpgrade.getInstance().path + "CheckEgg.conf")))
                 {
                     if (commandCost != null && CheckEggConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
@@ -121,7 +120,7 @@ public class PixelUpgradeInfo implements CommandExecutor
             {
                 Integer commandCost = checkCheckStatsInt();
 
-                if (Files.exists(Paths.get("config" + separator + "PixelUpgrade" + separator + "CheckStats.conf")))
+                if (Files.exists(Paths.get(PixelUpgrade.getInstance().path + "CheckStats.conf")))
                 {
                     if (commandCost != null && CheckStatsConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
@@ -155,7 +154,7 @@ public class PixelUpgradeInfo implements CommandExecutor
             {
                 Integer commandCost = checkCheckTypesInt();
 
-                if (Files.exists(Paths.get("config" + separator + "PixelUpgrade" + separator + "CheckTypes.conf")))
+                if (Files.exists(Paths.get(PixelUpgrade.getInstance().path + "CheckTypes.conf")))
                 {
                     if (commandCost != null && CheckTypesConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
@@ -177,7 +176,7 @@ public class PixelUpgradeInfo implements CommandExecutor
 
             if (permDittoFusion)
             {
-                if (Files.exists(Paths.get("config" + separator + "PixelUpgrade" + separator + "DittoFusion.conf")))
+                if (Files.exists(Paths.get(PixelUpgrade.getInstance().path + "DittoFusion.conf")))
                 {
                     if (DittoFusionConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
@@ -197,7 +196,7 @@ public class PixelUpgradeInfo implements CommandExecutor
             {
                 Integer commandCost = checkFixEVsInt();
 
-                if (Files.exists(Paths.get("config" + separator + "PixelUpgrade" + separator + "FixEVs.conf")))
+                if (Files.exists(Paths.get(PixelUpgrade.getInstance().path + "FixEVs.conf")))
                 {
                     if (commandCost != null && FixEVsConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
@@ -221,7 +220,7 @@ public class PixelUpgradeInfo implements CommandExecutor
             {
                 Integer commandCost = checkFixLevelInt();
 
-                if (Files.exists(Paths.get("config" + separator + "PixelUpgrade" + separator + "FixLevel.conf")))
+                if (Files.exists(Paths.get(PixelUpgrade.getInstance().path + "FixLevel.conf")))
                 {
                     if (commandCost != null && FixLevelConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
@@ -239,7 +238,7 @@ public class PixelUpgradeInfo implements CommandExecutor
 
             if (permAdminForceHatch)
             {
-                if (Files.exists(Paths.get("config" + separator + "PixelUpgrade" + separator + "ForceHatch.conf")))
+                if (Files.exists(Paths.get(PixelUpgrade.getInstance().path + "ForceHatch.conf")))
                 {
                     if (ForceHatchConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
@@ -257,7 +256,7 @@ public class PixelUpgradeInfo implements CommandExecutor
 
             if (permAdminForceStats)
             {
-                if (Files.exists(Paths.get("config" + separator + "PixelUpgrade" + separator + "ForceStats.conf")))
+                if (Files.exists(Paths.get(PixelUpgrade.getInstance().path + "ForceStats.conf")))
                 {
                     if (ForceStatsConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
@@ -265,7 +264,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                         printToLog(3, "§2/forcestats §apermission found, adding helper to list.");
 
                         permissionMessageList.add(Text.of("§6/" + alias + " <slot> <stat> <value> {force flag}"));
-                        permissionMessageList.add(Text.of("§f --> §eChange supported stats, or pass -f and go crazy."));
+                        permissionMessageList.add(Text.of("§f --> §eChange supported stats freely, or pass -f and go crazy."));
                         hasNoPermission = false;
                     }
                     else printMalformedError("/forcestats");
@@ -283,7 +282,7 @@ public class PixelUpgradeInfo implements CommandExecutor
 
             if (permResetCount)
             {
-                if (Files.exists(Paths.get("config" + separator + "PixelUpgrade" + separator + "ResetCount.conf")))
+                if (Files.exists(Paths.get(PixelUpgrade.getInstance().path + "ResetCount.conf")))
                 {
                     if (ResetCountConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
@@ -303,7 +302,7 @@ public class PixelUpgradeInfo implements CommandExecutor
             {
                 Integer commandCost = checkResetEVsInt();
 
-                if (Files.exists(Paths.get("config" + separator + "PixelUpgrade" + separator + "ResetEVs.conf")))
+                if (Files.exists(Paths.get(PixelUpgrade.getInstance().path + "ResetEVs.conf")))
                 {
                     if (commandCost != null && ResetEVsConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
@@ -323,7 +322,7 @@ public class PixelUpgradeInfo implements CommandExecutor
             {
                 Integer commandCost = checkSwitchGenderInt();
 
-                if (Files.exists(Paths.get("config" + separator + "PixelUpgrade" + separator + "SwitchGender.conf")))
+                if (Files.exists(Paths.get(PixelUpgrade.getInstance().path + "SwitchGender.conf")))
                 {
                     if (commandCost != null && SwitchGenderConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
@@ -341,7 +340,7 @@ public class PixelUpgradeInfo implements CommandExecutor
 
             if (permUpgradeIVs)
             {
-                if (Files.exists(Paths.get("config" + separator + "PixelUpgrade" + separator + "UpgradeIVs.conf")))
+                if (Files.exists(Paths.get(PixelUpgrade.getInstance().path + "UpgradeIVs.conf")))
                 {
                     if (UpgradeIVsConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
                     {
@@ -363,17 +362,14 @@ public class PixelUpgradeInfo implements CommandExecutor
                 permissionMessageList.add(Text.of("§cPlease contact staff if you believe this to be in error."));
             }
 
-            player.sendMessage(Text.of("numLinesPerPage: " + numLinesPerPage));
-
             // TODO: Remove title color once Sponge bug is fixed. Written 22/5/2017, last checked 24/6/2017.
             // Messages should still look right once this gets fixed, as there's a fallback.
             PaginationList.builder()
                     .title(Text.of(TextColors.DARK_PURPLE, header))
                     .contents(permissionMessageList)
                     .padding(Text.of(TextColors.DARK_PURPLE, "="))
-                    .linesPerPage(numLinesPerPage)
+                    .linesPerPage(16) // Broken, so hardcoded for now. Test description changes carefully.
                     .sendTo(player);
-
         }
         return CommandResult.success();
 	}
@@ -399,7 +395,7 @@ public class PixelUpgradeInfo implements CommandExecutor
         }
     }
 
-    private Integer checkConfigInt()
+    /*private Integer checkConfigInt()
     {
         if (!PixelUpgradeInfoConfig.getInstance().getConfig().getNode("numLinesPerPage").isVirtual())
         {
@@ -418,7 +414,7 @@ public class PixelUpgradeInfo implements CommandExecutor
             PixelUpgrade.log.info("§4PUInfo // critical: §cCould not parse config variable \"numLinesPerPage\"!");
             return null;
         }
-    }
+    }*/
 
     private Integer checkCheckEggInt()
     {

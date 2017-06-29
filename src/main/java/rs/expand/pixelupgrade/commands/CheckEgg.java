@@ -122,7 +122,7 @@ public class CheckEgg implements CommandExecutor
                 boolean targetAcquired = false, commandConfirmed = false, canContinue = false, hasOtherPerm = false;
                 Player player = (Player) src, target = player;
 
-                if (src.hasPermission("pixelupgrade.command.checkegg.other"))
+                if (src.hasPermission("pixelupgrade.command.other.checkegg"))
                     hasOtherPerm = true;
 
                 if (args.<String>getOne("target or slot").isPresent())
@@ -171,7 +171,7 @@ public class CheckEgg implements CommandExecutor
                         }
                         else
                         {
-                            printToLog(2, "Invalid slot provided, and player has no .other perm. Abort.");
+                            printToLog(2, "Invalid slot provided, and player has no \"other\" perm. Abort.");
                             throwArg1Error(commandCost, false, player);
                         }
                     }
@@ -377,14 +377,14 @@ public class CheckEgg implements CommandExecutor
     {
         if (cost != 0)
         {
-            if (player.hasPermission("pixelupgrade.command.checkegg.other"))
+            if (player.hasPermission("pixelupgrade.command.other.checkegg"))
                 player.sendMessage(Text.of("§4Usage: §c" + alias + " [optional target] <slot, 1-6> {-c to confirm}"));
             else
                 player.sendMessage(Text.of("§4Usage: §c" + alias + " <slot> {-c to confirm} §7(no perms for target)"));
         }
         else
         {
-            if (player.hasPermission("pixelupgrade.command.checkegg.other"))
+            if (player.hasPermission("pixelupgrade.command.other.checkegg"))
                 player.sendMessage(Text.of("§4Usage: §c" + alias + " [optional target] <slot, 1-6>"));
             else
                 player.sendMessage(Text.of("§4Usage: §c" + alias + " <slot> §7(no perms for target)"));

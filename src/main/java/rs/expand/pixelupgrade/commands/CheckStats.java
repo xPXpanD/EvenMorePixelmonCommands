@@ -180,7 +180,7 @@ public class CheckStats implements CommandExecutor
                 // If we get a valid input, we'll set this to "true" again so we can execute the main body of code.
                 canContinue = false;
 
-                if (src.hasPermission("pixelupgrade.command.checkstats.other"))
+                if (src.hasPermission("pixelupgrade.command.other.checkstats"))
                     hasOtherPerm = true;
 
                 if (args.<String>getOne("target or slot").isPresent())
@@ -234,7 +234,7 @@ public class CheckStats implements CommandExecutor
                         }
                         else
                         {
-                            printToLog(2, "Invalid slot provided, and player has no .other perm. Abort.");
+                            printToLog(2, "Invalid slot provided, and player has no \"other\" perm. Abort.");
                             throwArg1Error(commandCost, false, player);
                         }
                     }
@@ -488,14 +488,14 @@ public class CheckStats implements CommandExecutor
     {
         if (cost != 0)
         {
-            if (player.hasPermission("pixelupgrade.command.checkstats.other"))
+            if (player.hasPermission("pixelupgrade.command.other.checkstats"))
                 player.sendMessage(Text.of("§4Usage: §c" + alias + " [optional target] <slot, 1-6> {-c to confirm}"));
             else
                 player.sendMessage(Text.of("§4Usage: §c" + alias + " <slot, 1-6> {-c to confirm} §7(no perms for target)"));
         }
         else
         {
-            if (player.hasPermission("pixelupgrade.command.checkstats.other"))
+            if (player.hasPermission("pixelupgrade.command.other.checkstats"))
                 player.sendMessage(Text.of("§4Usage: §c" + alias + " [optional target] <slot, 1-6>"));
             else
                 player.sendMessage(Text.of("§4Usage: §c" + alias + " <slot, 1-6> §7(no perms for target)"));

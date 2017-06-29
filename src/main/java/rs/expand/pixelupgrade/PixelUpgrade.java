@@ -49,7 +49,7 @@ import java.nio.file.Paths;
 (
         id = "pixelupgrade",
         name = "PixelUpgrade",
-        version = "2.0",
+        version = "2.0.0 beta",
         dependencies = @Dependency(id = "pixelmon"),
         description = "Adds a whole bunch of utility commands to Pixelmon, and some economy-integrated commands, too.",
         authors = "XpanD"
