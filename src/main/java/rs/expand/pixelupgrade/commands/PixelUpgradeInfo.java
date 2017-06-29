@@ -265,7 +265,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                         printToLog(3, "§2/forcestats §apermission found, adding helper to list.");
 
                         permissionMessageList.add(Text.of("§6/" + alias + " <slot> <stat> <value> {force flag}"));
-                        permissionMessageList.add(Text.of("§f --> §eChange supported stats freely, or pass -f and go crazy."));
+                        permissionMessageList.add(Text.of("§f --> §eChange supported stats, or pass -f and go crazy."));
                         hasNoPermission = false;
                     }
                     else printMalformedError("/forcestats");
@@ -331,7 +331,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                         printToLog(3, "§2/switchgender §apermission found, adding helper to list.");
 
                         permissionMessageList.add(Text.of("§6/" + alias + " <slot> {confirm flag}"));
-                        permissionMessageList.add(Text.of("§f --> §eWant to change a Pokémon's gender? This'll do the job."));
+                        permissionMessageList.add(Text.of("§f --> §eWant to change a Pokémon's gender? Try this."));
                         hasNoPermission = false;
                     }
                     else printMalformedError("/switchgender");
@@ -362,6 +362,8 @@ public class PixelUpgradeInfo implements CommandExecutor
                 permissionMessageList.add(Text.of("§cYou have no permissions for any PixelUpgrade commands."));
                 permissionMessageList.add(Text.of("§cPlease contact staff if you believe this to be in error."));
             }
+
+            player.sendMessage(Text.of("numLinesPerPage: " + numLinesPerPage));
 
             // TODO: Remove title color once Sponge bug is fixed. Written 22/5/2017, last checked 24/6/2017.
             // Messages should still look right once this gets fixed, as there's a fallback.
