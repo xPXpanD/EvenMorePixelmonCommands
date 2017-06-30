@@ -1,6 +1,5 @@
 # PixelUpgrade
-A Minecraft plugin, meant to work with Pixelmon. 
+This sidemod's code has moved! It's still open source, but can now be found on:
+https://dev.pixelmonmod.com/sidemods/PixelUpgrade
 
-Adds a ton of fancy new commands, some with economy integration. Examples include upgrading IVs, checking Pokémon resistances and weaknesses on the fly and FUSING DITTOS TOGETHER. Yup.
-
-Stay tuned for more details!
+This repository will no longer be updated.
