@@ -6,95 +6,82 @@ import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
 
+import java.math.BigDecimal;
+import java.util.Optional;
+
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
+import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 
-import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.configs.DittoFusionConfig;
 import rs.expand.pixelupgrade.configs.PixelUpgradeMainConfig;
+import rs.expand.pixelupgrade.PixelUpgrade;
 
-import java.math.BigDecimal;
-import java.util.Optional;
-
+import static rs.expand.pixelupgrade.PixelUpgrade.debugLevel;
 import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
 public class DittoFusion implements CommandExecutor
 {
-    // See which messages should be printed by the debug logger. Valid range is 0-3.
-    // We set null on hitting an error, and let the main code block handle it from there.
-    private static Integer debugLevel;
-    private void getVerbosityMode()
-    {
-        // Does the debugVerbosityMode node exist? If so, figure out what's in it.
-        if (!DittoFusionConfig.getInstance().getConfig().getNode("debugVerbosityMode").isVirtual())
-        {
-            String modeString = DittoFusionConfig.getInstance().getConfig().getNode("debugVerbosityMode").getString();
+    // Not sure how this works yet, but nicked it from TotalEconomy.
+    // Will try to figure this out later, just glad to have this working for now.
+    private PixelUpgrade pixelUpgrade;
+    public DittoFusion(PixelUpgrade pixelUpgrade) { this.pixelUpgrade = pixelUpgrade; }
 
-            if (modeString.matches("^[0-3]"))
-                debugLevel = Integer.parseInt(modeString);
-            else
-                PixelUpgrade.log.info("§4DittoFusion // critical: §cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
-        }
-        else
-        {
-            PixelUpgrade.log.info("§4DittoFusion // critical: §cConfig variable \"debugVerbosityMode\" could not be found!");
-            debugLevel = null;
-        }
-    }
-
-    private static String alias;
+    // Grab the command's alias.
+    private static String alias = null;
     private void getCommandAlias()
     {
         if (!DittoFusionConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
             alias = "/" + DittoFusionConfig.getInstance().getConfig().getNode("commandAlias").getString();
         else
-        {
             PixelUpgrade.log.info("§4DittoFusion // critical: §cConfig variable \"commandAlias\" could not be found!");
-            alias = null;
-        }
     }
 
+    @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
     {
         if (src instanceof Player)
         {
             boolean presenceCheck = true;
-            Boolean passOnShinyStatus, useBritishSpelling = null;
+            Boolean passOnShinyStatus = null, useBritishSpelling = null;
             Integer stat0to5, stat6to10, stat11to15, stat16to20, stat21to25, stat26to30, stat31plus;
             Integer regularCap, shinyCap, previouslyUpgradedMultiplier, pointMultiplierForCost, addFlatFee;
 
-            stat0to5 = checkConfigInt("stat0to5");
-            stat6to10 = checkConfigInt("stat6to10");
-            stat11to15 = checkConfigInt("stat11to15");
-            stat16to20 = checkConfigInt("stat16to20");
-            stat21to25 = checkConfigInt("stat21to25");
-            stat26to30 = checkConfigInt("stat26to30");
-            stat31plus = checkConfigInt("stat31plus");
-            regularCap = checkConfigInt("regularCap");
-            shinyCap = checkConfigInt("shinyCap");
-            previouslyUpgradedMultiplier = checkConfigInt("previouslyUpgradedMultiplier");
-            passOnShinyStatus = checkConfigBool();
-            pointMultiplierForCost = checkConfigInt("pointMultiplierForCost");
-            addFlatFee = checkConfigInt("addFlatFee");
+            stat0to5 = getConfigInt("stat0to5");
+            stat6to10 = getConfigInt("stat6to10");
+            stat11to15 = getConfigInt("stat11to15");
+            stat16to20 = getConfigInt("stat16to20");
+            stat21to25 = getConfigInt("stat21to25");
+            stat26to30 = getConfigInt("stat26to30");
+            stat31plus = getConfigInt("stat31plus");
+            regularCap = getConfigInt("regularCap");
+            shinyCap = getConfigInt("shinyCap");
+            previouslyUpgradedMultiplier = getConfigInt("previouslyUpgradedMultiplier");
+            pointMultiplierForCost = getConfigInt("pointMultiplierForCost");
+            addFlatFee = getConfigInt("addFlatFee");
+
+            if (!DittoFusionConfig.getInstance().getConfig().getNode("passOnShinyStatus").isVirtual())
+                passOnShinyStatus = DittoFusionConfig.getInstance().getConfig().getNode("passOnShinyStatus").getBoolean();
+            else
+                PixelUpgrade.log.info("§4DittoFusion // critical: §cCould not parse config variable \"passOnShinyStatus\"!");
 
             // Grab the useBritishSpelling value from the main config.
             if (!PixelUpgradeMainConfig.getInstance().getConfig().getNode("useBritishSpelling").isVirtual())
                 useBritishSpelling = PixelUpgradeMainConfig.getInstance().getConfig().getNode("useBritishSpelling").getBoolean();
 
-            // Set up the command's debug verbosity mode and preferred alias.
-            getVerbosityMode();
+            // Set up the command's preferred alias.
             getCommandAlias();
 
             if (passOnShinyStatus == null || regularCap == null || shinyCap == null || stat0to5 == null || stat6to10 == null)
@@ -104,7 +91,7 @@ public class DittoFusion implements CommandExecutor
             else if (previouslyUpgradedMultiplier == null || pointMultiplierForCost == null || addFlatFee == null)
                 presenceCheck = false;
 
-            if (!presenceCheck || alias == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
+            if (!presenceCheck || alias == null)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
@@ -113,12 +100,12 @@ public class DittoFusion implements CommandExecutor
             else if (useBritishSpelling == null)
             {
                 src.sendMessage(Text.of("§4Error: §cCould not parse main config. Please report to staff."));
-                PixelUpgrade.log.info("§4CheckEgg // critical: §cCouldn't get value of \"useBritishSpelling\" from the main config.");
-                PixelUpgrade.log.info("§4CheckEgg // critical: §cPlease check (or wipe and reload) your PixelUpgrade.conf file.");
+                printToLog(0, "Couldn't get value of \"useBritishSpelling\" from the main config.");
+                printToLog(0, "Please check (or wipe and /pureload) your PixelUpgrade.conf file.");
             }
             else
             {
-                printToLog(2, "Called by player §3" + src.getName() + "§b. Starting!");
+                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 Player player = (Player) src;
                 int slot1 = 0, slot2 = 0;
@@ -126,7 +113,7 @@ public class DittoFusion implements CommandExecutor
 
                 if (!args.<String>getOne("target slot").isPresent())
                 {
-                    printToLog(2, "No arguments provided, aborting.");
+                    printToLog(1, "No arguments provided. Exit.");
 
                     src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo slots were provided. Please provide two valid slots."));
@@ -140,12 +127,12 @@ public class DittoFusion implements CommandExecutor
 
                     if (slotString.matches("^[1-6]"))
                     {
-                        printToLog(3, "Target slot was a valid slot number. Let's move on!");
+                        printToLog(2, "Target slot was a valid slot number. Let's move on!");
                         slot1 = Integer.parseInt(args.<String>getOne("target slot").get());
                     }
                     else
                     {
-                        printToLog(2, "Invalid slot for target Pokémon. Aborting.");
+                        printToLog(1, "Invalid slot for target Pokémon. Exit.");
 
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid value on target slot. Valid values are 1-6."));
@@ -157,7 +144,7 @@ public class DittoFusion implements CommandExecutor
 
                 if (!args.<String>getOne("sacrifice slot").isPresent() && canContinue)
                 {
-                    printToLog(2, "No sacrifice Pokémon slot provided. Aborting.");
+                    printToLog(1, "No sacrifice Pokémon slot provided. Exit.");
 
                     src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo sacrifice provided. Please provide two valid slots."));
@@ -171,19 +158,19 @@ public class DittoFusion implements CommandExecutor
 
                     if (slotString.matches("^[1-6]"))
                     {
-                        printToLog(3, "Valid slot found on argument 2. Checking against arg1...");
+                        printToLog(2, "Valid slot found on argument 2. Checking against arg1...");
                         slot2 = Integer.parseInt(args.<String>getOne("sacrifice slot").get());
 
                         if (slot2 == slot1)
                         {
-                            printToLog(2, "Caught " + src.getName() + " attempting to upgrade a Pokémon with itself. Abort.");
+                            printToLog(1, "Caught " + src.getName() + " attempting to fuse a Pokémon with itself. Exit, before the universe collapses.");
                             src.sendMessage(Text.of("§4Error: §cYou can't fuse a Pokémon with itself."));
                             canContinue = false;
                         }
                     }
                     else
                     {
-                        printToLog(2, "Invalid slot for sacrifice Pokémon. Aborting.");
+                        printToLog(1, "Invalid slot for sacrifice Pokémon. Exit.");
 
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid value on sacrifice slot. Valid values are 1-6."));
@@ -198,7 +185,7 @@ public class DittoFusion implements CommandExecutor
 
                 if (canContinue)
                 {
-                    printToLog(3, "No error encountered, input should be valid. Continuing!");
+                    printToLog(2, "No error encountered, input should be valid. Continuing!");
                     Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
                     if (!storage.isPresent())
@@ -214,17 +201,17 @@ public class DittoFusion implements CommandExecutor
 
                         if (nbt1 == null && nbt2 != null)
                         {
-                            printToLog(2, "No NBT found for target Pokémon, slot probably empty. Aborting.");
+                            printToLog(1, "No NBT found for target Pokémon, slot probably empty. Exit.");
                             src.sendMessage(Text.of("§4Error: §cThe target Pokémon does not seem to exist."));
                         }
                         else if (nbt1 != null && nbt2 == null)
                         {
-                            printToLog(2, "No NBT found for sacrifice Pokémon, slot probably empty. Aborting.");
+                            printToLog(1, "No NBT found for sacrifice Pokémon, slot probably empty. Exit.");
                             src.sendMessage(Text.of("§4Error: §cThe sacrifice Pokémon does not seem to exist."));
                         }
                         else if (nbt1 == null)
                         {
-                            printToLog(2, "No NBT found for target not sacrifice, slots probably empty. Aborting.");
+                            printToLog(1, "No NBT found for target not sacrifice, slots probably empty. Exit.");
                             src.sendMessage(Text.of("§4Error: §cBoth the target and sacrifice do not seem to exist."));
                         }
                         else
@@ -235,17 +222,17 @@ public class DittoFusion implements CommandExecutor
                             {
                                 if (!nbt1.getString("Name").equals("Ditto") && nbt2.getString("Name").equals("Ditto"))
                                 {
-                                    printToLog(2, "Target was not a Ditto. Abort, abort!");
+                                    printToLog(1, "Target was not a Ditto. Abort, abort!");
                                     src.sendMessage(Text.of("§4Error: §cYour target Pokémon is not a Ditto."));
                                 }
                                 else if (nbt1.getString("Name").equals("Ditto") && !nbt2.getString("Name").equals("Ditto"))
                                 {
-                                    printToLog(2, "Sacrifice was not a Ditto. Abort, abort!");
+                                    printToLog(1, "Sacrifice was not a Ditto. Abort, abort!");
                                     src.sendMessage(Text.of("§4Error: §cSorry, but the sacrifice needs to be a Ditto."));
                                 }
                                 else if (!nbt1.getString("Name").equals("Ditto") && !nbt2.getString("Name").equals("Ditto"))
                                 {
-                                    printToLog(2, "No Dittos in provided slots; Let's not create some unholy abomination. Abort.");
+                                    printToLog(1, "No Dittos in provided slots; Let's not create some unholy abomination. Exit.");
                                     src.sendMessage(Text.of("§4Error: §cThis command only works on Dittos."));
                                 }
                                 else
@@ -257,21 +244,21 @@ public class DittoFusion implements CommandExecutor
 
                                     if (targetFuseCount >= shinyCap && nbt1.getInteger(NbtKeys.IS_SHINY) == 1)
                                     {
-                                        printToLog(2, "Hit the shiny cap on target Ditto. Aborting.");
+                                        printToLog(1, "Hit the shiny cap on target Ditto. Exit.");
 
                                         src.sendMessage(Text.of("§4Error: §cYour target shiny Ditto cannot grow any further."));
                                         src.sendMessage(Text.of("§6Tip: §eYou could still sacrifice §othis§r§e Ditto... You monster."));
                                     }
                                     else if (targetFuseCount >= regularCap && nbt1.getInteger(NbtKeys.IS_SHINY) != 1)
                                     {
-                                        printToLog(2, "Hit the non-shiny cap on target Ditto. Aborting.");
+                                        printToLog(1, "Hit the non-shiny cap on target Ditto. Exit.");
 
                                         src.sendMessage(Text.of("§4Error: §cYour target Ditto cannot grow any further."));
                                         src.sendMessage(Text.of("§6Tip: §eYou could still sacrifice §othis§r§e Ditto... You monster."));
                                     }
                                     else
                                     {
-                                        printToLog(3, "Passed the majority of checks, moving on to actual command logic.");
+                                        printToLog(2, "Passed the majority of checks, moving on to actual command logic.");
 
                                         UniqueAccount uniqueAccount = optionalAccount.get();
                                         int HPPlusNum = 0, ATKPlusNum = 0, DEFPlusNum = 0, SPATKPlusNum = 0;
@@ -372,12 +359,12 @@ public class DittoFusion implements CommandExecutor
 
                                         if (totalUpgradeCount == 0)
                                         {
-                                            printToLog(2, "Sacrifice was too weak to add any stats, apparently. Wow. Abort.");
+                                            printToLog(1, "Sacrifice was too weak to add any stats, apparently. Wow. Exit.");
                                             src.sendMessage(Text.of("§4Error: §cYour sacrificial Ditto is too weak to make a difference."));
                                         }
                                         else if (commandConfirmed)
                                         {
-                                            TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(), costToConfirm, Cause.source(this).build());
+                                            TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(), costToConfirm, Cause.of(EventContext.empty(), pixelUpgrade.getPluginContainer()));
                                             if (transactionResult.getResult() == ResultType.SUCCESS)
                                             {
                                                 player.sendMessage(Text.of("§7-----------------------------------------------------"));
@@ -438,7 +425,7 @@ public class DittoFusion implements CommandExecutor
 
                                                 if (nbt2.getInteger(NbtKeys.IS_SHINY) == 1 && passOnShinyStatus)
                                                 {
-                                                    printToLog(3, "Passing on shinyness is enabled, and sacrifice is shiny. Go go go!");
+                                                    printToLog(2, "Passing on shinyness is enabled, and sacrifice is shiny. Go go go!");
 
                                                     // Not sure which one I need, so I set both. Doesn't seem to matter much.
                                                     nbt1.setInteger(NbtKeys.IS_SHINY, 1);
@@ -454,19 +441,20 @@ public class DittoFusion implements CommandExecutor
                                                 storageCompleted.changePokemonAndAssignID(slot2 - 1, null);
                                                 //storageCompleted.update(targetPokemon, EnumUpdateType.Status);
 
-                                                printToLog(1, "Transaction successful. Took: " + costToConfirm + " and a Ditto. Current cash: " + uniqueAccount.getBalance(economyService.getDefaultCurrency()));
+                                                printToLog(1, "Transaction successful. Took: " + costToConfirm +
+                                                        " and a Ditto. Current cash: " + uniqueAccount.getBalance(economyService.getDefaultCurrency()));
                                             }
                                             else
                                             {
                                                 BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                                printToLog(2, "Not enough coins! Cost: §3" + costToConfirm + "§b, lacking: §3" + balanceNeeded);
+                                                printToLog(1, "Not enough coins! Cost: §3" + costToConfirm + "§b, lacking: §3" + balanceNeeded);
 
                                                 src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
                                             }
                                         }
                                         else
                                         {
-                                            printToLog(2, "Got cost but no confirmation; end of the line.");
+                                            printToLog(1, "Got cost but no confirmation; end of the line. Exit.");
 
                                             player.sendMessage(Text.of("§7-----------------------------------------------------"));
                                             if (nbt2.getInteger(NbtKeys.IS_SHINY) == 1 && passOnShinyStatus)
@@ -532,7 +520,7 @@ public class DittoFusion implements CommandExecutor
                             else
                             {
                                 src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
-                                printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. May be a bug?");
+                                printToLog(0, "§4" + src.getName() + "§c does not have an economy account, Exit. May be a bug?");
                             }
                         }
                     }
@@ -540,7 +528,7 @@ public class DittoFusion implements CommandExecutor
             }
         }
         else
-            printToLog(0, "This command cannot run from the console or command blocks.");
+            PixelUpgrade.log.info("§cThis command cannot run from the console or command blocks.");
 
         return CommandResult.success();
     }
@@ -552,26 +540,12 @@ public class DittoFusion implements CommandExecutor
             if (debugNum == 0)
                 PixelUpgrade.log.info("§4DittoFusion // critical: §c" + inputString);
             else if (debugNum == 1)
-                PixelUpgrade.log.info("§6DittoFusion // important: §e" + inputString);
-            else if (debugNum == 2)
-                PixelUpgrade.log.info("§3DittoFusion // start/end: §b" + inputString);
+                PixelUpgrade.log.info("§3DittoFusion // notice: §b" + inputString);
             else
                 PixelUpgrade.log.info("§2DittoFusion // debug: §a" + inputString);
         }
     }
-
-    private Boolean checkConfigBool()
-    {
-        if (!DittoFusionConfig.getInstance().getConfig().getNode("passOnShinyStatus").isVirtual())
-            return DittoFusionConfig.getInstance().getConfig().getNode("passOnShinyStatus").getBoolean();
-        else
-        {
-            PixelUpgrade.log.info("§4DittoFusion // critical: §cCould not parse config variable \"passOnShinyStatus\"!");
-            return null;
-        }
-    }
-
-    private Integer checkConfigInt(String node)
+    private Integer getConfigInt(String node)
     {
         if (!DittoFusionConfig.getInstance().getConfig().getNode(node).isVirtual())
             return DittoFusionConfig.getInstance().getConfig().getNode(node).getInt();

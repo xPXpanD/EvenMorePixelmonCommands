@@ -3,30 +3,32 @@ package rs.expand.pixelupgrade.commands;
 
 import com.pixelmonmod.pixelmon.enums.EnumType;
 
-import org.spongepowered.api.command.CommandResult;
-import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.service.economy.account.UniqueAccount;
-import org.spongepowered.api.service.economy.transaction.ResultType;
-import org.spongepowered.api.service.economy.transaction.TransactionResult;
-import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.action.TextActions;
-
-import rs.expand.pixelupgrade.PixelUpgrade;
-import rs.expand.pixelupgrade.configs.CheckTypesConfig;
-import rs.expand.pixelupgrade.utilities.EnumPokemonList;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.spongepowered.api.command.args.CommandContext;
+import org.spongepowered.api.command.CommandResult;
+import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.command.spec.CommandExecutor;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.EventContext;
+import org.spongepowered.api.service.economy.account.UniqueAccount;
+import org.spongepowered.api.service.economy.transaction.ResultType;
+import org.spongepowered.api.service.economy.transaction.TransactionResult;
+import org.spongepowered.api.text.action.TextActions;
+import org.spongepowered.api.text.Text;
+
+import rs.expand.pixelupgrade.configs.CheckTypesConfig;
+import rs.expand.pixelupgrade.PixelUpgrade;
+import rs.expand.pixelupgrade.utilities.EnumPokemonList;
+
 import static com.pixelmonmod.pixelmon.enums.EnumType.getTotalEffectiveness;
-import static org.spongepowered.api.text.TextTemplate.of;
+
+import static rs.expand.pixelupgrade.PixelUpgrade.debugLevel;
 import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
 // TODO: Some super long lists like /checktypes 599 cause minor visual issues. Fixing that would be nice polish.
@@ -34,65 +36,45 @@ import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
 public class CheckTypes implements CommandExecutor
 {
-    // See which messages should be printed by the debug logger. Valid range is 0-3.
-    // We set null on hitting an error, and let the main code block handle it from there.
-    private static Integer debugLevel;
-    private void getVerbosityMode()
-    {
-        // Does the debugVerbosityMode node exist? If so, figure out what's in it.
-        if (!CheckTypesConfig.getInstance().getConfig().getNode("debugVerbosityMode").isVirtual())
-        {
-            String modeString = CheckTypesConfig.getInstance().getConfig().getNode("debugVerbosityMode").getString();
+    // Not sure how this works yet, but nicked it from TotalEconomy.
+    // Will try to figure this out later, just glad to have this working for now.
+    private PixelUpgrade pixelUpgrade;
+    public CheckTypes(PixelUpgrade pixelUpgrade) { this.pixelUpgrade = pixelUpgrade; }
 
-            if (modeString.matches("^[0-3]"))
-                debugLevel = Integer.parseInt(modeString);
-            else
-                PixelUpgrade.log.info("§4CheckTypes // critical: §cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
-        }
-        else
-        {
-            PixelUpgrade.log.info("§4CheckTypes // critical: §cConfig variable \"debugVerbosityMode\" could not be found!");
-            debugLevel = null;
-        }
-    }
-
-    private static String alias;
+    // Grab the command's alias.
+    private static String alias = null;
     private void getCommandAlias()
     {
         if (!CheckTypesConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
             alias = "/" + CheckTypesConfig.getInstance().getConfig().getNode("commandAlias").getString();
         else
-        {
             PixelUpgrade.log.info("§4CheckTypes // critical: §cConfig variable \"commandAlias\" could not be found!");
-            alias = null;
-        }
     }
 
     // Set up some variables that we'll be using in the egg-checking method.
-    private Boolean showFormMessage = null;
-    private Boolean showAlolanMessage = null;
+    private Boolean showFormMessage = null, showAlolanMessage = null;
 
+    @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
     {
         if (src instanceof Player)
         {
             Integer commandCost = null;
             boolean presenceCheck = true;
-            showFormMessage = checkConfigBool("showFormMessage");
-            showAlolanMessage = checkConfigBool("showAlolanMessage");
+            showFormMessage = getConfigBool("showFormMessage");
+            showAlolanMessage = getConfigBool("showAlolanMessage");
             if (!CheckTypesConfig.getInstance().getConfig().getNode("commandCost").isVirtual())
                 commandCost = CheckTypesConfig.getInstance().getConfig().getNode("commandCost").getInt();
             else
                 PixelUpgrade.log.info("§4CheckTypes // critical: §cCould not parse config variable \"commandCost\"!");
 
-            // Set up the command's debug verbosity mode and preferred alias.
-            getVerbosityMode();
+            // Set up the command's preferred alias.
             getCommandAlias();
 
             if (showFormMessage == null || showAlolanMessage == null || commandCost == null)
                 presenceCheck = false;
 
-            if (!presenceCheck || alias == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
+            if (!presenceCheck || alias == null)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
@@ -100,7 +82,7 @@ public class CheckTypes implements CommandExecutor
             }
             else
             {
-                printToLog(2, "Called by player §3" + src.getName() + "§b. Starting!");
+                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 Player player = (Player) src;
                 EnumPokemonList returnedPokemon = null;
@@ -110,7 +92,7 @@ public class CheckTypes implements CommandExecutor
 
                 if (!args.<String>getOne("pokemon").isPresent())
                 {
-                    printToLog(2, "No arguments provided, aborting.");
+                    printToLog(1, "No arguments provided. Exit.");
 
                     checkAndAddHeader(commandCost, player);
                     src.sendMessage(Text.of("§4Error: §cNo parameters found. Provide a Pokémon or Dex ID."));
@@ -125,7 +107,7 @@ public class CheckTypes implements CommandExecutor
 
                     if (inputString.matches("\\d+"))
                     {
-                        printToLog(3, "Got a number, converting input into Dex ID.");
+                        printToLog(2, "Got a number, converting input into Dex ID.");
 
                         inputIsInteger = true;
                         inputInteger = Integer.parseInt(inputString);
@@ -144,7 +126,7 @@ public class CheckTypes implements CommandExecutor
                     }
                     else
                     {
-                        printToLog(3, "Checking if input is valid.");
+                        printToLog(2, "Checking if input is valid.");
                         String updatedString = inputString;
 
                         switch (inputString.toUpperCase())
@@ -179,14 +161,14 @@ public class CheckTypes implements CommandExecutor
                         }
 
                         if (!Objects.equals(updatedString, inputString))
-                            printToLog(3, "Found a fixable input! Original: " + inputString + " | Changed to: " + updatedString);
+                            printToLog(2, "Found a fixable input! Original: " + inputString + " | Changed to: " + updatedString);
 
                         inputString = updatedString;
                         returnedPokemon = EnumPokemonList.getPokemonFromName(inputString);
 
                         if (returnedPokemon == null)
                         {
-                            printToLog(2, "Could not find a Pokémon. Input: " + inputString);
+                            printToLog(1, "Could not find a Pokémon. Exit. Input: " + inputString);
 
                             checkAndAddHeader(commandCost, player);
                             src.sendMessage(Text.of("§4Error: §cInvalid Pokémon! Check spelling, or try a number."));
@@ -203,7 +185,7 @@ public class CheckTypes implements CommandExecutor
 
                 if (canContinue)
                 {
-                    printToLog(3, "No errors encountered yet, running code on input!");
+                    printToLog(2, "Everything checks out, running code on input!");
 
                     if (commandCost > 0)
                     {
@@ -216,7 +198,7 @@ public class CheckTypes implements CommandExecutor
                             if (optionalAccount.isPresent())
                             {
                                 UniqueAccount uniqueAccount = optionalAccount.get();
-                                TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(), costToConfirm, Cause.source(this).build());
+                                TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(), costToConfirm, Cause.of(EventContext.empty(), pixelUpgrade.getPluginContainer()));
 
                                 if (transactionResult.getResult() == ResultType.SUCCESS)
                                 {
@@ -226,7 +208,7 @@ public class CheckTypes implements CommandExecutor
                                 else
                                 {
                                     BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                    printToLog(2, "Not enough coins! Cost: §3" + costToConfirm + "§b, lacking: §3" + balanceNeeded);
+                                    printToLog(1, "Not enough coins! Cost: §3" + costToConfirm + "§b, lacking: §3" + balanceNeeded);
 
                                     src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
                                 }
@@ -239,7 +221,7 @@ public class CheckTypes implements CommandExecutor
                         }
                         else
                         {
-                            printToLog(2, "Got cost but no confirmation; end of the line.");
+                            printToLog(1, "Got cost but no confirmation; end of the line. Exit.");
 
                             src.sendMessage(Text.of("§6Warning: §eChecking a Pokémon's type stats costs §6" + costToConfirm + "§e coins."));
                             src.sendMessage(Text.of("§2Ready? Type: §a" + alias + " " + inputString + " -c"));
@@ -247,14 +229,14 @@ public class CheckTypes implements CommandExecutor
                     }
                     else
                     {
-                        printToLog(2, "Checked Pokémon for input string \"" + inputString + "\". Config price is 0, taking nothing.");
+                        printToLog(1, "Checked Pokémon for input string \"" + inputString + "\". Config price is 0, taking nothing.");
                         checkTypes(returnedPokemon, inputIsInteger, inputString, player);
                     }
                 }
             }
         }
         else
-            printToLog(0, "This command cannot run from the console or command blocks.");
+            PixelUpgrade.log.info("§cThis command cannot run from the console or command blocks.");
 
         return CommandResult.success();
     }
@@ -293,15 +275,13 @@ public class CheckTypes implements CommandExecutor
             if (debugNum == 0)
                 PixelUpgrade.log.info("§4CheckTypes // critical: §c" + inputString);
             else if (debugNum == 1)
-                PixelUpgrade.log.info("§6CheckTypes // important: §e" + inputString);
-            else if (debugNum == 2)
-                PixelUpgrade.log.info("§3CheckTypes // start/end: §b" + inputString);
+                PixelUpgrade.log.info("§3CheckTypes // notice: §b" + inputString);
             else
                 PixelUpgrade.log.info("§2CheckTypes // debug: §a" + inputString);
         }
     }
 
-    private Boolean checkConfigBool(String node)
+    private Boolean getConfigBool(String node)
     {
         if (!CheckTypesConfig.getInstance().getConfig().getNode(node).isVirtual())
             return CheckTypesConfig.getInstance().getConfig().getNode(node).getBoolean();
@@ -379,7 +359,7 @@ public class CheckTypes implements CommandExecutor
         int indexType1 = Arrays.asList(unformattedTypeList).indexOf(String.valueOf(type1)), indexType2;
         if (type2Present)
         {
-            printToLog(3, "Found two types on provided Pokémon.");
+            printToLog(2, "Found two types on provided Pokémon.");
             foundTypes.add(type2);
             indexType2 = Arrays.asList(unformattedTypeList).indexOf(String.valueOf(type2));
 
@@ -388,7 +368,7 @@ public class CheckTypes implements CommandExecutor
         }
         else
         {
-            printToLog(3, "Found one type on provided Pokémon.");
+            printToLog(2, "Found one type on provided Pokémon.");
             typeMessage = " §f(" + typeList[indexType1] + "§f)";
         }
 
@@ -399,7 +379,7 @@ public class CheckTypes implements CommandExecutor
         StringBuilder strengthBuilder50p = new StringBuilder(), strengthBuilder25p = new StringBuilder();
         StringBuilder immunityBuilder = new StringBuilder();
 
-        printToLog(3, "Building the type list... Loop is go!");
+        printToLog(2, "Building the type list... Loop is go!");
         for (int i = 1; i < 19; i++)
         {
             EnumType typeToTest = EnumType.parseType(unformattedTypeList[i - 1]);
@@ -426,7 +406,7 @@ public class CheckTypes implements CommandExecutor
         /*                                                 *\
              Fix the shown Pokémon's name, if necessary.
         \*                                                 */
-        printToLog(3, "Checking whether the Pokémon needs its shown name adjusted.");
+        printToLog(2, "Checking whether the Pokémon needs its shown name adjusted.");
         player.sendMessage(Text.of("§7-----------------------------------------------------"));
         switch (pName)
         {
@@ -523,7 +503,7 @@ public class CheckTypes implements CommandExecutor
             // Pokémon is not special, print defaults.
             default:
                 nameMessage = "§1(§9#" + pNumber + "§1) §6" + pName;
-                printToLog(3, "Name did not need to be fixed, showing straight from the list.");
+                printToLog(2, "Name did not need to be fixed, showing straight from the list.");
         }
 
         player.sendMessage(Text.of(nameMessage + typeMessage));
@@ -566,7 +546,7 @@ public class CheckTypes implements CommandExecutor
              Find and format a Pokémon's type-relevant abilities.
         \*                                                          */
         player.sendMessage(Text.of("§bImmunities§6:"));
-        printToLog(3, "Grabbing immunities and turning them into a fancy list.");
+        printToLog(2, "Grabbing immunities and turning them into a fancy list.");
 
         // Make a bunch of lists for different type-nullifying abilities.
         String motorDrive =
@@ -625,7 +605,7 @@ public class CheckTypes implements CommandExecutor
         ArrayList<String> abilities = new ArrayList<>(), hovers = new ArrayList<>();
 
         if (immunityBuilder.length() == 0)
-            immunityBuilder.append("§8None?"); // Shown when a Pokémon isn't immune against anything.
+            immunityBuilder.append("§8None"); // Shown when a Pokémon isn't immune against anything.
         else
             immunityBuilder.setLength(immunityBuilder.length() - 2); // Shank any trailing commas.
 
@@ -736,54 +716,62 @@ public class CheckTypes implements CommandExecutor
         \*                                                          */
         Text immunityPair, immunityPair2, immunityPair3;
         String immunityEnd = "§r§7)";
-        if (abilities.size() == 1)
+        switch (abilities.size())
         {
-            immunityPair = Text.builder(abilities.get(0))
-                    .onHover(TextActions.showText(Text.of(hovers.get(0))))
-                    .build();
-            player.sendMessage(of(immunityStart, immunityPair, immunityEnd));
-        }
-        else if (abilities.size() == 2)
-        {
-            Text orMessage = Text.of("§r§7 or §f§l§n");
-            immunityPair = Text.builder(abilities.get(0))
-                    .onHover(TextActions.showText(Text.of(hovers.get(0))))
-                    .build();
-            immunityPair2 = Text.builder(abilities.get(1))
-                    .onHover(TextActions.showText(Text.of(hovers.get(1))))
-                    .build();
+            case 1:
+            {
+                immunityPair = Text.builder(abilities.get(0))
+                        .onHover(TextActions.showText(Text.of(hovers.get(0))))
+                        .build();
 
-            player.sendMessage(of(immunityStart, immunityPair, orMessage, immunityPair2, immunityEnd));
-        }
-        else if (abilities.size() == 3)
-        {
-            // Overwrite this here so we can squeeze in more info. Not ideal, but single lines are nice.
-            immunityStart = Text.of("\\- §b0%§f: " + immunityBuilder + "§7 (may have type abilities, see below)");
+                player.sendMessage(Text.of(immunityStart, immunityPair, immunityEnd));
+                break;
+            }
+            case 2:
+            {
+                Text orMessage = Text.of("§r§7 or §f§l§n");
+                immunityPair = Text.builder(abilities.get(0))
+                        .onHover(TextActions.showText(Text.of(hovers.get(0))))
+                        .build();
+                immunityPair2 = Text.builder(abilities.get(1))
+                        .onHover(TextActions.showText(Text.of(hovers.get(1))))
+                        .build();
 
-            Text orMessage = Text.of("§r§7 or §f§l§n");
-            Text newLineFormat = Text.of("\\- §b=>§f: ");
-            immunityPair = Text.builder(abilities.get(0))
-                    .onHover(TextActions.showText(Text.of(hovers.get(0))))
-                    .build();
-            immunityPair2 = Text.builder(abilities.get(1))
-                    .onHover(TextActions.showText(Text.of(hovers.get(1))))
-                    .build();
-            immunityPair3 = Text.builder(abilities.get(2))
-                    .onHover(TextActions.showText(Text.of(hovers.get(2))))
-                    .build();
+                player.sendMessage(Text.of(immunityStart, immunityPair, orMessage, immunityPair2, immunityEnd));
+                break;
+            }
+            case 3:
+            {
+                // Overwrite this here so we can squeeze in more info.
+                // Not ideal, but not rolling over to double lines is nice.
+                immunityStart = Text.of("\\- §b0%§f: " + immunityBuilder + "§7 (may have type abilities, see below)");
 
-            player.sendMessage(immunityStart);
-            player.sendMessage(of(newLineFormat, immunityPair, orMessage, immunityPair2, orMessage, immunityPair3));
+                Text orMessage = Text.of("§r§7 or §f§l§n");
+                Text newLineFormat = Text.of("\\- §b=>§f: ");
+                immunityPair = Text.builder(abilities.get(0))
+                        .onHover(TextActions.showText(Text.of(hovers.get(0))))
+                        .build();
+                immunityPair2 = Text.builder(abilities.get(1))
+                        .onHover(TextActions.showText(Text.of(hovers.get(1))))
+                        .build();
+                immunityPair3 = Text.builder(abilities.get(2))
+                        .onHover(TextActions.showText(Text.of(hovers.get(2))))
+                        .build();
+
+                player.sendMessage(immunityStart);
+                player.sendMessage(Text.of(newLineFormat, immunityPair, orMessage, immunityPair2, orMessage, immunityPair3));
+                break;
+            }
+            default:
+                player.sendMessage(Text.of("\\- §b0%§f: " + immunityBuilder));
         }
-        else
-            player.sendMessage(Text.of("\\- §b0%§f: " + immunityBuilder));
 
         /*                                                                              *\
              Print messages if differently typed forms or Alolan forms are available.
         \*                                                                              */
         if (hasForms && showFormMessage)
         {
-            printToLog(3, "Showing forms is enabled, and we can show one! Doing it.");
+            printToLog(2, "Showing forms is enabled, and we can show one! Doing it.");
             String commandHelper = "§cCheck out: §6" + alias + " ";
 
             player.sendMessage(Text.of(""));
@@ -812,7 +800,7 @@ public class CheckTypes implements CommandExecutor
         }
         else if (hasAlolanVariants && showAlolanMessage)
         {
-            printToLog(3, "Showing Alolan variants is enabled, and we've got one! Showing.");
+            printToLog(2, "Showing Alolan variants is enabled, and we've got one! Showing.");
             String commandHelper = "§cCheck out: §6" + alias + " ";
 
             player.sendMessage(Text.of(""));
@@ -860,6 +848,7 @@ public class CheckTypes implements CommandExecutor
             }
         }
 
+        printToLog(1, "Successfully iterated through lists and put together a type overview. Done!");
         player.sendMessage(Text.of("§7-----------------------------------------------------"));
     }
 }

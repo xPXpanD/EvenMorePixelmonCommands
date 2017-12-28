@@ -4,66 +4,45 @@ import com.pixelmonmod.pixelmon.config.PixelmonEntityList;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
+
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
+
+import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
-
 import org.spongepowered.api.text.Text;
-import rs.expand.pixelupgrade.PixelUpgrade;
+
 import rs.expand.pixelupgrade.configs.ResetCountConfig;
+import rs.expand.pixelupgrade.PixelUpgrade;
 
 import java.util.Optional;
 
+import static rs.expand.pixelupgrade.PixelUpgrade.debugLevel;
+
 public class ResetCount implements CommandExecutor
 {
-    // See which messages should be printed by the debug logger. Valid range is 0-3.
-    // We set null on hitting an error, and let the main code block handle it from there.
-    private static Integer debugLevel;
-    private void getVerbosityMode()
-    {
-        // Does the debugVerbosityMode node exist? If so, figure out what's in it.
-        if (!ResetCountConfig.getInstance().getConfig().getNode("debugVerbosityMode").isVirtual())
-        {
-            String modeString = ResetCountConfig.getInstance().getConfig().getNode("debugVerbosityMode").getString();
-
-            if (modeString.matches("^[0-3]"))
-                debugLevel = Integer.parseInt(modeString);
-            else
-                PixelUpgrade.log.info("§4ResetCount // critical: §cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
-        }
-        else
-        {
-            PixelUpgrade.log.info("§4ResetCount // critical: §cConfig variable \"debugVerbosityMode\" could not be found!");
-            debugLevel = null;
-        }
-    }
-
-    private static String alias;
+    private static String alias = null;
     private void getCommandAlias()
     {
         if (!ResetCountConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
             alias = "/" + ResetCountConfig.getInstance().getConfig().getNode("commandAlias").getString();
         else
-        {
             PixelUpgrade.log.info("§4ResetCount // critical: §cConfig variable \"commandAlias\" could not be found!");
-            alias = null;
-        }
     }
     
+    @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
     {
         if (src instanceof Player)
         {
             // Set up the command's debug verbosity mode and preferred alias.
-            getVerbosityMode();
             getCommandAlias();
 
-            if (alias == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
+            if (alias == null)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
@@ -71,7 +50,7 @@ public class ResetCount implements CommandExecutor
             }
             else
             {
-                printToLog(2, "Called by player §3" + src.getName() + "§b. Starting!");
+                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 Player player = (Player) src;
                 boolean canContinue = true, commandConfirmed = false, printError = false;
@@ -80,7 +59,7 @@ public class ResetCount implements CommandExecutor
 
                 if (!args.<String>getOne("slot").isPresent())
                 {
-                    printToLog(2, "No arguments provided, aborting.");
+                    printToLog(1, "No arguments provided. Exit.");
 
                     src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
@@ -94,12 +73,12 @@ public class ResetCount implements CommandExecutor
 
                     if (slotString.matches("^[1-6]"))
                     {
-                        printToLog(3, "Slot was a valid slot number. Let's move on!");
+                        printToLog(2, "Slot was a valid slot number. Let's move on!");
                         slot = Integer.parseInt(args.<String>getOne("slot").get());
                     }
                     else
                     {
-                        printToLog(2, "Invalid slot provided. Aborting.");
+                        printToLog(1, "Invalid slot provided. Exit.");
 
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
@@ -129,7 +108,7 @@ public class ResetCount implements CommandExecutor
 
                 if (printError)
                 {
-                    printToLog(2, "Could not find a valid count to reset. Aborting.");
+                    printToLog(1, "Could not find a valid count to reset. Exit.");
 
                     player.sendMessage(Text.of("§5-----------------------------------------------------"));
                     player.sendMessage(Text.of("§4Error: §cInvalid count provided. See below for valid ones."));
@@ -143,7 +122,7 @@ public class ResetCount implements CommandExecutor
 
                 if (canContinue)
                 {
-                    printToLog(3, "No error encountered, input should be valid. Continuing!");
+                    printToLog(2, "No error encountered, input should be valid. Continuing!");
                     Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
                     if (!storage.isPresent())
@@ -158,7 +137,7 @@ public class ResetCount implements CommandExecutor
 
                         if (nbt == null)
                         {
-                            printToLog(2, "No NBT found in slot, probably empty. Aborting...");
+                            printToLog(1, "No NBT found in slot, probably empty. Exit.");
                             src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
                         }
                         else
@@ -170,7 +149,7 @@ public class ResetCount implements CommandExecutor
                                 Integer fuseCount = pokemon.getEntityData().getInteger("fuseCount");
                                 boolean isDitto = nbt.getString("Name").equals("Ditto");
 
-                                printToLog(3, "Command was confirmed, proceeding to execution.");
+                                printToLog(2, "Command was confirmed, proceeding to execution.");
 
 
                                 if (fixedCount.matches("Fusion"))
@@ -190,11 +169,11 @@ public class ResetCount implements CommandExecutor
                                     pokemon.getEntityData().setInteger("upgradeCount", 0);
                                 }
 
-                                printToLog(2, "Target counts have been reset!");
+                                printToLog(1, "Target counts have been reset!");
                             }
                             else
                             {
-                                printToLog(2, "No confirmation provided, printing warning and aborting.");
+                                printToLog(1, "No confirmation provided, printing warning and aborting.");
 
                                 src.sendMessage(Text.of("§5-----------------------------------------------------"));
                                 if (fixedCount.matches("all"))
@@ -210,7 +189,7 @@ public class ResetCount implements CommandExecutor
             }
         }
         else
-            printToLog(0, "This command cannot run from the console or command blocks.");
+            PixelUpgrade.log.info("§cThis command cannot run from the console or command blocks.");
 
         return CommandResult.success();
     }
@@ -233,9 +212,7 @@ public class ResetCount implements CommandExecutor
             if (debugNum == 0)
                 PixelUpgrade.log.info("§4ResetCount // critical: §c" + inputString);
             else if (debugNum == 1)
-                PixelUpgrade.log.info("§6ResetCount // important: §e" + inputString);
-            else if (debugNum == 2)
-                PixelUpgrade.log.info("§3ResetCount // start/end: §b" + inputString);
+                PixelUpgrade.log.info("§3ResetCount // notice: §b" + inputString);
             else
                 PixelUpgrade.log.info("§2ResetCount // debug: §a" + inputString);
         }

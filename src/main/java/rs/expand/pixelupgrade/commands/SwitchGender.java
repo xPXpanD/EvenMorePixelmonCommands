@@ -1,65 +1,52 @@
+// Ohhhh, the cheeky jokes I could make here.
 package rs.expand.pixelupgrade.commands;
 
 import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
-import org.spongepowered.api.command.CommandResult;
-import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.service.economy.account.UniqueAccount;
-import org.spongepowered.api.service.economy.transaction.ResultType;
-import org.spongepowered.api.service.economy.transaction.TransactionResult;
-import org.spongepowered.api.text.Text;
-import rs.expand.pixelupgrade.PixelUpgrade;
-import rs.expand.pixelupgrade.configs.SwitchGenderConfig;
 
 import java.math.BigDecimal;
 import java.util.Optional;
 
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.nbt.NBTTagCompound;
+
+import org.spongepowered.api.command.args.CommandContext;
+import org.spongepowered.api.command.CommandResult;
+import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.command.spec.CommandExecutor;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.EventContext;
+import org.spongepowered.api.service.economy.account.UniqueAccount;
+import org.spongepowered.api.service.economy.transaction.ResultType;
+import org.spongepowered.api.service.economy.transaction.TransactionResult;
+import org.spongepowered.api.text.Text;
+
+import rs.expand.pixelupgrade.configs.SwitchGenderConfig;
+import rs.expand.pixelupgrade.PixelUpgrade;
+
+import static rs.expand.pixelupgrade.PixelUpgrade.debugLevel;
 import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
-// Ohhhh, the cheeky jokes I could make here.
 public class SwitchGender implements CommandExecutor
 {
-    // See which messages should be printed by the debug logger. Valid range is 0-3.
-    // We set null on hitting an error, and let the main code block handle it from there.
-    private static Integer debugLevel;
-    private void getVerbosityMode()
-    {
-        // Does the debugVerbosityMode node exist? If so, figure out what's in it.
-        if (!SwitchGenderConfig.getInstance().getConfig().getNode("debugVerbosityMode").isVirtual())
-        {
-            String modeString = SwitchGenderConfig.getInstance().getConfig().getNode("debugVerbosityMode").getString();
+    // Not sure how this works yet, but nicked it from TotalEconomy.
+    // Will try to figure this out later, just glad to have this working for now.
+    private PixelUpgrade pixelUpgrade;
+    public SwitchGender(PixelUpgrade pixelUpgrade) { this.pixelUpgrade = pixelUpgrade; }
 
-            if (modeString.matches("^[0-3]"))
-                debugLevel = Integer.parseInt(modeString);
-            else
-                PixelUpgrade.log.info("§4SwitchGender // critical: §cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
-        }
-        else
-        {
-            PixelUpgrade.log.info("§4SwitchGender // critical: §cConfig variable \"debugVerbosityMode\" could not be found!");
-            debugLevel = null;
-        }
-    }
-
-    private static String alias;
+    // Grab the command's alias.
+    private static String alias = null;
     private void getCommandAlias()
     {
         if (!SwitchGenderConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
             alias = "/" + SwitchGenderConfig.getInstance().getConfig().getNode("commandAlias").getString();
         else
-        {
             PixelUpgrade.log.info("§4SwitchGender // critical: §cConfig variable \"commandAlias\" could not be found!");
-            alias = null;
-        }
     }
 
+    @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
     {
         if (src instanceof Player)
@@ -70,11 +57,10 @@ public class SwitchGender implements CommandExecutor
             else
                 PixelUpgrade.log.info("§4SwitchGender // critical: §cCould not parse config variable \"commandCost\"!");
 
-            // Set up the command's debug verbosity mode and preferred alias.
-            getVerbosityMode();
+            // Set up the command's preferred alias.
             getCommandAlias();
 
-            if (commandCost == null || alias == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
+            if (commandCost == null || alias == null)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
@@ -82,7 +68,7 @@ public class SwitchGender implements CommandExecutor
             }
             else
             {
-                printToLog(2, "Called by player §3" + src.getName() + "§b. Starting!");
+                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 Player player = (Player) src;
                 boolean canContinue = true, commandConfirmed = false;
@@ -90,11 +76,10 @@ public class SwitchGender implements CommandExecutor
 
                 if (!args.<String>getOne("slot").isPresent())
                 {
-                    printToLog(2, "No arguments provided, aborting.");
+                    printToLog(1, "No arguments provided. Exit.");
 
                     player.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
-                    src.sendMessage(Text.of("§4Usage: §c" + alias + " <slot, 1-6> {-c to confirm}"));
                     checkAndAddFooter(commandCost, player);
 
                     canContinue = false;
@@ -105,16 +90,15 @@ public class SwitchGender implements CommandExecutor
 
                     if (slotString.matches("^[1-6]"))
                     {
-                        printToLog(3, "Slot was a valid slot number. Let's move on!");
+                        printToLog(2, "Slot was a valid slot number. Let's move on!");
                         slot = Integer.parseInt(args.<String>getOne("slot").get());
                     }
                     else
                     {
-                        printToLog(2, "Invalid slot provided. Aborting.");
+                        printToLog(1, "Invalid slot provided. Exit.");
 
                         player.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
-                        src.sendMessage(Text.of("§4Usage: §c" + alias + " <slot, 1-6> {-c to confirm}"));
                         checkAndAddFooter(commandCost, player);
 
                         canContinue = false;
@@ -126,7 +110,7 @@ public class SwitchGender implements CommandExecutor
 
                 if (canContinue)
                 {
-                    printToLog(3, "No error encountered, input should be valid. Continuing!");
+                    printToLog(2, "No error encountered, input should be valid. Continuing!");
                     Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
                     if (!storage.isPresent())
@@ -141,24 +125,24 @@ public class SwitchGender implements CommandExecutor
 
                         if (nbt == null)
                         {
-                            printToLog(2, "No NBT found in slot, probably empty. Aborting...");
+                            printToLog(1, "No NBT found in slot, probably empty. Exit.");
                             src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
                         }
                         else if (nbt.getBoolean("isEgg"))
                         {
-                            printToLog(2, "Tried to switch gender on an egg. Aborting...");
+                            printToLog(1, "Tried to switch gender on an egg. Exit.");
                             src.sendMessage(Text.of("§4Error: §cThat's an egg! Go hatch it, first."));
                         }
                         else if (nbt.getInteger(NbtKeys.GENDER) != 0 && nbt.getInteger(NbtKeys.GENDER) != 1)
                         {
-                            printToLog(2, "Tried to switch gender on a genderless (or broken?) Pokémon. Abort.");
+                            printToLog(1, "Tried to switch gender on a genderless (or broken?) Pokémon. Exit.");
                             src.sendMessage(Text.of("§4Error: §cYou can only switch genders on a gendered Pokémon!"));
                         }
                         else
                         {
                             if (commandConfirmed)
                             {
-                                printToLog(3, "Command was confirmed, checking balances.");
+                                printToLog(2, "Command was confirmed, checking balances.");
                                 int gender = nbt.getInteger(NbtKeys.GENDER);
 
                                 if (commandCost > 0)
@@ -169,7 +153,7 @@ public class SwitchGender implements CommandExecutor
                                     if (optionalAccount.isPresent())
                                     {
                                         UniqueAccount uniqueAccount = optionalAccount.get();
-                                        TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(), costToConfirm, Cause.source(this).build());
+                                        TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(), costToConfirm, Cause.of(EventContext.empty(), pixelUpgrade.getPluginContainer()));
 
                                         if (transactionResult.getResult() == ResultType.SUCCESS)
                                         {
@@ -180,7 +164,7 @@ public class SwitchGender implements CommandExecutor
                                         else
                                         {
                                             BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                            printToLog(2, "Not enough coins! Cost: §3" + costToConfirm + "§b, lacking: §3" + balanceNeeded);
+                                            printToLog(1, "Not enough coins! Cost: §3" + costToConfirm + "§b, lacking: §3" + balanceNeeded);
 
                                             src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
                                         }
@@ -200,7 +184,7 @@ public class SwitchGender implements CommandExecutor
                             }
                             else
                             {
-                                printToLog(2, "No confirmation provided, printing warning and aborting.");
+                                printToLog(1, "No confirmation provided, printing warning and aborting.");
 
                                 src.sendMessage(Text.of("§5-----------------------------------------------------"));
                                 src.sendMessage(Text.of("§6Warning: §eYou are about to switch this Pokémon's gender!"));
@@ -215,7 +199,7 @@ public class SwitchGender implements CommandExecutor
             }
         }
         else
-            printToLog(0, "This command cannot run from the console or command blocks.");
+            PixelUpgrade.log.info("§cThis command cannot run from the console or command blocks.");
 
         return CommandResult.success();
     }
@@ -243,6 +227,7 @@ public class SwitchGender implements CommandExecutor
 
     private void checkAndAddFooter(int cost, Player player)
     {
+        player.sendMessage(Text.of("§4Usage: §c" + alias + " <slot, 1-6> {-c to confirm}"));
         player.sendMessage(Text.of(""));
         player.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're sure!"));
         if (cost > 0)
@@ -257,9 +242,7 @@ public class SwitchGender implements CommandExecutor
             if (debugNum == 0)
                 PixelUpgrade.log.info("§4SwitchGender // critical: §c" + inputString);
             else if (debugNum == 1)
-                PixelUpgrade.log.info("§6SwitchGender // important: §e" + inputString);
-            else if (debugNum == 2)
-                PixelUpgrade.log.info("§3SwitchGender // start/end: §b" + inputString);
+                PixelUpgrade.log.info("§3SwitchGender // notice: §b" + inputString);
             else
                 PixelUpgrade.log.info("§2SwitchGender // debug: §a" + inputString);
         }

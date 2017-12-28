@@ -1,68 +1,51 @@
 package rs.expand.pixelupgrade.commands;
 
+import com.pixelmonmod.pixelmon.storage.NbtKeys;
+import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
+import com.pixelmonmod.pixelmon.storage.PlayerStorage;
+
 import java.math.BigDecimal;
 import java.util.Optional;
 
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.nbt.NBTTagCompound;
+
+import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 
-import com.pixelmonmod.pixelmon.storage.NbtKeys;
-import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
-import com.pixelmonmod.pixelmon.storage.PlayerStorage;
-
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
-
-import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.configs.ResetEVsConfig;
+import rs.expand.pixelupgrade.PixelUpgrade;
 
+import static rs.expand.pixelupgrade.PixelUpgrade.debugLevel;
 import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
 public class ResetEVs implements CommandExecutor
 {
-    // See which messages should be printed by the debug logger. Valid range is 0-3.
-    // We set null on hitting an error, and let the main code block handle it from there.
-    private static Integer debugLevel;
-    private void getVerbosityMode()
-    {
-        // Does the debugVerbosityMode node exist? If so, figure out what's in it.
-        if (!ResetEVsConfig.getInstance().getConfig().getNode("debugVerbosityMode").isVirtual())
-        {
-            String modeString = ResetEVsConfig.getInstance().getConfig().getNode("debugVerbosityMode").getString();
+    // Not sure how this works yet, but nicked it from TotalEconomy.
+    // Will try to figure this out later, just glad to have this working for now.
+    private PixelUpgrade pixelUpgrade;
+    public ResetEVs(PixelUpgrade pixelUpgrade) { this.pixelUpgrade = pixelUpgrade; }
 
-            if (modeString.matches("^[0-3]"))
-                debugLevel = Integer.parseInt(modeString);
-            else
-                PixelUpgrade.log.info("§4ResetEVs // critical: §cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
-        }
-        else
-        {
-            PixelUpgrade.log.info("§4ResetEVs // critical: §cConfig variable \"debugVerbosityMode\" could not be found!");
-            debugLevel = null;
-        }
-    }
-
-    private static String alias;
+    private static String alias = null;
     private void getCommandAlias()
     {
         if (!ResetEVsConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
             alias = "/" + ResetEVsConfig.getInstance().getConfig().getNode("commandAlias").getString();
         else
-        {
             PixelUpgrade.log.info("§4ResetEVs // critical: §cConfig variable \"commandAlias\" could not be found!");
-            alias = null;
-        }
     }
 
-	public CommandResult execute(CommandSource src, CommandContext args)
+	@SuppressWarnings("NullableProblems")
+    public CommandResult execute(CommandSource src, CommandContext args)
 	{
         if (src instanceof Player)
         {
@@ -72,11 +55,10 @@ public class ResetEVs implements CommandExecutor
             else
                 PixelUpgrade.log.info("§4ResetEVs // critical: §cCould not parse config variable \"commandCost\"!");
 
-            // Set up the command's debug verbosity mode and preferred alias.
-            getVerbosityMode();
+            // Set up the command's preferred alias.
             getCommandAlias();
 
-            if (commandCost == null || alias == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
+            if (commandCost == null || alias == null)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
@@ -84,7 +66,7 @@ public class ResetEVs implements CommandExecutor
             }
             else
             {
-                printToLog(2, "Called by player §3" + src.getName() + "§b. Starting!");
+                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 Player player = (Player) src;
                 boolean canContinue = true, commandConfirmed = false;
@@ -92,7 +74,7 @@ public class ResetEVs implements CommandExecutor
 
                 if (!args.<String>getOne("slot").isPresent())
                 {
-                    printToLog(2, "No arguments provided, aborting.");
+                    printToLog(1, "No arguments provided. Exit.");
 
                     checkAndAddHeader(commandCost, player);
                     src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
@@ -107,12 +89,12 @@ public class ResetEVs implements CommandExecutor
 
                     if (slotString.matches("^[1-6]"))
                     {
-                        printToLog(3, "Slot was a valid slot number. Let's move on!");
+                        printToLog(2, "Slot was a valid slot number. Let's move on!");
                         slot = Integer.parseInt(args.<String>getOne("slot").get());
                     }
                     else
                     {
-                        printToLog(2, "Invalid slot provided. Aborting.");
+                        printToLog(1, "Invalid slot provided. Exit.");
 
                         checkAndAddHeader(commandCost, player);
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
@@ -128,7 +110,7 @@ public class ResetEVs implements CommandExecutor
 
                 if (canContinue)
                 {
-                    printToLog(3, "No error encountered, input should be valid. Continuing!");
+                    printToLog(2, "No error encountered, input should be valid. Continuing!");
                     Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
                     if (!storage.isPresent())
@@ -143,73 +125,70 @@ public class ResetEVs implements CommandExecutor
 
                         if (nbt == null)
                         {
-                            printToLog(2, "No NBT found in slot, probably empty. Aborting...");
+                            printToLog(1, "No NBT found in slot, probably empty. Exit.");
                             src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
                         }
                         else if (nbt.getBoolean("isEgg"))
                         {
-                            printToLog(2, "Tried to reset EVs on an egg. Aborting...");
+                            printToLog(1, "Tried to reset EVs on an egg. Exit.");
                             src.sendMessage(Text.of("§4Error: §cThat's an egg! Go hatch it, first."));
                         }
-                        else
+                        else if (commandConfirmed)
                         {
-                            if (commandConfirmed)
+                            printToLog(2, "Command was confirmed, checking balances.");
+
+                            if (commandCost > 0)
                             {
-                                printToLog(3, "Command was confirmed, checking balances.");
+                                BigDecimal costToConfirm = new BigDecimal(commandCost);
+                                Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
 
-                                if (commandCost > 0)
+                                if (optionalAccount.isPresent())
                                 {
-                                    BigDecimal costToConfirm = new BigDecimal(commandCost);
-                                    Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
+                                    UniqueAccount uniqueAccount = optionalAccount.get();
+                                    TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(), costToConfirm, Cause.of(EventContext.empty(), pixelUpgrade.getPluginContainer()));
 
-                                    if (optionalAccount.isPresent())
+                                    if (transactionResult.getResult() == ResultType.SUCCESS)
                                     {
-                                        UniqueAccount uniqueAccount = optionalAccount.get();
-                                        TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(), costToConfirm, Cause.source(this).build());
-
-                                        if (transactionResult.getResult() == ResultType.SUCCESS)
-                                        {
-                                            resetPlayerEVs(nbt, player);
-                                            printToLog(1, "Reset EVs for slot " + slot + ", and took " + costToConfirm + " coins.");
-                                        }
-                                        else
-                                        {
-                                            BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                            printToLog(2, "Not enough coins! Cost: §3" + costToConfirm + "§b, lacking: §3" + balanceNeeded);
-
-                                            src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
-                                        }
+                                        resetPlayerEVs(nbt, player);
+                                        printToLog(1, "Reset EVs for slot " + slot + ", and took " + costToConfirm + " coins.");
                                     }
                                     else
                                     {
-                                        printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. May be a bug?");
-                                        src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
+                                        BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
+                                        printToLog(1, "Not enough coins! Cost: §3" + costToConfirm + "§b, lacking: §3" + balanceNeeded);
+
+                                        src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
                                     }
                                 }
                                 else
                                 {
-                                    resetPlayerEVs(nbt, player);
-                                    printToLog(1, "Reset EVs for slot " + slot + ". Config price is 0, taking nothing.");
+                                    printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. May be a bug?");
+                                    src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
                                 }
                             }
                             else
                             {
-                                printToLog(2, "No confirmation provided, printing warning and aborting.");
-
-                                src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                                src.sendMessage(Text.of("§6Warning: §eYou are about to reset this Pokémon's EVs to zero!"));
-                                if (commandCost > 0)
-                                    src.sendMessage(Text.of("§eResetting will cost §6" + commandCost + "§e coins!"));
-                                src.sendMessage(Text.of("§2Ready? Type: §a" + alias + " " + slot + " -c"));
-                                src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                                resetPlayerEVs(nbt, player);
+                                printToLog(1, "Reset EVs for slot " + slot + ". Config price is 0, taking nothing.");
                             }
+                        }
+                        else
+                        {
+                            printToLog(1, "No confirmation provided, printing warning and aborting.");
+
+                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                            src.sendMessage(Text.of("§6Warning: §eYou are about to reset this Pokémon's EVs to zero!"));
+                            if (commandCost > 0)
+                                src.sendMessage(Text.of("§eResetting will cost §6" + commandCost + "§e coins!"));
+                            src.sendMessage(Text.of("§2Ready? Type: §a" + alias + " " + slot + " -c"));
+                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         }
                     }
                 }
             }
         }
         else
-            printToLog(0, "This command cannot run from the console or command blocks.");
+            PixelUpgrade.log.info("§cThis command cannot run from the console or command blocks.");
 
         return CommandResult.success();
 	}
@@ -271,9 +250,7 @@ public class ResetEVs implements CommandExecutor
             if (debugNum == 0)
                 PixelUpgrade.log.info("§4ResetEVs // critical: §c" + inputString);
             else if (debugNum == 1)
-                PixelUpgrade.log.info("§6ResetEVs // important: §e" + inputString);
-            else if (debugNum == 2)
-                PixelUpgrade.log.info("§3ResetEVs // start/end: §b" + inputString);
+                PixelUpgrade.log.info("§3ResetEVs // notice: §b" + inputString);
             else
                 PixelUpgrade.log.info("§2ResetEVs // debug: §a" + inputString);
         }

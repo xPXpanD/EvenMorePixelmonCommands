@@ -1,69 +1,47 @@
 package rs.expand.pixelupgrade.commands;
 
-import java.util.Optional;
-
-import org.spongepowered.api.Sponge;
-import org.spongepowered.api.command.CommandResult;
-import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.text.Text;
-
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
+
+import java.util.Optional;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 
-import rs.expand.pixelupgrade.PixelUpgrade;
+import org.spongepowered.api.command.args.CommandContext;
+import org.spongepowered.api.command.CommandResult;
+import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.command.spec.CommandExecutor;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.text.Text;
+
 import rs.expand.pixelupgrade.configs.ForceHatchConfig;
+import rs.expand.pixelupgrade.PixelUpgrade;
+
+import static rs.expand.pixelupgrade.PixelUpgrade.debugLevel;
 
 public class ForceHatch implements CommandExecutor
 {
-    // See which messages should be printed by the debug logger. Valid range is 0-3.
-    // We set null on hitting an error, and let the main code block handle it from there.
-    private static Integer debugLevel;
-    private void getVerbosityMode()
-    {
-        // Does the debugVerbosityMode node exist? If so, figure out what's in it.
-        if (!ForceHatchConfig.getInstance().getConfig().getNode("debugVerbosityMode").isVirtual())
-        {
-            String modeString = ForceHatchConfig.getInstance().getConfig().getNode("debugVerbosityMode").getString();
-
-            if (modeString.matches("^[0-3]"))
-                debugLevel = Integer.parseInt(modeString);
-            else
-                PixelUpgrade.log.info("§4ForceHatch // critical: §cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
-        }
-        else
-        {
-            PixelUpgrade.log.info("§4ForceHatch // critical: §cConfig variable \"debugVerbosityMode\" could not be found!");
-            debugLevel = null;
-        }
-    }
-
-    private static String alias;
+    // Grab the command's alias.
+    private static String alias = null;
     private void getCommandAlias()
     {
         if (!ForceHatchConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
             alias = "/" + ForceHatchConfig.getInstance().getConfig().getNode("commandAlias").getString();
         else
-        {
             PixelUpgrade.log.info("§4ForceHatch // critical: §cConfig variable \"commandAlias\" could not be found!");
-            alias = null;
-        }
     }
 
+    @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
     {
         if (src instanceof Player)
         {
-            // Set up the command's debug verbosity mode and preferred alias.
-            getVerbosityMode();
+            // Set up the command's preferred alias.
             getCommandAlias();
 
-            if (alias == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
+            if (alias == null)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
@@ -74,10 +52,10 @@ public class ForceHatch implements CommandExecutor
                 Player player = (Player) src;
                 Optional<Player> target = player.getPlayer();
                 String targetString;
-                boolean targetAcquired = false, canContinue = true;
+                boolean targetAcquired = false, canContinue = false;
                 int slot = 0;
 
-                printToLog(2, "Called by player §3" + src.getName() + "§b. Starting!");
+                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 if (args.<String>getOne("target or slot").isPresent())
                 {
@@ -87,44 +65,37 @@ public class ForceHatch implements CommandExecutor
                     {
                         if (targetString.matches("^[1-6]"))
                         {
-                            printToLog(3, "Found a slot in argument 1. Skipping everything else.");
+                            printToLog(2, "Found a slot in argument 1. Skipping everything else.");
                             slot = Integer.parseInt(targetString);
+                            canContinue = true;
                         }
                         else
                         {
                             if (target.isPresent())
                             {
-                                printToLog(2, "Found a target, but no slot was provided. Abort.");
-
+                                printToLog(1, "Found a target, but no slot was provided. Exit.");
                                 src.sendMessage(Text.of("§4Error: §cFound a target, but no slot was provided."));
-                                src.sendMessage(Text.of("§4Usage: §c" + alias + " (optional target) <slot, 1-6>"));
                             }
                             else if (targetString.matches("\\d+"))
                             {
-                                printToLog(2, "First argument was numeric, but not valid. Abort.");
-
+                                printToLog(1, "First argument was numeric, but not valid. Exit.");
                                 src.sendMessage(Text.of("§4Error: §cSlot value out of bounds! Valid values are 1-6."));
-                                src.sendMessage(Text.of("§4Usage: §c" + alias + " (optional target) <slot, 1-6>"));
                             }
                             else
                             {
-                                printToLog(2, "Target does not exist, or is offline. Abort.");
-
+                                printToLog(1, "Target does not exist, or is offline. Exit.");
                                 src.sendMessage(Text.of("§4Error: §cYour target does not exist, or is offline."));
-                                src.sendMessage(Text.of("§4Usage: §c" + alias + " (optional target) <slot, 1-6>"));
                             }
 
-                            canContinue = false;
+                            printCorrectPerm(player);
                         }
                     }
                     else if (!target.isPresent())
                     {
-                        printToLog(2, "Provided target does not seem to be present. Abort.");
+                        printToLog(1, "Provided target does not seem to be present. Exit.");
 
                         src.sendMessage(Text.of("§4Error: §cYour target does not exist, or is offline."));
-                        src.sendMessage(Text.of("§4Usage: §c" + alias + " (optional target) <slot, 1-6>"));
-
-                        canContinue = false;
+                        printCorrectPerm(player);
                     }
                     else
                     {
@@ -136,43 +107,38 @@ public class ForceHatch implements CommandExecutor
 
                             if (!(slot < 7 && slot > 0))
                             {
-                                printToLog(2, "Second argument was numeric, but not a valid slot. Abort.");
+                                printToLog(1, "Second argument was numeric, but not a valid slot. Exit.");
 
                                 src.sendMessage(Text.of("§4Error: §cSlot value out of bounds. Valid values are 1-6."));
-                                src.sendMessage(Text.of("§4Usage: §c" + alias + " (optional target) <slot, 1-6>"));
-
-                                canContinue = false;
+                                printCorrectPerm(player);
                             }
                             else
                             {
-                                printToLog(3, "Provided target exists and is online! Target logic is go.");
+                                printToLog(2, "Provided target exists and is online! Target logic is go.");
                                 targetAcquired = true;
+                                canContinue = true;
                             }
                         }
                         else
                         {
-                            printToLog(2, "Slot value was not an integer. Abort.");
+                            printToLog(1, "Slot value was not an integer. Exit.");
 
                             src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
-                            src.sendMessage(Text.of("§4Usage: §c" + alias + " (optional target) <slot, 1-6>"));
-
-                            canContinue = false;
+                            printCorrectPerm(player);
                         }
                     }
                 }
                 else
                 {
-                    printToLog(2, "No arguments provided, aborting.");
+                    printToLog(1, "No arguments provided. Exit.");
 
                     src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide at least a slot."));
-                    src.sendMessage(Text.of("§4Usage: §c" + alias + " (optional target) <slot, 1-6>"));
-
-                    canContinue = false;
+                    printCorrectPerm(player);
                 }
 
                 if (canContinue)
                 {
-                    printToLog(3, "No error encountered, input should be valid. Continuing!");
+                    printToLog(2, "No error encountered, input should be valid. Continuing!");
 
                     Optional<PlayerStorage> storage;
                     if (targetAcquired)
@@ -192,12 +158,12 @@ public class ForceHatch implements CommandExecutor
 
                         if (nbt == null)
                         {
-                            printToLog(2, "No Pokémon was found in the provided slot. Abort, abort!");
+                            printToLog(1, "No Pokémon was found in the provided slot. Abort, abort!");
                             src.sendMessage(Text.of("§4Error: §cThere's nothing in that slot!"));
                         }
                         else if (!nbt.getBoolean("isEgg"))
                         {
-                            printToLog(2, "Tried to hatch an actual Pokémon. Since that's too brutal, let's abort.");
+                            printToLog(1, "Tried to hatch an actual Pokémon. Since that's too brutal, let's exit.");
                             src.sendMessage(Text.of("§4Error: §cThat's not an egg. Don't hatch actual Pokémon, kids!"));
                         }
                         else
@@ -213,9 +179,14 @@ public class ForceHatch implements CommandExecutor
             }
         }
         else
-            printToLog(0, "This command cannot run from the console or command blocks.");
+            PixelUpgrade.log.info("§cThis command cannot run from the console or command blocks.");
 
         return CommandResult.success();
+    }
+
+    private void printCorrectPerm(Player player)
+    {
+        player.sendMessage(Text.of("§4Usage: §c" + alias + " [optional target] <slot, 1-6>"));
     }
 
     private void printToLog(int debugNum, String inputString)
@@ -225,9 +196,7 @@ public class ForceHatch implements CommandExecutor
             if (debugNum == 0)
                 PixelUpgrade.log.info("§4ForceHatch // critical: §c" + inputString);
             else if (debugNum == 1)
-                PixelUpgrade.log.info("§6ForceHatch // important: §e" + inputString);
-            else if (debugNum == 2)
-                PixelUpgrade.log.info("§3ForceHatch // start/end: §b" + inputString);
+                PixelUpgrade.log.info("§3ForceHatch // notice: §b" + inputString);
             else
                 PixelUpgrade.log.info("§2ForceHatch // debug: §a" + inputString);
         }

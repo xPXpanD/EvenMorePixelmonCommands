@@ -1,76 +1,55 @@
 package rs.expand.pixelupgrade.commands;
 
-import java.util.Arrays;
-import java.util.Optional;
-
-import org.spongepowered.api.command.CommandResult;
-import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.text.Text;
-
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
+
+import java.util.Arrays;
+import java.util.Optional;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 
-import rs.expand.pixelupgrade.PixelUpgrade;
+import org.spongepowered.api.command.args.CommandContext;
+import org.spongepowered.api.command.CommandResult;
+import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.command.spec.CommandExecutor;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.text.Text;
+
 import rs.expand.pixelupgrade.configs.ForceStatsConfig;
 import rs.expand.pixelupgrade.configs.PixelUpgradeMainConfig;
+import rs.expand.pixelupgrade.PixelUpgrade;
+
+import static rs.expand.pixelupgrade.PixelUpgrade.debugLevel;
 
 public class ForceStats implements CommandExecutor
 {
-    // See which messages should be printed by the debug logger. Valid range is 0-3.
-    // We set null on hitting an error, and let the main code block handle it from there.
-    private static Integer debugLevel;
-    private void getVerbosityMode()
-    {
-        // Does the debugVerbosityMode node exist? If so, figure out what's in it.
-        if (!ForceStatsConfig.getInstance().getConfig().getNode("debugVerbosityMode").isVirtual())
-        {
-            String modeString = ForceStatsConfig.getInstance().getConfig().getNode("debugVerbosityMode").getString();
-
-            if (modeString.matches("^[0-3]"))
-                debugLevel = Integer.parseInt(modeString);
-            else
-                PixelUpgrade.log.info("§4ForceStats // critical: §cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
-        }
-        else
-        {
-            PixelUpgrade.log.info("§4ForceStats // critical: §cConfig variable \"debugVerbosityMode\" could not be found!");
-            debugLevel = null;
-        }
-    }
-
-    private static String alias;
+    // Grab the command's alias.
+    private static String alias = null;
     private void getCommandAlias()
     {
         if (!ForceStatsConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
             alias = "/" + ForceStatsConfig.getInstance().getConfig().getNode("commandAlias").getString();
         else
-        {
             PixelUpgrade.log.info("§4ForceStats // critical: §cConfig variable \"commandAlias\" could not be found!");
-            alias = null;
-        }
     }
 
-	public CommandResult execute(CommandSource src, CommandContext args)
+    // Set up a variable that we'll be using to figure out what spelling to use. Values get assigned a bit later.
+    private Boolean useBritishSpelling = null;
+
+	@SuppressWarnings("NullableProblems")
+    public CommandResult execute(CommandSource src, CommandContext args)
     {
         if (src instanceof Player)
         {
-            Boolean useBritishSpelling = null;
-
             // Grab the useBritishSpelling value from the main config.
             if (!PixelUpgradeMainConfig.getInstance().getConfig().getNode("useBritishSpelling").isVirtual())
                 useBritishSpelling = PixelUpgradeMainConfig.getInstance().getConfig().getNode("useBritishSpelling").getBoolean();
 
-            // Set up the command's debug verbosity mode and preferred alias.
-            getVerbosityMode();
+            // Set up the command's preferred alias.
             getCommandAlias();
 
-            if (alias == null || debugLevel == null || debugLevel >= 4 || debugLevel < 0)
+            if (alias == null)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
@@ -79,12 +58,12 @@ public class ForceStats implements CommandExecutor
             else if (useBritishSpelling == null)
             {
                 src.sendMessage(Text.of("§4Error: §cCould not parse main config. Please check the console."));
-                PixelUpgrade.log.info("§4CheckEgg // critical: §cCouldn't get value of \"useBritishSpelling\" from the main config.");
-                PixelUpgrade.log.info("§4CheckEgg // critical: §cPlease check (or wipe and reload) your PixelUpgrade.conf file.");
+                printToLog(0, "Couldn't get value of \"useBritishSpelling\" from the main config.");
+                printToLog(0, "Please check (or wipe and reload) your PixelUpgrade.conf file.");
             }
             else
             {
-                printToLog(2, "Called by player §3" + src.getName() + "§b. Starting!");
+                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 boolean canContinue = true, statWasFixed = true, forceValue = false, shinyFix = false, valueIsInt = false;
                 int slot = 0, intValue = 0;
@@ -92,15 +71,12 @@ public class ForceStats implements CommandExecutor
 
                 if (!args.<String>getOne("slot").isPresent())
                 {
-                    printToLog(2, "No arguments provided, aborting.");
+                    printToLog(1, "No arguments provided. Exit.");
 
                     src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo parameters found. See below."));
-                    src.sendMessage(Text.of("§4Usage: §c" + alias + " <slot> <stat> <value> {-f to force}"));
-                    src.sendMessage(Text.of(""));
-                    src.sendMessage(Text.of("§5Please note: §dPassing the -f flag will disable safety checks."));
-                    src.sendMessage(Text.of("§dThis may lead to crashes or even corruption. Handle with care!"));
-                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                    printCorrectPerm(src);
+                    addFooter(src);
 
                     canContinue = false;
                 }
@@ -110,20 +86,17 @@ public class ForceStats implements CommandExecutor
 
                     if (slotString.matches("^[1-6]"))
                     {
-                        printToLog(3, "Slot was a valid slot number. Let's move on!");
+                        printToLog(2, "Slot was a valid slot number. Let's move on!");
                         slot = Integer.parseInt(args.<String>getOne("slot").get());
                     }
                     else
                     {
-                        printToLog(2, "Invalid slot provided. Aborting.");
+                        printToLog(1, "Invalid slot provided. Exit.");
 
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
-                        src.sendMessage(Text.of("§4Usage: §c" + alias + " <slot> <stat> <value> {-f to force}"));
-                        src.sendMessage(Text.of(""));
-                        src.sendMessage(Text.of("§5Please note: §dPassing the -f flag will disable safety checks."));
-                        src.sendMessage(Text.of("§dThis may lead to crashes or even corruption. Handle with care!"));
-                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                        printCorrectPerm(src);
+                        addFooter(src);
 
                         canContinue = false;
                     }
@@ -190,73 +163,38 @@ public class ForceStats implements CommandExecutor
 
                     if (!statWasFixed && !forceValue)
                     {
-                        printToLog(2, "Invalid stat provided, and force flag not passed. Abort.");
+                        printToLog(1, "Invalid stat provided, and force flag not passed. Exit.");
 
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid stat provided. See below for valid stats."));
-                        src.sendMessage(Text.of("§4Usage: §c" + alias + " <slot> <stat> <value> {-f to force}"));
-                        src.sendMessage(Text.of(""));
-
-                        if (useBritishSpelling)
-                        {
-                            src.sendMessage(Text.of("§6IVs: §eIVHP, IVAttack, IVDefence, IVSpAtt, IVSpDef, IVSpeed"));
-                            src.sendMessage(Text.of("§6EVs: §eEVHP, EVAttack, EVDefence, EVSpAtt, EVSpDef, EVSpeed"));
-                        }
-                        else
-                        {
-                            src.sendMessage(Text.of("§6IVs: §eIVHP, IVAttack, IVDefense, IVSpAtt, IVSpDef, IVSpeed"));
-                            src.sendMessage(Text.of("§6EVs: §eEVHP, EVAttack, EVDefense, EVSpAtt, EVSpDef, EVSpeed"));
-                        }
-                        src.sendMessage(Text.of("§6Others: §eGrowth, Nature, Shiny"));
-
-                        src.sendMessage(Text.of(""));
-                        src.sendMessage(Text.of("§5Please note: §dPassing the -f flag will disable safety checks."));
-                        src.sendMessage(Text.of("§dThis may lead to crashes or even corruption. Handle with care!"));
-                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                        printCorrectPerm(src);
+                        addHelper(src);
+                        addFooter(src);
 
                         canContinue = false;
                     }
                 }
                 else if (canContinue)
                 {
-                    printToLog(2, "No stat was provided. Let's abort.");
+                    printToLog(1, "No stat was provided. Exit.");
 
                     src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo stat provided. See below for valid stats."));
-                    src.sendMessage(Text.of("§4Usage: §c" + alias + " <slot> <stat> <value> {-f to force}"));
-                    src.sendMessage(Text.of(""));
-
-                    if (useBritishSpelling)
-                    {
-                        src.sendMessage(Text.of("§6IVs: §eIVHP, IVAttack, IVDefence, IVSpAtt, IVSpDef, IVSpeed"));
-                        src.sendMessage(Text.of("§6EVs: §eEVHP, EVAttack, EVDefence, EVSpAtt, EVSpDef, EVSpeed"));
-                    }
-                    else
-                    {
-                        src.sendMessage(Text.of("§6IVs: §eIVHP, IVAttack, IVDefense, IVSpAtt, IVSpDef, IVSpeed"));
-                        src.sendMessage(Text.of("§6EVs: §eEVHP, EVAttack, EVDefense, EVSpAtt, EVSpDef, EVSpeed"));
-                    }
-                    src.sendMessage(Text.of("§6Others: §eGrowth, Nature, Shiny"));
-
-                    src.sendMessage(Text.of(""));
-                    src.sendMessage(Text.of("§5Please note: §dPassing the -f flag will disable safety checks."));
-                    src.sendMessage(Text.of("§dThis may lead to crashes or even corruption. Handle with care!"));
-                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                    printCorrectPerm(src);
+                    addHelper(src);
+                    addFooter(src);
 
                     canContinue = false;
                 }
 
                 if (!args.<String>getOne("value").isPresent() && canContinue)
                 {
-                    printToLog(2, "No value was provided. Let's abort.");
+                    printToLog(1, "No value was provided. Exit.");
 
                     src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo value or amount was provided."));
-                    src.sendMessage(Text.of("§4Usage: §c" + alias + " <slot> <stat> <value> {-f to force}"));
-                    src.sendMessage(Text.of(""));
-                    src.sendMessage(Text.of("§5Please note: §dPassing the -f flag will disable safety checks."));
-                    src.sendMessage(Text.of("§dThis may lead to crashes or even corruption. Handle with care!"));
-                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                    printCorrectPerm(src);
+                    addFooter(src);
 
                     canContinue = false;
                 }
@@ -266,20 +204,20 @@ public class ForceStats implements CommandExecutor
 
                     if (valueString.matches("^-?[0-9]*$") && !valueString.matches("-"))
                     {
-                        printToLog(3, "Checked value, and found out it's an integer. Setting flag.");
+                        printToLog(2, "Checked value, and found out it's an integer. Setting flag.");
                         intValue = Integer.parseInt(args.<String>getOne("value").get());
                         valueIsInt = true;
                     }
                     else
                     {
-                        printToLog(3, "Value is not an integer, so treating it as a string.");
+                        printToLog(2, "Value is not an integer, so treating it as a string.");
                         value = args.<String>getOne("value").get();
                     }
                 }
 
                 if (canContinue)
                 {
-                    printToLog(3, "No error encountered, input should be valid. Continuing!");
+                    printToLog(2, "No error encountered, input should be valid. Continuing!");
                     Optional<PlayerStorage> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
                     if (!storage.isPresent())
@@ -294,43 +232,43 @@ public class ForceStats implements CommandExecutor
 
                         if (nbt == null)
                         {
-                            printToLog(2, "No NBT found in slot, probably empty. Aborting...");
+                            printToLog(1, "No NBT found in slot, probably empty. Exit.");
                             src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
                         }
                         else if (!forceValue && valueIsInt)
                         {
                             String[] validIVEV = new String[]
                             {
-                                "IVHP", "IVAttack", "IVDefence", "IVSpAtt", "IVSpDef", "IVSpeed",
-                                "EVHP", "EVAttack", "EVDefence", "EVSpecialAttack", "EVSpecialDefence", "EVSpeed"
+                                "IVHP", "IVAttack", "IVDefense", "IVSpAtt", "IVSpDef", "IVSpeed",
+                                "EVHP", "EVAttack", "EVDefense", "EVSpecialAttack", "EVSpecialDefense", "EVSpeed"
                             };
 
-                            printToLog(3, "Value is not forced, but is valid. Let's patch up the player's input.");
-                            printToLog(3, "Found stat §2" + stat + "§a, trying adjustment... It is now §2" + fixedStat + "§a.");
+                            printToLog(2, "Value is not forced, but is valid. Let's patch up the player's input.");
+                            printToLog(2, "Found stat §2" + stat + "§a, trying adjustment... It is now §2" + fixedStat + "§a.");
 
                             if (Arrays.asList(validIVEV).contains(fixedStat) && intValue > 32767 || Arrays.asList(validIVEV).contains(fixedStat) && intValue < -32768)
                             {
-                                printToLog(2, "Found an IV or EV so high that it'd roll over. Aborting.");
+                                printToLog(1, "Found an IV or EV so high that it'd roll over. Exit.");
                                 src.sendMessage(Text.of("§4Error: §cIV/EV value out of bounds. Valid range: -32768 ~ 32767"));
                             }
                             else if (fixedStat.equals("Growth") && intValue > 8 || fixedStat.equals("Growth") && intValue < 0)
                             {
-                                printToLog(2, "Found a Growth value above 8 or below 0; out of bounds. Aborting.");
+                                printToLog(1, "Found a Growth value above 8 or below 0; out of bounds. Exit.");
                                 src.sendMessage(Text.of("§4Error: §cSize value out of bounds. Valid range: 0 ~ 8"));
                             }
                             else if (fixedStat.equals("Nature") && intValue > 24 || fixedStat.equals("Nature") && intValue < 0)
                             {
-                                printToLog(2, "Found a Nature value above 24 or below 0; out of bounds. Aborting.");
+                                printToLog(1, "Found a Nature value above 24 or below 0; out of bounds. Exit.");
                                 src.sendMessage(Text.of("§4Error: §cNature value out of bounds. Valid range: 0 ~ 24"));
                             }
                             else if (fixedStat.equals("IsShiny") && intValue != 0 && intValue != 1)
                             {
-                                printToLog(2, "Invalid shiny status value detected. Aborting.");
+                                printToLog(1, "Invalid shiny status value detected. Exit.");
                                 src.sendMessage(Text.of("§4Error: §cInvalid boolean value. Valid values: 0 (=false) or 1 (=true)"));
                             }
                             else
                             {
-                                printToLog(1, "Changing value. Stat: §6" + fixedStat + "§e. Old: §6" + nbt.getInteger(fixedStat) + "§e. New: §6" + intValue + "§e.");
+                                printToLog(1, "Changing value. Stat: §3" + fixedStat + "§b. Old: §3" + nbt.getInteger(fixedStat) + "§b. New: §3" + intValue + "§b.");
 
                                 nbt.setInteger(fixedStat, intValue);
                                 if (shinyFix)
@@ -342,36 +280,27 @@ public class ForceStats implements CommandExecutor
                         }
                         else if (!forceValue)
                         {
-                            printToLog(2, "Provided value was a string, but they're only supported in force mode. Abort.");
+                            printToLog(1, "Provided value was a string, but they're only supported in force mode. Exit.");
 
                             src.sendMessage(Text.of("§5-----------------------------------------------------"));
                             src.sendMessage(Text.of("§4Error: §cGot a non-integer value, but no flag. Try a number."));
-                            src.sendMessage(Text.of("§4Usage: §c" + alias + " <slot> <stat> <value> {-f to force}"));
-                            src.sendMessage(Text.of(""));
-                            src.sendMessage(Text.of("§5Please note: §dPassing the -f flag will disable safety checks."));
-                            src.sendMessage(Text.of("§dThis may lead to crashes or even corruption. Handle with care!"));
-                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                            printCorrectPerm(src);
+                            addFooter(src);
                         }
                         else
                         {
                             try
-                            {
-                                printToLog(1, "Value is being forced! Old value: §6" + nbt.getInteger(stat) + "§e.");
-                            }
+                            { printToLog(1, "Value is being forced! Old value: §6" + nbt.getInteger(stat) + "§e."); }
                             catch (Exception F)
-                            {
-                                printToLog(1, "Value is being forced! Tried to grab old value, but couldn't read it...");
-                            }
+                            { printToLog(1, "Value is being forced! Tried to grab old value, but couldn't read it..."); }
 
                             src.sendMessage(Text.of("§eForcing value..."));
 
                             if (statWasFixed)
                             {
-                                printToLog(3, "Found a known stat in force mode. Checking and fixing, just in case...");
+                                printToLog(2, "Found a known stat in force mode. Checking and fixing, just in case...");
 
-                                src.sendMessage(Text.of("§5Note: §dKnown stat found! Validating it."));
-                                src.sendMessage(Text.of("§5Provided stat: §d" + stat + "§5 | Changed to: §d" + fixedStat));
-
+                                src.sendMessage(Text.of("§cFound known bad stat \"§4" + stat + "§c\", adjusting to \"§4" + fixedStat + "§c\"..."));
                                 stat = fixedStat;
                             }
 
@@ -400,10 +329,39 @@ public class ForceStats implements CommandExecutor
             }
         }
         else
-            printToLog(0, "This command cannot run from the console or command blocks.");
+            PixelUpgrade.log.info("§cThis command cannot run from the console or command blocks.");
 
         return CommandResult.success();
 	}
+
+    private void printCorrectPerm(CommandSource src)
+    {
+        src.sendMessage(Text.of("§4Usage: §c" + alias + " <slot> <stat> <value> {-f to force}"));
+    }
+
+    private void addFooter(CommandSource src)
+    {
+        src.sendMessage(Text.of(""));
+        src.sendMessage(Text.of("§5Please note: §dPassing the -f flag will disable safety checks."));
+        src.sendMessage(Text.of("§dThis may lead to crashes or even corruption. Handle with care!"));
+        src.sendMessage(Text.of("§5-----------------------------------------------------"));
+    }
+
+    private void addHelper(CommandSource src)
+    {
+        src.sendMessage(Text.of(""));
+        if (useBritishSpelling)
+        {
+            src.sendMessage(Text.of("§6IVs: §eIVHP, IVAttack, IVDefence, IVSpAtt, IVSpDef, IVSpeed"));
+            src.sendMessage(Text.of("§6EVs: §eEVHP, EVAttack, EVDefence, EVSpAtt, EVSpDef, EVSpeed"));
+        }
+        else
+        {
+            src.sendMessage(Text.of("§6IVs: §eIVHP, IVAttack, IVDefense, IVSpAtt, IVSpDef, IVSpeed"));
+            src.sendMessage(Text.of("§6EVs: §eEVHP, EVAttack, EVDefense, EVSpAtt, EVSpDef, EVSpeed"));
+        }
+        src.sendMessage(Text.of("§6Others: §eGrowth, Nature, Shiny"));
+    }
 
     private void printToLog(int debugNum, String inputString)
     {
@@ -412,9 +370,7 @@ public class ForceStats implements CommandExecutor
             if (debugNum == 0)
                 PixelUpgrade.log.info("§4ForceStats // critical: §c" + inputString);
             else if (debugNum == 1)
-                PixelUpgrade.log.info("§6ForceStats // important: §e" + inputString);
-            else if (debugNum == 2)
-                PixelUpgrade.log.info("§3ForceStats // start/end: §b" + inputString);
+                PixelUpgrade.log.info("§3ForceStats // notice: §b" + inputString);
             else
                 PixelUpgrade.log.info("§2ForceStats // debug: §a" + inputString);
         }
