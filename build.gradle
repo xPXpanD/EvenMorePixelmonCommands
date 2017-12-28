@@ -26,7 +26,7 @@ eclipse {
     project.natures 'org.eclipse.buildship.core.gradleprojectnature'
 }
 
-// Enables use of the section character (ยง) instead of long tags. Thanks, Hiroku! -- XpanD
+// Enables use of the section character (§) instead of long tags. Thanks, Hiroku! -- XpanD
 tasks.withType(JavaCompile)
 {
     task ->
