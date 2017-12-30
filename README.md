@@ -1,5 +1,5 @@
 # PixelUpgrade
-A sidemod for Pixelmon 5.1.1, 5.1.2 and Pixelmon Reforged 6.0.0 that adds a ton of new commands.
+A sidemod for Pixelmon 5.1.1, 5.1.2, 6.0.0 and 6.0.1 that adds a ton of new commands.
 
 For more details, check:
 http://pixelmonmod.com/wiki/index.php?title=PixelUpgrade
