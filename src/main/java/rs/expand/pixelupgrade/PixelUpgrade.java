@@ -101,6 +101,14 @@ public class PixelUpgrade
     public static PixelUpgrade getInstance()
     { return instance; }
 
+    // Load up a ton of variables for use by other commands. We'll fill these in during Forge pre-init.
+    public String shortenedHP;
+    public String shortenedAttack;
+    public String shortenedDefense;
+    public String shortenedSpAtt;
+    public String shortenedSpDef;
+    public String shortenedSpeed;
+
     // Create the config paths.
     public static Path primaryConfigPath = Paths.get(privatePath, "PixelUpgrade.conf");
     public static Path checkEggPath = Paths.get(path, "CheckEgg.conf");
@@ -305,9 +313,10 @@ public class PixelUpgrade
 
         // Load up the primary config and the info command config, and figure out the info alias.
         // We start printing stuff, here. If any warnings/errors pop up they'll be shown here.
+        // Note: We run an overloaded method for the primary config. That's why it knows where to go.
         pLog.info("===========================================================================");
         pLog.info("--> §aLoading global settings and §2/pixelupgrade§a command listing...");
-        ConfigOperations.getInstance().setupConfig("PixelUpgrade", "dicks", primaryConfigPath, privatePath, primaryConfigLoader);
+        ConfigOperations.getInstance().setupConfig(primaryConfigPath, privatePath, primaryConfigLoader);
         String puInfoAlias = PixelUpgradeInfoConfig.getInstance().setupConfig(puInfoPath, path, puInfoLoader);
 
         // Register other aliases and get some configs. Similar to the above, any errors/warnings will be printed.
@@ -340,23 +349,25 @@ public class PixelUpgrade
                 "UpgradeIVs", "upgrade", upgradeIVsPath, path, upgradeIVsLoader);
 
         // Read the debug logging level and apply it. All commands will refer to this.
-        if (!PixelUpgradeMainConfig.getInstance().getConfig().getNode("debugVerbosityMode").isVirtual())
+        if (ConfigOperations.getConfigValue("PixelUpgrade", "debugVerbosityMode") != null)
         {
-            String modeString = PixelUpgradeMainConfig.getInstance().getConfig().getNode("debugVerbosityMode").getString();
+            String modeString = ConfigOperations.getConfigValue("PixelUpgrade", "debugVerbosityMode");
 
             if (modeString.matches("^[0-3]"))
                 debugLevel = Integer.parseInt(modeString);
             else
-            {
                 PixelUpgrade.log.info("§4PixelUpgrade // critical: §cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
-                PixelUpgrade.log.info("§4PixelUpgrade // critical: §cLogging will be set to verbose mode (3) until this is resolved.");
-            }
         }
         else
-        {
             PixelUpgrade.log.info("§4PixelUpgrade // critical: §cConfig variable \"debugVerbosityMode\" could not be read!");
-            PixelUpgrade.log.info("§4PixelUpgrade // critical: §cLogging will be set to verbose mode (3) until this is resolved.");
-        }
+
+        // Initialize the variables that we want other commands to have access to.
+        shortenedHP = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedHealth");
+        shortenedAttack = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedAttack");
+        shortenedDefense = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedDefense");
+        shortenedSpAtt = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedSpecialAttack");
+        shortenedSpDef = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedSpecialDefense");
+        shortenedSpeed = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedSpeed");
 
         // Do some initial setup for our formatted messages later on. We'll show three commands per line.
         ArrayList<String> commandList = new ArrayList<>();

@@ -1,21 +1,22 @@
 package rs.expand.pixelupgrade.commands;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Optional;
+import java.util.regex.Pattern;
+
 import com.pixelmonmod.pixelmon.config.PixelmonEntityList;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Optional;
-import java.util.regex.Pattern;
-
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.ObjectUtils;
 
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
@@ -42,16 +43,18 @@ public class CheckEgg implements CommandExecutor
     // Not sure how this works yet, but nicked it from TotalEconomy.
     // Will try to figure this out later, just glad to have this working for now.
     private PixelUpgrade pixelUpgrade;
-    public CheckEgg(PixelUpgrade pixelUpgrade) { this.pixelUpgrade = pixelUpgrade; }
+    public CheckEgg(PixelUpgrade pixelUpgrade)
+        { this.pixelUpgrade = pixelUpgrade; }
 
-    // Grab the command's alias.
-    private static String alias = ConfigOperations.getConfigValue("CheckEgg", "commandAlias");
+    // Load some variables into memory. We'll be using these throughout the command logic.
+    private static String alias = ConfigOperations.getConfigValue("CheckEgg", "commandAlias", false);
+    private Boolean showName = BooleanUtils.toBooleanObject(ConfigOperations.getConfigValue("CheckEgg", "showName", false));
+    private Boolean explicitReveal = BooleanUtils.toBooleanObject(ConfigOperations.getConfigValue("CheckEgg", "explicitReveal", false));
+    private Integer babyHintPercentage = Integer.parseInt(ConfigOperations.getConfigValue("CheckEgg", "babyHintPercentage", true));
+    private Integer commandCost = Integer.parseInt(ConfigOperations.getConfigValue("CheckEgg", "commandCost", true));
+    private Boolean recheckIsFree = BooleanUtils.toBooleanObject(ConfigOperations.getConfigValue("CheckEgg", "recheckIsFree", false));
 
-    // Set up some variables that we'll be using in the egg-checking method.
-    private Boolean showName = null;
-    private Boolean explicitReveal = null;
-    private Boolean recheckIsFree = null;
-    private Integer babyHintPercentage = null;
+    // Intialize several variables that we'll be filling in with data from the main config.
     private String shortenedHP, shortenedAttack, shortenedDefense, shortenedSpAtt, shortenedSpDef, shortenedSpeed;
 
     @SuppressWarnings("NullableProblems")
@@ -61,34 +64,18 @@ public class CheckEgg implements CommandExecutor
         {
             boolean presenceCheck = true, mainConfigCheck = true;
 
-            // Prepare booleans from config.
-            showName = BooleanUtils.toBooleanObject(ConfigOperations.getConfigValue("CheckEgg", "showName"));
-            explicitReveal = BooleanUtils.toBooleanObject(ConfigOperations.getConfigValue("CheckEgg", "explicitReveal"));
-            recheckIsFree = BooleanUtils.toBooleanObject(ConfigOperations.getConfigValue("CheckEgg", "recheckIsFree"));
+            // Fill up the copycat variables. We'll do this here so changes to the main config are synced.
+            shortenedHP = PixelUpgrade.getInstance().shortenedHP;
+            shortenedAttack = PixelUpgrade.getInstance().shortenedAttack;
+            shortenedDefense = PixelUpgrade.getInstance().shortenedDefense;
+            shortenedSpAtt = PixelUpgrade.getInstance().shortenedSpAtt;
+            shortenedSpDef = PixelUpgrade.getInstance().shortenedSpDef;
+            shortenedSpeed = PixelUpgrade.getInstance().shortenedSpeed;
 
-            // Prepare integers from config.
-            Integer commandCost = getConfigInt(ConfigOperations.getConfigValue("CheckEgg", "commandCost"));
-            babyHintPercentage = getConfigInt(ConfigOperations.getConfigValue("CheckEgg", "babyHintPercentage"));
-
-            // And finally, grab the shortened formats from the main config.
-            shortenedHP = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedHealth");
-            shortenedAttack = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedAttack");
-            shortenedDefense = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedDefense");
-            shortenedSpAtt = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedSpecialAttack");
-            shortenedSpDef = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedSpecialDefense");
-            shortenedSpeed = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedSpeed");
-
-            if (recheckIsFree == null || showName == null || explicitReveal == null)
+            if (!ObjectUtils.allNotNull(recheckIsFree, showName, explicitReveal, commandCost, babyHintPercentage))
                 presenceCheck = false;
-            else if (commandCost == null || babyHintPercentage == null)
-                presenceCheck = false;
-            if (shortenedHP == null || shortenedAttack == null || shortenedDefense == null)
+            if (!ObjectUtils.allNotNull(shortenedHP, shortenedAttack, shortenedDefense, shortenedSpAtt, shortenedSpDef, shortenedSpeed))
                 mainConfigCheck = false;
-            else if (shortenedSpAtt == null || shortenedSpDef == null || shortenedSpeed == null)
-                mainConfigCheck = false;
-
-            if (alias != null)
-                alias = "/" + alias;
 
             if (!presenceCheck || alias == null)
             {
@@ -106,6 +93,7 @@ public class CheckEgg implements CommandExecutor
             {
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
+                alias = "/" + alias;
                 int slot = 0;
                 String targetString = null, slotString;
                 boolean targetAcquired = false, commandConfirmed = false, canContinue = false, hasOtherPerm = false;
@@ -399,17 +387,6 @@ public class CheckEgg implements CommandExecutor
                 PixelUpgrade.log.info("§3CheckEgg // notice: §b" + inputString);
             else
                 PixelUpgrade.log.info("§2CheckEgg // debug: §a" + inputString);
-        }
-    }
-
-    private Integer getConfigInt(String node)
-    {
-        if (node.matches("\\d+"))
-            return Integer.parseInt(node);
-        else
-        {
-            PixelUpgrade.log.info("§4CheckEgg // critical: §cCould not parse config variable \"" + node + "\"!");
-            return null;
         }
     }
 
