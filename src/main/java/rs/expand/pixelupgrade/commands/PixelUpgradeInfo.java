@@ -16,8 +16,7 @@ import org.spongepowered.api.text.format.TextColors;
 
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.configs.*;
-
-import static rs.expand.pixelupgrade.configs.CheckEggConfig.getInstance;
+import rs.expand.pixelupgrade.utilities.ConfigOperations;
 
 // Command format helper! Use this format if you want to add your own stuff.
 // [] = optional, {} = flag, <> = required, () = add comment here
@@ -58,7 +57,7 @@ public class PixelUpgradeInfo implements CommandExecutor
         {
             Player player = (Player) src;
             List<Text> permissionMessageList = new ArrayList<>();
-            String path = PixelUpgrade.getInstance().path;
+            String path = PixelUpgrade.path;
             boolean hasNoPermission = true;
 
             Boolean permCheckEgg = player.hasPermission("pixelupgrade.command.checkegg");
@@ -84,9 +83,9 @@ public class PixelUpgradeInfo implements CommandExecutor
 
                 if (Files.exists(Paths.get(path + "CheckEgg.conf")))
                 {
-                    if (commandCost != null && getInstance().getConfig().getNode("commandAlias").getString() != null)
+                    if (commandCost != null && ConfigOperations.getConfigValue("CheckEgg", "commandAlias") != null)
                     {
-                        String alias = getInstance().getConfig().getNode("commandAlias").getString();
+                        String alias = ConfigOperations.getConfigValue("CheckEgg", "commandAlias");
                         printDebug("§2/checkegg §apermission found, adding helper to list.");
 
                         if (commandCost > 0)
@@ -407,8 +406,8 @@ public class PixelUpgradeInfo implements CommandExecutor
         switch (config)
         {
             case "CheckEgg":
-                if (!CheckEggConfig.getInstance().getConfig().getNode("commandCost").isVirtual())
-                    return CheckEggConfig.getInstance().getConfig().getNode("commandCost").getInt();
+                if (ConfigOperations.getConfigValue("CheckEgg", "commandCost").matches("\\d+"))
+                    return Integer.parseInt(ConfigOperations.getConfigValue("CheckEgg", "commandCost"));
                 else
                     return null;
             case "CheckStats":

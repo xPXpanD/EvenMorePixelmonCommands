@@ -15,6 +15,8 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
+import org.apache.commons.lang3.BooleanUtils;
+
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -28,10 +30,9 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.text.Text;
 
-import rs.expand.pixelupgrade.configs.CheckEggConfig;
-import rs.expand.pixelupgrade.configs.PixelUpgradeMainConfig;
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.utilities.GetPokemonInfo;
+import rs.expand.pixelupgrade.utilities.ConfigOperations;
 
 import static rs.expand.pixelupgrade.PixelUpgrade.debugLevel;
 import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
@@ -44,14 +45,7 @@ public class CheckEgg implements CommandExecutor
     public CheckEgg(PixelUpgrade pixelUpgrade) { this.pixelUpgrade = pixelUpgrade; }
 
     // Grab the command's alias.
-    private static String alias = null;
-    private void getCommandAlias()
-    {
-        if (!CheckEggConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
-            alias = "/" + CheckEggConfig.getInstance().getConfig().getNode("commandAlias").getString();
-        else
-            PixelUpgrade.log.info("§4CheckEgg // critical: §cConfig variable \"commandAlias\" could not be found!");
-    }
+    private static String alias = ConfigOperations.getConfigValue("CheckEgg", "commandAlias");
 
     // Set up some variables that we'll be using in the egg-checking method.
     private Boolean showName = null;
@@ -66,22 +60,23 @@ public class CheckEgg implements CommandExecutor
         if (src instanceof Player)
         {
             boolean presenceCheck = true, mainConfigCheck = true;
-            Integer commandCost = getConfigInt("commandCost");
-            showName = getConfigBool("showName");
-            explicitReveal = getConfigBool("explicitReveal");
-            recheckIsFree = getConfigBool("recheckIsFree");
-            babyHintPercentage = getConfigInt("babyHintPercentage");
+
+            // Prepare booleans from config.
+            showName = BooleanUtils.toBooleanObject(ConfigOperations.getConfigValue("CheckEgg", "showName"));
+            explicitReveal = BooleanUtils.toBooleanObject(ConfigOperations.getConfigValue("CheckEgg", "explicitReveal"));
+            recheckIsFree = BooleanUtils.toBooleanObject(ConfigOperations.getConfigValue("CheckEgg", "recheckIsFree"));
+
+            // Prepare integers from config.
+            Integer commandCost = getConfigInt(ConfigOperations.getConfigValue("CheckEgg", "commandCost"));
+            babyHintPercentage = getConfigInt(ConfigOperations.getConfigValue("CheckEgg", "babyHintPercentage"));
 
             // And finally, grab the shortened formats from the main config.
-            shortenedHP = getMainConfigString("shortenedHealth");
-            shortenedAttack = getMainConfigString("shortenedAttack");
-            shortenedDefense = getMainConfigString("shortenedDefense");
-            shortenedSpAtt = getMainConfigString("shortenedSpecialAttack");
-            shortenedSpDef = getMainConfigString("shortenedSpecialDefense");
-            shortenedSpeed = getMainConfigString("shortenedSpeed");
-
-            // Set up the command's preferred alias.
-            getCommandAlias();
+            shortenedHP = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedHealth");
+            shortenedAttack = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedAttack");
+            shortenedDefense = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedDefense");
+            shortenedSpAtt = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedSpecialAttack");
+            shortenedSpDef = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedSpecialDefense");
+            shortenedSpeed = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedSpeed");
 
             if (recheckIsFree == null || showName == null || explicitReveal == null)
                 presenceCheck = false;
@@ -91,6 +86,9 @@ public class CheckEgg implements CommandExecutor
                 mainConfigCheck = false;
             else if (shortenedSpAtt == null || shortenedSpDef == null || shortenedSpeed == null)
                 mainConfigCheck = false;
+
+            if (alias != null)
+                alias = "/" + alias;
 
             if (!presenceCheck || alias == null)
             {
@@ -404,35 +402,13 @@ public class CheckEgg implements CommandExecutor
         }
     }
 
-    private Boolean getConfigBool(String node)
-    {
-        if (!CheckEggConfig.getInstance().getConfig().getNode(node).isVirtual())
-            return CheckEggConfig.getInstance().getConfig().getNode(node).getBoolean();
-        else
-        {
-            PixelUpgrade.log.info("§4CheckEgg // critical: §cCould not parse config variable \"" + node + "\"!");
-            return null;
-        }
-    }
-
     private Integer getConfigInt(String node)
     {
-        if (!CheckEggConfig.getInstance().getConfig().getNode(node).isVirtual())
-            return CheckEggConfig.getInstance().getConfig().getNode(node).getInt();
+        if (node.matches("\\d+"))
+            return Integer.parseInt(node);
         else
         {
             PixelUpgrade.log.info("§4CheckEgg // critical: §cCould not parse config variable \"" + node + "\"!");
-            return null;
-        }
-    }
-
-    private String getMainConfigString(String node)
-    {
-        if (!PixelUpgradeMainConfig.getInstance().getConfig().getNode(node).isVirtual())
-            return PixelUpgradeMainConfig.getInstance().getConfig().getNode(node).getString();
-        else
-        {
-            PixelUpgrade.log.info("§4CheckEgg // critical: §cCan't read remote variable \"" + node + "\" from main config!");
             return null;
         }
     }

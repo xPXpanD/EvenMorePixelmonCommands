@@ -31,6 +31,7 @@ import org.spongepowered.api.text.Text;
 
 import rs.expand.pixelupgrade.configs.*;
 import rs.expand.pixelupgrade.PixelUpgrade;
+import rs.expand.pixelupgrade.utilities.ConfigOperations;
 import rs.expand.pixelupgrade.utilities.GetPokemonInfo;
 
 import static rs.expand.pixelupgrade.PixelUpgrade.debugLevel;
@@ -574,8 +575,8 @@ public class CheckStats implements CommandExecutor
 
     private String getCheckEggAlias()
     {
-        if (!CheckEggConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
-            return CheckEggConfig.getInstance().getConfig().getNode("commandAlias").getString();
+        if (ConfigOperations.getConfigValue("CheckEgg", "commandAlias") != null)
+            return ConfigOperations.getConfigValue("CheckEgg", "commandAlias");
         else
         {
             PixelUpgrade.log.info("§4CheckStats // critical: §cCan't read remote config variable \"commandAlias\" for /checkegg!");
@@ -649,39 +650,39 @@ public class CheckStats implements CommandExecutor
 
         // Figure out what to print on the EV end, too.
         if (HPEV > 255 || HPEV == 252)
-            evs1 = String.valueOf("§l" + HPEV + " §2" + shortenedHP + "§r§f|§a ");
+            evs1 = String.valueOf("§l" + HPEV + " §2" + shortenedHP + " §r§f|§a ");
         else if (HPEV > 252 && showFixEVsHelper)
-            evs1 = String.valueOf("§c" + HPEV + " §4" + shortenedHP + "§f|§a ");
+            evs1 = String.valueOf("§c" + HPEV + " §4" + shortenedHP + " §f|§a ");
         else
-            evs1 = String.valueOf(HPEV + " §2" + shortenedHP + "§f|§a ");
+            evs1 = String.valueOf(HPEV + " §2" + shortenedHP + " §f|§a ");
 
         if (attackEV > 255 || attackEV == 252)
-            evs2 = String.valueOf("§l" + attackEV + " §2" + shortenedAttack + "§r§f|§a ");
+            evs2 = String.valueOf("§l" + attackEV + " §2" + shortenedAttack + " §r§f|§a ");
         else if (attackEV > 252 && showFixEVsHelper)
-            evs2 = String.valueOf("§c" + attackEV + " §4" + shortenedAttack + "§f|§a ");
+            evs2 = String.valueOf("§c" + attackEV + " §4" + shortenedAttack + " §f|§a ");
         else
-            evs2 = String.valueOf(attackEV + " §2" + shortenedAttack + "§f|§a ");
+            evs2 = String.valueOf(attackEV + " §2" + shortenedAttack + " §f|§a ");
 
         if (defenceEV > 255 || defenceEV == 252)
-            evs3 = String.valueOf("§l" + defenceEV + " §2" + shortenedDefense + "§r§f|§a ");
+            evs3 = String.valueOf("§l" + defenceEV + " §2" + shortenedDefense + " §r§f|§a ");
         else if (defenceEV > 252 && showFixEVsHelper)
-            evs3 = String.valueOf("§c" + defenceEV + " §4" + shortenedDefense + "§f|§a ");
+            evs3 = String.valueOf("§c" + defenceEV + " §4" + shortenedDefense + " §f|§a ");
         else
-            evs3 = String.valueOf(defenceEV + " §2" + shortenedDefense + "§f|§a ");
+            evs3 = String.valueOf(defenceEV + " §2" + shortenedDefense + " §f|§a ");
 
         if (spAttEV > 255 || spAttEV == 252)
-            evs4 = String.valueOf("§l" + spAttEV + " §2" + shortenedSpAtt + "§r§f|§a ");
+            evs4 = String.valueOf("§l" + spAttEV + " §2" + shortenedSpAtt + " §r§f|§a ");
         else if (spAttEV > 252 && showFixEVsHelper)
-            evs4 = String.valueOf("§c" + spAttEV + " §4" + shortenedSpAtt + "§f|§a ");
+            evs4 = String.valueOf("§c" + spAttEV + " §4" + shortenedSpAtt + " §f|§a ");
         else
-            evs4 = String.valueOf(spAttEV + " §2" + shortenedSpAtt + "§f|§a ");
+            evs4 = String.valueOf(spAttEV + " §2" + shortenedSpAtt + " §f|§a ");
 
         if (spDefEV > 255 || spDefEV == 252)
-            evs5 = String.valueOf("§l" + spDefEV + " §2" + shortenedSpDef + "§r§f|§a ");
+            evs5 = String.valueOf("§l" + spDefEV + " §2" + shortenedSpDef + " §r§f|§a ");
         else if (spDefEV > 252 && showFixEVsHelper)
-            evs5 = String.valueOf("§c" + spDefEV + " §4" + shortenedSpDef + "§f|§a ");
+            evs5 = String.valueOf("§c" + spDefEV + " §4" + shortenedSpDef + " §f|§a ");
         else
-            evs5 = String.valueOf(spDefEV + " §2" + shortenedSpDef + "§f|§a ");
+            evs5 = String.valueOf(spDefEV + " §2" + shortenedSpDef + " §f|§a ");
 
         if (speedEV > 255 || speedEV == 252)
             evs6 = String.valueOf("§l" + speedEV + " §2" + shortenedSpeed);

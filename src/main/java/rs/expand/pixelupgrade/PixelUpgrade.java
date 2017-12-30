@@ -30,6 +30,7 @@ import org.spongepowered.api.text.Text;
 
 import rs.expand.pixelupgrade.commands.*;
 import rs.expand.pixelupgrade.configs.*;
+import rs.expand.pixelupgrade.utilities.ConfigOperations;
 
 import javax.inject.Inject;
 
@@ -88,9 +89,9 @@ public class PixelUpgrade
     private static final Logger pLog = LoggerFactory.getLogger(pName);
 
     // Config-related setup.
-    private String separator = FileSystems.getDefault().getSeparator();
-    private String privatePath = "config" + separator;
-    public String path = "config" + separator + "PixelUpgrade" + separator;
+    private static String separator = FileSystems.getDefault().getSeparator();
+    private static String privatePath = "config" + separator;
+    public static String path = "config" + separator + "PixelUpgrade" + separator;
 
     // Set up the debug logger variable. If we can read the debug level from the configs, we'll overwrite this later.
     public static Integer debugLevel = 3;
@@ -98,43 +99,56 @@ public class PixelUpgrade
     // Create an instance that other classes can access.
     private static PixelUpgrade instance;
     public static PixelUpgrade getInstance()
-    {   return instance;   }
+    { return instance; }
 
-    // Set up the primary config's path.
-    public Path primaryConfigPath = Paths.get(privatePath, "PixelUpgrade.conf");
-    public ConfigurationLoader<CommentedConfigurationNode> primaryConfigLoader = HoconConfigurationLoader.builder().setPath(primaryConfigPath).build();
-
-    // Create the command config paths.
-    public Path checkEggPath = Paths.get(path, "CheckEgg.conf");
-    public Path checkStatsPath = Paths.get(path, "CheckStats.conf");
-    public Path checkTypesPath = Paths.get(path, "CheckTypes.conf");
-    public Path dittoFusionPath = Paths.get(path, "DittoFusion.conf");
-    public Path fixEVsPath = Paths.get(path, "FixEVs.conf");
-    public Path fixLevelPath = Paths.get(path, "FixLevel.conf");
-    public Path forceHatchPath = Paths.get(path, "ForceHatch.conf");
-    public Path forceStatsPath = Paths.get(path, "ForceStats.conf");
-    public Path puInfoPath = Paths.get(path, "PixelUpgradeInfo.conf");
-    public Path resetCountPath = Paths.get(path, "ResetCount.conf");
-    public Path resetEVsPath = Paths.get(path, "ResetEVs.conf");
-    public Path switchGenderPath = Paths.get(path, "SwitchGender.conf");
-    public Path showStatsPath = Paths.get(path, "ShowStats.conf");
-    public Path upgradeIVsPath = Paths.get(path, "UpgradeIVs.conf");
+    // Create the config paths.
+    public static Path primaryConfigPath = Paths.get(privatePath, "PixelUpgrade.conf");
+    public static Path checkEggPath = Paths.get(path, "CheckEgg.conf");
+    public static Path checkStatsPath = Paths.get(path, "CheckStats.conf");
+    public static Path checkTypesPath = Paths.get(path, "CheckTypes.conf");
+    public static Path dittoFusionPath = Paths.get(path, "DittoFusion.conf");
+    public static Path fixEVsPath = Paths.get(path, "FixEVs.conf");
+    public static Path fixLevelPath = Paths.get(path, "FixLevel.conf");
+    public static Path forceHatchPath = Paths.get(path, "ForceHatch.conf");
+    public static Path forceStatsPath = Paths.get(path, "ForceStats.conf");
+    public static Path puInfoPath = Paths.get(path, "PixelUpgradeInfo.conf");
+    public static Path resetCountPath = Paths.get(path, "ResetCount.conf");
+    public static Path resetEVsPath = Paths.get(path, "ResetEVs.conf");
+    public static Path switchGenderPath = Paths.get(path, "SwitchGender.conf");
+    public static Path showStatsPath = Paths.get(path, "ShowStats.conf");
+    public static Path upgradeIVsPath = Paths.get(path, "UpgradeIVs.conf");
 
     // Set up said paths.
-    public ConfigurationLoader<CommentedConfigurationNode> checkEggLoader = HoconConfigurationLoader.builder().setPath(checkEggPath).build();
-    public ConfigurationLoader<CommentedConfigurationNode> checkStatsLoader = HoconConfigurationLoader.builder().setPath(checkStatsPath).build();
-    public ConfigurationLoader<CommentedConfigurationNode> checkTypesLoader = HoconConfigurationLoader.builder().setPath(checkTypesPath).build();
-    public ConfigurationLoader<CommentedConfigurationNode> dittoFusionLoader = HoconConfigurationLoader.builder().setPath(dittoFusionPath).build();
-    public ConfigurationLoader<CommentedConfigurationNode> fixEVsLoader = HoconConfigurationLoader.builder().setPath(fixEVsPath).build();
-    public ConfigurationLoader<CommentedConfigurationNode> fixLevelLoader = HoconConfigurationLoader.builder().setPath(fixLevelPath).build();
-    public ConfigurationLoader<CommentedConfigurationNode> forceHatchLoader = HoconConfigurationLoader.builder().setPath(forceHatchPath).build();
-    public ConfigurationLoader<CommentedConfigurationNode> forceStatsLoader = HoconConfigurationLoader.builder().setPath(forceStatsPath).build();
-    public ConfigurationLoader<CommentedConfigurationNode> puInfoLoader = HoconConfigurationLoader.builder().setPath(puInfoPath).build();
-    public ConfigurationLoader<CommentedConfigurationNode> resetCountLoader = HoconConfigurationLoader.builder().setPath(resetCountPath).build();
-    public ConfigurationLoader<CommentedConfigurationNode> resetEVsLoader = HoconConfigurationLoader.builder().setPath(resetEVsPath).build();
-    public ConfigurationLoader<CommentedConfigurationNode> switchGenderLoader = HoconConfigurationLoader.builder().setPath(switchGenderPath).build();
-    public ConfigurationLoader<CommentedConfigurationNode> showStatsLoader = HoconConfigurationLoader.builder().setPath(showStatsPath).build();
-    public ConfigurationLoader<CommentedConfigurationNode> upgradeIVsLoader = HoconConfigurationLoader.builder().setPath(upgradeIVsPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> primaryConfigLoader =
+            HoconConfigurationLoader.builder().setPath(primaryConfigPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> checkEggLoader =
+            HoconConfigurationLoader.builder().setPath(checkEggPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> checkStatsLoader =
+            HoconConfigurationLoader.builder().setPath(checkStatsPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> checkTypesLoader =
+            HoconConfigurationLoader.builder().setPath(checkTypesPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> dittoFusionLoader =
+            HoconConfigurationLoader.builder().setPath(dittoFusionPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> fixEVsLoader =
+            HoconConfigurationLoader.builder().setPath(fixEVsPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> fixLevelLoader =
+            HoconConfigurationLoader.builder().setPath(fixLevelPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> forceHatchLoader =
+            HoconConfigurationLoader.builder().setPath(forceHatchPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> forceStatsLoader =
+            HoconConfigurationLoader.builder().setPath(forceStatsPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> puInfoLoader =
+            HoconConfigurationLoader.builder().setPath(puInfoPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> resetCountLoader =
+            HoconConfigurationLoader.builder().setPath(resetCountPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> resetEVsLoader =
+            HoconConfigurationLoader.builder().setPath(resetEVsPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> switchGenderLoader =
+            HoconConfigurationLoader.builder().setPath(switchGenderPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> showStatsLoader =
+            HoconConfigurationLoader.builder().setPath(showStatsPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> upgradeIVsLoader =
+            HoconConfigurationLoader.builder().setPath(upgradeIVsPath).build();
 
     @Listener // Needed for economy support.
     public void onChangeServiceProvider(ChangeServiceProviderEvent event)
@@ -145,7 +159,7 @@ public class PixelUpgrade
 
     @Listener // Needed for the reload command.
     public void shareInstance(GameConstructionEvent event)
-    {   instance = this;    }
+    { instance = this; }
 
     /*                       *\
          Utility commands.
@@ -293,24 +307,37 @@ public class PixelUpgrade
         // We start printing stuff, here. If any warnings/errors pop up they'll be shown here.
         pLog.info("===========================================================================");
         pLog.info("--> §aLoading global settings and §2/pixelupgrade§a command listing...");
-        PixelUpgradeMainConfig.getInstance().setupConfig(primaryConfigPath, primaryConfigLoader);
+        ConfigOperations.getInstance().setupConfig("PixelUpgrade", "dicks", primaryConfigPath, privatePath, primaryConfigLoader);
         String puInfoAlias = PixelUpgradeInfoConfig.getInstance().setupConfig(puInfoPath, path, puInfoLoader);
-        pLog.info("--> §aLoading command-specific configs...");
 
         // Register other aliases and get some configs. Similar to the above, any errors/warnings will be printed.
-        String checkEggAlias = CheckEggConfig.getInstance().setupConfig(checkEggPath, path, checkEggLoader);
-        String checkStatsAlias = CheckStatsConfig.getInstance().setupConfig(checkStatsPath, path, checkStatsLoader);
-        String checkTypesAlias = CheckTypesConfig.getInstance().setupConfig(checkTypesPath, path, checkTypesLoader);
-        String dittoFusionAlias = DittoFusionConfig.getInstance().setupConfig(dittoFusionPath, path, dittoFusionLoader);
-        String fixEVsAlias = FixEVsConfig.getInstance().setupConfig(fixEVsPath, path, fixEVsLoader);
-        String fixLevelAlias = FixLevelConfig.getInstance().setupConfig(fixLevelPath, path, fixLevelLoader);
-        String forceHatchAlias = ForceHatchConfig.getInstance().setupConfig(forceHatchPath, path, forceHatchLoader);
-        String forceStatsAlias = ForceStatsConfig.getInstance().setupConfig(forceStatsPath, path, forceStatsLoader);
-        String resetCountAlias = ResetCountConfig.getInstance().setupConfig(resetCountPath, path, resetCountLoader);
-        String resetEVsAlias = ResetEVsConfig.getInstance().setupConfig(resetEVsPath, path, resetEVsLoader);
-        String switchGenderAlias = SwitchGenderConfig.getInstance().setupConfig(switchGenderPath, path, switchGenderLoader);
-        String showStatsAlias = ShowStatsConfig.getInstance().setupConfig(showStatsPath, path, showStatsLoader);
-        String upgradeIVsAlias = UpgradeIVsConfig.getInstance().setupConfig(upgradeIVsPath, path, upgradeIVsLoader);
+        pLog.info("--> §aLoading command-specific configs...");
+        String checkEggAlias = ConfigOperations.getInstance().setupConfig(
+                "CheckEgg", "egg", checkEggPath, path, checkEggLoader);
+        String checkStatsAlias = ConfigOperations.getInstance().setupConfig(
+                "CheckStats", "cs", checkStatsPath, path, checkStatsLoader);
+        String checkTypesAlias = ConfigOperations.getInstance().setupConfig(
+                "CheckTypes", "type", checkTypesPath, path, checkTypesLoader);
+        String dittoFusionAlias = ConfigOperations.getInstance().setupConfig(
+                "DittoFusion", "fuse", dittoFusionPath, path, dittoFusionLoader);
+        String fixEVsAlias = ConfigOperations.getInstance().setupConfig(
+                "FixEVs", "fixevs", fixEVsPath, path, fixEVsLoader);
+        String fixLevelAlias = ConfigOperations.getInstance().setupConfig(
+                "FixLevel", "fixlevel", fixLevelPath, path, fixLevelLoader);
+        String forceHatchAlias = ConfigOperations.getInstance().setupConfig(
+                "ForceHatch", "fhatch", forceHatchPath, path, forceHatchLoader);
+        String forceStatsAlias = ConfigOperations.getInstance().setupConfig(
+                "ForceStats", "fstats", forceStatsPath, path, forceStatsLoader);
+        String resetCountAlias = ConfigOperations.getInstance().setupConfig(
+                "ResetCount", "delcount", resetCountPath, path, resetCountLoader);
+        String resetEVsAlias = ConfigOperations.getInstance().setupConfig(
+                "ResetEVs", "delevs", resetEVsPath, path, resetEVsLoader);
+        String showStatsAlias = ConfigOperations.getInstance().setupConfig(
+                "ShowStats", "show", showStatsPath, path, showStatsLoader);
+        String switchGenderAlias = ConfigOperations.getInstance().setupConfig(
+                "SwitchGender", "bend", switchGenderPath, path, switchGenderLoader);
+        String upgradeIVsAlias = ConfigOperations.getInstance().setupConfig(
+                "UpgradeIVs", "upgrade", upgradeIVsPath, path, upgradeIVsLoader);
 
         // Read the debug logging level and apply it. All commands will refer to this.
         if (!PixelUpgradeMainConfig.getInstance().getConfig().getNode("debugVerbosityMode").isVirtual())

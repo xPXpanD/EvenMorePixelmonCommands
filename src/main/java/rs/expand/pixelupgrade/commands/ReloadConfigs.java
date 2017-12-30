@@ -17,7 +17,10 @@ import org.spongepowered.api.text.Text;
 
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.configs.*;
+import rs.expand.pixelupgrade.utilities.ConfigOperations;
 
+import static rs.expand.pixelupgrade.PixelUpgrade.checkEggLoader;
+import static rs.expand.pixelupgrade.PixelUpgrade.checkEggPath;
 import static rs.expand.pixelupgrade.PixelUpgrade.getInstance;
 
 public class ReloadConfigs implements CommandExecutor
@@ -56,8 +59,8 @@ public class ReloadConfigs implements CommandExecutor
                 pLog.info("--> §aReloading command-specific configs...");
 
                 // Grab other aliases and get some configs. Similar to the above, any errors/warnings will be printed.
-                String checkEggAlias = CheckEggConfig.getInstance().setupConfig(getInstance().checkEggPath,
-                        path, getInstance().checkEggLoader);
+                String checkEggAlias = ConfigOperations.getInstance().setupConfig("CheckEgg",
+                                "egg", checkEggPath, path, checkEggLoader);
                 String checkStatsAlias = CheckStatsConfig.getInstance().setupConfig(getInstance().checkStatsPath,
                         path, getInstance().checkStatsLoader);
                 String checkTypesAlias = CheckTypesConfig.getInstance().setupConfig(getInstance().checkTypesPath,
@@ -217,8 +220,8 @@ public class ReloadConfigs implements CommandExecutor
 
                     // Commands.
                     case "CHECKEGG":
-                        commandAlias = CheckEggConfig.getInstance().setupConfig(getInstance().checkEggPath, 
-                                path, getInstance().checkEggLoader);
+                        commandAlias = ConfigOperations.getInstance().setupConfig("CheckEgg",
+                                "egg", checkEggPath, path, checkEggLoader);
                         pLog.info("§aReloaded config for command §2/checkegg§a, alias §2/" + commandAlias + "§a.");
                         break;
                     case "CHECKSTATS":
