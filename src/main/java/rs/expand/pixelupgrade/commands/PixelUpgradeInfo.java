@@ -83,9 +83,9 @@ public class PixelUpgradeInfo implements CommandExecutor
 
                 if (Files.exists(Paths.get(path + "CheckEgg.conf")))
                 {
-                    if (commandCost != null && ConfigOperations.getConfigValue("CheckEgg", "commandAlias") != null)
+                    if (commandCost != null && ConfigOperations.getInstance().updateConfigs("CheckEgg", "commandAlias", false) != null)
                     {
-                        String alias = ConfigOperations.getConfigValue("CheckEgg", "commandAlias");
+                        String alias = ConfigOperations.getInstance().updateConfigs("CheckEgg", "commandAlias", false);
                         printDebug("§2/checkegg §apermission found, adding helper to list.");
 
                         if (commandCost > 0)
@@ -406,8 +406,8 @@ public class PixelUpgradeInfo implements CommandExecutor
         switch (config)
         {
             case "CheckEgg":
-                if (ConfigOperations.getConfigValue("CheckEgg", "commandCost").matches("\\d+"))
-                    return Integer.parseInt(ConfigOperations.getConfigValue("CheckEgg", "commandCost"));
+                if (ConfigOperations.getInstance().updateConfigs("CheckEgg", "commandCost", false).matches("\\d+"))
+                    return Integer.parseInt(ConfigOperations.getInstance().updateConfigs("CheckEgg", "commandCost", false));
                 else
                     return null;
             case "CheckStats":

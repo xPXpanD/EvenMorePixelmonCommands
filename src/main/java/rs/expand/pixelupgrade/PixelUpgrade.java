@@ -16,9 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
-import org.spongepowered.api.event.game.state.GameConstructionEvent;
-import org.spongepowered.api.event.game.state.GameInitializationEvent;
-import org.spongepowered.api.event.game.state.GameStartedServerEvent;
+import org.spongepowered.api.event.game.state.*;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.service.ChangeServiceProviderEvent;
 import org.spongepowered.api.plugin.Dependency;
@@ -79,6 +77,11 @@ public class PixelUpgrade
     public static final Logger log = LoggerFactory.getLogger(name);
     public static EconomyService economyService;
 
+    // Create an instance that other classes can access.
+    private static PixelUpgrade instance = new PixelUpgrade();
+    public static PixelUpgrade getInstance()
+    { return instance; }
+
     // This is all magic to me, right now. One day I'll learn what this means! Thanks, Google.
     @Inject
     private PluginContainer pluginContainer;
@@ -95,11 +98,6 @@ public class PixelUpgrade
 
     // Set up the debug logger variable. If we can read the debug level from the configs, we'll overwrite this later.
     public static Integer debugLevel = 3;
-
-    // Create an instance that other classes can access.
-    private static PixelUpgrade instance;
-    public static PixelUpgrade getInstance()
-    { return instance; }
 
     // Load up a ton of variables for use by other commands. We'll fill these in during Forge pre-init.
     public String shortenedHP;
@@ -165,9 +163,9 @@ public class PixelUpgrade
             economyService = (EconomyService) event.getNewProviderRegistration().getProvider();
     }
 
-    @Listener // Needed for the reload command.
-    public void shareInstance(GameConstructionEvent event)
-    { instance = this; }
+    //@Listener // Needed for the reload command.
+    //public void shareInstance(GameConstructionEvent event)
+    //{ instance = this; }
 
     /*                       *\
          Utility commands.
@@ -190,7 +188,7 @@ public class PixelUpgrade
     \*                    */
     private CommandSpec checkegg = CommandSpec.builder()
             .permission("pixelupgrade.command.checkegg")
-            .executor(new CheckEgg(this))
+            .executor(new CheckEgg())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("target or slot"))),
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
@@ -301,7 +299,7 @@ public class PixelUpgrade
             .build();
 
     @Listener
-    public void onPreInitializationEvent(GameInitializationEvent event)
+    public void onPreInitializationEvent(GamePreInitializationEvent event)
     {
         // Create a config directory if it doesn't exist. Silently catch an error if it does. I/O is awkward.
         try
@@ -349,10 +347,9 @@ public class PixelUpgrade
                 "UpgradeIVs", "upgrade", upgradeIVsPath, path, upgradeIVsLoader);
 
         // Read the debug logging level and apply it. All commands will refer to this.
-        if (ConfigOperations.getConfigValue("PixelUpgrade", "debugVerbosityMode") != null)
+        String modeString = ConfigOperations.getInstance().updateConfigs("PixelUpgrade", "debugVerbosityMode", false);
+        if (modeString != null)
         {
-            String modeString = ConfigOperations.getConfigValue("PixelUpgrade", "debugVerbosityMode");
-
             if (modeString.matches("^[0-3]"))
                 debugLevel = Integer.parseInt(modeString);
             else
@@ -362,12 +359,12 @@ public class PixelUpgrade
             PixelUpgrade.log.info("§4PixelUpgrade // critical: §cConfig variable \"debugVerbosityMode\" could not be read!");
 
         // Initialize the variables that we want other commands to have access to.
-        shortenedHP = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedHealth");
-        shortenedAttack = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedAttack");
-        shortenedDefense = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedDefense");
-        shortenedSpAtt = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedSpecialAttack");
-        shortenedSpDef = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedSpecialDefense");
-        shortenedSpeed = ConfigOperations.getConfigValue("PixelUpgrade", "shortenedSpeed");
+        shortenedHP = ConfigOperations.getInstance().updateConfigs("PixelUpgrade", "shortenedHealth", false);
+        shortenedAttack = ConfigOperations.getInstance().updateConfigs("PixelUpgrade", "shortenedAttack", false);
+        shortenedDefense = ConfigOperations.getInstance().updateConfigs("PixelUpgrade", "shortenedDefense", false);
+        shortenedSpAtt = ConfigOperations.getInstance().updateConfigs("PixelUpgrade", "shortenedSpecialAttack", false);
+        shortenedSpDef = ConfigOperations.getInstance().updateConfigs("PixelUpgrade", "shortenedSpecialDefense", false);
+        shortenedSpeed = ConfigOperations.getInstance().updateConfigs("PixelUpgrade", "shortenedSpeed", false);
 
         // Do some initial setup for our formatted messages later on. We'll show three commands per line.
         ArrayList<String> commandList = new ArrayList<>();
@@ -531,9 +528,13 @@ public class PixelUpgrade
         Sponge.getCommandManager().register(this, switchgender, "switchgender", switchGenderAlias);
         Sponge.getCommandManager().register(this, showstats, "showstats", showStatsAlias);
         Sponge.getCommandManager().register(this, upgradeivs, "upgradeivs", "upgradeiv", upgradeIVsAlias);
+
+        CheckEgg.alias = ConfigOperations.getInstance().updateConfigs("CheckEgg", "commandAlias", false);
+        PixelUpgrade.log.info("§4PixelUpgrade // DEBUG: §cEnd of pre-init event. Alias: " + CheckEgg.alias);
+        PixelUpgrade.log.info("§4PixelUpgrade // DEBUG: §cNode contents: " + ConfigOperations.getInstance().updateConfigs("CheckEgg", "commandAlias", false));
     }
 
     @Listener
     public void onServerStart(GameStartedServerEvent event)
-    {   log.info("§bAll systems nominal.");   }
+    { log.info("§bAll systems nominal."); }
 }

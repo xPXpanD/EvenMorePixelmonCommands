@@ -40,19 +40,31 @@ import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
 public class CheckEgg implements CommandExecutor
 {
-    // Not sure how this works yet, but nicked it from TotalEconomy.
-    // Will try to figure this out later, just glad to have this working for now.
-    private PixelUpgrade pixelUpgrade;
-    public CheckEgg(PixelUpgrade pixelUpgrade)
-        { this.pixelUpgrade = pixelUpgrade; }
+    // Allow other classes to modify variables in this class. Thanks, TotalEconomy!
+    // private PixelUpgrade pixelUpgrade;
+    // public CheckEgg(PixelUpgrade pixelUpgrade)
+    //    { this.pixelUpgrade = pixelUpgrade; }
 
-    // Load some variables into memory. We'll be using these throughout the command logic.
-    private static String alias = ConfigOperations.getConfigValue("CheckEgg", "commandAlias", false);
-    private Boolean showName = BooleanUtils.toBooleanObject(ConfigOperations.getConfigValue("CheckEgg", "showName", false));
-    private Boolean explicitReveal = BooleanUtils.toBooleanObject(ConfigOperations.getConfigValue("CheckEgg", "explicitReveal", false));
-    private Integer babyHintPercentage = Integer.parseInt(ConfigOperations.getConfigValue("CheckEgg", "babyHintPercentage", true));
-    private Integer commandCost = Integer.parseInt(ConfigOperations.getConfigValue("CheckEgg", "commandCost", true));
-    private Boolean recheckIsFree = BooleanUtils.toBooleanObject(ConfigOperations.getConfigValue("CheckEgg", "recheckIsFree", false));
+    private static Integer interpretInteger(String input)
+    {
+        if (input != null)
+            return Integer.parseInt(input);
+        else
+            return null;
+    }
+
+    // Make an instance available for other classes. Mostly used for config reloads.
+    private static CheckEgg instance = new CheckEgg();
+    public static CheckEgg getInstance()
+        { return instance; }
+
+    // Initialize some variables. We'll load stuff into these when we call the config loader.
+    public static String alias;
+    public static Boolean showName;
+    public static Boolean explicitReveal;
+    public static Integer babyHintPercentage;
+    public static Integer commandCost;
+    public static Boolean recheckIsFree;
 
     // Intialize several variables that we'll be filling in with data from the main config.
     private String shortenedHP, shortenedAttack, shortenedDefense, shortenedSpAtt, shortenedSpDef, shortenedSpeed;
@@ -76,6 +88,20 @@ public class CheckEgg implements CommandExecutor
                 presenceCheck = false;
             if (!ObjectUtils.allNotNull(shortenedHP, shortenedAttack, shortenedDefense, shortenedSpAtt, shortenedSpDef, shortenedSpeed))
                 mainConfigCheck = false;
+
+            if (babyHintPercentage == null)
+                src.sendMessage(Text.of("Baby is null!"));
+            else
+                src.sendMessage(Text.of("Baby is: " + babyHintPercentage));
+            if (commandCost == null)
+                src.sendMessage(Text.of("Cost is null!"));
+            else
+                src.sendMessage(Text.of("Cost is: " + commandCost));
+            if (alias == null)
+                src.sendMessage(Text.of("Alias is null!"));
+            else
+                src.sendMessage(Text.of("Alias is: " + alias));
+
 
             if (!presenceCheck || alias == null)
             {
@@ -277,7 +303,8 @@ public class CheckEgg implements CommandExecutor
                                     if (optionalAccount.isPresent())
                                     {
                                         UniqueAccount uniqueAccount = optionalAccount.get();
-                                        TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(), costToConfirm, Cause.of(EventContext.empty(), pixelUpgrade.getPluginContainer()));
+                                        TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
+                                                costToConfirm, Cause.of(EventContext.empty(), PixelUpgrade.getInstance().getPluginContainer()));
 
                                         if (transactionResult.getResult() == ResultType.SUCCESS)
                                         {

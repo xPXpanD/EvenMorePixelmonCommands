@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rs.expand.pixelupgrade.PixelUpgrade;
+import rs.expand.pixelupgrade.commands.CheckEgg;
 
 public class ConfigOperations
 {
@@ -106,19 +107,24 @@ public class ConfigOperations
     }
 
     // Grabs a node from the config, does some basic sanity checks and returns the value inside.
-    @SuppressWarnings({"ConstantConditions", "UnusedAssignment"})
-    public static String getConfigValue(String callSource, String node, boolean makeInteger)
+    @SuppressWarnings({"ConstantConditions"})
+    public String updateConfigs(String callSource, String node, boolean makeInteger)
     {
         PixelUpgrade.log.info("§4PixelUpgrade // DEBUG: §cReading: §4" + callSource);
 
         CommentedConfigurationNode commandConfig = null;
         String returnString = null;
+        boolean firedException = false;
 
         try
         {
             switch (callSource) // TODO: Added a new command? Update the switch list! Default should NEVER be called!
             {
-                case "CheckEgg": commandConfig = PixelUpgrade.checkEggLoader.load(); break;
+                case "CheckEgg":
+                {
+                    commandConfig = PixelUpgrade.checkEggLoader.load();
+                    break;
+                }
                 case "CheckStats": commandConfig = PixelUpgrade.checkStatsLoader.load(); break;
                 case "CheckTypes": commandConfig = PixelUpgrade.checkTypesLoader.load(); break;
                 case "DittoFusion": commandConfig = PixelUpgrade.dittoFusionLoader.load(); break;
@@ -141,18 +147,23 @@ public class ConfigOperations
             }
 
             returnString = commandConfig.getNode(node).getString();
+            pLog.info("§4returnString: " + returnString);
         }
-        catch (IOException F)
-        { pLog.info("§4" + callSource + " // error: §cConfig variable \"" + node + "\" could not be found!"); }
+        catch (Exception F)
+        {
+            pLog.info("§4" + callSource + " // error: §cConfig variable \"" + node + "\" could not be found!");
+            firedException = true;
+        }
 
         // Did the source request an Integer?
         // Null the node's contents if they are not numeric, so we can catch it with our error handler.
-        if (makeInteger && !node.matches("^-?\\d+$"))
+        if (!firedException && makeInteger && !returnString.matches("^-?\\d+$"))
         {
             pLog.info("§4" + callSource + " // error: §cConfig variable \"" + node + "\" is not a valid number!");
             returnString = null;
         }
 
+        PixelUpgrade.log.info("§4PixelUpgrade // DEBUG: §cReturning: §4" + returnString);
         return returnString;
     }
 

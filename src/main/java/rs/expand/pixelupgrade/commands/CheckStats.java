@@ -575,8 +575,8 @@ public class CheckStats implements CommandExecutor
 
     private String getCheckEggAlias()
     {
-        if (ConfigOperations.getConfigValue("CheckEgg", "commandAlias") != null)
-            return ConfigOperations.getConfigValue("CheckEgg", "commandAlias");
+        if (ConfigOperations.getInstance().updateConfigs("CheckEgg", "commandAlias", false) != null)
+            return ConfigOperations.getInstance().updateConfigs("CheckEgg", "commandAlias", false);
         else
         {
             PixelUpgrade.log.info("§4CheckStats // critical: §cCan't read remote config variable \"commandAlias\" for /checkegg!");

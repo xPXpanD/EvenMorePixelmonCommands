@@ -5,6 +5,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,13 +23,20 @@ import rs.expand.pixelupgrade.utilities.ConfigOperations;
 
 import static rs.expand.pixelupgrade.PixelUpgrade.checkEggLoader;
 import static rs.expand.pixelupgrade.PixelUpgrade.checkEggPath;
-import static rs.expand.pixelupgrade.PixelUpgrade.getInstance;
 
 public class ReloadConfigs implements CommandExecutor
 {
     // Set up a nice compact private logger specifically for showing command reloads.
     private static final String pName = "PU";
     private static final Logger pLog = LoggerFactory.getLogger(pName);
+
+    private static Integer interpretInteger(String input)
+    {
+        if (input != null)
+            return Integer.parseInt(input);
+        else
+            return null;
+    }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -36,7 +45,7 @@ public class ReloadConfigs implements CommandExecutor
 
         if (args.<String>getOne("config").isPresent())
         {
-            String configString = args.<String>getOne("config").get(), path = getInstance().path;
+            String configString = args.<String>getOne("config").get(), path = PixelUpgrade.path;
             String cappedConfigString = configString.toUpperCase(), commandAlias = null, commandString = null;
 
             // Create a config directory if it doesn't exist. Silently catch an error if it does. I/O is awkward.
@@ -54,37 +63,37 @@ public class ReloadConfigs implements CommandExecutor
                 // We start printing stuff, here. If any warnings/errors pop up they'll be shown here.
                 pLog.info("===========================================================================");
                 pLog.info("--> §aReloading global settings and §2/pixelupgrade§a command listing...");
-                PixelUpgradeMainConfig.getInstance().setupConfig(getInstance().primaryConfigPath, getInstance().primaryConfigLoader);
-                String puInfoAlias = PixelUpgradeInfoConfig.getInstance().setupConfig(getInstance().puInfoPath, path, getInstance().puInfoLoader);
+                PixelUpgradeMainConfig.getInstance().setupConfig(PixelUpgrade.primaryConfigPath, PixelUpgrade.primaryConfigLoader);
+                String puInfoAlias = PixelUpgradeInfoConfig.getInstance().setupConfig(PixelUpgrade.puInfoPath, path, PixelUpgrade.puInfoLoader);
                 pLog.info("--> §aReloading command-specific configs...");
 
                 // Grab other aliases and get some configs. Similar to the above, any errors/warnings will be printed.
                 String checkEggAlias = ConfigOperations.getInstance().setupConfig("CheckEgg",
                                 "egg", checkEggPath, path, checkEggLoader);
-                String checkStatsAlias = CheckStatsConfig.getInstance().setupConfig(getInstance().checkStatsPath,
-                        path, getInstance().checkStatsLoader);
-                String checkTypesAlias = CheckTypesConfig.getInstance().setupConfig(getInstance().checkTypesPath,
-                        path, getInstance().checkTypesLoader);
-                String dittoFusionAlias = DittoFusionConfig.getInstance().setupConfig(getInstance().dittoFusionPath,
-                        path, getInstance().dittoFusionLoader);
-                String fixEVsAlias = FixEVsConfig.getInstance().setupConfig(getInstance().fixEVsPath,
-                        path, getInstance().fixEVsLoader);
-                String fixLevelAlias = FixLevelConfig.getInstance().setupConfig(getInstance().fixLevelPath,
-                        path, getInstance().fixLevelLoader);
-                String forceHatchAlias = ForceHatchConfig.getInstance().setupConfig(getInstance().forceHatchPath,
-                        path, getInstance().forceHatchLoader);
-                String forceStatsAlias = ForceStatsConfig.getInstance().setupConfig(getInstance().forceStatsPath,
-                        path, getInstance().forceStatsLoader);
-                String resetCountAlias = ResetCountConfig.getInstance().setupConfig(getInstance().resetCountPath,
-                        path, getInstance().resetCountLoader);
-                String resetEVsAlias = ResetEVsConfig.getInstance().setupConfig(getInstance().resetEVsPath,
-                        path, getInstance().resetEVsLoader);
-                String switchGenderAlias = SwitchGenderConfig.getInstance().setupConfig(getInstance().switchGenderPath,
-                        path, getInstance().switchGenderLoader);
-                String showStatsAlias = ShowStatsConfig.getInstance().setupConfig(getInstance().showStatsPath,
-                        path, getInstance().showStatsLoader);
-                String upgradeIVsAlias = UpgradeIVsConfig.getInstance().setupConfig(getInstance().upgradeIVsPath,
-                        path, getInstance().upgradeIVsLoader);
+                String checkStatsAlias = CheckStatsConfig.getInstance().setupConfig(PixelUpgrade.checkStatsPath,
+                        path, PixelUpgrade.checkStatsLoader);
+                String checkTypesAlias = CheckTypesConfig.getInstance().setupConfig(PixelUpgrade.checkTypesPath,
+                        path, PixelUpgrade.checkTypesLoader);
+                String dittoFusionAlias = DittoFusionConfig.getInstance().setupConfig(PixelUpgrade.dittoFusionPath,
+                        path, PixelUpgrade.dittoFusionLoader);
+                String fixEVsAlias = FixEVsConfig.getInstance().setupConfig(PixelUpgrade.fixEVsPath,
+                        path, PixelUpgrade.fixEVsLoader);
+                String fixLevelAlias = FixLevelConfig.getInstance().setupConfig(PixelUpgrade.fixLevelPath,
+                        path, PixelUpgrade.fixLevelLoader);
+                String forceHatchAlias = ForceHatchConfig.getInstance().setupConfig(PixelUpgrade.forceHatchPath,
+                        path, PixelUpgrade.forceHatchLoader);
+                String forceStatsAlias = ForceStatsConfig.getInstance().setupConfig(PixelUpgrade.forceStatsPath,
+                        path, PixelUpgrade.forceStatsLoader);
+                String resetCountAlias = ResetCountConfig.getInstance().setupConfig(PixelUpgrade.resetCountPath,
+                        path, PixelUpgrade.resetCountLoader);
+                String resetEVsAlias = ResetEVsConfig.getInstance().setupConfig(PixelUpgrade.resetEVsPath,
+                        path, PixelUpgrade.resetEVsLoader);
+                String switchGenderAlias = SwitchGenderConfig.getInstance().setupConfig(PixelUpgrade.switchGenderPath,
+                        path, PixelUpgrade.switchGenderLoader);
+                String showStatsAlias = ShowStatsConfig.getInstance().setupConfig(PixelUpgrade.showStatsPath,
+                        path, PixelUpgrade.showStatsLoader);
+                String upgradeIVsAlias = UpgradeIVsConfig.getInstance().setupConfig(PixelUpgrade.upgradeIVsPath,
+                        path, PixelUpgrade.upgradeIVsLoader);
 
                 // Do some initial setup for our formatted messages later on. We'll show three commands per line.
                 ArrayList<String> commandList = new ArrayList<>();
@@ -208,80 +217,90 @@ public class ReloadConfigs implements CommandExecutor
                 {
                     // Special.
                     case "MAINCONFIG": case "MAIN":
-                        PixelUpgradeMainConfig.getInstance().setupConfig(getInstance().primaryConfigPath,
-                                getInstance().primaryConfigLoader);
+                        PixelUpgradeMainConfig.getInstance().setupConfig(PixelUpgrade.primaryConfigPath,
+                                PixelUpgrade.primaryConfigLoader);
                         pLog.info("§aReloaded global config.");
                         break;
                     case "PIXELUPGRADEINFO": case "INFO":
-                        commandAlias = PixelUpgradeInfoConfig.getInstance().setupConfig(getInstance().puInfoPath,
-                                path, getInstance().puInfoLoader);
+                        commandAlias = PixelUpgradeInfoConfig.getInstance().setupConfig(PixelUpgrade.puInfoPath,
+                                path, PixelUpgrade.puInfoLoader);
                         pLog.info("§aReloaded config for the §2command listing §a(§2/pixelupgrade§a), alias §2/" + commandAlias + "§a.");
                         break;
 
                     // Commands.
                     case "CHECKEGG":
+                    {
                         commandAlias = ConfigOperations.getInstance().setupConfig("CheckEgg",
                                 "egg", checkEggPath, path, checkEggLoader);
+
+                        CheckEgg.alias = ConfigOperations.getInstance().updateConfigs("CheckEgg", "commandAlias", false);
+                        CheckEgg.showName = BooleanUtils.toBooleanObject(ConfigOperations.getInstance().updateConfigs("CheckEgg", "showName", false));
+                        CheckEgg.explicitReveal = BooleanUtils.toBooleanObject(ConfigOperations.getInstance().updateConfigs("CheckEgg", "explicitReveal", false));
+                        CheckEgg.babyHintPercentage = interpretInteger(ConfigOperations.getInstance().updateConfigs("CheckEgg", "babyHintPercentage", true));
+                        CheckEgg.commandCost = interpretInteger(ConfigOperations.getInstance().updateConfigs("CheckEgg", "commandCost", true));
+                        CheckEgg.recheckIsFree = BooleanUtils.toBooleanObject(ConfigOperations.getInstance().updateConfigs("CheckEgg", "recheckIsFree", false));
+
                         pLog.info("§aReloaded config for command §2/checkegg§a, alias §2/" + commandAlias + "§a.");
                         break;
+                    }
                     case "CHECKSTATS":
-                        commandAlias = CheckStatsConfig.getInstance().setupConfig(getInstance().checkStatsPath, 
-                                path, getInstance().checkStatsLoader);
+                        commandAlias = CheckStatsConfig.getInstance().setupConfig(PixelUpgrade.checkStatsPath,
+                                path, PixelUpgrade.checkStatsLoader);
                         pLog.info("§aReloaded config for command §2/checkstats§a, alias §2/" + commandAlias + "§a.");
                         break;
                     case "CHECKTYPES":
-                        commandAlias = CheckTypesConfig.getInstance().setupConfig(getInstance().checkTypesPath, 
-                                path, getInstance().checkTypesLoader);
+                        commandAlias = CheckTypesConfig.getInstance().setupConfig(PixelUpgrade.checkTypesPath,
+                                path, PixelUpgrade.checkTypesLoader);
                         pLog.info("§aReloaded config for command §2/checktypes§a, alias §2/" + commandAlias + "§a.");
                         break;
                     case "DITTOFUSION":
-                        commandAlias = DittoFusionConfig.getInstance().setupConfig(getInstance().dittoFusionPath, 
-                                path, getInstance().dittoFusionLoader);
+                        commandAlias = DittoFusionConfig.getInstance().setupConfig(PixelUpgrade.dittoFusionPath,
+                                path, PixelUpgrade.dittoFusionLoader);
                         pLog.info("§aReloaded config for command §2/dittofusion§a, alias §2/" + commandAlias + "§a.");
                         break;
                     case "FIXEVS":
-                        commandAlias = FixEVsConfig.getInstance().setupConfig(getInstance().fixEVsPath, 
-                                path, getInstance().fixEVsLoader);
+                        commandAlias = FixEVsConfig.getInstance().setupConfig(PixelUpgrade.fixEVsPath,
+                                path, PixelUpgrade.fixEVsLoader);
                         pLog.info("§aReloaded config for command §2/fixevs§a, alias §2/" + commandAlias + "§a.");
                         break;
                     case "FIXLEVEL":
-                        commandAlias = FixLevelConfig.getInstance().setupConfig(getInstance().fixLevelPath, 
-                                path, getInstance().fixLevelLoader);
+                        commandAlias = FixLevelConfig.getInstance().setupConfig(PixelUpgrade.fixLevelPath,
+                                path, PixelUpgrade.fixLevelLoader);
                         pLog.info("§aReloaded config for command §2/fixlevel§a, alias §2/" + commandAlias + "§a.");
                         break;
                     case "FORCEHATCH":
-                        commandAlias = ForceHatchConfig.getInstance().setupConfig(getInstance().forceHatchPath,
-                                path, getInstance().forceHatchLoader);
+                        commandAlias = ForceHatchConfig.getInstance().setupConfig(PixelUpgrade.forceHatchPath,
+                                path, PixelUpgrade.forceHatchLoader);
                         pLog.info("§aReloaded config for command §2/forcehatch§a, alias §2/" + commandAlias + "§a.");
                         break;
                     case "FORCESTATS":
-                        commandAlias = ForceStatsConfig.getInstance().setupConfig(getInstance().forceStatsPath,
-                                path, getInstance().forceStatsLoader);
+                        commandAlias = ForceStatsConfig.getInstance().setupConfig(PixelUpgrade.forceStatsPath,
+                                path, PixelUpgrade.forceStatsLoader);
                         pLog.info("§aReloaded config for command §2/forcestats§a, alias §2/" + commandAlias + "§a.");
                         break;
                     case "RESETCOUNT":
-                        commandAlias = ResetCountConfig.getInstance().setupConfig(getInstance().resetCountPath,
-                                path, getInstance().resetCountLoader);
+                        commandAlias = ResetCountConfig.getInstance().setupConfig(PixelUpgrade.resetCountPath,
+                                path, PixelUpgrade.resetCountLoader);
                         pLog.info("§aReloaded config for command §2/resetcount§a, alias §2/" + commandAlias + "§a.");
                         break;
                     case "RESETEVS":
-                        commandAlias = ResetEVsConfig.getInstance().setupConfig(getInstance().resetEVsPath, 
-                                path, getInstance().resetEVsLoader);
+                        commandAlias = ResetEVsConfig.getInstance().setupConfig(PixelUpgrade.resetEVsPath,
+                                path, PixelUpgrade.resetEVsLoader);
                         pLog.info("§aReloaded config for command §2/resetevs§a, alias §2/" + commandAlias + "§a.");
                         break;
                     case "SWITCHGENDER":
-                        commandAlias = SwitchGenderConfig.getInstance().setupConfig(getInstance().switchGenderPath, 
-                                path, getInstance().switchGenderLoader);
+                        commandAlias = SwitchGenderConfig.getInstance().setupConfig(PixelUpgrade.switchGenderPath,
+                                path, PixelUpgrade.switchGenderLoader);
                         pLog.info("§aReloaded config for command §2/switchgender§a, alias §2/" + commandAlias + "§a.");
                         break;
                     case "SHOWSTATS":
-                        commandAlias = ShowStatsConfig.getInstance().setupConfig(getInstance().showStatsPath, 
-                                path, getInstance().showStatsLoader);
+                        commandAlias = ShowStatsConfig.getInstance().setupConfig(PixelUpgrade.showStatsPath,
+                                path, PixelUpgrade.showStatsLoader);
                         pLog.info("§aReloaded config for command §2/showstats§a, alias §2/" + commandAlias + "§a.");
                         break;
                     case "UPGRADEIVS":
-                        commandAlias = UpgradeIVsConfig.getInstance().setupConfig(getInstance().upgradeIVsPath, 
-                                path, getInstance().upgradeIVsLoader);
+                        commandAlias = UpgradeIVsConfig.getInstance().setupConfig(PixelUpgrade.upgradeIVsPath,
+                                path, PixelUpgrade.upgradeIVsLoader);
                         pLog.info("§aReloaded config for command §2/upgradeivs§a, alias §2/" + commandAlias + "§a.");
                         break;
 
@@ -313,9 +332,9 @@ public class ReloadConfigs implements CommandExecutor
         else
         {
             // Read the debug logging level and apply it. All commands will refer to this.
-            if (!PixelUpgradeMainConfig.getInstance().getConfig().getNode("debugVerbosityMode").isVirtual())
+            if (ConfigOperations.getInstance().updateConfigs("PixelUpgrade", "debugVerbosityMode", false) != null)
             {
-                String modeString = PixelUpgradeMainConfig.getInstance().getConfig().getNode("debugVerbosityMode").getString();
+                String modeString = ConfigOperations.getInstance().updateConfigs("PixelUpgrade", "debugVerbosityMode", false);
 
                 if (modeString.matches("^[0-3]"))
                     PixelUpgrade.debugLevel = Integer.parseInt(modeString);
