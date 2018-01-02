@@ -16,7 +16,6 @@ import org.spongepowered.api.text.format.TextColors;
 
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.configs.*;
-import rs.expand.pixelupgrade.utilities.ConfigOperations;
 
 // Command format helper! Use this format if you want to add your own stuff.
 // [] = optional, {} = flag, <> = required, () = add comment here
@@ -83,9 +82,9 @@ public class PixelUpgradeInfo implements CommandExecutor
 
                 if (Files.exists(Paths.get(path + "CheckEgg.conf")))
                 {
-                    if (commandCost != null && ConfigOperations.getInstance().updateConfigs("CheckEgg", "commandAlias", false) != null)
+                    if (commandCost != null && CheckEgg.commandAlias != null)
                     {
-                        String alias = ConfigOperations.getInstance().updateConfigs("CheckEgg", "commandAlias", false);
+                        String alias = CheckEgg.commandAlias;
                         printDebug("§2/checkegg §apermission found, adding helper to list.");
 
                         if (commandCost > 0)
@@ -405,11 +404,6 @@ public class PixelUpgradeInfo implements CommandExecutor
     {
         switch (config)
         {
-            case "CheckEgg":
-                if (ConfigOperations.getInstance().updateConfigs("CheckEgg", "commandCost", false).matches("\\d+"))
-                    return Integer.parseInt(ConfigOperations.getInstance().updateConfigs("CheckEgg", "commandCost", false));
-                else
-                    return null;
             case "CheckStats":
                 if (!CheckStatsConfig.getInstance().getConfig().getNode("commandCost").isVirtual())
                     return CheckStatsConfig.getInstance().getConfig().getNode("commandCost").getInt();

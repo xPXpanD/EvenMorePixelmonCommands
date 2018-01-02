@@ -2,8 +2,9 @@
 Released ???
 
    * Fixed missing spaces in front of the pipes when showing EVs in /checkstats.
-   * Slimmed down the filesize by consolidating all 15 duplicated config classes into the ConfigOperations class.
-   * We now pre-load a lot of configuration stuff into memory, instead of checking every time a command is used.
+   * Reworked the internal config loader, reducing filesize and maybe increasing performance a bit.
+   * Removed the CONFIG VERSION comment from the command configs. Your configs will still work.
+   * Config variable errors are logged more precisely.
    * Fixed a few wrong mentions of the debug logger.
 
 3.0.0 for 6.0.0

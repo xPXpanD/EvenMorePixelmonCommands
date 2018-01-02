@@ -1,125 +1,105 @@
 package rs.expand.pixelupgrade.commands;
 
+// Remote imports.
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.regex.Pattern;
-
 import com.pixelmonmod.pixelmon.config.PixelmonEntityList;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
-
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.ObjectUtils;
-
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.text.Text;
 
+// Local imports.
 import rs.expand.pixelupgrade.PixelUpgrade;
+import rs.expand.pixelupgrade.utilities.CommonMethods;
 import rs.expand.pixelupgrade.utilities.GetPokemonInfo;
-import rs.expand.pixelupgrade.utilities.ConfigOperations;
-
-import static rs.expand.pixelupgrade.PixelUpgrade.debugLevel;
-import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
+import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
 public class CheckEgg implements CommandExecutor
 {
-    // Allow other classes to modify variables in this class. Thanks, TotalEconomy!
-    // private PixelUpgrade pixelUpgrade;
-    // public CheckEgg(PixelUpgrade pixelUpgrade)
-    //    { this.pixelUpgrade = pixelUpgrade; }
-
-    private static Integer interpretInteger(String input)
-    {
-        if (input != null)
-            return Integer.parseInt(input);
-        else
-            return null;
-    }
-
-    // Make an instance available for other classes. Mostly used for config reloads.
-    private static CheckEgg instance = new CheckEgg();
-    public static CheckEgg getInstance()
-        { return instance; }
-
     // Initialize some variables. We'll load stuff into these when we call the config loader.
-    public static String alias;
+    // Other config variables are loaded in from their respective class. Check the imports.
+    public static String commandAlias;
     public static Boolean showName;
     public static Boolean explicitReveal;
     public static Integer babyHintPercentage;
     public static Integer commandCost;
     public static Boolean recheckIsFree;
 
-    // Intialize several variables that we'll be filling in with data from the main config.
-    private String shortenedHP, shortenedAttack, shortenedDefense, shortenedSpAtt, shortenedSpDef, shortenedSpeed;
+    // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
+    private void printToLog (int debugNum, String inputString)
+    { CommonMethods.doPrint("CheckEgg", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
     {
         if (src instanceof Player)
         {
-            boolean presenceCheck = true, mainConfigCheck = true;
-
-            // Fill up the copycat variables. We'll do this here so changes to the main config are synced.
-            shortenedHP = PixelUpgrade.getInstance().shortenedHP;
-            shortenedAttack = PixelUpgrade.getInstance().shortenedAttack;
-            shortenedDefense = PixelUpgrade.getInstance().shortenedDefense;
-            shortenedSpAtt = PixelUpgrade.getInstance().shortenedSpAtt;
-            shortenedSpDef = PixelUpgrade.getInstance().shortenedSpDef;
-            shortenedSpeed = PixelUpgrade.getInstance().shortenedSpeed;
-
-            if (!ObjectUtils.allNotNull(recheckIsFree, showName, explicitReveal, commandCost, babyHintPercentage))
-                presenceCheck = false;
-            if (!ObjectUtils.allNotNull(shortenedHP, shortenedAttack, shortenedDefense, shortenedSpAtt, shortenedSpDef, shortenedSpeed))
-                mainConfigCheck = false;
-
+            // Validate the data we get from the command's main config.
+            ArrayList<String> nativeErrorArray = new ArrayList<>();
+            if (commandAlias == null)
+                nativeErrorArray.add("commandAlias");
+            if (showName == null)
+                nativeErrorArray.add("showName");
+            if (explicitReveal == null)
+                nativeErrorArray.add("explicitReveal");
             if (babyHintPercentage == null)
-                src.sendMessage(Text.of("Baby is null!"));
-            else
-                src.sendMessage(Text.of("Baby is: " + babyHintPercentage));
+                nativeErrorArray.add("babyHintPercentage");
             if (commandCost == null)
-                src.sendMessage(Text.of("Cost is null!"));
-            else
-                src.sendMessage(Text.of("Cost is: " + commandCost));
-            if (alias == null)
-                src.sendMessage(Text.of("Alias is null!"));
-            else
-                src.sendMessage(Text.of("Alias is: " + alias));
+                nativeErrorArray.add("commandCost");
+            if (recheckIsFree == null)
+                nativeErrorArray.add("recheckIsFree");
 
+            ArrayList<String> mainConfigErrorArray = new ArrayList<>();
+            if (shortenedHP == null)
+                mainConfigErrorArray.add("shortenedHP");
+            if (shortenedAttack == null)
+                mainConfigErrorArray.add("shortenedAttack");
+            if (shortenedDefense == null)
+                mainConfigErrorArray.add("shortenedDefense");
+            if (shortenedSpAtt == null)
+                mainConfigErrorArray.add("shortenedSpecialAttack");
+            if (shortenedSpDef == null)
+                mainConfigErrorArray.add("shortenedSpecialDefense");
+            if (shortenedSpeed == null)
+                mainConfigErrorArray.add("shortenedSpeed");
 
-            if (!presenceCheck || alias == null)
+            src.sendMessage(Text.of("commandAlias is: " + commandAlias));
+            src.sendMessage(Text.of("showName is: " + showName));
+            src.sendMessage(Text.of("explicitReveal is: " + explicitReveal));
+            src.sendMessage(Text.of("babyHintPercentage is: " + babyHintPercentage));
+            src.sendMessage(Text.of("commandCost is: " + commandCost));
+            src.sendMessage(Text.of("recheckIsFree is: " + recheckIsFree));
+
+            if (!nativeErrorArray.isEmpty())
             {
-                // Specific errors are already called earlier on -- this is tacked on to the end.
+                CommonMethods.printNodeError("CheckEgg", nativeErrorArray, false);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("§4CheckEgg // critical: §cCheck your config. If need be, wipe and §4/pureload§c.");
             }
-            else if (!mainConfigCheck)
+            else if (!mainConfigErrorArray.isEmpty())
             {
-                // Same as above.
+                CommonMethods.printNodeError("PixelUpgrade", nativeErrorArray, true);
                 src.sendMessage(Text.of("§4Error: §cCould not parse main config. Please report to staff."));
-                printToLog(0, "Please check (or wipe and /pureload) your PixelUpgrade.conf file.");
             }
             else
             {
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
-                alias = "/" + alias;
                 int slot = 0;
                 String targetString = null, slotString;
                 boolean targetAcquired = false, commandConfirmed = false, canContinue = false, hasOtherPerm = false;
@@ -304,7 +284,7 @@ public class CheckEgg implements CommandExecutor
                                     {
                                         UniqueAccount uniqueAccount = optionalAccount.get();
                                         TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
-                                                costToConfirm, Cause.of(EventContext.empty(), PixelUpgrade.getInstance().getPluginContainer()));
+                                                costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
 
                                         if (transactionResult.getResult() == ResultType.SUCCESS)
                                         {
@@ -335,12 +315,12 @@ public class CheckEgg implements CommandExecutor
                                     {
                                         slot = Integer.parseInt(args.<String>getOne("slot").get());
                                         src.sendMessage(Text.of("§6Warning: §eChecking this egg's status costs §6" + costToConfirm + "§e coins."));
-                                        src.sendMessage(Text.of("§2Ready? Type: §a" + alias + " " + targetString + " " + slot + " -c"));
+                                        src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + targetString + " " + slot + " -c"));
                                     }
                                     else
                                     {
                                         src.sendMessage(Text.of("§6Warning: §eChecking an egg's status costs §6" + costToConfirm + "§e coins."));
-                                        src.sendMessage(Text.of("§2Ready? Type: §a" + alias + " " + slot + " -c"));
+                                        src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
                                     }
                                 }
                             }
@@ -378,16 +358,16 @@ public class CheckEgg implements CommandExecutor
         if (cost != 0)
         {
             if (player.hasPermission("pixelupgrade.command.other.checkegg"))
-                player.sendMessage(Text.of("§4Usage: §c" + alias + " [optional target] <slot, 1-6> {-c to confirm}"));
+                player.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [optional target] <slot, 1-6> {-c to confirm}"));
             else
-                player.sendMessage(Text.of("§4Usage: §c" + alias + " <slot> {-c to confirm} §7(no perms for target)"));
+                player.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot> {-c to confirm} §7(no perms for target)"));
         }
         else
         {
             if (player.hasPermission("pixelupgrade.command.other.checkegg"))
-                player.sendMessage(Text.of("§4Usage: §c" + alias + " [optional target] <slot, 1-6>"));
+                player.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [optional target] <slot, 1-6>"));
             else
-                player.sendMessage(Text.of("§4Usage: §c" + alias + " <slot> §7(no perms for target)"));
+                player.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot> §7(no perms for target)"));
         }
     }
 
@@ -402,19 +382,6 @@ public class CheckEgg implements CommandExecutor
             player.sendMessage(Text.of("§4Error: §cInvalid slot provided. See below."));
         printCorrectPerm(cost, player);
         checkAndAddFooter(cost, player);
-    }
-
-    private void printToLog(int debugNum, String inputString)
-    {
-        if (debugNum <= debugLevel)
-        {
-            if (debugNum == 0)
-                PixelUpgrade.log.info("§4CheckEgg // critical: §c" + inputString);
-            else if (debugNum == 1)
-                PixelUpgrade.log.info("§3CheckEgg // notice: §b" + inputString);
-            else
-                PixelUpgrade.log.info("§2CheckEgg // debug: §a" + inputString);
-        }
     }
 
     private void printEggResults(NBTTagCompound nbt, EntityPixelmon pokemon, boolean wasEggChecked, int cost, Player player)

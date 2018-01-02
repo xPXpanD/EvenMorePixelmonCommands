@@ -36,24 +36,6 @@ import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
 public class CheckTypes implements CommandExecutor
 {
-    // Not sure how this works yet, but nicked it from TotalEconomy.
-    // Will try to figure this out later, just glad to have this working for now.
-    private PixelUpgrade pixelUpgrade;
-    public CheckTypes(PixelUpgrade pixelUpgrade) { this.pixelUpgrade = pixelUpgrade; }
-
-    // Grab the command's alias.
-    private static String alias = null;
-    private void getCommandAlias()
-    {
-        if (!CheckTypesConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
-            alias = "/" + CheckTypesConfig.getInstance().getConfig().getNode("commandAlias").getString();
-        else
-            PixelUpgrade.log.info("§4CheckTypes // critical: §cConfig variable \"commandAlias\" could not be found!");
-    }
-
-    // Set up some variables that we'll be using in the egg-checking method.
-    private Boolean showFormMessage = null, showAlolanMessage = null;
-
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
     {

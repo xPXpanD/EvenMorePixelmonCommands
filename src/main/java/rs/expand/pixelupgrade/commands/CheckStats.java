@@ -1,64 +1,50 @@
 package rs.expand.pixelupgrade.commands;
 
+// Remote imports.
 import com.pixelmonmod.pixelmon.config.PixelmonEntityList;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import com.pixelmonmod.pixelmon.enums.EnumPokemon;
 import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.regex.Pattern;
-
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-
+import org.apache.commons.lang3.ObjectUtils;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.text.Text;
 
-import rs.expand.pixelupgrade.configs.*;
+// Local imports.
 import rs.expand.pixelupgrade.PixelUpgrade;
-import rs.expand.pixelupgrade.utilities.ConfigOperations;
 import rs.expand.pixelupgrade.utilities.GetPokemonInfo;
-
-import static rs.expand.pixelupgrade.PixelUpgrade.debugLevel;
-import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
+import static rs.expand.pixelupgrade.commands.DittoFusion.*;
+import static rs.expand.pixelupgrade.commands.UpgradeIVs.*;
+import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
 public class CheckStats implements CommandExecutor
 {
-    // Not sure how this works yet, but nicked it from TotalEconomy.
-    // Will try to figure this out later, just glad to have this working for now.
-    private PixelUpgrade pixelUpgrade;
-    public CheckStats(PixelUpgrade pixelUpgrade) { this.pixelUpgrade = pixelUpgrade; }
-
-    // Grab the command's alias.
-    private static String alias = null;
-    private void getCommandAlias()
-    {
-        if (!CheckStatsConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
-            alias = "/" + CheckStatsConfig.getInstance().getConfig().getNode("commandAlias").getString();
-        else
-            PixelUpgrade.log.info("§4CheckStats // critical: §cConfig variable \"commandAlias\" could not be found!");
-    }
-
-    // Set up some variables that we'll be using in the stat-checking method.
-    private Boolean showEVs, showFixEVsHelper, showUpgradeHelper, showDittoFusionHelper;
-    private Integer regularFusionCap, shinyFusionCap, legendaryShinyUpgradeCap;
-    private Integer legendaryUpgradeCap, regularUpgradeCap, shinyUpgradeCap, babyUpgradeCap;
-    private String shortenedHP, shortenedAttack, shortenedDefense, shortenedSpAtt, shortenedSpDef, shortenedSpeed;
+    // Initialize some variables. We'll load stuff into these when we call the config loader.
+    // Other config variables are loaded in from their respective class. Check the imports.
+    public static String commandAlias;
+    public static Boolean showTeamWhenSlotEmpty;
+    public static Boolean showEVs;
+    public static Boolean showFixEVsHelper;
+    public static Boolean showUpgradeHelper;
+    public static Boolean showDittoFusionHelper;
+    public static Boolean enableCheckEggIntegration;
+    public static Integer commandCost;
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -67,56 +53,19 @@ public class CheckStats implements CommandExecutor
         {
             boolean canContinue = false;
             boolean presenceCheck = true, fusionCheck = true, upgradeCheck = true, mainConfigCheck = true;
-            
-            Boolean showTeamWhenSlotEmpty = getConfigBool("showTeamWhenSlotEmpty");
-            Boolean checkEggIntegration = getConfigBool("enableCheckEggIntegration");
-            Integer commandCost = getConfigInt();
-            showEVs = getConfigBool("showEVs");
-            showFixEVsHelper = getConfigBool("showFixEVsHelper");
-            showUpgradeHelper = getConfigBool("showUpgradeHelper");
-            showDittoFusionHelper = getConfigBool("showDittoFusionHelper");
 
-            // Load up Ditto Fusion config values. Used for showing fusion limits.
-            regularFusionCap = checkFusionConfigInt("regularCap");
-            shinyFusionCap = checkFusionConfigInt("shinyCap");
-
-            // Load up UpgradeIVs, too. Sorry for the long names, clarity over style.
-            legendaryShinyUpgradeCap = checkUpgradeConfigInt("legendaryAndShinyCap");
-            legendaryUpgradeCap = checkUpgradeConfigInt("legendaryCap");
-            regularUpgradeCap = checkUpgradeConfigInt("regularCap");
-            shinyUpgradeCap = checkUpgradeConfigInt("shinyCap");
-            babyUpgradeCap = checkUpgradeConfigInt("babyCap");
-
-            // Grab the shortened formats from the main config.
-            shortenedHP = getMainConfigString("shortenedHealth");
-            shortenedAttack = getMainConfigString("shortenedAttack");
-            shortenedDefense = getMainConfigString("shortenedDefense");
-            shortenedSpAtt = getMainConfigString("shortenedSpecialAttack");
-            shortenedSpDef = getMainConfigString("shortenedSpecialDefense");
-            shortenedSpeed = getMainConfigString("shortenedSpeed");
-
-            // And finally, grab the /checkegg alias. We'll need this to point people to there if necessary.
-            String checkEggAlias = getCheckEggAlias();
-
-            // Set up the command's preferred alias.
-            getCommandAlias();
-
-            if (checkEggIntegration == null || showTeamWhenSlotEmpty == null || commandCost == null)
-                presenceCheck = false;
-            else if (showEVs == null || showFixEVsHelper == null || showUpgradeHelper == null || showDittoFusionHelper == null)
-                presenceCheck = false;
-            if (regularFusionCap == null || shinyFusionCap == null)
+            if (!ObjectUtils.allNotNull(regularFusionCap, shinyFusionCap))
                 fusionCheck = false;
-            if (legendaryShinyUpgradeCap == null || legendaryUpgradeCap == null || regularUpgradeCap == null)
+            if (!ObjectUtils.allNotNull(legendaryShinyUpgradeCap, legendaryUpgradeCap, regularUpgradeCap, shinyUpgradeCap, babyUpgradeCap))
                 upgradeCheck = false;
-            else if (shinyUpgradeCap == null || babyUpgradeCap == null)
-                upgradeCheck = false;
-            if (shortenedHP == null || shortenedAttack == null || shortenedDefense == null)
+            if (!ObjectUtils.allNotNull(shortenedHP, shortenedAttack, shortenedDefense, shortenedSpAtt, shortenedSpDef, shortenedSpeed))
                 mainConfigCheck = false;
-            else if (shortenedSpAtt == null || shortenedSpDef == null || shortenedSpeed == null)
-                mainConfigCheck = false;
+            if (!ObjectUtils.allNotNull(enableCheckEggIntegration, showTeamWhenSlotEmpty, commandCost, showEVs))
+                presenceCheck = false;
+            else if (!ObjectUtils.allNotNull(showFixEVsHelper, showUpgradeHelper, showDittoFusionHelper))
+                presenceCheck = false;
 
-            if (!presenceCheck || alias == null)
+            if (!presenceCheck || commandAlias == null)
             {
                 // Specific errors are already called earlier on -- this is tacked on to the end.
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
@@ -157,6 +106,7 @@ public class CheckStats implements CommandExecutor
             {
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
+                String checkEggAlias = CheckEgg.commandAlias;
                 if (checkEggAlias == null) // Shown after the config checker method's own errors.
                 {
                     printToLog(0, "We'll fall back to showing \"/checkegg\" as the alias, for now...");
@@ -357,13 +307,13 @@ public class CheckStats implements CommandExecutor
                             if (commandCost > 0)
                             {
                                 player.sendMessage(Text.of("§eWant to know more? Use: §6" +
-                                    alias + " " + target.getName() + " <slot> {-c to confirm}"));
+                                    commandAlias + " " + target.getName() + " <slot> {-c to confirm}"));
                                 player.sendMessage(Text.of("§5Warning: §dThis will cost you §5" +
                                     commandCost + "§d coins."));
                             }
                             else
                                 player.sendMessage(Text.of("§eWant to know more? Use: §6" +
-                                    alias + " " + target.getName() + " <slot>"));
+                                    commandAlias + " " + target.getName() + " <slot>"));
 
                             player.sendMessage(Text.of("§7-----------------------------------------------------"));
                         }
@@ -380,7 +330,7 @@ public class CheckStats implements CommandExecutor
                                 src.sendMessage(Text.of("§4Error: §cThere's no Pokémon in that slot!"));
                             }
                         }
-                        else if (nbt.getBoolean("isEgg") && checkEggIntegration)
+                        else if (nbt.getBoolean("isEgg") && enableCheckEggIntegration)
                         {
                             printToLog(1, "Found an egg, recommended /checkegg's alias as per config. Exit.");
                             player.sendMessage(Text.of("§4Error: §cI cannot see into an egg. Check out §4/" + checkEggAlias + "§c."));
@@ -401,7 +351,8 @@ public class CheckStats implements CommandExecutor
                                 if (optionalAccount.isPresent())
                                 {
                                     UniqueAccount uniqueAccount = optionalAccount.get();
-                                    TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(), costToConfirm, Cause.of(EventContext.empty(), pixelUpgrade.getPluginContainer()));
+                                    TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
+                                                costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
 
                                     if (transactionResult.getResult() == ResultType.SUCCESS)
                                     {
@@ -430,12 +381,12 @@ public class CheckStats implements CommandExecutor
                                 {
                                     slot = Integer.parseInt(args.<String>getOne("slot").get());
                                     src.sendMessage(Text.of("§6Warning: §eChecking this Pokémon's status costs §6" + costToConfirm + "§e coins."));
-                                    src.sendMessage(Text.of("§2Ready? Type: §a" + alias + " " + targetString + " " + slot + " -c"));
+                                    src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " " + targetString + " " + slot + " -c"));
                                 }
                                 else
                                 {
                                     src.sendMessage(Text.of("§6Warning: §eChecking a Pokémon's status costs §6" + costToConfirm + "§e coins."));
-                                    src.sendMessage(Text.of("§2Ready? Type: §a" + alias + " " + slot + " -c"));
+                                    src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " " + slot + " -c"));
                                 }
                             }
                         }
@@ -479,16 +430,16 @@ public class CheckStats implements CommandExecutor
         if (cost != 0)
         {
             if (player.hasPermission("pixelupgrade.command.other.checkstats"))
-                player.sendMessage(Text.of("§4Usage: §c" + alias + " [optional target] <slot, 1-6> {-c to confirm}"));
+                player.sendMessage(Text.of("§4Usage: §c" + commandAlias + " [optional target] <slot, 1-6> {-c to confirm}"));
             else
-                player.sendMessage(Text.of("§4Usage: §c" + alias + " <slot, 1-6> {-c to confirm} §7(no perms for target)"));
+                player.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <slot, 1-6> {-c to confirm} §7(no perms for target)"));
         }
         else
         {
             if (player.hasPermission("pixelupgrade.command.other.checkstats"))
-                player.sendMessage(Text.of("§4Usage: §c" + alias + " [optional target] <slot, 1-6>"));
+                player.sendMessage(Text.of("§4Usage: §c" + commandAlias + " [optional target] <slot, 1-6>"));
             else
-                player.sendMessage(Text.of("§4Usage: §c" + alias + " <slot, 1-6> §7(no perms for target)"));
+                player.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <slot, 1-6> §7(no perms for target)"));
         }
     }
 
@@ -515,72 +466,6 @@ public class CheckStats implements CommandExecutor
                 PixelUpgrade.log.info("§3CheckStats // notice: §b" + inputString);
             else
                 PixelUpgrade.log.info("§2CheckStats // debug: §a" + inputString);
-        }
-    }
-
-    private Boolean getConfigBool(String node)
-    {
-        if (!CheckStatsConfig.getInstance().getConfig().getNode(node).isVirtual())
-            return CheckStatsConfig.getInstance().getConfig().getNode(node).getBoolean();
-        else
-        {
-            PixelUpgrade.log.info("§4CheckStats // critical: §cCould not parse config variable \"" + node + "\"!");
-            return null;
-        }
-    }
-
-    private Integer getConfigInt()
-    {
-        if (!CheckStatsConfig.getInstance().getConfig().getNode("commandCost").isVirtual())
-            return CheckStatsConfig.getInstance().getConfig().getNode("commandCost").getInt();
-        else
-        {
-            PixelUpgrade.log.info("§4CheckStats // critical: §cCould not parse config variable \"commandCost\"!");
-            return null;
-        }
-    }
-
-    private Integer checkFusionConfigInt(String node)
-    {
-        if (!DittoFusionConfig.getInstance().getConfig().getNode(node).isVirtual())
-            return DittoFusionConfig.getInstance().getConfig().getNode(node).getInt();
-        else
-        {
-            PixelUpgrade.log.info("§4CheckStats // critical: §cCan't read remote config variable \"" + node + "\" for /dittofusion!");
-            return null;
-        }
-    }
-
-    private Integer checkUpgradeConfigInt(String node)
-    {
-        if (!UpgradeIVsConfig.getInstance().getConfig().getNode(node).isVirtual())
-            return UpgradeIVsConfig.getInstance().getConfig().getNode(node).getInt();
-        else
-        {
-            PixelUpgrade.log.info("§4CheckStats // critical: §cCan't read remote config variable \"" + node + "\" for /upgradeivs!");
-            return null;
-        }
-    }
-
-    private String getMainConfigString(String node)
-    {
-        if (!PixelUpgradeMainConfig.getInstance().getConfig().getNode(node).isVirtual())
-            return PixelUpgradeMainConfig.getInstance().getConfig().getNode(node).getString();
-        else
-        {
-            PixelUpgrade.log.info("§4CheckStats // critical: §cCan't read remote variable \"" + node + "\" from main config!");
-            return null;
-        }
-    }
-
-    private String getCheckEggAlias()
-    {
-        if (ConfigOperations.getInstance().updateConfigs("CheckEgg", "commandAlias", false) != null)
-            return ConfigOperations.getInstance().updateConfigs("CheckEgg", "commandAlias", false);
-        else
-        {
-            PixelUpgrade.log.info("§4CheckStats // critical: §cCan't read remote config variable \"commandAlias\" for /checkegg!");
-            return null;
         }
     }
 

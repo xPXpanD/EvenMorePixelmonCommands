@@ -5,8 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,14 +27,6 @@ public class ReloadConfigs implements CommandExecutor
     // Set up a nice compact private logger specifically for showing command reloads.
     private static final String pName = "PU";
     private static final Logger pLog = LoggerFactory.getLogger(pName);
-
-    private static Integer interpretInteger(String input)
-    {
-        if (input != null)
-            return Integer.parseInt(input);
-        else
-            return null;
-    }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -219,6 +209,9 @@ public class ReloadConfigs implements CommandExecutor
                     case "MAINCONFIG": case "MAIN":
                         PixelUpgradeMainConfig.getInstance().setupConfig(PixelUpgrade.primaryConfigPath,
                                 PixelUpgrade.primaryConfigLoader);
+
+                        ConfigOperations.getInstance().updateConfigs("PixelUpgrade");
+
                         pLog.info("§aReloaded global config.");
                         break;
                     case "PIXELUPGRADEINFO": case "INFO":
@@ -233,12 +226,7 @@ public class ReloadConfigs implements CommandExecutor
                         commandAlias = ConfigOperations.getInstance().setupConfig("CheckEgg",
                                 "egg", checkEggPath, path, checkEggLoader);
 
-                        CheckEgg.alias = ConfigOperations.getInstance().updateConfigs("CheckEgg", "commandAlias", false);
-                        CheckEgg.showName = BooleanUtils.toBooleanObject(ConfigOperations.getInstance().updateConfigs("CheckEgg", "showName", false));
-                        CheckEgg.explicitReveal = BooleanUtils.toBooleanObject(ConfigOperations.getInstance().updateConfigs("CheckEgg", "explicitReveal", false));
-                        CheckEgg.babyHintPercentage = interpretInteger(ConfigOperations.getInstance().updateConfigs("CheckEgg", "babyHintPercentage", true));
-                        CheckEgg.commandCost = interpretInteger(ConfigOperations.getInstance().updateConfigs("CheckEgg", "commandCost", true));
-                        CheckEgg.recheckIsFree = BooleanUtils.toBooleanObject(ConfigOperations.getInstance().updateConfigs("CheckEgg", "recheckIsFree", false));
+                        ConfigOperations.getInstance().updateConfigs("CheckEgg");
 
                         pLog.info("§aReloaded config for command §2/checkegg§a, alias §2/" + commandAlias + "§a.");
                         break;
@@ -331,25 +319,6 @@ public class ReloadConfigs implements CommandExecutor
         }
         else
         {
-            // Read the debug logging level and apply it. All commands will refer to this.
-            if (ConfigOperations.getInstance().updateConfigs("PixelUpgrade", "debugVerbosityMode", false) != null)
-            {
-                String modeString = ConfigOperations.getInstance().updateConfigs("PixelUpgrade", "debugVerbosityMode", false);
-
-                if (modeString.matches("^[0-3]"))
-                    PixelUpgrade.debugLevel = Integer.parseInt(modeString);
-                else
-                {
-                    PixelUpgrade.log.info("§4PixelUpgrade // critical: §cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
-                    PixelUpgrade.log.info("§4PixelUpgrade // critical: §cLogging will be set to verbose mode (3) until this is resolved.");
-                }
-            }
-            else
-            {
-                PixelUpgrade.log.info("§4PixelUpgrade // critical: §cConfig variable \"debugVerbosityMode\" could not be read!");
-                PixelUpgrade.log.info("§4PixelUpgrade // critical: §cLogging will be set to verbose mode (3) until this is resolved.");
-            }
-
             if (src instanceof Player)
             {
                 src.sendMessage(Text.of("§7-----------------------------------------------------"));

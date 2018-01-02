@@ -9,6 +9,7 @@ import java.util.Objects;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +26,15 @@ public class ConfigOperations
     // Set up a nice compact private logger specifically for showing command loading.
     private static final String pName = "PU";
     private static final Logger pLog = LoggerFactory.getLogger(pName);
+
+    // Make a little converter for safely handling possibly null Strings that have an integer value inside.
+    private static Integer interpretInteger(String input)
+    {
+        if (input != null)
+            return Integer.parseInt(input);
+        else
+            return null;
+    }
 
     // Called during initial setup, either when the server is booting up or when /pureload has been executed.
     public String setupConfig(String callSource, String defaultAlias, Path checkPath, String mainPath, ConfigurationLoader<CommentedConfigurationNode> configLoader)
@@ -108,13 +118,10 @@ public class ConfigOperations
 
     // Grabs a node from the config, does some basic sanity checks and returns the value inside.
     @SuppressWarnings({"ConstantConditions"})
-    public String updateConfigs(String callSource, String node, boolean makeInteger)
+    public void updateConfigs(String callSource)
     {
         PixelUpgrade.log.info("§4PixelUpgrade // DEBUG: §cReading: §4" + callSource);
-
         CommentedConfigurationNode commandConfig = null;
-        String returnString = null;
-        boolean firedException = false;
 
         try
         {
@@ -123,6 +130,14 @@ public class ConfigOperations
                 case "CheckEgg":
                 {
                     commandConfig = PixelUpgrade.checkEggLoader.load();
+
+                    CheckEgg.commandAlias = commandConfig.getNode("commandAlias").getString();
+                    CheckEgg.showName = BooleanUtils.toBooleanObject(commandConfig.getNode("showName").getString());
+                    CheckEgg.explicitReveal = BooleanUtils.toBooleanObject(commandConfig.getNode("explicitReveal").getString());
+                    CheckEgg.babyHintPercentage = interpretInteger(commandConfig.getNode("babyHintPercentage").getString());
+                    CheckEgg.commandCost = interpretInteger(commandConfig.getNode("commandCost").getString());
+                    CheckEgg.recheckIsFree = BooleanUtils.toBooleanObject(commandConfig.getNode("recheckIsFree").getString());
+
                     break;
                 }
                 case "CheckStats": commandConfig = PixelUpgrade.checkStatsLoader.load(); break;
@@ -133,7 +148,22 @@ public class ConfigOperations
                 case "ForceHatch": commandConfig = PixelUpgrade.forceHatchLoader.load(); break;
                 case "ForceStats": commandConfig = PixelUpgrade.forceStatsLoader.load(); break;
                 case "PixelUpgradeInfo": commandConfig = PixelUpgrade.puInfoLoader.load(); break;
-                case "PixelUpgrade": commandConfig = PixelUpgrade.primaryConfigLoader.load(); break;
+                case "PixelUpgrade":
+                {
+                    commandConfig = PixelUpgrade.primaryConfigLoader.load();
+
+                    PixelUpgrade.configVersion = interpretInteger(commandConfig.getNode("configVersion").getString());
+                    PixelUpgrade.debugLevel = interpretInteger(commandConfig.getNode("debugVerbosityMode").getString());
+                    PixelUpgrade.useBritishSpelling = BooleanUtils.toBooleanObject(commandConfig.getNode("useBritishSpelling").getString());
+                    PixelUpgrade.shortenedHP = commandConfig.getNode("shortenedHealth").getString();
+                    PixelUpgrade.shortenedAttack = commandConfig.getNode("shortenedAttack").getString();
+                    PixelUpgrade.shortenedDefense = commandConfig.getNode("shortenedDefense").getString();
+                    PixelUpgrade.shortenedSpAtt = commandConfig.getNode("shortenedSpecialAttack").getString();
+                    PixelUpgrade.shortenedSpDef = commandConfig.getNode("shortenedSpecialDefense").getString();
+                    PixelUpgrade.shortenedSpeed = commandConfig.getNode("shortenedSpeed").getString();
+
+                    break;
+                }
                 case "ResetCount": commandConfig = PixelUpgrade.resetCountLoader.load(); break;
                 case "ResetEVs": commandConfig = PixelUpgrade.resetEVsLoader.load(); break;
                 case "ShowStats": commandConfig = PixelUpgrade.showStatsLoader.load(); break;
@@ -145,26 +175,9 @@ public class ConfigOperations
                     PixelUpgrade.log.info("§4PixelUpgrade // critical: §cPlease report -- this is a bug. Source: §4" + callSource);
                 }
             }
-
-            returnString = commandConfig.getNode(node).getString();
-            pLog.info("§4returnString: " + returnString);
         }
         catch (Exception F)
-        {
-            pLog.info("§4" + callSource + " // error: §cConfig variable \"" + node + "\" could not be found!");
-            firedException = true;
-        }
-
-        // Did the source request an Integer?
-        // Null the node's contents if they are not numeric, so we can catch it with our error handler.
-        if (!firedException && makeInteger && !returnString.matches("^-?\\d+$"))
-        {
-            pLog.info("§4" + callSource + " // error: §cConfig variable \"" + node + "\" is not a valid number!");
-            returnString = null;
-        }
-
-        PixelUpgrade.log.info("§4PixelUpgrade // DEBUG: §cReturning: §4" + returnString);
-        return returnString;
+        { pLog.info("§4" + callSource + " // error: §cIssue!"); }
     }
 
     public CommentedConfigurationNode getConfig()

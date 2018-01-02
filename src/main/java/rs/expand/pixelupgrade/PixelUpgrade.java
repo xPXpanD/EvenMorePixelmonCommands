@@ -80,7 +80,7 @@ public class PixelUpgrade
     // Create an instance that other classes can access.
     private static PixelUpgrade instance = new PixelUpgrade();
     public static PixelUpgrade getInstance()
-    { return instance; }
+        { return instance; }
 
     // This is all magic to me, right now. One day I'll learn what this means! Thanks, Google.
     @Inject
@@ -96,16 +96,16 @@ public class PixelUpgrade
     private static String privatePath = "config" + separator;
     public static String path = "config" + separator + "PixelUpgrade" + separator;
 
-    // Set up the debug logger variable. If we can read the debug level from the configs, we'll overwrite this later.
-    public static Integer debugLevel = 3;
-
-    // Load up a ton of variables for use by other commands. We'll fill these in during Forge pre-init.
-    public String shortenedHP;
-    public String shortenedAttack;
-    public String shortenedDefense;
-    public String shortenedSpAtt;
-    public String shortenedSpDef;
-    public String shortenedSpeed;
+    // Load up a ton of variables for use by other commands. We'll fill these in during pre-init.
+    public static Integer configVersion;
+    public static Integer debugLevel;
+    public static Boolean useBritishSpelling;
+    public static String shortenedHP;
+    public static String shortenedAttack;
+    public static String shortenedDefense;
+    public static String shortenedSpAtt;
+    public static String shortenedSpDef;
+    public static String shortenedSpeed;
 
     // Create the config paths.
     public static Path primaryConfigPath = Paths.get(privatePath, "PixelUpgrade.conf");
@@ -346,25 +346,20 @@ public class PixelUpgrade
         String upgradeIVsAlias = ConfigOperations.getInstance().setupConfig(
                 "UpgradeIVs", "upgrade", upgradeIVsPath, path, upgradeIVsLoader);
 
-        // Read the debug logging level and apply it. All commands will refer to this.
-        String modeString = ConfigOperations.getInstance().updateConfigs("PixelUpgrade", "debugVerbosityMode", false);
-        if (modeString != null)
+        ConfigOperations.getInstance().updateConfigs("PixelUpgrade");
+        ConfigOperations.getInstance().updateConfigs("CheckEgg");
+
+        // Do some sanity checking on the sidemod-wide debug logger.
+        if (debugLevel == null || debugLevel < 0 || debugLevel > 2)
         {
-            if (modeString.matches("^[0-3]"))
-                debugLevel = Integer.parseInt(modeString);
+            if (debugLevel == null)
+                PixelUpgrade.log.info("§4PixelUpgrade // critical: §cConfig variable \"debugVerbosityMode\" could not be read!");
             else
                 PixelUpgrade.log.info("§4PixelUpgrade // critical: §cInvalid value on config variable \"debugVerbosityMode\"! Valid range: 0-3");
-        }
-        else
-            PixelUpgrade.log.info("§4PixelUpgrade // critical: §cConfig variable \"debugVerbosityMode\" could not be read!");
 
-        // Initialize the variables that we want other commands to have access to.
-        shortenedHP = ConfigOperations.getInstance().updateConfigs("PixelUpgrade", "shortenedHealth", false);
-        shortenedAttack = ConfigOperations.getInstance().updateConfigs("PixelUpgrade", "shortenedAttack", false);
-        shortenedDefense = ConfigOperations.getInstance().updateConfigs("PixelUpgrade", "shortenedDefense", false);
-        shortenedSpAtt = ConfigOperations.getInstance().updateConfigs("PixelUpgrade", "shortenedSpecialAttack", false);
-        shortenedSpDef = ConfigOperations.getInstance().updateConfigs("PixelUpgrade", "shortenedSpecialDefense", false);
-        shortenedSpeed = ConfigOperations.getInstance().updateConfigs("PixelUpgrade", "shortenedSpeed", false);
+            PixelUpgrade.log.info("§4PixelUpgrade // critical: §cLogging will be set to verbose mode (2) until this is resolved.");
+            debugLevel = 2;
+        }
 
         // Do some initial setup for our formatted messages later on. We'll show three commands per line.
         ArrayList<String> commandList = new ArrayList<>();
@@ -529,9 +524,7 @@ public class PixelUpgrade
         Sponge.getCommandManager().register(this, showstats, "showstats", showStatsAlias);
         Sponge.getCommandManager().register(this, upgradeivs, "upgradeivs", "upgradeiv", upgradeIVsAlias);
 
-        CheckEgg.alias = ConfigOperations.getInstance().updateConfigs("CheckEgg", "commandAlias", false);
-        PixelUpgrade.log.info("§4PixelUpgrade // DEBUG: §cEnd of pre-init event. Alias: " + CheckEgg.alias);
-        PixelUpgrade.log.info("§4PixelUpgrade // DEBUG: §cNode contents: " + ConfigOperations.getInstance().updateConfigs("CheckEgg", "commandAlias", false));
+        PixelUpgrade.log.info("§4PixelUpgrade // DEBUG: §cEnd of pre-init event. Alias: " + CheckEgg.commandAlias);
     }
 
     @Listener
