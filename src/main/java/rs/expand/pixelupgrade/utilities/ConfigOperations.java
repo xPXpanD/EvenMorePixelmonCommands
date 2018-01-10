@@ -5,10 +5,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
-
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +28,7 @@ public class ConfigOperations
     // Make a little converter for safely handling possibly null Strings that have an integer value inside.
     private static Integer interpretInteger(String input)
     {
-        if (input != null)
+        if (input != null && input.matches("^[0-9]\\d*$"))
             return Integer.parseInt(input);
         else
             return null;
@@ -116,12 +114,12 @@ public class ConfigOperations
         }
     }
 
-    // Grabs a node from the config, does some basic sanity checks and returns the value inside.
+    // Grabs a specified config, then loads all of the variables into the matching command.
     @SuppressWarnings({"ConstantConditions"})
-    public void updateConfigs(String callSource)
+    public void loadConfig(String callSource)
     {
         PixelUpgrade.log.info("§4PixelUpgrade // DEBUG: §cReading: §4" + callSource);
-        CommentedConfigurationNode commandConfig = null;
+        CommentedConfigurationNode commandConfig;
 
         try
         {

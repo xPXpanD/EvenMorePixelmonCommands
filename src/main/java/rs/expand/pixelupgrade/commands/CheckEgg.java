@@ -25,7 +25,6 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
-import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.utilities.CommonMethods;
 import rs.expand.pixelupgrade.utilities.GetPokemonInfo;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
@@ -33,7 +32,7 @@ import static rs.expand.pixelupgrade.PixelUpgrade.*;
 public class CheckEgg implements CommandExecutor
 {
     // Initialize some variables. We'll load stuff into these when we call the config loader.
-    // Other config variables are loaded in from their respective class. Check the imports.
+    // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
     public static Boolean showName;
     public static Boolean explicitReveal;
@@ -65,6 +64,7 @@ public class CheckEgg implements CommandExecutor
             if (recheckIsFree == null)
                 nativeErrorArray.add("recheckIsFree");
 
+            // Also get some stuff from PixelUpgrade.conf.
             ArrayList<String> mainConfigErrorArray = new ArrayList<>();
             if (shortenedHP == null)
                 mainConfigErrorArray.add("shortenedHP");
@@ -72,9 +72,9 @@ public class CheckEgg implements CommandExecutor
                 mainConfigErrorArray.add("shortenedAttack");
             if (shortenedDefense == null)
                 mainConfigErrorArray.add("shortenedDefense");
-            if (shortenedSpAtt == null)
+            if (shortenedSpecialAttack == null)
                 mainConfigErrorArray.add("shortenedSpecialAttack");
-            if (shortenedSpDef == null)
+            if (shortenedSpecialDefense == null)
                 mainConfigErrorArray.add("shortenedSpecialDefense");
             if (shortenedSpeed == null)
                 mainConfigErrorArray.add("shortenedSpeed");
@@ -88,12 +88,12 @@ public class CheckEgg implements CommandExecutor
 
             if (!nativeErrorArray.isEmpty())
             {
-                CommonMethods.printNodeError("CheckEgg", nativeErrorArray, false);
+                CommonMethods.printNodeError("CheckEgg", nativeErrorArray, 1);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else if (!mainConfigErrorArray.isEmpty())
             {
-                CommonMethods.printNodeError("PixelUpgrade", nativeErrorArray, true);
+                CommonMethods.printNodeError("PixelUpgrade", mainConfigErrorArray, 0);
                 src.sendMessage(Text.of("§4Error: §cCould not parse main config. Please report to staff."));
             }
             else
@@ -330,7 +330,7 @@ public class CheckEgg implements CommandExecutor
             }
         }
         else
-            PixelUpgrade.log.info("§cThis command cannot run from the console or command blocks.");
+            CommonMethods.showConsoleError("/checkegg");
 
         return CommandResult.success();
     }
@@ -429,14 +429,14 @@ public class CheckEgg implements CommandExecutor
                 ivs3 = String.valueOf("§l" + defenseIV + " §2" + shortenedDefense + " §r§f|§a ");
 
             if (spAttIV < 31)
-                ivs4 = String.valueOf(spAttIV + " §2" + shortenedSpAtt + " §f|§a ");
+                ivs4 = String.valueOf(spAttIV + " §2" + shortenedSpecialAttack + " §f|§a ");
             else
-                ivs4 = String.valueOf("§l" + spAttIV + " §2" + shortenedSpAtt + " §r§f|§a ");
+                ivs4 = String.valueOf("§l" + spAttIV + " §2" + shortenedSpecialAttack + " §r§f|§a ");
 
             if (spDefIV < 31)
-                ivs5 = String.valueOf(spDefIV + " §2" + shortenedSpDef + " §f|§a ");
+                ivs5 = String.valueOf(spDefIV + " §2" + shortenedSpecialDefense + " §f|§a ");
             else
-                ivs5 = String.valueOf("§l" + spDefIV + " §2" + shortenedSpDef + " §r§f|§a ");
+                ivs5 = String.valueOf("§l" + spDefIV + " §2" + shortenedSpecialDefense + " §r§f|§a ");
 
             if (speedIV < 31)
                 ivs6 = String.valueOf(speedIV + " §2" + shortenedSpeed + "");
@@ -448,7 +448,7 @@ public class CheckEgg implements CommandExecutor
 
             // Get a bunch of data from our GetPokemonInfo utility class.
             ArrayList<String> natureArray = GetPokemonInfo.getNatureStrings(nbt.getInteger(NbtKeys.NATURE),
-                    shortenedSpAtt, shortenedSpDef, shortenedSpeed);
+                    shortenedSpecialAttack, shortenedSpecialDefense, shortenedSpeed);
             String natureName = natureArray.get(0);
             String plusVal = natureArray.get(1);
             String minusVal = natureArray.get(2);

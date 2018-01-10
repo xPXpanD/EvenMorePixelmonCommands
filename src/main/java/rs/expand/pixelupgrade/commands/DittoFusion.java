@@ -1,107 +1,101 @@
 package rs.expand.pixelupgrade.commands;
 
+// Remote imports.
 import com.pixelmonmod.pixelmon.config.PixelmonEntityList;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
-
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Optional;
-
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 
-import rs.expand.pixelupgrade.configs.DittoFusionConfig;
-import rs.expand.pixelupgrade.configs.PixelUpgradeMainConfig;
-import rs.expand.pixelupgrade.PixelUpgrade;
-
-import static rs.expand.pixelupgrade.PixelUpgrade.debugLevel;
-import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
+// Local imports.
+import rs.expand.pixelupgrade.utilities.CommonMethods;
+import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
 public class DittoFusion implements CommandExecutor
 {
-    // Not sure how this works yet, but nicked it from TotalEconomy.
-    // Will try to figure this out later, just glad to have this working for now.
-    private PixelUpgrade pixelUpgrade;
-    public DittoFusion(PixelUpgrade pixelUpgrade) { this.pixelUpgrade = pixelUpgrade; }
+    // Initialize some variables. We'll load stuff into these when we call the config loader.
+    // Other config variables are loaded in from their respective classes. Check the imports.
+    public static String commandAlias;
+    public static Integer stat0to5;
+    public static Integer stat6to10;
+    public static Integer stat11to15;
+    public static Integer stat16to20;
+    public static Integer stat21to25;
+    public static Integer stat26to30;
+    public static Integer stat31plus;
+    public static Integer regularCap;
+    public static Integer shinyCap;
+    public static Boolean passOnShinyStatus;
+    public static Integer pointMultiplierForCost;
+    public static Integer previouslyUpgradedMultiplier;
+    public static Integer addFlatFee;
 
-    // Grab the command's alias.
-    private static String alias = null;
-    private void getCommandAlias()
-    {
-        if (!DittoFusionConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
-            alias = "/" + DittoFusionConfig.getInstance().getConfig().getNode("commandAlias").getString();
-        else
-            PixelUpgrade.log.info("§4DittoFusion // critical: §cConfig variable \"commandAlias\" could not be found!");
-    }
+    // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
+    private void printToLog (int debugNum, String inputString)
+    { CommonMethods.doPrint("DittoFusion", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
     {
         if (src instanceof Player)
         {
-            boolean presenceCheck = true;
-            Boolean passOnShinyStatus = null, useBritishSpelling = null;
-            Integer stat0to5, stat6to10, stat11to15, stat16to20, stat21to25, stat26to30, stat31plus;
-            Integer regularCap, shinyCap, previouslyUpgradedMultiplier, pointMultiplierForCost, addFlatFee;
+            // Validate the data we get from the command's main config.
+            ArrayList<String> nativeErrorArray = new ArrayList<>();
+            if (commandAlias == null)
+                nativeErrorArray.add("commandAlias");
+            if (stat0to5 == null)
+                nativeErrorArray.add("stat0to5");
+            if (stat6to10 == null)
+                nativeErrorArray.add("stat6to10");
+            if (stat11to15 == null)
+                nativeErrorArray.add("stat11to15");
+            if (stat16to20 == null)
+                nativeErrorArray.add("stat16to20");
+            if (stat21to25 == null)
+                nativeErrorArray.add("stat21to25");
+            if (stat26to30 == null)
+                nativeErrorArray.add("stat26to30");
+            if (stat31plus == null)
+                nativeErrorArray.add("stat31plus");
+            if (regularCap == null)
+                nativeErrorArray.add("regularCap");
+            if (shinyCap == null)
+                nativeErrorArray.add("shinyCap");
+            if (passOnShinyStatus == null)
+                nativeErrorArray.add("passOnShinyStatus");
+            if (pointMultiplierForCost == null)
+                nativeErrorArray.add("pointMultiplierForCost");
+            if (previouslyUpgradedMultiplier == null)
+                nativeErrorArray.add("previouslyUpgradedMultiplier");
+            if (addFlatFee == null)
+                nativeErrorArray.add("addFlatFee");
 
-            stat0to5 = getConfigInt("stat0to5");
-            stat6to10 = getConfigInt("stat6to10");
-            stat11to15 = getConfigInt("stat11to15");
-            stat16to20 = getConfigInt("stat16to20");
-            stat21to25 = getConfigInt("stat21to25");
-            stat26to30 = getConfigInt("stat26to30");
-            stat31plus = getConfigInt("stat31plus");
-            regularCap = getConfigInt("regularCap");
-            shinyCap = getConfigInt("shinyCap");
-            previouslyUpgradedMultiplier = getConfigInt("previouslyUpgradedMultiplier");
-            pointMultiplierForCost = getConfigInt("pointMultiplierForCost");
-            addFlatFee = getConfigInt("addFlatFee");
-
-            if (!DittoFusionConfig.getInstance().getConfig().getNode("passOnShinyStatus").isVirtual())
-                passOnShinyStatus = DittoFusionConfig.getInstance().getConfig().getNode("passOnShinyStatus").getBoolean();
-            else
-                PixelUpgrade.log.info("§4DittoFusion // critical: §cCould not parse config variable \"passOnShinyStatus\"!");
-
-            // Grab the useBritishSpelling value from the main config.
-            if (!PixelUpgradeMainConfig.getInstance().getConfig().getNode("useBritishSpelling").isVirtual())
-                useBritishSpelling = PixelUpgradeMainConfig.getInstance().getConfig().getNode("useBritishSpelling").getBoolean();
-
-            // Set up the command's preferred alias.
-            getCommandAlias();
-
-            if (passOnShinyStatus == null || regularCap == null || shinyCap == null || stat0to5 == null || stat6to10 == null)
-                presenceCheck = false;
-            else if (stat11to15 == null || stat16to20 == null || stat21to25 == null || stat26to30 == null || stat31plus == null)
-                presenceCheck = false;
-            else if (previouslyUpgradedMultiplier == null || pointMultiplierForCost == null || addFlatFee == null)
-                presenceCheck = false;
-
-            if (!presenceCheck || alias == null)
+            if (!nativeErrorArray.isEmpty())
             {
-                // Specific errors are already called earlier on -- this is tacked on to the end.
+                CommonMethods.printNodeError("DittoFusion", nativeErrorArray, 1);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("§4DittoFusion // critical: §cCheck your config. If need be, wipe and §4/pureload§c.");
             }
             else if (useBritishSpelling == null)
             {
+                printToLog(0, "Could not read remote node \"§4useBritishSpelling§c\".");
+                printToLog(0, "The main config contains invalid variables. Exiting.");
                 src.sendMessage(Text.of("§4Error: §cCould not parse main config. Please report to staff."));
-                printToLog(0, "Couldn't get value of \"useBritishSpelling\" from the main config.");
-                printToLog(0, "Please check (or wipe and /pureload) your PixelUpgrade.conf file.");
             }
             else
             {
@@ -364,7 +358,9 @@ public class DittoFusion implements CommandExecutor
                                         }
                                         else if (commandConfirmed)
                                         {
-                                            TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(), costToConfirm, Cause.of(EventContext.empty(), pixelUpgrade.getPluginContainer()));
+                                            TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
+                                                costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
+
                                             if (transactionResult.getResult() == ResultType.SUCCESS)
                                             {
                                                 player.sendMessage(Text.of("§7-----------------------------------------------------"));
@@ -509,7 +505,7 @@ public class DittoFusion implements CommandExecutor
                                                     + extraCost + "§e coins from prior upgrades."));
                                             else
                                                 src.sendMessage(Text.of("§eThis upgrade will cost you §6" + costToConfirm + "§e coins."));
-                                            src.sendMessage(Text.of("§aReady? Use: §2" + alias + " " + slot1 + " " + slot2 + " -c"));
+                                            src.sendMessage(Text.of("§aReady? Use: §2" + commandAlias + " " + slot1 + " " + slot2 + " -c"));
 
                                             src.sendMessage(Text.of("§4Warning: §cThe Ditto in slot §4" + slot2 + "§c will be §ldeleted§r§c!"));
                                             player.sendMessage(Text.of("§7-----------------------------------------------------"));
@@ -528,37 +524,14 @@ public class DittoFusion implements CommandExecutor
             }
         }
         else
-            PixelUpgrade.log.info("§cThis command cannot run from the console or command blocks.");
+            CommonMethods.showConsoleError("/dittofusion");
 
         return CommandResult.success();
     }
 
-    private void printToLog(int debugNum, String inputString)
-    {
-        if (debugNum <= debugLevel)
-        {
-            if (debugNum == 0)
-                PixelUpgrade.log.info("§4DittoFusion // critical: §c" + inputString);
-            else if (debugNum == 1)
-                PixelUpgrade.log.info("§3DittoFusion // notice: §b" + inputString);
-            else
-                PixelUpgrade.log.info("§2DittoFusion // debug: §a" + inputString);
-        }
-    }
-    private Integer getConfigInt(String node)
-    {
-        if (!DittoFusionConfig.getInstance().getConfig().getNode(node).isVirtual())
-            return DittoFusionConfig.getInstance().getConfig().getNode(node).getInt();
-        else
-        {
-            PixelUpgrade.log.info("§4DittoFusion // critical: §cCould not parse config variable \"" + node + "\"!");
-            return null;
-        }
-    }
-
     private void checkAndAddFooter(Player player)
     {
-        player.sendMessage(Text.of("§4Usage: §c" + alias + " <target slot> <sacrifice slot> {-c to confirm}"));
+        player.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <target slot> <sacrifice slot> {-c to confirm}"));
         player.sendMessage(Text.of(""));
         player.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're ready to spend money!"));
         player.sendMessage(Text.of("§5-----------------------------------------------------"));

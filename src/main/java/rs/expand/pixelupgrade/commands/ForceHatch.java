@@ -1,13 +1,11 @@
 package rs.expand.pixelupgrade.commands;
 
+// Remote imports.
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
-
 import java.util.Optional;
-
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -16,36 +14,29 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.text.Text;
 
-import rs.expand.pixelupgrade.configs.ForceHatchConfig;
-import rs.expand.pixelupgrade.PixelUpgrade;
-
-import static rs.expand.pixelupgrade.PixelUpgrade.debugLevel;
+// Local imports.
+import rs.expand.pixelupgrade.utilities.CommonMethods;
 
 public class ForceHatch implements CommandExecutor
 {
-    // Grab the command's alias.
-    private static String alias = null;
-    private void getCommandAlias()
-    {
-        if (!ForceHatchConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
-            alias = "/" + ForceHatchConfig.getInstance().getConfig().getNode("commandAlias").getString();
-        else
-            PixelUpgrade.log.info("§4ForceHatch // critical: §cConfig variable \"commandAlias\" could not be found!");
-    }
+    // Initialize a config variable. We'll load stuff into it when we call the config loader.
+    // Other config variables are loaded in from their respective classes. Check the imports.
+    public static String commandAlias;
+
+    // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
+    private void printToLog (int debugNum, String inputString)
+    { CommonMethods.doPrint("ForceHatch", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
     {
         if (src instanceof Player)
         {
-            // Set up the command's preferred alias.
-            getCommandAlias();
-
-            if (alias == null)
+            if (commandAlias == null)
             {
-                // Specific errors are already called earlier on -- this is tacked on to the end.
-                src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("§4ForceHatch // critical: §cCheck your config. If need be, wipe and §4/pureload§c.");
+                printToLog(0, "Could not read node \"§4commandAlias§c\".");
+                printToLog(0, "This command's config could not be parsed. Exiting.");
+                src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please check the file."));
             }
             else
             {
@@ -179,26 +170,13 @@ public class ForceHatch implements CommandExecutor
             }
         }
         else
-            PixelUpgrade.log.info("§cThis command cannot run from the console or command blocks.");
+            CommonMethods.showConsoleError("/forcehatch");
 
         return CommandResult.success();
     }
 
     private void printCorrectPerm(Player player)
     {
-        player.sendMessage(Text.of("§4Usage: §c" + alias + " [optional target] <slot, 1-6>"));
-    }
-
-    private void printToLog(int debugNum, String inputString)
-    {
-        if (debugNum <= debugLevel)
-        {
-            if (debugNum == 0)
-                PixelUpgrade.log.info("§4ForceHatch // critical: §c" + inputString);
-            else if (debugNum == 1)
-                PixelUpgrade.log.info("§3ForceHatch // notice: §b" + inputString);
-            else
-                PixelUpgrade.log.info("§2ForceHatch // debug: §a" + inputString);
-        }
+        player.sendMessage(Text.of("§4Usage: §c" + commandAlias + " [optional target] <slot, 1-6>"));
     }
 }

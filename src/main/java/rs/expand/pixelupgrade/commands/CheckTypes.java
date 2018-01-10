@@ -1,66 +1,66 @@
 // Thanks for the command idea, MageFX!
 package rs.expand.pixelupgrade.commands;
 
+// Remote imports.
 import com.pixelmonmod.pixelmon.enums.EnumType;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
-
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.Text;
 
-import rs.expand.pixelupgrade.configs.CheckTypesConfig;
-import rs.expand.pixelupgrade.PixelUpgrade;
+// Local imports.
+import rs.expand.pixelupgrade.utilities.CommonMethods;
 import rs.expand.pixelupgrade.utilities.EnumPokemonList;
-
-import static com.pixelmonmod.pixelmon.enums.EnumType.getTotalEffectiveness;
-
-import static rs.expand.pixelupgrade.PixelUpgrade.debugLevel;
-import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
+import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
 // TODO: Some super long lists like /checktypes 599 cause minor visual issues. Fixing that would be nice polish.
 // TODO: Maybe look into paginated lists that you can move through. Lots of work, but would be real neat for evolutions.
 
 public class CheckTypes implements CommandExecutor
 {
+    // Initialize some variables. We'll load stuff into these when we call the config loader.
+    // Other config variables are loaded in from their respective classes. Check the imports.
+    public static String commandAlias;
+    public static Boolean showFormMessage;
+    public static Boolean showAlolanMessage;
+    public static Integer commandCost;
+
+    // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
+    private void printToLog (int debugNum, String inputString)
+    { CommonMethods.doPrint("CheckTypes", debugNum, inputString); }
+
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
     {
         if (src instanceof Player)
         {
-            Integer commandCost = null;
-            boolean presenceCheck = true;
-            showFormMessage = getConfigBool("showFormMessage");
-            showAlolanMessage = getConfigBool("showAlolanMessage");
-            if (!CheckTypesConfig.getInstance().getConfig().getNode("commandCost").isVirtual())
-                commandCost = CheckTypesConfig.getInstance().getConfig().getNode("commandCost").getInt();
-            else
-                PixelUpgrade.log.info("§4CheckTypes // critical: §cCould not parse config variable \"commandCost\"!");
+            // Validate the data we get from the command's main config.
+            ArrayList<String> nativeErrorArray = new ArrayList<>();
+            if (commandAlias == null)
+                nativeErrorArray.add("commandAlias");
+            if (showFormMessage == null)
+                nativeErrorArray.add("showFormMessage");
+            if (showAlolanMessage == null)
+                nativeErrorArray.add("showAlolanMessage");
+            if (commandCost == null)
+                nativeErrorArray.add("commandCost");
 
-            // Set up the command's preferred alias.
-            getCommandAlias();
-
-            if (showFormMessage == null || showAlolanMessage == null || commandCost == null)
-                presenceCheck = false;
-
-            if (!presenceCheck || alias == null)
+            if (!nativeErrorArray.isEmpty())
             {
-                // Specific errors are already called earlier on -- this is tacked on to the end.
+                CommonMethods.printNodeError("CheckTypes", nativeErrorArray, 1);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("§4CheckTypes // critical: §cCheck your config. If need be, wipe and §4/pureload§c.");
             }
             else
             {
@@ -180,7 +180,8 @@ public class CheckTypes implements CommandExecutor
                             if (optionalAccount.isPresent())
                             {
                                 UniqueAccount uniqueAccount = optionalAccount.get();
-                                TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(), costToConfirm, Cause.of(EventContext.empty(), pixelUpgrade.getPluginContainer()));
+                                TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
+                                                costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
 
                                 if (transactionResult.getResult() == ResultType.SUCCESS)
                                 {
@@ -206,7 +207,7 @@ public class CheckTypes implements CommandExecutor
                             printToLog(1, "Got cost but no confirmation; end of the line. Exit.");
 
                             src.sendMessage(Text.of("§6Warning: §eChecking a Pokémon's type stats costs §6" + costToConfirm + "§e coins."));
-                            src.sendMessage(Text.of("§2Ready? Type: §a" + alias + " " + inputString + " -c"));
+                            src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " " + inputString + " -c"));
                         }
                     }
                     else
@@ -218,12 +219,10 @@ public class CheckTypes implements CommandExecutor
             }
         }
         else
-            PixelUpgrade.log.info("§cThis command cannot run from the console or command blocks.");
+            CommonMethods.showConsoleError("/checktypes");
 
         return CommandResult.success();
     }
-
-    //private int getTypePosition(String[] types, String )
 
     private void checkAndAddHeader(int cost, Player player)
     {
@@ -245,33 +244,9 @@ public class CheckTypes implements CommandExecutor
     private void printCorrectHelper(int cost, Player player)
     {
         if (cost != 0)
-            player.sendMessage(Text.of("§4Usage: §c" + alias + " <Pokémon name/number> {-c to confirm}"));
+            player.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <Pokémon name/number> {-c to confirm}"));
         else
-            player.sendMessage(Text.of("§4Usage: §c" + alias + " <Pokémon name/number>"));
-    }
-
-    private void printToLog(int debugNum, String inputString)
-    {
-        if (debugNum <= debugLevel)
-        {
-            if (debugNum == 0)
-                PixelUpgrade.log.info("§4CheckTypes // critical: §c" + inputString);
-            else if (debugNum == 1)
-                PixelUpgrade.log.info("§3CheckTypes // notice: §b" + inputString);
-            else
-                PixelUpgrade.log.info("§2CheckTypes // debug: §a" + inputString);
-        }
-    }
-
-    private Boolean getConfigBool(String node)
-    {
-        if (!CheckTypesConfig.getInstance().getConfig().getNode(node).isVirtual())
-            return CheckTypesConfig.getInstance().getConfig().getNode(node).getBoolean();
-        else
-        {
-            PixelUpgrade.log.info("§4CheckTypes // critical: §cCould not parse config variable \"" + node + "\"!");
-            return null;
-        }
+            player.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <Pokémon name/number>"));
     }
 
     private void checkTypes(EnumPokemonList returnedPokemon, boolean inputIsInteger, String inputString, Player player)
@@ -365,7 +340,7 @@ public class CheckTypes implements CommandExecutor
         for (int i = 1; i < 19; i++)
         {
             EnumType typeToTest = EnumType.parseType(unformattedTypeList[i - 1]);
-            float typeEffectiveness = getTotalEffectiveness(foundTypes, typeToTest);
+            float typeEffectiveness = EnumType.getTotalEffectiveness(foundTypes, typeToTest);
 
             if (typeEffectiveness < 1.0f)
             {
@@ -754,7 +729,7 @@ public class CheckTypes implements CommandExecutor
         if (hasForms && showFormMessage)
         {
             printToLog(2, "Showing forms is enabled, and we can show one! Doing it.");
-            String commandHelper = "§cCheck out: §6" + alias + " ";
+            String commandHelper = "§cCheck out: §6" + commandAlias + " ";
 
             player.sendMessage(Text.of(""));
             player.sendMessage(Text.of("§dThis Pokémon has one or more forms with different types."));
@@ -783,7 +758,7 @@ public class CheckTypes implements CommandExecutor
         else if (hasAlolanVariants && showAlolanMessage)
         {
             printToLog(2, "Showing Alolan variants is enabled, and we've got one! Showing.");
-            String commandHelper = "§cCheck out: §6" + alias + " ";
+            String commandHelper = "§cCheck out: §6" + commandAlias + " ";
 
             player.sendMessage(Text.of(""));
             player.sendMessage(Text.of("§dThis Pokémon has an Alolan variant."));

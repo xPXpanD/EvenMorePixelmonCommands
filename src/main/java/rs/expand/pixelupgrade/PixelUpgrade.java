@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+import net.minecraftforge.fml.common.Loader;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
@@ -18,7 +19,6 @@ import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.event.game.state.*;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.service.ChangeServiceProviderEvent;
 import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
@@ -27,27 +27,29 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.text.Text;
 
 import rs.expand.pixelupgrade.commands.*;
-import rs.expand.pixelupgrade.configs.*;
 import rs.expand.pixelupgrade.utilities.ConfigOperations;
 
 import javax.inject.Inject;
 
 // New things:
-//TODO: Make a Pokémon transfer command.
-//TODO: Make a token redeeming command for shinies. Maybe make it a starter picker command, even.
-//TODO: Maybe make a heal command with a hour-long cooldown?
-//TODO: Make a /pokesell, maybe one that sells based on ball worth.
-//TODO: Check public static final String PC_RAVE = "rave";
-//TODO: See if recoloring Pokémon is possible.
-//TODO: Look into name colors?
-//TODO: Make a Pokéball changing command, get it to write the old ball to the Pokémon for ball sale purposes.
-//TODO: Do something with setPixelmonScale. Maybe a /spawnboss for super big high HP IV bosses with custom loot?
-//TODO: Make a /devolve, or something along those lines.
+// TODO: Make a Pokémon transfer command.
+// TODO: Make a token redeeming command for shinies. Maybe make it a starter picker command, even.
+// TODO: Maybe make a heal command with a hour-long cooldown?
+// TODO: Make a /pokesell, maybe one that sells based on ball worth.
+// TODO: Check public static final String PC_RAVE = "rave";
+// TODO: See if recoloring Pokémon is possible.
+// TODO: Look into name colors?
+// TODO: Make a Pokéball changing command, get it to write the old ball to the Pokémon for ball sale purposes.
+// TODO: Do something with setPixelmonScale. Maybe a /spawnboss for super big high HP IV bosses with custom loot?
+// TODO: Make a /devolve, or something along those lines.
 
 // Improvements to existing things:
-//TODO: Tab completion on player names.
-//TODO: Maybe turn /dittofusion into a generic /fuse, with a Ditto-only config option.
-//TODO: Add a Mew clone count check to /checkstats and /showstats.
+// TODO: Tab completion on player names.
+// TODO: Maybe turn /dittofusion into a generic /fuse, with a Ditto-only config option.
+// TODO: Add a Mew clone count check to /checkstats and /showstats.
+// TODO: Add a compact mode to /showstats, maybe using hovers. Thanks for the idea, Willynator.
+// TODO: Fix double command registration. This does not cause issues, but does cause Sponge to print warnings.
+// TODO: Add ALL the babies to /upgradeivs. Helps Reforged compatibility, and also future-proofs the mod a bit.
 
 @Plugin
 (
@@ -64,34 +66,26 @@ import javax.inject.Inject;
         // Proxying (writing to entities in a copy-persistent manner)
         // Karanum (fancy paginated command lists)
         // Hiroku (tip + snippet for setting up UTF-8 encoding; made § work)
-        // Xenoyia (a LOT of early help, and some serious later stuff too)
-
+        // Xenoyia (helping get PU off the ground, and co-owning the server it started on)
         // ...and everybody else who contributed ideas and reported issues.
+
         // Thanks for helping make PU what it is now, people!
 )
 
 public class PixelUpgrade
 {
-    // Primary setup.
-    private static final String name = "PixelUpgrade";
-    public static final Logger log = LoggerFactory.getLogger(name);
-    public static EconomyService economyService;
-
-    // Create an instance that other classes can access.
-    private static PixelUpgrade instance = new PixelUpgrade();
-    public static PixelUpgrade getInstance()
-        { return instance; }
+    // Set up two command loggers, one for compact command loading logs and one for normal logs.
+    private static final String name = "PixelUpgrade", shortName = "PU";
+    private static final Logger log = LoggerFactory.getLogger(name);
+    private static final Logger shortLog = LoggerFactory.getLogger(shortName);
 
     // This is all magic to me, right now. One day I'll learn what this means! Thanks, Google.
     @Inject
     private PluginContainer pluginContainer;
     public PluginContainer getPluginContainer() { return pluginContainer; }
+    public static EconomyService economyService;
 
-    // Set up a nice compact private logger specifically for showing command loading.
-    private static final String pName = "PU";
-    private static final Logger pLog = LoggerFactory.getLogger(pName);
-
-    // Config-related setup.
+    // Set up our config paths, and grab an OS-specific file path separator. This will usually be a forward slash.
     private static String separator = FileSystems.getDefault().getSeparator();
     private static String privatePath = "config" + separator;
     public static String path = "config" + separator + "PixelUpgrade" + separator;
@@ -103,8 +97,8 @@ public class PixelUpgrade
     public static String shortenedHP;
     public static String shortenedAttack;
     public static String shortenedDefense;
-    public static String shortenedSpAtt;
-    public static String shortenedSpDef;
+    public static String shortenedSpecialAttack;
+    public static String shortenedSpecialDefense;
     public static String shortenedSpeed;
 
     // Create the config paths.
@@ -156,17 +150,6 @@ public class PixelUpgrade
     public static ConfigurationLoader<CommentedConfigurationNode> upgradeIVsLoader =
             HoconConfigurationLoader.builder().setPath(upgradeIVsPath).build();
 
-    @Listener // Needed for economy support.
-    public void onChangeServiceProvider(ChangeServiceProviderEvent event)
-    {
-        if (event.getService().equals(EconomyService.class))
-            economyService = (EconomyService) event.getNewProviderRegistration().getProvider();
-    }
-
-    //@Listener // Needed for the reload command.
-    //public void shareInstance(GameConstructionEvent event)
-    //{ instance = this; }
-
     /*                       *\
          Utility commands.
     \*                       */
@@ -197,7 +180,7 @@ public class PixelUpgrade
 
     private CommandSpec checkstats = CommandSpec.builder()
             .permission("pixelupgrade.command.checkstats")
-            .executor(new CheckStats(this))
+            .executor(new CheckStats())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("target or slot"))),
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
@@ -206,7 +189,7 @@ public class PixelUpgrade
 
     private CommandSpec checktypes = CommandSpec.builder()
             .permission("pixelupgrade.command.checktypes")
-            .executor(new CheckTypes(this))
+            .executor(new CheckTypes())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("pokemon"))),
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
@@ -214,7 +197,7 @@ public class PixelUpgrade
 
     private CommandSpec dittofusion = CommandSpec.builder()
             .permission("pixelupgrade.command.dittofusion")
-            .executor(new DittoFusion(this))
+            .executor(new DittoFusion())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("target slot"))),
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("sacrifice slot"))),
@@ -223,7 +206,7 @@ public class PixelUpgrade
 
     private CommandSpec fixevs = CommandSpec.builder()
             .permission("pixelupgrade.command.fixevs")
-            .executor(new FixEVs(this))
+            .executor(new FixEVs())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
@@ -231,7 +214,7 @@ public class PixelUpgrade
 
     private CommandSpec fixlevel = CommandSpec.builder()
             .permission("pixelupgrade.command.fixlevel")
-            .executor(new FixLevel(this))
+            .executor(new FixLevel())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
@@ -266,7 +249,7 @@ public class PixelUpgrade
 
     private CommandSpec resetevs = CommandSpec.builder()
             .permission("pixelupgrade.command.resetevs")
-            .executor(new ResetEVs(this))
+            .executor(new ResetEVs())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
@@ -274,7 +257,7 @@ public class PixelUpgrade
 
     private CommandSpec switchgender = CommandSpec.builder()
             .permission("pixelupgrade.command.switchgender")
-            .executor(new SwitchGender(this))
+            .executor(new SwitchGender())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
@@ -282,7 +265,7 @@ public class PixelUpgrade
 
     private CommandSpec showstats = CommandSpec.builder()
             .permission("pixelupgrade.command.showstats")
-            .executor(new ShowStats(this))
+            .executor(new ShowStats())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
@@ -290,7 +273,7 @@ public class PixelUpgrade
 
     private CommandSpec upgradeivs = CommandSpec.builder()
             .permission("pixelupgrade.command.upgradeivs")
-            .executor(new UpgradeIVs(this))
+            .executor(new UpgradeIVs())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("stat"))),
@@ -301,6 +284,18 @@ public class PixelUpgrade
     @Listener
     public void onPreInitializationEvent(GamePreInitializationEvent event)
     {
+        if (Loader.isModLoaded("TotalEconomy") || Loader.isModLoaded("EconomyLite"))
+        {
+            log.info("§aFound an economy plugin. Checking...");
+
+            if (Loader.isModLoaded("TotalEconomy"))
+                log.info("§aTotalEconomy reported.");
+            if (Loader.isModLoaded("EconomyLite"))
+                log.info("§aEconomyLite reported.");
+        }
+        else
+            log.info("§eCould not find an economy plugin.");
+
         // Create a config directory if it doesn't exist. Silently catch an error if it does. I/O is awkward.
         try
         {
@@ -312,13 +307,13 @@ public class PixelUpgrade
         // Load up the primary config and the info command config, and figure out the info alias.
         // We start printing stuff, here. If any warnings/errors pop up they'll be shown here.
         // Note: We run an overloaded method for the primary config. That's why it knows where to go.
-        pLog.info("===========================================================================");
-        pLog.info("--> §aLoading global settings and §2/pixelupgrade§a command listing...");
+        shortLog.info("===========================================================================");
+        shortLog.info("--> §aLoading global settings and §2/pixelupgrade§a command listing...");
         ConfigOperations.getInstance().setupConfig(primaryConfigPath, privatePath, primaryConfigLoader);
         String puInfoAlias = PixelUpgradeInfoConfig.getInstance().setupConfig(puInfoPath, path, puInfoLoader);
 
         // Register other aliases and get some configs. Similar to the above, any errors/warnings will be printed.
-        pLog.info("--> §aLoading command-specific configs...");
+        shortLog.info("--> §aLoading command-specific configs...");
         String checkEggAlias = ConfigOperations.getInstance().setupConfig(
                 "CheckEgg", "egg", checkEggPath, path, checkEggLoader);
         String checkStatsAlias = ConfigOperations.getInstance().setupConfig(
@@ -346,8 +341,8 @@ public class PixelUpgrade
         String upgradeIVsAlias = ConfigOperations.getInstance().setupConfig(
                 "UpgradeIVs", "upgrade", upgradeIVsPath, path, upgradeIVsLoader);
 
-        ConfigOperations.getInstance().updateConfigs("PixelUpgrade");
-        ConfigOperations.getInstance().updateConfigs("CheckEgg");
+        ConfigOperations.getInstance().loadConfig("PixelUpgrade");
+        ConfigOperations.getInstance().loadConfig("CheckEgg");
 
         // Do some sanity checking on the sidemod-wide debug logger.
         if (debugLevel == null || debugLevel < 0 || debugLevel > 2)
@@ -490,22 +485,22 @@ public class PixelUpgrade
 
         // Print the formatted commands + aliases.
         int listSize = commandList.size();
-        pLog.info("--> §aSuccessfully registered a bunch of commands! See below.");
+        shortLog.info("--> §aSuccessfully registered a bunch of commands! See below.");
 
         for (int q = 1; q < listSize + 1; q++)
         {
             printableList.append(commandList.get(q - 1));
 
             if (q == listSize) // Are we on the last entry of the list? Exit.
-                pLog.info("    " + printableList);
+                shortLog.info("    " + printableList);
             else if (q % 3 == 0) // Is the loop number a multiple of 3? If so, we have three commands stocked up. Print!
             {
-                pLog.info("    " + printableList);
+                shortLog.info("    " + printableList);
                 printableList.setLength(0); // Wipe the list so we can re-use it for the next three commands.
             }
         }
 
-        pLog.info("===========================================================================");
+        shortLog.info("===========================================================================");
 
         // And finally, register the aliases we grabbed earlier.
         Sponge.getCommandManager().register(this, checkegg, "checkegg", "eggcheck", checkEggAlias);

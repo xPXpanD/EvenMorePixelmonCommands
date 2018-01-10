@@ -2,15 +2,17 @@
 Released ???
 
    * Fixed missing spaces in front of the pipes when showing EVs in /checkstats.
-   * Reworked the internal config loader, reducing filesize and maybe increasing performance a bit.
-   * Removed the CONFIG VERSION comment from the command configs. Your configs will still work.
-   * Config variable errors are logged more precisely.
+   * Made the /checkstats messages referring to /checkegg a bit more... professional.
    * Fixed a few wrong mentions of the debug logger.
+   * Redid the internal config loader, reducing filesize and making things much easier to maintain.
+   * Config variable errors are now logged more precisely.
+   * Edited several configs to be a bit clearer, and removed per-config versions. Old configs still work.
 
 3.0.0 for 6.0.0
 Released December 28, 2017.
 
    * Added /showstats
+   * Added version info to all the command configs, showing when the config was made.
    * Moved debug logger to the main config, simplified it a little.
    * Re-enabled numLinesPerPage.
    * Fixed several formatting issues and reworded a few things.

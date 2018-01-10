@@ -210,7 +210,7 @@ public class ReloadConfigs implements CommandExecutor
                         PixelUpgradeMainConfig.getInstance().setupConfig(PixelUpgrade.primaryConfigPath,
                                 PixelUpgrade.primaryConfigLoader);
 
-                        ConfigOperations.getInstance().updateConfigs("PixelUpgrade");
+                        ConfigOperations.getInstance().loadConfig("PixelUpgrade");
 
                         pLog.info("§aReloaded global config.");
                         break;
@@ -226,7 +226,7 @@ public class ReloadConfigs implements CommandExecutor
                         commandAlias = ConfigOperations.getInstance().setupConfig("CheckEgg",
                                 "egg", checkEggPath, path, checkEggLoader);
 
-                        ConfigOperations.getInstance().updateConfigs("CheckEgg");
+                        ConfigOperations.getInstance().loadConfig("CheckEgg");
 
                         pLog.info("§aReloaded config for command §2/checkegg§a, alias §2/" + commandAlias + "§a.");
                         break;

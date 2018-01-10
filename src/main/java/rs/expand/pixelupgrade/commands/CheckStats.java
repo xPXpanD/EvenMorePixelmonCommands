@@ -14,7 +14,6 @@ import java.util.regex.Pattern;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-import org.apache.commons.lang3.ObjectUtils;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -27,7 +26,7 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
-import rs.expand.pixelupgrade.PixelUpgrade;
+import rs.expand.pixelupgrade.utilities.CommonMethods;
 import rs.expand.pixelupgrade.utilities.GetPokemonInfo;
 import static rs.expand.pixelupgrade.commands.DittoFusion.*;
 import static rs.expand.pixelupgrade.commands.UpgradeIVs.*;
@@ -36,7 +35,7 @@ import static rs.expand.pixelupgrade.PixelUpgrade.*;
 public class CheckStats implements CommandExecutor
 {
     // Initialize some variables. We'll load stuff into these when we call the config loader.
-    // Other config variables are loaded in from their respective class. Check the imports.
+    // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
     public static Boolean showTeamWhenSlotEmpty;
     public static Boolean showEVs;
@@ -46,81 +45,121 @@ public class CheckStats implements CommandExecutor
     public static Boolean enableCheckEggIntegration;
     public static Integer commandCost;
 
+    // Set up some more variables for internal use.
+    private boolean gotUpgradeError = false;
+    private boolean gotFusionError = false;
+
+    // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
+    private void printToLog (int debugNum, String inputString)
+    { CommonMethods.doPrint("CheckStats", debugNum, inputString); }
+
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
     {
         if (src instanceof Player)
         {
-            boolean canContinue = false;
-            boolean presenceCheck = true, fusionCheck = true, upgradeCheck = true, mainConfigCheck = true;
+            // Validate the data we get from the command's main config.
+            ArrayList<String> nativeErrorArray = new ArrayList<>();
+            if (commandAlias == null)
+                nativeErrorArray.add("commandAlias");
+            if (showTeamWhenSlotEmpty == null)
+                nativeErrorArray.add("showTeamWhenSlotEmpty");
+            if (showEVs == null)
+                nativeErrorArray.add("showEVs");
+            if (showFixEVsHelper == null)
+                nativeErrorArray.add("showFixEVsHelper");
+            if (showUpgradeHelper == null)
+                nativeErrorArray.add("showUpgradeHelper");
+            if (showDittoFusionHelper == null)
+                nativeErrorArray.add("showDittoFusionHelper");
+            if (enableCheckEggIntegration == null)
+                nativeErrorArray.add("enableCheckEggIntegration");
+            if (commandCost == null)
+                nativeErrorArray.add("commandCost");
 
-            if (!ObjectUtils.allNotNull(regularFusionCap, shinyFusionCap))
-                fusionCheck = false;
-            if (!ObjectUtils.allNotNull(legendaryShinyUpgradeCap, legendaryUpgradeCap, regularUpgradeCap, shinyUpgradeCap, babyUpgradeCap))
-                upgradeCheck = false;
-            if (!ObjectUtils.allNotNull(shortenedHP, shortenedAttack, shortenedDefense, shortenedSpAtt, shortenedSpDef, shortenedSpeed))
-                mainConfigCheck = false;
-            if (!ObjectUtils.allNotNull(enableCheckEggIntegration, showTeamWhenSlotEmpty, commandCost, showEVs))
-                presenceCheck = false;
-            else if (!ObjectUtils.allNotNull(showFixEVsHelper, showUpgradeHelper, showDittoFusionHelper))
-                presenceCheck = false;
+            // Also get some stuff from PixelUpgrade.conf.
+            ArrayList<String> mainConfigErrorArray = new ArrayList<>();
+            if (shortenedHP == null)
+                mainConfigErrorArray.add("shortenedHP");
+            if (shortenedAttack == null)
+                mainConfigErrorArray.add("shortenedAttack");
+            if (shortenedDefense == null)
+                mainConfigErrorArray.add("shortenedDefense");
+            if (shortenedSpecialAttack == null)
+                mainConfigErrorArray.add("shortenedSpecialAttack");
+            if (shortenedSpecialDefense == null)
+                mainConfigErrorArray.add("shortenedSpecialDefense");
+            if (shortenedSpeed == null)
+                mainConfigErrorArray.add("shortenedSpeed");
 
-            if (!presenceCheck || commandAlias == null)
+            if (!nativeErrorArray.isEmpty())
             {
-                // Specific errors are already called earlier on -- this is tacked on to the end.
+                CommonMethods.printNodeError("CheckStats", nativeErrorArray, 1);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("§4CheckStats // critical: §cCheck your config. If need be, wipe and §4/pureload§c.");
             }
-            else if (!mainConfigCheck)
+            else if (!mainConfigErrorArray.isEmpty())
             {
-                // Same as above.
+                CommonMethods.printNodeError("PixelUpgrade", mainConfigErrorArray, 0);
                 src.sendMessage(Text.of("§4Error: §cCould not parse main config. Please report to staff."));
-                printToLog(0, "Please check (or wipe and /pureload) your PixelUpgrade.conf file.");
-            }
-            else if (!fusionCheck || !upgradeCheck)
-            { // These errors are shown after the config checker method's errors.
-                if (!fusionCheck && upgradeCheck && showDittoFusionHelper)
-                {
-                    printToLog(0, "Ditto Fusion integration has been disabled! Continuing.");
-                    showDittoFusionHelper = false;
-                }
-                else if (fusionCheck && showUpgradeHelper)
-                {
-                    printToLog(0, "Upgrade integration has been disabled! Continuing.");
-                    showUpgradeHelper = false;
-                }
-                else
-                {
-                    printToLog(0, "Integration for both commands has been disabled! Continuing.");
-                    showDittoFusionHelper = false;
-                    showUpgradeHelper = false;
-                }
-
-                printToLog(0, "If need be, remove the file and §4/pureload§c.");
-                canContinue = true;
             }
             else
-                canContinue = true;
-
-            if (canContinue)
             {
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
+                boolean canContinue = false, gotCheckEggError = false;
 
-                String checkEggAlias = CheckEgg.commandAlias;
-                if (checkEggAlias == null) // Shown after the config checker method's own errors.
+                if (showDittoFusionHelper || showUpgradeHelper)
                 {
-                    printToLog(0, "We'll fall back to showing \"/checkegg\" as the alias, for now...");
-                    checkEggAlias = "checkegg"; // Forward slash is added later.
+                    ArrayList<String> upgradeErrorArray = new ArrayList<>(), fusionErrorArray = new ArrayList<>();
+                    if (showDittoFusionHelper)
+                    {
+                        printToLog(2, "Entering DittoFusion config loading. Errors will be logged.");
+
+                        if (DittoFusion.regularCap == null)
+                            fusionErrorArray.add("regularCap");
+                        if (DittoFusion.shinyCap == null)
+                            fusionErrorArray.add("shinyCap");
+
+                        CommonMethods.printPartialNodeError("CheckStats", "DittoFusion", fusionErrorArray);
+                    }
+
+                    if (showUpgradeHelper)
+                    {
+                        printToLog(2, "Entering UpgradeIVs config loading. Errors will be logged.");
+
+                        if (UpgradeIVs.legendaryAndShinyCap == null)
+                            upgradeErrorArray.add("legendaryAndShinyCap");
+                        if (UpgradeIVs.legendaryCap == null)
+                            upgradeErrorArray.add("legendaryCap");
+                        if (UpgradeIVs.regularCap == null)
+                            upgradeErrorArray.add("regularCap");
+                        if (UpgradeIVs.shinyCap == null)
+                            upgradeErrorArray.add("shinyCap");
+                        if (UpgradeIVs.babyCap == null)
+                            upgradeErrorArray.add("babyCap");
+
+                        CommonMethods.printPartialNodeError("CheckStats", "UpgradeIVs", upgradeErrorArray);
+                    }
+
+                    if (!fusionErrorArray.isEmpty() || !upgradeErrorArray.isEmpty())
+                    {
+                        printToLog(0, "Found invalid variables in the remote config(s). Disabling integration.");
+
+                        // Set up our "got an error" flags. Reset to false if we didn't, so we don't cause issues later.
+                        gotFusionError = !fusionErrorArray.isEmpty();
+                        gotUpgradeError = !upgradeErrorArray.isEmpty();
+                    }
+                }
+
+                if (enableCheckEggIntegration && CheckEgg.commandAlias == null)
+                {
+                    printToLog(0, "Could not read alias for command \"/checkegg\". Disabling integration.");
+                    gotCheckEggError = true;
                 }
 
                 int slot = 0;
                 String targetString = null, slotString;
                 boolean targetAcquired = false, commandConfirmed = false, hasOtherPerm = false;
                 Player player = (Player) src, target = player;
-
-                // We reset this here since we used it above. It's a bit different from the other commands, but hey.
-                // If we get a valid input, we'll set this to "true" again so we can execute the main body of code.
-                canContinue = false;
 
                 if (src.hasPermission("pixelupgrade.command.other.checkstats"))
                     hasOtherPerm = true;
@@ -330,15 +369,16 @@ public class CheckStats implements CommandExecutor
                                 src.sendMessage(Text.of("§4Error: §cThere's no Pokémon in that slot!"));
                             }
                         }
-                        else if (nbt.getBoolean("isEgg") && enableCheckEggIntegration)
+                        else if (nbt.getBoolean("isEgg") && enableCheckEggIntegration && !gotCheckEggError)
                         {
                             printToLog(1, "Found an egg, recommended /checkegg's alias as per config. Exit.");
-                            player.sendMessage(Text.of("§4Error: §cI cannot see into an egg. Check out §4/" + checkEggAlias + "§c."));
+                            player.sendMessage(Text.of("§4Error: §cThis command only checks hatched Pokémon. Check out §4/" +
+                                    CheckEgg.commandAlias + "§c."));
                         }
                         else if (nbt.getBoolean("isEgg"))
                         {
                             printToLog(1, "Found an egg. Printed error instead of recommending /checkegg, as per config.");
-                            player.sendMessage(Text.of("§4Error: §cSorry, but I cannot reveal what is inside an egg."));
+                            player.sendMessage(Text.of("§4Error: §cYou can only check hatched Pokémon."));
                         }
                         else if (commandCost > 0)
                         {
@@ -400,7 +440,7 @@ public class CheckStats implements CommandExecutor
             }
         }
         else
-            PixelUpgrade.log.info("§cThis command cannot run from the console or command blocks.");
+            CommonMethods.showConsoleError("/checkstats");
 
         return CommandResult.success();
 	}
@@ -456,19 +496,6 @@ public class CheckStats implements CommandExecutor
         checkAndAddFooter(cost, player);
     }
 
-    private void printToLog(int debugNum, String inputString)
-    {
-        if (debugNum <= debugLevel)
-        {
-            if (debugNum == 0)
-                PixelUpgrade.log.info("§4CheckStats // critical: §c" + inputString);
-            else if (debugNum == 1)
-                PixelUpgrade.log.info("§3CheckStats // notice: §b" + inputString);
-            else
-                PixelUpgrade.log.info("§2CheckStats // debug: §a" + inputString);
-        }
-    }
-
     private void checkAndShow(NBTTagCompound nbt, boolean targetAcquired, Player player, Player target)
     {
         // Set up IVs and matching math.
@@ -495,7 +522,7 @@ public class CheckStats implements CommandExecutor
 
         // Get a bunch of data from our GetPokemonInfo utility class. Used for messages, later on.
         ArrayList<String> natureArray = GetPokemonInfo.getNatureStrings(nbt.getInteger(NbtKeys.NATURE),
-                shortenedSpAtt, shortenedSpDef, shortenedSpeed);
+                shortenedSpecialAttack, shortenedSpecialDefense, shortenedSpeed);
         String natureName = natureArray.get(0);
         String plusVal = natureArray.get(1);
         String minusVal = natureArray.get(2);
@@ -519,14 +546,14 @@ public class CheckStats implements CommandExecutor
             ivs3 = String.valueOf("§l" + defenseIV + " §2" + shortenedDefense + " §r§f|§a ");
 
         if (spAttIV < 31)
-            ivs4 = String.valueOf(spAttIV + " §2" + shortenedSpAtt + " §f|§a ");
+            ivs4 = String.valueOf(spAttIV + " §2" + shortenedSpecialAttack + " §f|§a ");
         else
-            ivs4 = String.valueOf("§l" + spAttIV + " §2" + shortenedSpAtt + " §r§f|§a ");
+            ivs4 = String.valueOf("§l" + spAttIV + " §2" + shortenedSpecialAttack + " §r§f|§a ");
 
         if (spDefIV < 31)
-            ivs5 = String.valueOf(spDefIV + " §2" + shortenedSpDef + " §f|§a ");
+            ivs5 = String.valueOf(spDefIV + " §2" + shortenedSpecialDefense + " §f|§a ");
         else
-            ivs5 = String.valueOf("§l" + spDefIV + " §2" + shortenedSpDef + " §r§f|§a ");
+            ivs5 = String.valueOf("§l" + spDefIV + " §2" + shortenedSpecialDefense + " §r§f|§a ");
 
         if (speedIV < 31)
             ivs6 = String.valueOf(speedIV + " §2" + shortenedSpeed + "");
@@ -556,18 +583,18 @@ public class CheckStats implements CommandExecutor
             evs3 = String.valueOf(defenceEV + " §2" + shortenedDefense + " §f|§a ");
 
         if (spAttEV > 255 || spAttEV == 252)
-            evs4 = String.valueOf("§l" + spAttEV + " §2" + shortenedSpAtt + " §r§f|§a ");
+            evs4 = String.valueOf("§l" + spAttEV + " §2" + shortenedSpecialAttack + " §r§f|§a ");
         else if (spAttEV > 252 && showFixEVsHelper)
-            evs4 = String.valueOf("§c" + spAttEV + " §4" + shortenedSpAtt + " §f|§a ");
+            evs4 = String.valueOf("§c" + spAttEV + " §4" + shortenedSpecialAttack + " §f|§a ");
         else
-            evs4 = String.valueOf(spAttEV + " §2" + shortenedSpAtt + " §f|§a ");
+            evs4 = String.valueOf(spAttEV + " §2" + shortenedSpecialAttack + " §f|§a ");
 
         if (spDefEV > 255 || spDefEV == 252)
-            evs5 = String.valueOf("§l" + spDefEV + " §2" + shortenedSpDef + " §r§f|§a ");
+            evs5 = String.valueOf("§l" + spDefEV + " §2" + shortenedSpecialDefense + " §r§f|§a ");
         else if (spDefEV > 252 && showFixEVsHelper)
-            evs5 = String.valueOf("§c" + spDefEV + " §4" + shortenedSpDef + " §f|§a ");
+            evs5 = String.valueOf("§c" + spDefEV + " §4" + shortenedSpecialDefense + " §f|§a ");
         else
-            evs5 = String.valueOf(spDefEV + " §2" + shortenedSpDef + " §f|§a ");
+            evs5 = String.valueOf(spDefEV + " §2" + shortenedSpecialDefense + " §f|§a ");
 
         if (speedEV > 255 || speedEV == 252)
             evs6 = String.valueOf("§l" + speedEV + " §2" + shortenedSpeed);
@@ -617,7 +644,7 @@ public class CheckStats implements CommandExecutor
         // Check and show whether the Pokémon can be upgraded/fused further, if enabled in config.
         boolean showedCapMessage = false;
         boolean isDitto = nbt.getString("Name").equals("Ditto");
-        if (showDittoFusionHelper && isDitto || showUpgradeHelper && !isDitto)
+        if (isDitto && showDittoFusionHelper && !gotFusionError || !isDitto && showUpgradeHelper && !gotUpgradeError)
         {
             EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
             boolean isShiny = nbt.getInteger(NbtKeys.IS_SHINY) == 1;
@@ -631,10 +658,10 @@ public class CheckStats implements CommandExecutor
                 if (isShiny)
                 {
                     startString = "§eThis §6shiny Ditto §e"; // Adjust for shinyness!
-                    fusionCap = shinyFusionCap; // Shiny cap.
+                    fusionCap = DittoFusion.shinyCap; // Shiny cap.
                 }
                 else
-                    fusionCap = regularFusionCap; // Regular cap.
+                    fusionCap = DittoFusion.regularCap; // Regular cap.
 
                 if (fuseCount != 0 && fuseCount < fusionCap)
                     player.sendMessage(Text.of(startString + "has been fused §6" + fuseCount + "§e/§6" + fusionCap + " §etimes."));
@@ -656,27 +683,27 @@ public class CheckStats implements CommandExecutor
                 if (isShiny && isLegendary)
                 {
                     startString = "§eThis §6shiny legendary §e";
-                    upgradeCap = legendaryShinyUpgradeCap; // Legendary + shiny cap.
+                    upgradeCap = UpgradeIVs.legendaryAndShinyCap; // Legendary + shiny cap.
                 }
                 else if (isShiny)
                 {
                     startString = "§eThis §6shiny Pokémon §e";
-                    upgradeCap = shinyUpgradeCap; // Shiny cap.
+                    upgradeCap = UpgradeIVs.shinyCap; // Shiny cap.
                 }
                 else if (isLegendary)
                 {
                     startString = "§eThis §6legendary Pokémon §e";
-                    upgradeCap = legendaryUpgradeCap; // Legendary cap.
+                    upgradeCap = UpgradeIVs.legendaryCap; // Legendary cap.
                 }
                 else if (isBaby)
                 {
                     startString = "§eThis §6baby Pokémon §e";
-                    upgradeCap = babyUpgradeCap; // Baby cap.
+                    upgradeCap = UpgradeIVs.babyCap; // Baby cap.
                 }
                 else
                 {
                     startString = "§eThis §6Pokémon §e";
-                    upgradeCap = regularUpgradeCap; // Regular cap.
+                    upgradeCap = UpgradeIVs.regularCap; // Regular cap.
                 }
 
                 if (upgradeCount != 0 && upgradeCount < upgradeCap)
