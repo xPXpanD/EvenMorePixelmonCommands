@@ -1,52 +1,44 @@
 package rs.expand.pixelupgrade.commands;
 
+// Remote imports.
 import com.pixelmonmod.pixelmon.config.PixelmonEntityList;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
-
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
-
-import rs.expand.pixelupgrade.configs.ResetCountConfig;
-import rs.expand.pixelupgrade.PixelUpgrade;
-
 import java.util.Optional;
 
-import static rs.expand.pixelupgrade.PixelUpgrade.debugLevel;
+// Local imports.
+import rs.expand.pixelupgrade.utilities.CommonMethods;
 
 public class ResetCount implements CommandExecutor
 {
-    private static String alias = null;
-    private void getCommandAlias()
-    {
-        if (!ResetCountConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
-            alias = "/" + ResetCountConfig.getInstance().getConfig().getNode("commandAlias").getString();
-        else
-            PixelUpgrade.log.info("§4ResetCount // critical: §cConfig variable \"commandAlias\" could not be found!");
-    }
-    
+    // Initialize a config variable. We'll load stuff into it when we call the config loader.
+    // Other config variables are loaded in from their respective classes. Check the imports.
+    public static String commandAlias;
+
+    // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
+    private void printToLog (int debugNum, String inputString)
+    { CommonMethods.doPrint("ResetCount", debugNum, inputString); }
+
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
     {
         if (src instanceof Player)
         {
-            // Set up the command's debug verbosity mode and preferred alias.
-            getCommandAlias();
-
-            if (alias == null)
+            if (commandAlias == null)
             {
-                // Specific errors are already called earlier on -- this is tacked on to the end.
-                src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("§4ResetEVs // critical: §cCheck your config. If need be, wipe and §4/pureload§c.");
+                printToLog(0, "Could not read node \"§4commandAlias§c\".");
+                printToLog(0, "This command's config could not be parsed. Exiting.");
+                src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please check the file."));
             }
             else
             {
@@ -180,7 +172,7 @@ public class ResetCount implements CommandExecutor
                                     src.sendMessage(Text.of("§6Warning: §eYou're about to reset all of this Pokémon's improvement counts!"));
                                 else
                                     src.sendMessage(Text.of("§6Warning: §eYou are about to reset this Pokémon's §6" + fixedCount + "§e count!"));
-                                src.sendMessage(Text.of("§2Ready? Type: §a" + alias + " " + slot + " -c"));
+                                src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " " + slot + " -c"));
                                 src.sendMessage(Text.of("§5-----------------------------------------------------"));
                             }
                         }
@@ -189,32 +181,19 @@ public class ResetCount implements CommandExecutor
             }
         }
         else
-            PixelUpgrade.log.info("§cThis command cannot run from the console or command blocks.");
+            CommonMethods.showConsoleError("/resetcount");
 
         return CommandResult.success();
     }
 
     private void addFooter(Player player)
     {
-        player.sendMessage(Text.of("§4Usage: §c" + alias + " <slot, 1-6> <count> {-c to confirm}"));
+        player.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <slot, 1-6> <count> {-c to confirm}"));
         player.sendMessage(Text.of(""));
         player.sendMessage(Text.of("§6Valid counts: §eUpgrade§6, §eFusion"));
         player.sendMessage(Text.of(""));
         player.sendMessage(Text.of("§5Warning: §dThe -c flag immediately wipes the chosen count!"));
         player.sendMessage(Text.of("§d(these counts are a Pokémon's upgrade/fusion totals)"));
         player.sendMessage(Text.of("§5-----------------------------------------------------"));
-    }
-
-    private void printToLog(int debugNum, String inputString)
-    {
-        if (debugNum <= debugLevel)
-        {
-            if (debugNum == 0)
-                PixelUpgrade.log.info("§4ResetCount // critical: §c" + inputString);
-            else if (debugNum == 1)
-                PixelUpgrade.log.info("§3ResetCount // notice: §b" + inputString);
-            else
-                PixelUpgrade.log.info("§2ResetCount // debug: §a" + inputString);
-        }
     }
 }

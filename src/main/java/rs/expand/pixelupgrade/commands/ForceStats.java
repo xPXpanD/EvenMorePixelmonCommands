@@ -26,7 +26,7 @@ public class ForceStats implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.doPrint("ForceHatch", debugNum, inputString); }
+    { CommonMethods.doPrint("ForceStats", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)

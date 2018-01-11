@@ -1,10 +1,8 @@
 package rs.expand.pixelupgrade.commands;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
+// Remote imports.
 import java.util.ArrayList;
 import java.util.List;
-
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
@@ -14,8 +12,8 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.format.TextColors;
 
-import rs.expand.pixelupgrade.PixelUpgrade;
-import rs.expand.pixelupgrade.configs.*;
+// Local imports.
+import rs.expand.pixelupgrade.utilities.CommonMethods;
 
 // Command format helper! Use this format if you want to add your own stuff.
 // [] = optional, {} = flag, <> = required, () = add comment here
@@ -23,355 +21,319 @@ import rs.expand.pixelupgrade.configs.*;
 
 public class PixelUpgradeInfo implements CommandExecutor
 {
+    // Initialize some variables. We'll load stuff into these when we call the config loader.
+    // Other config variables are loaded in from their respective classes. Check the imports.
+    public static String commandAlias;
+    public static Integer numLinesPerPage;
+
+    // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
+    private void printDebug (String inputString)
+    { CommonMethods.doPrint("ForceHatch", 2, inputString); }
+
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
 	{
-	    // Figure out how many helper lines we'll show per page. Set to 0 (unreachable) on error, to be handled later.
-        // No need for this to be on a separate method, as we don't use the value outside of command execution.
-        int numLinesPerPage;
+	    // Validate the data we get from the command's main config.
+        ArrayList<String> nativeErrorArray = new ArrayList<>();
+        if (commandAlias == null)
+            nativeErrorArray.add("commandAlias");
+        if (numLinesPerPage == null)
+            nativeErrorArray.add("numLinesPerPage");
 
-        if (!PixelUpgradeInfoConfig.getInstance().getConfig().getNode("numLinesPerPage").isVirtual())
+        if (!nativeErrorArray.isEmpty() || numLinesPerPage <= 0)
         {
-            numLinesPerPage = PixelUpgradeInfoConfig.getInstance().getConfig().getNode("numLinesPerPage").getInt();
-
-            if (numLinesPerPage < 2 || numLinesPerPage > 50)
-            {
-                numLinesPerPage = 0; // Error!
-                PixelUpgrade.log.info("§4PUInfo // critical: §cInvalid value on config variable \"numLinesPerPage\"! Valid range: 2-50");
-            }
-        }
-        else
-        {
-            numLinesPerPage = 0; // Error!
-            PixelUpgrade.log.info("§4PUInfo // critical: §cConfig variable \"numLinesPerPage\" could not be found!");
-        }
-
-        if (numLinesPerPage == 0)
-        {
-            // Specific errors are already called earlier on -- this is tacked on to the end.
+            CommonMethods.printNodeError("PUInfo", nativeErrorArray, 1);
             src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
-            PixelUpgrade.log.info("§4PUInfo // critical: §cCheck your config. If need be, wipe and §4/pureload§c.");
         }
         else
         {
-            Player player = (Player) src;
             List<Text> permissionMessageList = new ArrayList<>();
-            String path = PixelUpgrade.path;
-            boolean hasNoPermission = true;
+            //String path = PixelUpgrade.path;
+            boolean hasNoPermission = true, usedFromConsole = false;
 
-            Boolean permCheckEgg = player.hasPermission("pixelupgrade.command.checkegg");
-            Boolean permCheckEggOther = player.hasPermission("pixelupgrade.command.other.checkegg");
-            Boolean permCheckStats = player.hasPermission("pixelupgrade.command.checkstats");
-            Boolean permCheckStatsOther = player.hasPermission("pixelupgrade.command.other.checkstats");
-            Boolean permCheckTypes = player.hasPermission("pixelupgrade.command.checktypes");
-            Boolean permDittoFusion = player.hasPermission("pixelupgrade.command.dittofusion");
-            Boolean permFixEVs = player.hasPermission("pixelupgrade.command.fixevs");
-            Boolean permFixLevel = player.hasPermission("pixelupgrade.command.fixlevel");
-            Boolean permAdminForceHatch = player.hasPermission("pixelupgrade.command.staff.forcehatch");
-            Boolean permAdminForceStats = player.hasPermission("pixelupgrade.command.staff.forcestats");
-            Boolean permReloadConfig = player.hasPermission("pixelupgrade.command.staff.reload");
-            Boolean permResetCount = player.hasPermission("pixelupgrade.command.staff.resetcount");
-            Boolean permResetEVs = player.hasPermission("pixelupgrade.command.resetevs");
-            Boolean permSwitchGender = player.hasPermission("pixelupgrade.command.switchgender");
-            Boolean permShowStats = player.hasPermission("pixelupgrade.command.showstats");
-            Boolean permUpgradeIVs = player.hasPermission("pixelupgrade.command.upgradeivs");
+            boolean permCheckEgg = false, permCheckEggOther = false, permCheckStats = false, permCheckStatsOther = false;
+            boolean permCheckTypes = false, permDittoFusion = false, permFixEVs = false, permFixLevel = false;
+            boolean permForceHatch = false, permForceStats = false, permReloadConfig = false, permResetCount = false;
+            boolean permResetEVs = false, permSwitchGender = false, permShowStats = false, permUpgradeIVs = false;
 
-            if (permCheckEgg)
+            if (src instanceof Player)
             {
-                Integer commandCost = getConfigInt("CheckEgg");
+                Player player = (Player) src;
 
-                if (Files.exists(Paths.get(path + "CheckEgg.conf")))
+                permCheckEgg = player.hasPermission("pixelupgrade.command.checkegg");
+                permCheckEggOther = player.hasPermission("pixelupgrade.command.other.checkegg");
+                permCheckStats = player.hasPermission("pixelupgrade.command.checkstats");
+                permCheckStatsOther = player.hasPermission("pixelupgrade.command.other.checkstats");
+                permCheckTypes = player.hasPermission("pixelupgrade.command.checktypes");
+                permDittoFusion = player.hasPermission("pixelupgrade.command.dittofusion");
+                permFixEVs = player.hasPermission("pixelupgrade.command.fixevs");
+                permFixLevel = player.hasPermission("pixelupgrade.command.fixlevel");
+                permForceHatch = player.hasPermission("pixelupgrade.command.staff.forcehatch");
+                permForceStats = player.hasPermission("pixelupgrade.command.staff.forcestats");
+                permReloadConfig = player.hasPermission("pixelupgrade.command.staff.reload");
+                permResetCount = player.hasPermission("pixelupgrade.command.staff.resetcount");
+                permResetEVs = player.hasPermission("pixelupgrade.command.resetevs");
+                permSwitchGender = player.hasPermission("pixelupgrade.command.switchgender");
+                permShowStats = player.hasPermission("pixelupgrade.command.showstats");
+                permUpgradeIVs = player.hasPermission("pixelupgrade.command.upgradeivs");
+            }
+            else
+                usedFromConsole = true;
+
+            if (usedFromConsole || permCheckEgg)
+            {
+                printDebug("§2/checkegg §apermission found, trying to add helpers to list.");
+
+                if (CheckEgg.commandCost != null && CheckEgg.commandAlias != null)
                 {
-                    if (commandCost != null && CheckEgg.commandAlias != null)
-                    {
-                        String alias = CheckEgg.commandAlias;
-                        printDebug("§2/checkegg §apermission found, adding helper to list.");
+                    printDebug("Valid config found. Printing helpers for this command!");
 
-                        if (commandCost > 0)
-                        {
-                            if (permCheckEggOther)
-                                permissionMessageList.add(Text.of("§6/" + alias + " [optional target] <slot> {confirm flag}"));
-                            else
-                                permissionMessageList.add(Text.of("§6/" + alias + " <slot> {confirm flag} §7(no perms for target)"));
-                        }
+                    if (CheckEgg.commandCost > 0)
+                    {
+                        if (usedFromConsole || permCheckEggOther)
+                            permissionMessageList.add(Text.of("§6/" + CheckEgg.commandAlias +
+                                    " [optional target] <slot> {confirm flag}"));
                         else
-                        {
-                            if (permCheckEggOther)
-                                permissionMessageList.add(Text.of("§6/" + alias + " [optional target] <slot>"));
-                            else
-                                permissionMessageList.add(Text.of("§6/" + alias + " <slot> §7(no perms for target)"));
-                        }
-
-                        permissionMessageList.add(Text.of("§f --> §eCheck an egg to see what's inside."));
-                        hasNoPermission = false;
+                            permissionMessageList.add(Text.of("§6/" + CheckEgg.commandAlias +
+                                    " <slot> {confirm flag} §7(no perms for target)"));
                     }
-                    else printMalformedError("/checkegg");
-                }
-                else printMalformedError("/checkegg");
-            }
-
-            if (permCheckStats)
-            {
-                Integer commandCost = getConfigInt("CheckStats");
-
-                if (Files.exists(Paths.get(path + "CheckStats.conf")))
-                {
-                    if (commandCost != null && CheckStatsConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
+                    else
                     {
-                        String alias = CheckStatsConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printDebug("§2/checkstats §apermission found, adding helper to list.");
-
-                        if (commandCost > 0)
-                        {
-                            if (permCheckStatsOther)
-                                permissionMessageList.add(Text.of("§6/" + alias + " [optional target] <slot> {confirm flag}"));
-                            else
-                                permissionMessageList.add(Text.of("§6/" + alias + " <slot> {confirm flag} §7(no perms for target)"));
-                        }
+                        if (usedFromConsole || permCheckEggOther)
+                            permissionMessageList.add(Text.of("§6/" + CheckEgg.commandAlias +
+                                    " [optional target] <slot>"));
                         else
-                        {
-                            if (permCheckStatsOther)
-                                permissionMessageList.add(Text.of("§6/" + alias + " [optional target] <slot>"));
-                            else
-                                permissionMessageList.add(Text.of("§6/" + alias + " <slot> §7(no perms for target)"));
-                        }
-
-                        permissionMessageList.add(Text.of("§f --> §eLists a Pokémon's IVs, nature, size and more."));
-                        hasNoPermission = false;
+                            permissionMessageList.add(Text.of("§6/" + CheckEgg.commandAlias +
+                                    " <slot> §7(no perms for target)"));
                     }
-                    else printMalformedError("/checkstats");
+
+                    permissionMessageList.add(Text.of("§f --> §eCheck an egg to see what's inside."));
+                    hasNoPermission = false;
                 }
-                else printMalformedError("/checkstats");
+                else CommonMethods.printMalformedConfigError("/checkegg");
             }
 
-            if (permCheckTypes)
+            if (usedFromConsole || permCheckStats)
             {
-                Integer commandCost = getConfigInt("CheckTypes");
+                printDebug("§2/checkstats §apermission found, trying to add helpers to list.");
 
-                if (Files.exists(Paths.get(path + "CheckTypes.conf")))
+                if (CheckStats.commandCost != null && CheckStats.commandAlias != null)
                 {
-                    if (commandCost != null && CheckTypesConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
-                    {
-                        String alias = CheckTypesConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printDebug("§2/checktypes §apermission found, adding helper to list.");
+                    printDebug("Valid config found. Printing helpers for this command!");
 
-                        if (commandCost != 0)
-                            permissionMessageList.add(Text.of("§6/" + alias + " <Pokémon name/number> {confirm flag}"));
+                    if (CheckStats.commandCost > 0)
+                    {
+                        if (usedFromConsole || permCheckStatsOther)
+                            permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
+                                    " [optional target] <slot> {confirm flag}"));
                         else
-                            permissionMessageList.add(Text.of("§6/" + alias + " <Pokémon name/number>"));
-
-                        permissionMessageList.add(Text.of("§f --> §eSee any Pokémon's resistances, weaknesses and more."));
-                        hasNoPermission = false;
+                            permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
+                                    " <slot> {confirm flag} §7(no perms for target)"));
                     }
-                    else printMalformedError("/checktypes");
-                }
-                else printMalformedError("/checktypes");
-            }
-
-            if (permDittoFusion)
-            {
-                if (Files.exists(Paths.get(path + "DittoFusion.conf")))
-                {
-                    if (DittoFusionConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
+                    else
                     {
-                        String alias = DittoFusionConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printDebug("§2/dittofusion §apermission found, adding helper to list.");
-
-                        permissionMessageList.add(Text.of("§6/" + alias + " <target slot> <sacrifice slot> {confirm flag}"));
-                        permissionMessageList.add(Text.of("§f --> §eSacrifice one Ditto to improve another, for a price..."));
-                        hasNoPermission = false;
-                    }
-                    else printMalformedError("/dittofusion");
-                }
-                else printMalformedError("/dittofusion");
-            }
-
-            if (permFixEVs)
-            {
-                Integer commandCost = getConfigInt("FixEVs");
-
-                if (Files.exists(Paths.get(path + "FixEVs.conf")))
-                {
-                    if (commandCost != null && FixEVsConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
-                    {
-                        String alias = FixEVsConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printDebug("§2/fixevs §apermission found, adding helper to list.");
-
-                        if (commandCost != 0)
-                            permissionMessageList.add(Text.of("§6/" + alias + " <slot> {confirm flag}"));
+                        if (usedFromConsole || permCheckStatsOther)
+                            permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
+                                    " [optional target] <slot>"));
                         else
-                            permissionMessageList.add(Text.of("§6/" + alias + " <slot>"));
-
-                        permissionMessageList.add(Text.of("§f --> §eEVs above 252 are wasted. This will fix them!"));
-                        hasNoPermission = false;
+                            permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
+                                    " <slot> §7(no perms for target)"));
                     }
-                    else printMalformedError("/fixevs");
+
+                    permissionMessageList.add(Text.of("§f --> §eLists a Pokémon's IVs, nature, size and more."));
+                    hasNoPermission = false;
                 }
-                else printMalformedError("/fixevs");
+                else CommonMethods.printMalformedConfigError("/checkstats");
             }
 
-            if (permFixLevel)
+            if (usedFromConsole || permCheckTypes)
             {
-                Integer commandCost = getConfigInt("FixLevel");
+                printDebug("§2/checktypes §apermission found, trying to add helpers to list.");
 
-                if (Files.exists(Paths.get(path + "FixLevel.conf")))
+                if (CheckTypes.commandCost != null && CheckTypes.commandAlias != null)
                 {
-                    if (commandCost != null && FixLevelConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
-                    {
-                        String alias = FixLevelConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printDebug("§2/fixlevel §apermission found, adding helper to list.");
+                    printDebug("Valid config found. Printing helpers for this command!");
 
-                        permissionMessageList.add(Text.of("§6/" + alias + " <slot> {confirm flag}"));
-                        permissionMessageList.add(Text.of("§f --> §eWant to lower your level to get more EVs? Try this."));
-                        hasNoPermission = false;
-                    }
-                    else printMalformedError("/fixlevel");
+                    if (CheckTypes.commandCost != 0)
+                        permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
+                                " <Pokémon name/number> {confirm flag}"));
+                    else
+                        permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
+                                " <Pokémon name/number>"));
+
+                    permissionMessageList.add(Text.of("§f --> §eSee any Pokémon's resistances, weaknesses and more."));
+                    hasNoPermission = false;
                 }
-                else printMalformedError("/fixlevel");
+                else CommonMethods.printMalformedConfigError("/checktypes");
             }
 
-            if (permAdminForceHatch)
+            if (usedFromConsole || permDittoFusion)
             {
-                if (Files.exists(Paths.get(path + "ForceHatch.conf")))
+                printDebug("§2/dittofusion §apermission found, trying to add helpers to list.");
+
+                if (DittoFusion.commandAlias != null)
                 {
-                    if (ForceHatchConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
-                    {
-                        String alias = ForceHatchConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printDebug("§2/forcehatch §apermission found, adding helper to list.");
+                    printDebug("Valid config found. Printing helpers for this command!");
 
-                        permissionMessageList.add(Text.of("§6/" + alias + " [optional target] <slot>"));
-                        permissionMessageList.add(Text.of("§f --> §eHatch any eggs instantly. Supports remote players!"));
-                        hasNoPermission = false;
-                    }
-                    else printMalformedError("/forcehatch");
+                    permissionMessageList.add(Text.of("§6/" + DittoFusion.commandAlias +
+                            " <target slot> <sacrifice slot> {confirm flag}"));
+
+                    permissionMessageList.add(Text.of("§f --> §eSacrifice one Ditto to improve another, for a price..."));
+                    hasNoPermission = false;
                 }
-                else printMalformedError("/forcehatch");
+                else CommonMethods.printMalformedConfigError("/dittofusion");
             }
 
-            if (permAdminForceStats)
+            if (usedFromConsole || permFixEVs)
             {
-                if (Files.exists(Paths.get(path + "ForceStats.conf")))
+                printDebug("§2/fixevs §apermission found, trying to add helpers to list.");
+
+                if (FixEVs.commandCost != null && FixEVs.commandAlias != null)
                 {
-                    if (ForceStatsConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
-                    {
-                        String alias = ForceStatsConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printDebug("§2/forcestats §apermission found, adding helper to list.");
+                    printDebug("Valid config found. Printing helpers for this command!");
 
-                        permissionMessageList.add(Text.of("§6/" + alias + " <slot> <stat> <value> {force flag}"));
-                        permissionMessageList.add(Text.of("§f --> §eChange supported stats, or pass -f and go crazy."));
-                        hasNoPermission = false;
-                    }
-                    else printMalformedError("/forcestats");
+                    if (FixEVs.commandCost != 0)
+                        permissionMessageList.add(Text.of("§6/" + FixEVs.commandAlias + " <slot> {confirm flag}"));
+                    else
+                        permissionMessageList.add(Text.of("§6/" + FixEVs.commandAlias + " <slot>"));
+
+                    permissionMessageList.add(Text.of("§f --> §eEVs above 252 are wasted. This will fix them!"));
+                    hasNoPermission = false;
                 }
-                else printMalformedError("/forcestats");
+                else CommonMethods.printMalformedConfigError("/fixevs");
             }
 
-            if (permReloadConfig)
+            if (usedFromConsole || permFixLevel)
             {
-                printDebug("§2/pureload §apermission found, adding helper to list.");
+                printDebug("§2/fixlevel §apermission found, trying to add helpers to list.");
+
+                if (FixLevel.commandCost != null && FixLevel.commandAlias != null)
+                {
+                    printDebug("Valid config found. Printing helpers for this command!");
+
+                    permissionMessageList.add(Text.of("§6/" + FixLevel.commandAlias + " <slot> {confirm flag}"));
+                    permissionMessageList.add(Text.of("§f --> §eWant to lower your level to get more EVs? Try this."));
+                    hasNoPermission = false;
+                }
+                else CommonMethods.printMalformedConfigError("/fixlevel");
+            }
+
+            if (usedFromConsole || permForceHatch)
+            {
+                printDebug("§2/forcehatch §apermission found, trying to add helpers to list.");
+
+                if (ForceHatch.commandAlias != null)
+                {
+                    printDebug("Valid config found. Printing helpers for this command!");
+
+                    permissionMessageList.add(Text.of("§6/" + ForceHatch.commandAlias + " [optional target] <slot>"));
+                    permissionMessageList.add(Text.of("§f --> §eHatch any eggs instantly. Supports remote players!"));
+                    hasNoPermission = false;
+                }
+                else CommonMethods.printMalformedConfigError("/forcehatch");
+            }
+
+            if (usedFromConsole || permForceStats)
+            {
+                printDebug("§2/forcestats §apermission found, trying to add helpers to list.");
+
+                if (ForceStats.commandAlias != null)
+                {
+                    printDebug("Valid config found. Printing helpers for this command!");
+
+                    permissionMessageList.add(Text.of("§6/" + ForceHatch.commandAlias + " <slot> <stat> <value> {force flag}"));
+                    permissionMessageList.add(Text.of("§f --> §eChange supported stats, or pass -f and go crazy."));
+                    hasNoPermission = false;
+                }
+                else CommonMethods.printMalformedConfigError("/forcestats");
+            }
+
+            if (usedFromConsole || permReloadConfig)
+            {
+                printDebug("§2/pureload §apermission found, adding helpers to list.");
+
                 permissionMessageList.add(Text.of("§6/pureload <config>"));
                 permissionMessageList.add(Text.of("§f --> §eReload one or more of the configs on the fly."));
                 hasNoPermission = false;
             }
 
-            if (permResetCount)
+            if (usedFromConsole || permResetCount)
             {
-                if (Files.exists(Paths.get(path + "ResetCount.conf")))
-                {
-                    if (ResetCountConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
-                    {
-                        String alias = ResetCountConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printDebug("§2/resetcount §apermission found, adding helper to list.");
+                printDebug("§2/resetcount §apermission found, trying to add helpers to list.");
 
-                        permissionMessageList.add(Text.of("§6/" + alias + " <slot, 1-6> <count> {confirm flag}"));
-                        permissionMessageList.add(Text.of("§f --> §eWant to upgrade further? Reset counters with this."));
-                        hasNoPermission = false;
-                    }
-                    else printMalformedError("/resetcount");
+                if (ResetCount.commandAlias != null)
+                {
+                    printDebug("Valid config found. Printing helpers for this command!");
+
+                    permissionMessageList.add(Text.of("§6/" + ResetCount.commandAlias + " <slot, 1-6> <count> {confirm flag}"));
+                    permissionMessageList.add(Text.of("§f --> §eWant to upgrade further? Reset counters with this."));
+                    hasNoPermission = false;
                 }
-                else printMalformedError("/resetcount");
+                else CommonMethods.printMalformedConfigError("/resetcount");
             }
 
-            if (permResetEVs)
+            if (usedFromConsole || permResetEVs)
             {
-                Integer commandCost = getConfigInt("ResetEVs");
+                printDebug("§2/resetevs §apermission found, trying to add helpers to list.");
 
-                if (Files.exists(Paths.get(path + "ResetEVs.conf")))
+                if (ResetEVs.commandCost != null && ResetEVs.commandAlias != null)
                 {
-                    if (commandCost != null && ResetEVsConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
-                    {
-                        String alias = ResetEVsConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printDebug("§2/resetevs §apermission found, adding helper to list.");
+                    printDebug("Valid config found. Printing helpers for this command!");
 
-                        permissionMessageList.add(Text.of("§6/" + alias + " <slot> {confirm flag}"));
-                        permissionMessageList.add(Text.of("§f --> §eNot happy with your EV spread? This wipes all EVs."));
-                        hasNoPermission = false;
-                    }
-                    else printMalformedError("/resetevs");
+                    permissionMessageList.add(Text.of("§6/" + ResetEVs.commandAlias + " <slot> {confirm flag}"));
+                    permissionMessageList.add(Text.of("§f --> §eNot happy with your EV spread? This wipes all EVs."));
+                    hasNoPermission = false;
                 }
-                else printMalformedError("/resetevs");
+                else CommonMethods.printMalformedConfigError("/resetevs");
             }
 
-            if (permSwitchGender)
+            if (usedFromConsole || permSwitchGender)
             {
-                Integer commandCost = getConfigInt("SwitchGender");
+                printDebug("§2/switchgender §apermission found, trying to add helpers to list.");
 
-                if (Files.exists(Paths.get(path + "SwitchGender.conf")))
+                if (SwitchGender.commandCost != null && SwitchGender.commandAlias != null)
                 {
-                    if (commandCost != null && SwitchGenderConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
-                    {
-                        String alias = SwitchGenderConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printDebug("§2/switchgender §apermission found, adding helper to list.");
+                    printDebug("Valid config found. Printing helpers for this command!");
 
-                        permissionMessageList.add(Text.of("§6/" + alias + " <slot> {confirm flag}"));
-                        permissionMessageList.add(Text.of("§f --> §eWant to change a Pokémon's gender? Try this."));
-                        hasNoPermission = false;
-                    }
-                    else printMalformedError("/switchgender");
+                    permissionMessageList.add(Text.of("§6/" + SwitchGender.commandAlias + " <slot> {confirm flag}"));
+                    permissionMessageList.add(Text.of("§f --> §eWant to change a Pokémon's gender? Try this."));
+                    hasNoPermission = false;
                 }
-                else printMalformedError("/switchgender");
+                else CommonMethods.printMalformedConfigError("/switchgender");
             }
 
-            if (permShowStats)
+            if (usedFromConsole || permShowStats)
             {
-                Integer commandCost = getConfigInt("ShowStats");
+                printDebug("§2/showstats §apermission found, trying to add helpers to list.");
 
-                if (Files.exists(Paths.get(path + "ShowStats.conf")))
+                if (ShowStats.commandCost != null && ShowStats.commandAlias != null)
                 {
-                    if (commandCost != null && ShowStatsConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
-                    {
-                        String alias = ShowStatsConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printDebug("§2/showstats §apermission found, adding helper to list.");
+                    printDebug("Valid config found. Printing helpers for this command!");
 
-                        if (commandCost != 0)
-                            permissionMessageList.add(Text.of("§6/" + alias + " <slot> {confirm flag}"));
-                        else
-                            permissionMessageList.add(Text.of("§6/" + alias + " <slot>"));
+                    if (ShowStats.commandCost != 0)
+                        permissionMessageList.add(Text.of("§6/" + ShowStats.commandAlias + " <slot> {confirm flag}"));
+                    else
+                        permissionMessageList.add(Text.of("§6/" + ShowStats.commandAlias + " <slot>"));
 
-                        permissionMessageList.add(Text.of("§f --> §eCaught something special? Show it off!"));
-                        hasNoPermission = false;
-                    }
-                    else printMalformedError("/showstats");
+                    permissionMessageList.add(Text.of("§f --> §eCaught something special? Show it off!"));
+                    hasNoPermission = false;
                 }
-                else printMalformedError("/showstats");
+                else CommonMethods.printMalformedConfigError("/showstats");
             }
 
-            if (permUpgradeIVs)
+            if (usedFromConsole || permUpgradeIVs)
             {
-                if (Files.exists(Paths.get(path + "UpgradeIVs.conf")))
-                {
-                    if (UpgradeIVsConfig.getInstance().getConfig().getNode("commandAlias").getString() != null)
-                    {
-                        String alias = UpgradeIVsConfig.getInstance().getConfig().getNode("commandAlias").getString();
-                        printDebug("§2/upgradeivs §apermission found, adding helper to list.");
+                printDebug("§2/upgradeivs §apermission found, trying to add helpers to list.");
 
-                        permissionMessageList.add(Text.of("§6/" + alias + " <slot> <IV type> [optional amount] {confirm flag}"));
-                        permissionMessageList.add(Text.of("§f --> §eBuy upgrades for your Pokémon's IVs."));
-                        hasNoPermission = false;
-                    }
-                    else printMalformedError("/upgradeivs");
+                if (UpgradeIVs.commandAlias != null)
+                {
+                    printDebug("Valid config found. Printing helpers for this command!");
+
+                    permissionMessageList.add(Text.of("§6/" + UpgradeIVs.commandAlias + " <slot> <IV type> [optional amount] {confirm flag}"));
+                    permissionMessageList.add(Text.of("§f --> §eBuy upgrades for your Pokémon's IVs."));
+                    hasNoPermission = false;
                 }
-                else printMalformedError("/upgradeivs");
+                else CommonMethods.printMalformedConfigError("/upgradeivs");
             }
 
             if (hasNoPermission)
@@ -385,64 +347,8 @@ public class PixelUpgradeInfo implements CommandExecutor
                     .contents(permissionMessageList)
                     .padding(Text.of(TextColors.DARK_PURPLE, "="))
                     .linesPerPage(numLinesPerPage)
-                    .sendTo(player);
+                    .sendTo(src); // TODO: Check.
         }
         return CommandResult.success();
 	}
-
-	private void printMalformedError(String command)
-    {
-        PixelUpgrade.log.info("§3PUInfo // notice: §bMalformed config on §3" + command + "§b, hiding from list.");
-    }
-
-    private void printDebug(String inputString)
-    {
-        PixelUpgrade.log.info("§2PUInfo // debug: §a" + inputString);
-    }
-
-    private Integer getConfigInt(String config)
-    {
-        switch (config)
-        {
-            case "CheckStats":
-                if (!CheckStatsConfig.getInstance().getConfig().getNode("commandCost").isVirtual())
-                    return CheckStatsConfig.getInstance().getConfig().getNode("commandCost").getInt();
-                else
-                    return null;
-            case "CheckTypes":
-                if (!CheckTypesConfig.getInstance().getConfig().getNode("commandCost").isVirtual())
-                    return CheckTypesConfig.getInstance().getConfig().getNode("commandCost").getInt();
-                else
-                    return null;
-            case "FixEVs":
-                if (!FixEVsConfig.getInstance().getConfig().getNode("commandCost").isVirtual())
-                    return FixEVsConfig.getInstance().getConfig().getNode("commandCost").getInt();
-                else
-                    return null;
-            case "FixLevel":
-                if (!FixLevelConfig.getInstance().getConfig().getNode("commandCost").isVirtual())
-                    return FixLevelConfig.getInstance().getConfig().getNode("commandCost").getInt();
-                else
-                    return null;
-            case "ResetEVs":
-                if (!ResetEVsConfig.getInstance().getConfig().getNode("commandCost").isVirtual())
-                    return ResetEVsConfig.getInstance().getConfig().getNode("commandCost").getInt();
-                else
-                    return null;
-            case "SwitchGender":
-                if (!SwitchGenderConfig.getInstance().getConfig().getNode("commandCost").isVirtual())
-                    return SwitchGenderConfig.getInstance().getConfig().getNode("commandCost").getInt();
-                else
-                    return null;
-            case "ShowStats":
-                if (!ShowStatsConfig.getInstance().getConfig().getNode("commandCost").isVirtual())
-                    return ShowStatsConfig.getInstance().getConfig().getNode("commandCost").getInt();
-                else
-                    return null;
-
-            default:
-                PixelUpgrade.log.info("§6PUInfo // warning: §eCouldn't figure out what config to read. Please report this!");
-                return null;
-        }
-    }
 }

@@ -52,7 +52,7 @@ public class FixLevel implements CommandExecutor
 
             if (!nativeErrorArray.isEmpty())
             {
-                CommonMethods.printNodeError("DittoFusion", nativeErrorArray, 1);
+                CommonMethods.printNodeError("FixLevel", nativeErrorArray, 1);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else

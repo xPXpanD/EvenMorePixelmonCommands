@@ -1,149 +1,146 @@
 package rs.expand.pixelupgrade.commands;
 
+// Remote imports.
 import com.pixelmonmod.pixelmon.config.PixelmonEntityList;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import com.pixelmonmod.pixelmon.enums.EnumPokemon;
 import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
-
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-
 import net.minecraft.world.World;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.channel.MessageChannel;
 
-import rs.expand.pixelupgrade.configs.UpgradeIVsConfig;
-import rs.expand.pixelupgrade.configs.DittoFusionConfig;
-import rs.expand.pixelupgrade.configs.PixelUpgradeMainConfig;
-import rs.expand.pixelupgrade.configs.ShowStatsConfig;
-import rs.expand.pixelupgrade.PixelUpgrade;
+// Local imports.
+import rs.expand.pixelupgrade.utilities.CommonMethods;
 import rs.expand.pixelupgrade.utilities.GetPokemonInfo;
-
-import static rs.expand.pixelupgrade.PixelUpgrade.debugLevel;
-import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
+import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
 public class ShowStats implements CommandExecutor
 {
-    // Not sure how this works yet, but nicked it from TotalEconomy.
-    // Will try to figure this out later, just glad to have this working for now.
-    private PixelUpgrade pixelUpgrade;
-    public ShowStats(PixelUpgrade pixelUpgrade) { this.pixelUpgrade = pixelUpgrade; }
+    // Initialize some variables. We'll load stuff into these when we call the config loader.
+    // Other config variables are loaded in from their respective classes. Check the imports.
+    public static String commandAlias;
+    public static Integer cooldownInSeconds;
+    public static Boolean showCounts;
+    public static Boolean showNicknames;
+    public static Boolean clampBadNicknames;
+    public static Boolean notifyBadNicknames;
+    public static Boolean showExtraInfo;
+    public static Integer commandCost;
 
-    // Grab the command's alias.
-    private static String alias = null;
-    private void getCommandAlias()
-    {
-        if (!ShowStatsConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
-            alias = "/" + ShowStatsConfig.getInstance().getConfig().getNode("commandAlias").getString();
-        else
-            PixelUpgrade.log.info("§4ShowStats // critical: §cConfig variable \"commandAlias\" could not be found!");
-    }
-
-    // Set up some variables that we'll be using later on.
+    // Set up some more variables for internal use.
+    private boolean gotExternalConfigError = false;
     private HashMap<UUID, Long> cooldownMap = new HashMap<>();
-    private Boolean showCounts, showNicknames, clampBadNicknames, notifyBadNicknames, showExtraInfo;
-    private Integer regularFusionCap, shinyFusionCap, legendaryShinyUpgradeCap;
-    private Integer legendaryUpgradeCap, regularUpgradeCap, shinyUpgradeCap, babyUpgradeCap;
-    private String shortenedHP, shortenedAttack, shortenedDefense, shortenedSpAtt, shortenedSpDef, shortenedSpeed;
+
+    // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
+    private void printToLog (int debugNum, String inputString)
+    { CommonMethods.doPrint("ShowStats", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
     {
         if (src instanceof Player)
         {
-            boolean canContinue = false;
-            boolean presenceCheck = true, fusionCheck = true, upgradeCheck = true, mainConfigCheck = true;
+            // Validate the data we get from the command's main config.
+            ArrayList<String> nativeErrorArray = new ArrayList<>();
+            if (commandAlias == null)
+                nativeErrorArray.add("commandAlias");
+            if (cooldownInSeconds == null)
+                nativeErrorArray.add("cooldownInSeconds");
+            if (showCounts == null)
+                nativeErrorArray.add("showCounts");
+            if (showNicknames == null)
+                nativeErrorArray.add("showNicknames");
+            if (clampBadNicknames == null)
+                nativeErrorArray.add("clampBadNicknames");
+            if (notifyBadNicknames == null)
+                nativeErrorArray.add("notifyBadNicknames");
+            if (showExtraInfo == null)
+                nativeErrorArray.add("showExtraInfo");
+            if (commandCost == null)
+                nativeErrorArray.add("commandCost");
 
-            Integer commandCost = getConfigInt("commandCost");
-            Integer cooldownInSeconds = getConfigInt("cooldownInSeconds");
-            showCounts = getConfigBool("showCounts");
-            showNicknames = getConfigBool("showNicknames");
-            clampBadNicknames = getConfigBool("clampBadNicknames");
-            notifyBadNicknames = getConfigBool("notifyBadNicknames");
-            showExtraInfo = getConfigBool("showExtraInfo");
+            // Also get some stuff from PixelUpgrade.conf.
+            ArrayList<String> mainConfigErrorArray = new ArrayList<>();
+            if (shortenedHP == null)
+                mainConfigErrorArray.add("shortenedHP");
+            if (shortenedAttack == null)
+                mainConfigErrorArray.add("shortenedAttack");
+            if (shortenedDefense == null)
+                mainConfigErrorArray.add("shortenedDefense");
+            if (shortenedSpecialAttack == null)
+                mainConfigErrorArray.add("shortenedSpecialAttack");
+            if (shortenedSpecialDefense == null)
+                mainConfigErrorArray.add("shortenedSpecialDefense");
+            if (shortenedSpeed == null)
+                mainConfigErrorArray.add("shortenedSpeed");
 
-            // Load up Ditto Fusion config values. Used for showing fusion limits.
-            regularFusionCap = getFusionConfigInt("regularCap");
-            shinyFusionCap = getFusionConfigInt("shinyCap");
-
-            // Load up UpgradeIVs, too. Sorry for the long names, clarity over style.
-            legendaryShinyUpgradeCap = getUpgradeConfigInt("legendaryAndShinyCap");
-            legendaryUpgradeCap = getUpgradeConfigInt("legendaryCap");
-            regularUpgradeCap = getUpgradeConfigInt("regularCap");
-            shinyUpgradeCap = getUpgradeConfigInt("shinyCap");
-            babyUpgradeCap = getUpgradeConfigInt("babyCap");
-
-            // And finally, grab the shortened formats from the main config.
-            shortenedHP = getMainConfigString("shortenedHealth");
-            shortenedAttack = getMainConfigString("shortenedAttack");
-            shortenedDefense = getMainConfigString("shortenedDefense");
-            shortenedSpAtt = getMainConfigString("shortenedSpecialAttack");
-            shortenedSpDef = getMainConfigString("shortenedSpecialDefense");
-            shortenedSpeed = getMainConfigString("shortenedSpeed");
-
-            // Set up the command's preferred alias.
-            getCommandAlias();
-
-            if (commandCost == null || cooldownInSeconds == null || showCounts == null || showNicknames == null)
-                presenceCheck = false;
-            if (clampBadNicknames == null || notifyBadNicknames == null || showExtraInfo == null)
-                presenceCheck = false;
-            if (regularFusionCap == null || shinyFusionCap == null)
-                fusionCheck = false;
-            if (legendaryShinyUpgradeCap == null || legendaryUpgradeCap == null || regularUpgradeCap == null)
-                upgradeCheck = false;
-            else if (shinyUpgradeCap == null || babyUpgradeCap == null)
-                upgradeCheck = false;
-            if (shortenedHP == null || shortenedAttack == null || shortenedDefense == null)
-                mainConfigCheck = false;
-            else if (shortenedSpAtt == null || shortenedSpDef == null || shortenedSpeed == null)
-                mainConfigCheck = false;
-
-            if (!presenceCheck || alias == null)
+            if (!nativeErrorArray.isEmpty())
             {
-                // Specific errors are already called earlier on -- this is tacked on to the end.
+                CommonMethods.printNodeError("ShowStats", nativeErrorArray, 1);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("§4ShowStats // critical: §cCheck your config. If need be, wipe and §4/pureload§c.");
             }
-            else if (!mainConfigCheck)
+            else if (!mainConfigErrorArray.isEmpty())
             {
-                // Same as above.
+                CommonMethods.printNodeError("PixelUpgrade", mainConfigErrorArray, 0);
                 src.sendMessage(Text.of("§4Error: §cCould not parse main config. Please report to staff."));
-                printToLog(0, "Please check (or wipe and /pureload) your PixelUpgrade.conf file.");
             }
             else
             {
-                if (showCounts && (!fusionCheck || !upgradeCheck))
-                { // Check UtilityFunctions for the messages before these ones.
-                    printToLog(0, "Integration has been disabled until this is fixed.");
-                    printToLog(0, "If need be, remove the file and §4/pureload§c.");
+                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
+                boolean canContinue = true;
 
-                    showCounts = false;
+                if (showExtraInfo)
+                {
+                    ArrayList<String> upgradeErrorArray = new ArrayList<>(), fusionErrorArray = new ArrayList<>();
+
+                    printToLog(2, "Entering external config loading. Errors will be logged.");
+
+                    if (DittoFusion.regularCap == null)
+                        fusionErrorArray.add("regularCap");
+                    if (DittoFusion.shinyCap == null)
+                        fusionErrorArray.add("shinyCap");
+                    CommonMethods.printPartialNodeError("ShowStats", "DittoFusion", fusionErrorArray);
+
+                    if (UpgradeIVs.legendaryAndShinyCap == null)
+                        upgradeErrorArray.add("legendaryAndShinyCap");
+                    if (UpgradeIVs.legendaryCap == null)
+                        upgradeErrorArray.add("legendaryCap");
+                    if (UpgradeIVs.regularCap == null)
+                        upgradeErrorArray.add("regularCap");
+                    if (UpgradeIVs.shinyCap == null)
+                        upgradeErrorArray.add("shinyCap");
+                    if (UpgradeIVs.babyCap == null)
+                        upgradeErrorArray.add("babyCap");
+                    CommonMethods.printPartialNodeError("ShowStats", "UpgradeIVs", upgradeErrorArray);
+
+                    if (!fusionErrorArray.isEmpty() || !upgradeErrorArray.isEmpty())
+                    {
+                        printToLog(0, "Found invalid variables in the remote config(s). Disabling integration.");
+
+                        // Set up our "got an error" flags. Reset to false if we didn't, so we don't cause issues later.
+                        if (!fusionErrorArray.isEmpty() || !upgradeErrorArray.isEmpty())
+                            gotExternalConfigError = true;
+                    }
                 }
 
-                canContinue = true;
-            }
-
-            if (canContinue)
-            {
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 boolean commandConfirmed = false;
@@ -252,7 +249,8 @@ public class ShowStats implements CommandExecutor
                                         if (optionalAccount.isPresent())
                                         {
                                             UniqueAccount uniqueAccount = optionalAccount.get();
-                                            TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(), costToConfirm, Cause.of(EventContext.empty(), pixelUpgrade.getPluginContainer()));
+                                            TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
+                                                        costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
 
                                             if (transactionResult.getResult() == ResultType.SUCCESS)
                                             {
@@ -278,7 +276,7 @@ public class ShowStats implements CommandExecutor
                                         printToLog(1, "Got cost but no confirmation; end of the line. Exit.");
 
                                         src.sendMessage(Text.of("§6Warning: §eShowing off a Pokémon's stats costs §6" + costToConfirm + "§e coins."));
-                                        src.sendMessage(Text.of("§2Ready? Type: §a" + alias + " " + slot + " -c"));
+                                        src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " " + slot + " -c"));
                                     }
                                 }
                                 else
@@ -294,7 +292,7 @@ public class ShowStats implements CommandExecutor
             }
         }
         else
-            PixelUpgrade.log.info("§cThis command cannot run from the console or command blocks.");
+            CommonMethods.showConsoleError("/showstats");
 
         return CommandResult.success();
     }
@@ -321,77 +319,9 @@ public class ShowStats implements CommandExecutor
     private void printCorrectHelper(int cost, CommandSource src)
     {
         if (cost != 0)
-            src.sendMessage(Text.of("§4Usage: §c" + alias + " <slot, 1-6> {-c to confirm}"));
+            src.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <slot, 1-6> {-c to confirm}"));
         else
-            src.sendMessage(Text.of("§4Usage: §c" + alias + " <slot, 1-6>"));
-    }
-
-    private void printToLog(int debugNum, String inputString)
-    {
-        if (debugNum <= debugLevel)
-        {
-            if (debugNum == 0)
-                PixelUpgrade.log.info("§4ShowStats // critical: §c" + inputString);
-            else if (debugNum == 1)
-                PixelUpgrade.log.info("§3ShowStats // notice: §b" + inputString);
-            else
-                PixelUpgrade.log.info("§2ShowStats // debug: §a" + inputString);
-        }
-    }
-
-    private Integer getFusionConfigInt(String node)
-    {
-        if (!DittoFusionConfig.getInstance().getConfig().getNode(node).isVirtual())
-            return DittoFusionConfig.getInstance().getConfig().getNode(node).getInt();
-        else
-        {
-            PixelUpgrade.log.info("§4ShowStats // critical: §cCan't read remote config variable \"" + node + "\" for /dittofusion!");
-            return null;
-        }
-    }
-
-    private Integer getUpgradeConfigInt(String node)
-    {
-        if (!UpgradeIVsConfig.getInstance().getConfig().getNode(node).isVirtual())
-            return UpgradeIVsConfig.getInstance().getConfig().getNode(node).getInt();
-        else
-        {
-            PixelUpgrade.log.info("§4ShowStats // critical: §cCan't read remote config variable \"" + node + "\" for /upgradeivs!");
-            return null;
-        }
-    }
-
-    private String getMainConfigString(String node)
-    {
-        if (!PixelUpgradeMainConfig.getInstance().getConfig().getNode(node).isVirtual())
-            return PixelUpgradeMainConfig.getInstance().getConfig().getNode(node).getString();
-        else
-        {
-            PixelUpgrade.log.info("§4ShowStats // critical: §cCan't read remote variable \"" + node + "\" from main config!");
-            return null;
-        }
-    }
-
-    private Integer getConfigInt(String node)
-    {
-        if (!ShowStatsConfig.getInstance().getConfig().getNode(node).isVirtual())
-            return ShowStatsConfig.getInstance().getConfig().getNode(node).getInt();
-        else
-        {
-            PixelUpgrade.log.info("§4ShowStats // critical: §cCould not parse config variable \"" + node + "\"!");
-            return null;
-        }
-    }
-
-    private Boolean getConfigBool(String node)
-    {
-        if (!ShowStatsConfig.getInstance().getConfig().getNode(node).isVirtual())
-            return ShowStatsConfig.getInstance().getConfig().getNode(node).getBoolean();
-        else
-        {
-            PixelUpgrade.log.info("§4ShowStats // critical: §cCould not parse config variable \"" + node + "\"!");
-            return null;
-        }
+            src.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <slot, 1-6>"));
     }
 
     private void checkAndShowStats(NBTTagCompound nbt, Player player)
@@ -412,7 +342,7 @@ public class ShowStats implements CommandExecutor
 
         // Get a bunch of data from our GetPokemonInfo utility class. Used for messages, later on.
         ArrayList<String> natureArray = GetPokemonInfo.getNatureStrings(nbt.getInteger(NbtKeys.NATURE),
-                shortenedSpAtt, shortenedSpDef, shortenedSpeed);
+                shortenedSpecialAttack, shortenedSpecialDefense, shortenedSpeed);
         String natureName = natureArray.get(0);
         String plusVal = natureArray.get(1);
         String minusVal = natureArray.get(2);
@@ -436,14 +366,14 @@ public class ShowStats implements CommandExecutor
             ivs3 = String.valueOf("§l" + defenseIV + " §2" + shortenedDefense + " §r§f|§a ");
 
         if (spAttIV < 31)
-            ivs4 = String.valueOf(spAttIV + " §2" + shortenedSpAtt + " §f|§a ");
+            ivs4 = String.valueOf(spAttIV + " §2" + shortenedSpecialAttack + " §f|§a ");
         else
-            ivs4 = String.valueOf("§l" + spAttIV + " §2" + shortenedSpAtt + " §r§f|§a ");
+            ivs4 = String.valueOf("§l" + spAttIV + " §2" + shortenedSpecialAttack + " §r§f|§a ");
 
         if (spDefIV < 31)
-            ivs5 = String.valueOf(spDefIV + " §2" + shortenedSpDef + " §f|§a ");
+            ivs5 = String.valueOf(spDefIV + " §2" + shortenedSpecialDefense + " §f|§a ");
         else
-            ivs5 = String.valueOf("§l" + spDefIV + " §2" + shortenedSpDef + " §r§f|§a ");
+            ivs5 = String.valueOf("§l" + spDefIV + " §2" + shortenedSpecialDefense + " §r§f|§a ");
 
         if (speedIV < 31)
             ivs6 = String.valueOf(speedIV + " §2" + shortenedSpeed + "");
@@ -501,7 +431,7 @@ public class ShowStats implements CommandExecutor
         }
 
         // Check and show whether the Pokémon can be upgraded/fused further, if enabled in config.
-        if (showCounts)
+        if (showCounts && !gotExternalConfigError)
         {
             EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
             boolean isShiny = nbt.getInteger(NbtKeys.IS_SHINY) == 1;
@@ -515,12 +445,12 @@ public class ShowStats implements CommandExecutor
                 if (isShiny)
                 {
                     startString = "§eThis §6shiny Ditto §e"; // Adjust for shinyness!
-                    fusionCap = shinyFusionCap; // Shiny cap.
+                    fusionCap = DittoFusion.shinyCap; // Shiny cap.
                 }
                 else
                 {
                     startString = "§eThis §6Ditto §e";
-                    fusionCap = regularFusionCap; // Regular cap.
+                    fusionCap = DittoFusion.regularCap; // Regular cap.
                 }
 
                 if (fuseCount != 0 && fuseCount < fusionCap)
@@ -542,27 +472,27 @@ public class ShowStats implements CommandExecutor
                 if (isShiny && isLegendary)
                 {
                     startString = "§eThis §6shiny legendary §e";
-                    upgradeCap = legendaryShinyUpgradeCap; // Legendary + shiny cap.
+                    upgradeCap = UpgradeIVs.legendaryAndShinyCap; // Legendary + shiny cap.
                 }
                 else if (isShiny)
                 {
                     startString = "§eThis §6shiny Pokémon §e";
-                    upgradeCap = shinyUpgradeCap; // Shiny cap.
+                    upgradeCap = UpgradeIVs.shinyCap; // Shiny cap.
                 }
                 else if (isLegendary)
                 {
                     startString = "§eThis §6legendary Pokémon §e";
-                    upgradeCap = legendaryUpgradeCap; // Legendary cap.
+                    upgradeCap = UpgradeIVs.legendaryCap; // Legendary cap.
                 }
                 else if (isBaby)
                 {
                     startString = "§eThis §6baby Pokémon §e";
-                    upgradeCap = babyUpgradeCap; // Baby cap.
+                    upgradeCap = UpgradeIVs.babyCap; // Baby cap.
                 }
                 else
                 {
                     startString = "§eThis §6Pokémon §e";
-                    upgradeCap = regularUpgradeCap; // Regular cap.
+                    upgradeCap = UpgradeIVs.regularCap; // Regular cap.
                 }
 
                 if (upgradeCount != 0 && upgradeCount < upgradeCap)

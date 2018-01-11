@@ -1,68 +1,57 @@
 package rs.expand.pixelupgrade.commands;
 
+// Remote imports.
 import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
-
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Optional;
-
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 
-import rs.expand.pixelupgrade.configs.ResetEVsConfig;
-import rs.expand.pixelupgrade.PixelUpgrade;
+// Local imports.
+import rs.expand.pixelupgrade.utilities.CommonMethods;
 
-import static rs.expand.pixelupgrade.PixelUpgrade.debugLevel;
 import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
 public class ResetEVs implements CommandExecutor
 {
-    // Not sure how this works yet, but nicked it from TotalEconomy.
-    // Will try to figure this out later, just glad to have this working for now.
-    private PixelUpgrade pixelUpgrade;
-    public ResetEVs(PixelUpgrade pixelUpgrade) { this.pixelUpgrade = pixelUpgrade; }
+    // Initialize some variables. We'll load stuff into these when we call the config loader.
+    // Other config variables are loaded in from their respective classes. Check the imports.
+    public static String commandAlias;
+    public static Integer commandCost;
 
-    private static String alias = null;
-    private void getCommandAlias()
-    {
-        if (!ResetEVsConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
-            alias = "/" + ResetEVsConfig.getInstance().getConfig().getNode("commandAlias").getString();
-        else
-            PixelUpgrade.log.info("§4ResetEVs // critical: §cConfig variable \"commandAlias\" could not be found!");
-    }
+    // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
+    private void printToLog (int debugNum, String inputString)
+    { CommonMethods.doPrint("ResetEVs", debugNum, inputString); }
 
-	@SuppressWarnings("NullableProblems")
+    @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
-	{
+    {
         if (src instanceof Player)
         {
-            Integer commandCost = null;
-            if (!ResetEVsConfig.getInstance().getConfig().getNode("commandCost").isVirtual())
-                commandCost = ResetEVsConfig.getInstance().getConfig().getNode("commandCost").getInt();
-            else
-                PixelUpgrade.log.info("§4ResetEVs // critical: §cCould not parse config variable \"commandCost\"!");
+            // Validate the data we get from the command's main config.
+            ArrayList<String> nativeErrorArray = new ArrayList<>();
+            if (commandAlias == null)
+                nativeErrorArray.add("commandAlias");
+            if (commandCost == null)
+                nativeErrorArray.add("commandCost");
 
-            // Set up the command's preferred alias.
-            getCommandAlias();
-
-            if (commandCost == null || alias == null)
+            if (!nativeErrorArray.isEmpty())
             {
-                // Specific errors are already called earlier on -- this is tacked on to the end.
+                CommonMethods.printNodeError("ResetEVs", nativeErrorArray, 1);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("§4ResetEVs // critical: §cCheck your config. If need be, wipe and §4/pureload§c.");
             }
             else
             {
@@ -145,7 +134,8 @@ public class ResetEVs implements CommandExecutor
                                 if (optionalAccount.isPresent())
                                 {
                                     UniqueAccount uniqueAccount = optionalAccount.get();
-                                    TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(), costToConfirm, Cause.of(EventContext.empty(), pixelUpgrade.getPluginContainer()));
+                                    TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
+                                                costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
 
                                     if (transactionResult.getResult() == ResultType.SUCCESS)
                                     {
@@ -180,7 +170,7 @@ public class ResetEVs implements CommandExecutor
                             src.sendMessage(Text.of("§6Warning: §eYou are about to reset this Pokémon's EVs to zero!"));
                             if (commandCost > 0)
                                 src.sendMessage(Text.of("§eResetting will cost §6" + commandCost + "§e coins!"));
-                            src.sendMessage(Text.of("§2Ready? Type: §a" + alias + " " + slot + " -c"));
+                            src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " " + slot + " -c"));
                             src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         }
                     }
@@ -188,7 +178,7 @@ public class ResetEVs implements CommandExecutor
             }
         }
         else
-            PixelUpgrade.log.info("§cThis command cannot run from the console or command blocks.");
+            CommonMethods.showConsoleError("/resetevs");
 
         return CommandResult.success();
 	}
@@ -238,21 +228,8 @@ public class ResetEVs implements CommandExecutor
     private void printCorrectHelper(int cost, Player player)
     {
         if (cost != 0)
-            player.sendMessage(Text.of("§4Usage: §c" + alias + " <slot, 1-6> {-c to confirm}"));
+            player.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <slot, 1-6> {-c to confirm}"));
         else
-            player.sendMessage(Text.of("§4Usage: §c" + alias + " <slot, 1-6>"));
-    }
-
-    private void printToLog(int debugNum, String inputString)
-    {
-        if (debugNum <= debugLevel)
-        {
-            if (debugNum == 0)
-                PixelUpgrade.log.info("§4ResetEVs // critical: §c" + inputString);
-            else if (debugNum == 1)
-                PixelUpgrade.log.info("§3ResetEVs // notice: §b" + inputString);
-            else
-                PixelUpgrade.log.info("§2ResetEVs // debug: §a" + inputString);
-        }
+            player.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <slot, 1-6>"));
     }
 }

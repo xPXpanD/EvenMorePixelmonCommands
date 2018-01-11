@@ -7,6 +7,7 @@ Released ???
    * Redid the internal config loader, reducing filesize and making things much easier to maintain.
    * Config variable errors are now logged more precisely.
    * Edited several configs to be a bit clearer, and removed per-config versions. Old configs still work.
+   * Fixed /pixelupgrade (the command list) throwing an error when used from console.
 
 3.0.0 for 6.0.0
 Released December 28, 2017.

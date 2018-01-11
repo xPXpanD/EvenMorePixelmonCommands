@@ -28,8 +28,6 @@ import org.spongepowered.api.text.Text;
 // Local imports.
 import rs.expand.pixelupgrade.utilities.CommonMethods;
 import rs.expand.pixelupgrade.utilities.GetPokemonInfo;
-import static rs.expand.pixelupgrade.commands.DittoFusion.*;
-import static rs.expand.pixelupgrade.commands.UpgradeIVs.*;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
 public class CheckStats implements CommandExecutor

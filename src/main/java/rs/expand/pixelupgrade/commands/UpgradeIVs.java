@@ -1,113 +1,106 @@
 package rs.expand.pixelupgrade.commands;
 
+// Remote imports.
 import com.pixelmonmod.pixelmon.config.PixelmonEntityList;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import com.pixelmonmod.pixelmon.enums.EnumPokemon;
 import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Optional;
-
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 
-import rs.expand.pixelupgrade.configs.PixelUpgradeMainConfig;
-import rs.expand.pixelupgrade.configs.UpgradeIVsConfig;
-import rs.expand.pixelupgrade.PixelUpgrade;
-
-import static rs.expand.pixelupgrade.PixelUpgrade.debugLevel;
-import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
+// Local imports.
+import rs.expand.pixelupgrade.utilities.CommonMethods;
+import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
 public class UpgradeIVs implements CommandExecutor
 {
-    // Not sure how this works yet, but nicked it from TotalEconomy.
-    // Will try to figure this out later, just glad to have this working for now.
-    private PixelUpgrade pixelUpgrade;
-    public UpgradeIVs(PixelUpgrade pixelUpgrade) { this.pixelUpgrade = pixelUpgrade; }
+    // Initialize some variables. We'll load stuff into these when we call the config loader.
+    // Other config variables are loaded in from their respective classes. Check the imports.
+    public static String commandAlias;
+    public static Integer legendaryAndShinyCap;
+    public static Integer legendaryCap;
+    public static Integer regularCap;
+    public static Integer shinyCap;
+    public static Integer babyCap;
+    public static Double mathMultiplier;
+    public static Integer fixedUpgradeCost;
+    public static Double legendaryAndShinyMult;
+    public static Double legendaryMult;
+    public static Double regularMult;
+    public static Double shinyMult;
+    public static Double babyMult;
+    public static Integer upgradesFreeBelow;
+    public static Integer addFlatFee;
 
-    // Grab the command's alias.
-    private static String alias = null;
-    private void getCommandAlias()
-    {
-        if (!UpgradeIVsConfig.getInstance().getConfig().getNode("commandAlias").isVirtual())
-            alias = "/" + UpgradeIVsConfig.getInstance().getConfig().getNode("commandAlias").getString();
-        else
-            PixelUpgrade.log.info("§4UpgradeIVs // critical: §cConfig variable \"commandAlias\" could not be found!");
-    }
+    // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
+    private void printToLog (int debugNum, String inputString)
+    { CommonMethods.doPrint("DittoFusion", debugNum, inputString); }
 
-    // Set up a variable that we'll be using in command helper messages. Values get assigned a bit later.
-    private Boolean useBritishSpelling = null;
-
-	@SuppressWarnings("NullableProblems")
+    @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
-	{
+    {
         if (src instanceof Player)
         {
-            boolean presenceCheck = true;
-            Integer fixedUpgradeCost = null;
-            Double mathMultiplier = getConfigDouble("mathMultiplier");
-            Integer upgradesFreeBelow = getConfigInt("upgradesFreeBelow");
-            Integer addFlatFee = getConfigInt("addFlatFee");
+            // Validate the data we get from the command's main config.
+            ArrayList<String> nativeErrorArray = new ArrayList<>();
+            if (commandAlias == null)
+                nativeErrorArray.add("commandAlias");
+            if (legendaryAndShinyCap == null)
+                nativeErrorArray.add("legendaryAndShinyCap");
+            if (legendaryCap == null)
+                nativeErrorArray.add("legendaryCap");
+            if (regularCap == null)
+                nativeErrorArray.add("regularCap");
+            if (shinyCap == null)
+                nativeErrorArray.add("shinyCap");
+            if (babyCap == null)
+                nativeErrorArray.add("babyCap");
+            if (mathMultiplier == null)
+                nativeErrorArray.add("mathMultiplier");
+            if (fixedUpgradeCost == null)
+                nativeErrorArray.add("fixedUpgradeCost");
+            if (legendaryAndShinyMult == null)
+                nativeErrorArray.add("legendaryAndShinyMult");
+            if (legendaryMult == null)
+                nativeErrorArray.add("legendaryMult");
+            if (regularMult == null)
+                nativeErrorArray.add("regularMult");
+            if (shinyMult == null)
+                nativeErrorArray.add("shinyMult");
+            if (babyMult == null)
+                nativeErrorArray.add("babyMult");
+            if (upgradesFreeBelow == null)
+                nativeErrorArray.add("upgradesFreeBelow");
+            if (addFlatFee == null)
+                nativeErrorArray.add("addFlatFee");
 
-            Double legendaryAndShinyMult = getConfigDouble("legendaryAndShinyMult");
-            Double legendaryMult = getConfigDouble("legendaryMult");
-            Double regularMult = getConfigDouble("regularMult");
-            Double shinyMult = getConfigDouble("shinyMult");
-            Double babyMult = getConfigDouble("babyMult");
-
-            Integer legendaryAndShinyCap = getConfigInt("legendaryAndShinyCap");
-            Integer legendaryCap = getConfigInt("legendaryCap");
-            Integer regularCap = getConfigInt("regularCap");
-            Integer shinyCap = getConfigInt("shinyCap");
-            Integer babyCap = getConfigInt("babyCap");
-
-            // See if we have a fixed cost for upgrading IVs.
-            if (!UpgradeIVsConfig.getInstance().getConfig().getNode("fixedUpgradeCost").isVirtual())
-                fixedUpgradeCost = UpgradeIVsConfig.getInstance().getConfig().getNode("fixedUpgradeCost").getInt();
-
-            // Grab the useBritishSpelling value from the main config.
-            if (!PixelUpgradeMainConfig.getInstance().getConfig().getNode("useBritishSpelling").isVirtual())
-                useBritishSpelling = PixelUpgradeMainConfig.getInstance().getConfig().getNode("useBritishSpelling").getBoolean();
-
-            // Set up the command's preferred alias.
-            getCommandAlias();
-
-            if (legendaryAndShinyCap == null || legendaryCap == null || regularCap == null || shinyCap == null)
-                presenceCheck = false;
-            else if (babyCap == null || legendaryAndShinyMult == null || legendaryMult == null || regularMult == null)
-                presenceCheck = false;
-            else if (shinyMult == null || babyMult == null || mathMultiplier == null || upgradesFreeBelow == null)
-                presenceCheck = false;
-            else if (addFlatFee == null || fixedUpgradeCost == null || fixedUpgradeCost < 0)
-                presenceCheck = false;
-
-            if (!presenceCheck || alias == null)
+            if (!nativeErrorArray.isEmpty())
             {
-                // Specific errors are already called earlier on -- this is tacked on to the end.
+                CommonMethods.printNodeError("DittoFusion", nativeErrorArray, 1);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
-                PixelUpgrade.log.info("§4UpgradeIVs // critical: §cCheck your config. If need be, wipe and §4/pureload§c.");
             }
             else if (useBritishSpelling == null)
             {
+                printToLog(0, "Could not read remote node \"§4useBritishSpelling§c\".");
+                printToLog(0, "The main config contains invalid variables. Exiting.");
                 src.sendMessage(Text.of("§4Error: §cCould not parse main config. Please report to staff."));
-                printToLog(0, "Couldn't get value of \"useBritishSpelling\" from the main config.");
-                printToLog(0, "Please check (or wipe and reload) your PixelUpgrade.conf file.");
             }
             else
             {
@@ -158,38 +151,50 @@ public class UpgradeIVs implements CommandExecutor
                     switch (stat.toUpperCase())
                     {
                         case "HP": case "HITPOINTS": case "HEALTH": case "IVHP": case "IV_HP":
+                        {
                             fixedStat = "IVHP";
                             cleanStat = "HP";
                             break;
+                        }
                         case "ATTACK": case "ATK": case "ATT": case "IVATTACK": case "IV_ATTACK":
+                        {
                             fixedStat = "IVAttack";
                             cleanStat = "Attack";
                             break;
+                        }
                         case "DEFENCE": case "DEFENSE": case "DEF": case "IVDEFENCE":
                         case "IV_DEFENCE": case "IVDEFENSE": case "IV_DEFENSE":
+                        {
                             fixedStat = "IVDefence";
                             if (useBritishSpelling)
                                 cleanStat = "Defence";
                             else
                                 cleanStat = "Defense";
                             break;
+                        }
                         case "SPECIALATTACK": case "SPATT": case "SPATK": case "SPATTACK": case "IVSPATT":
                         case "IV_SP_ATT": case "IV_SP_ATK": case "IV_SPATK":
+                        {
                             fixedStat = "IVSpAtt";
                             cleanStat = "Special Attack";
                             break;
+                        }
                         case "SPECIALDEFENSE": case "SPECIALDEFENCE": case "SPDEF": case "SPDEFENCE":
                         case "SPDEFENSE": case "IVSPDEF": case "IV_SP_DEF":
+                        {
                             fixedStat = "IVSpDef";
                             if (useBritishSpelling)
                                 cleanStat = "Special Defence";
                             else
                                 cleanStat = "Special Defense";
                             break;
+                        }
                         case "SPEED": case "SPD": case "IVSPEED": case "IV_SPEED":
+                        {
                             fixedStat = "IVSpeed";
                             cleanStat = "Speed";
                             break;
+                        }
                         default:
                             statWasValid = false;
                     }
@@ -501,7 +506,8 @@ public class UpgradeIVs implements CommandExecutor
                                             BigDecimal newTotal = uniqueAccount.getBalance(economyService.getDefaultCurrency());
                                             printToLog(2, "Entering final stage, got confirmation. Current cash: §6" + newTotal + "§e.");
 
-                                            TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(), costToConfirm, Cause.of(EventContext.empty(), pixelUpgrade.getPluginContainer()));
+                                            TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
+                                                        costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
                                             if (transactionResult.getResult() == ResultType.SUCCESS)
                                             {
                                                 nbt.setInteger(fixedStat, nbt.getInteger(fixedStat) + upgradeTicker);
@@ -562,7 +568,7 @@ public class UpgradeIVs implements CommandExecutor
 
                                     player.sendMessage(Text.of("§7-----------------------------------------------------"));
                                     String helperString = "§eThe §6" + cleanStat + "§e stat will be upgraded by §6";
-                                    String quantityString = "§aReady? Use: §2" + alias + " " + slot + " " + stat;
+                                    String quantityString = "§aReady? Use: §2" + commandAlias + " " + slot + " " + stat;
 
                                     if (quantity == 1)
                                         src.sendMessage(Text.of(helperString + "one §epoint!"));
@@ -601,7 +607,7 @@ public class UpgradeIVs implements CommandExecutor
             }
         }
         else
-            PixelUpgrade.log.info("§cThis command cannot run from the console or command blocks.");
+            CommonMethods.showConsoleError("/upgradeivs");
 
         return CommandResult.success();
 	}
@@ -620,41 +626,6 @@ public class UpgradeIVs implements CommandExecutor
 
     private void printCorrectPerm(Player player)
     {
-        player.sendMessage(Text.of("§4Usage: §c" + alias + " <slot> <IV type> [amount?] {-c to confirm}"));
-    }
-
-    private void printToLog(int debugNum, String inputString)
-    {
-        if (debugNum <= debugLevel)
-        {
-            if (debugNum == 0)
-                PixelUpgrade.log.info("§4UpgradeIVs // critical: §c" + inputString);
-            else if (debugNum == 1)
-                PixelUpgrade.log.info("§3UpgradeIVs // notice: §b" + inputString);
-            else
-                PixelUpgrade.log.info("§2UpgradeIVs // debug: §a" + inputString);
-        }
-    }
-
-    private Integer getConfigInt(String node)
-    {
-        if (!UpgradeIVsConfig.getInstance().getConfig().getNode(node).isVirtual())
-            return UpgradeIVsConfig.getInstance().getConfig().getNode(node).getInt();
-        else
-        {
-            PixelUpgrade.log.info("§4UpgradeIVs // critical: §cCould not parse config variable \"" + node + "\"!");
-            return null;
-        }
-    }
-
-    private Double getConfigDouble(String node)
-    {
-        if (!UpgradeIVsConfig.getInstance().getConfig().getNode(node).isVirtual())
-            return UpgradeIVsConfig.getInstance().getConfig().getNode(node).getDouble();
-        else
-        {
-            PixelUpgrade.log.info("§4UpgradeIVs // critical: §cCould not parse config variable \"" + node + "\"!");
-            return null;
-        }
+        player.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <slot> <IV type> [amount?] {-c to confirm}"));
     }
 }
