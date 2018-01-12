@@ -39,7 +39,7 @@ public class CheckTypes implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.doPrint("CheckTypes", debugNum, inputString); }
+    { CommonMethods.doPrint("CheckTypes", false, debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -64,7 +64,7 @@ public class CheckTypes implements CommandExecutor
             }
             else
             {
-                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
+                printToLog(1, "Called by player §6" + src.getName() + "§e. Starting!");
 
                 Player player = (Player) src;
                 EnumPokemonList returnedPokemon = null;
@@ -143,14 +143,15 @@ public class CheckTypes implements CommandExecutor
                         }
 
                         if (!Objects.equals(updatedString, inputString))
-                            printToLog(2, "Found a fixable input! Original: " + inputString + " | Changed to: " + updatedString);
+                            printToLog(2, "Found a fixable input! Original: \"§2" +
+                                    inputString + "§a\", changed to: \"§2" + updatedString + "§a\"");
 
                         inputString = updatedString;
                         returnedPokemon = EnumPokemonList.getPokemonFromName(inputString);
 
                         if (returnedPokemon == null)
                         {
-                            printToLog(1, "Could not find a Pokémon. Exit. Input: " + inputString);
+                            printToLog(1, "Could not find a Pokémon. Exit. Input was: §2" + inputString);
 
                             checkAndAddHeader(commandCost, player);
                             src.sendMessage(Text.of("§4Error: §cInvalid Pokémon! Check spelling, or try a number."));
@@ -185,20 +186,23 @@ public class CheckTypes implements CommandExecutor
 
                                 if (transactionResult.getResult() == ResultType.SUCCESS)
                                 {
-                                    printToLog(1, "Checked Pokémon for input string \"" + inputString + "\", and took " + costToConfirm + " coins.");
+                                    printToLog(1, "Checked Pokémon for input string \"§6" +
+                                            inputString + "§e\", and took §6" + costToConfirm + "§e coins.");
                                     checkTypes(returnedPokemon, inputIsInteger, inputString, player);
                                 }
                                 else
                                 {
                                     BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                    printToLog(1, "Not enough coins! Cost: §3" + costToConfirm + "§b, lacking: §3" + balanceNeeded);
+                                    printToLog(1, "Not enough coins! Cost: §6" + costToConfirm +
+                                            "§e, lacking: §6" + balanceNeeded);
 
                                     src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
                                 }
                             }
                             else
                             {
-                                printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. May be a bug?");
+                                printToLog(0, "§4" + src.getName() +
+                                        "§c does not have an economy account, aborting. May be a bug?");
                                 src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
                             }
                         }
@@ -206,20 +210,22 @@ public class CheckTypes implements CommandExecutor
                         {
                             printToLog(1, "Got cost but no confirmation; end of the line. Exit.");
 
-                            src.sendMessage(Text.of("§6Warning: §eChecking a Pokémon's type stats costs §6" + costToConfirm + "§e coins."));
+                            src.sendMessage(Text.of("§6Warning: §eChecking a Pokémon's type stats costs §6" +
+                                    costToConfirm + "§e coins."));
                             src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " " + inputString + " -c"));
                         }
                     }
                     else
                     {
-                        printToLog(1, "Checked Pokémon for input string \"" + inputString + "\". Config price is 0, taking nothing.");
+                        printToLog(1, "Checked Pokémon for input string \"§6" + inputString +
+                                "§e\". Config price is §60§e, taking nothing.");
                         checkTypes(returnedPokemon, inputIsInteger, inputString, player);
                     }
                 }
             }
         }
         else
-            CommonMethods.showConsoleError("/checktypes");
+            printToLog(0,"This command cannot run from the console or command blocks.");
 
         return CommandResult.success();
     }
@@ -805,7 +811,7 @@ public class CheckTypes implements CommandExecutor
             }
         }
 
-        printToLog(1, "Successfully iterated through lists and put together a type overview. Done!");
+        printToLog(1, "Successfully went through lists, and put together a type overview. Done!");
         player.sendMessage(Text.of("§7-----------------------------------------------------"));
     }
 }

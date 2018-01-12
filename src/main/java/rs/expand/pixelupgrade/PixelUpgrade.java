@@ -1,35 +1,34 @@
 package rs.expand.pixelupgrade;
 
+// Remote imports.
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Optional;
 
 import net.minecraftforge.fml.common.Loader;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.spongepowered.api.command.args.GenericArguments;
+import org.spongepowered.api.command.source.ConsoleSource;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.event.game.state.*;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
-import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.text.Text;
 
+// Local imports.
 import rs.expand.pixelupgrade.commands.*;
 import rs.expand.pixelupgrade.utilities.ConfigOperations;
-
-import javax.inject.Inject;
 
 // New things:
 // TODO: Make a Pokémon transfer command.
@@ -49,13 +48,12 @@ import javax.inject.Inject;
 // TODO: Add a Mew clone count check to /checkstats and /showstats.
 // TODO: Add a compact mode to /showstats, maybe using hovers. Thanks for the idea, Willynator.
 // TODO: Fix double command registration. This does not cause issues, but does cause Sponge to print warnings.
-// TODO: Add ALL the babies to /upgradeivs. Helps Reforged compatibility, and also future-proofs the mod a bit.
 
 @Plugin
 (
         id = "pixelupgrade",
         name = "PixelUpgrade",
-        version = "3.1",
+        version = "3.1 beta",
         dependencies = @Dependency(id = "pixelmon"),
         description = "Adds a whole bunch of utility commands to Pixelmon, and some economy-integrated commands, too.",
         authors = "XpanD"
@@ -79,10 +77,7 @@ public class PixelUpgrade
     private static final Logger log = LoggerFactory.getLogger(name);
     private static final Logger shortLog = LoggerFactory.getLogger(shortName);
 
-    // This is all magic to me, right now. One day I'll learn what this means! Thanks, Google.
-    @Inject
-    private PluginContainer pluginContainer;
-    public PluginContainer getPluginContainer() { return pluginContainer; }
+    // Some more basic setup.
     public static EconomyService economyService;
 
     // Set up our config paths, and grab an OS-specific file path separator. This will usually be a forward slash.
@@ -310,7 +305,7 @@ public class PixelUpgrade
         shortLog.info("===========================================================================");
         shortLog.info("--> §aLoading global settings and §2/pixelupgrade§a command listing...");
         ConfigOperations.getInstance().setupConfig(primaryConfigPath, privatePath, primaryConfigLoader);
-        String puInfoAlias = PixelUpgradeInfoConfig.getInstance().setupConfig(puInfoPath, path, puInfoLoader);
+        String puInfoAlias = ConfigOperations.getInstance().setupConfig("PixelUpgrade", "pu", puInfoPath, path, puInfoLoader);
 
         // Register other aliases and get some configs. Similar to the above, any errors/warnings will be printed.
         shortLog.info("--> §aLoading command-specific configs...");

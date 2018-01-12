@@ -16,7 +16,6 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 
 import rs.expand.pixelupgrade.PixelUpgrade;
-import rs.expand.pixelupgrade.configs.*;
 import rs.expand.pixelupgrade.utilities.ConfigOperations;
 
 import static rs.expand.pixelupgrade.PixelUpgrade.checkEggLoader;
@@ -31,7 +30,7 @@ public class ReloadConfigs implements CommandExecutor
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
     {
-        boolean showError = false;
+        /*boolean showError = false;
 
         if (args.<String>getOne("config").isPresent())
         {
@@ -329,7 +328,7 @@ public class ReloadConfigs implements CommandExecutor
             else
                 LoggerFactory.getLogger("PixelUpgrade").info("§bReloaded the provided config(s)!");
         }
-
+*/
         return CommandResult.success();
     }
 }

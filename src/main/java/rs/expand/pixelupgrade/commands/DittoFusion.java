@@ -48,7 +48,7 @@ public class DittoFusion implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.doPrint("DittoFusion", debugNum, inputString); }
+    { CommonMethods.doPrint("DittoFusion", false, debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -99,7 +99,7 @@ public class DittoFusion implements CommandExecutor
             }
             else
             {
-                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
+                printToLog(1, "Called by player §6" + src.getName() + "§e. Starting!");
 
                 Player player = (Player) src;
                 int slot1 = 0, slot2 = 0;
@@ -157,7 +157,8 @@ public class DittoFusion implements CommandExecutor
 
                         if (slot2 == slot1)
                         {
-                            printToLog(1, "Caught " + src.getName() + " attempting to fuse a Pokémon with itself. Exit, before the universe collapses.");
+                            printToLog(1, src.getName() +
+                                    " attempted to fuse a Pokémon with itself. Exiting before the universe collapses.");
                             src.sendMessage(Text.of("§4Error: §cYou can't fuse a Pokémon with itself."));
                             canContinue = false;
                         }
@@ -437,13 +438,14 @@ public class DittoFusion implements CommandExecutor
                                                 storageCompleted.changePokemonAndAssignID(slot2 - 1, null);
                                                 //storageCompleted.update(targetPokemon, EnumUpdateType.Status);
 
-                                                printToLog(1, "Transaction successful. Took: " + costToConfirm +
-                                                        " and a Ditto. Current cash: " + uniqueAccount.getBalance(economyService.getDefaultCurrency()));
+                                                printToLog(1, "Transaction successful. Took: §6" + costToConfirm +
+                                                        "§e and a Ditto. Current cash: " + uniqueAccount.getBalance(economyService.getDefaultCurrency()));
                                             }
                                             else
                                             {
                                                 BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                                printToLog(1, "Not enough coins! Cost: §3" + costToConfirm + "§b, lacking: §3" + balanceNeeded);
+                                                printToLog(1, "Not enough coins! Cost: §6" + costToConfirm +
+                                                        "§e, lacking: §6" + balanceNeeded);
 
                                                 src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
                                             }
@@ -524,7 +526,7 @@ public class DittoFusion implements CommandExecutor
             }
         }
         else
-            CommonMethods.showConsoleError("/dittofusion");
+            printToLog(0,"This command cannot run from the console or command blocks.");
 
         return CommandResult.success();
     }

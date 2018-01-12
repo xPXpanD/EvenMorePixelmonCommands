@@ -27,7 +27,7 @@ public class ResetCount implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.doPrint("ResetCount", debugNum, inputString); }
+    { CommonMethods.doPrint("ResetCount", false, debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -42,7 +42,7 @@ public class ResetCount implements CommandExecutor
             }
             else
             {
-                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
+                printToLog(1, "Called by player §6" + src.getName() + "§e. Starting!");
 
                 Player player = (Player) src;
                 boolean canContinue = true, commandConfirmed = false, printError = false;
@@ -146,7 +146,7 @@ public class ResetCount implements CommandExecutor
 
                                 if (fixedCount.matches("Fusion"))
                                 {
-                                    printToLog(1, "Resetting Fusion count on target Pokémon. Old count: " + fuseCount);
+                                    printToLog(1, "Resetting Fusion count on target Pokémon. Old count: §6" + fuseCount);
                                     src.sendMessage(Text.of("§aThis Pokémon's Fusion count has been reset!"));
                                     if (!isDitto)
                                         src.sendMessage(Text.of("§eThis isn't a Ditto -- you may want to wipe Upgrade instead."));
@@ -154,7 +154,7 @@ public class ResetCount implements CommandExecutor
                                 }
                                 else if (fixedCount.matches("Upgrade"))
                                 {
-                                    printToLog(1, "Resetting Upgrade count on target Pokémon. Old count: " + upgradeCount);
+                                    printToLog(1, "Resetting Upgrade count on target Pokémon. Old count: §6" + upgradeCount);
                                     src.sendMessage(Text.of("§aThis Pokémon's Upgrade count has been reset!"));
                                     if (isDitto)
                                         src.sendMessage(Text.of("§eThis is a Ditto -- you may want to wipe Fusion instead."));
@@ -181,7 +181,7 @@ public class ResetCount implements CommandExecutor
             }
         }
         else
-            CommonMethods.showConsoleError("/resetcount");
+            printToLog(0,"This command cannot run from the console or command blocks.");
 
         return CommandResult.success();
     }

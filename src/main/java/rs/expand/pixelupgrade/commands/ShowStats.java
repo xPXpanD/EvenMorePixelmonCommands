@@ -51,7 +51,7 @@ public class ShowStats implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.doPrint("ShowStats", debugNum, inputString); }
+    { CommonMethods.doPrint("ShowStats", false, debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -104,7 +104,7 @@ public class ShowStats implements CommandExecutor
             }
             else
             {
-                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
+                printToLog(1, "Called by player §6" + src.getName() + "§e. Starting!");
                 boolean canContinue = true;
 
                 if (showExtraInfo)
@@ -133,7 +133,7 @@ public class ShowStats implements CommandExecutor
 
                     if (!fusionErrorArray.isEmpty() || !upgradeErrorArray.isEmpty())
                     {
-                        printToLog(0, "Found invalid variables in the remote config(s). Disabling integration.");
+                        printToLog(0, "Found invalid variables in remote config(s). Disabling integration.");
 
                         // Set up our "got an error" flags. Reset to false if we didn't, so we don't cause issues later.
                         if (!fusionErrorArray.isEmpty() || !upgradeErrorArray.isEmpty())
@@ -141,7 +141,7 @@ public class ShowStats implements CommandExecutor
                     }
                 }
 
-                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
+                printToLog(1, "Called by player §6" + src.getName() + "§e. Starting!");
 
                 boolean commandConfirmed = false;
                 int slot = 0;
@@ -223,13 +223,15 @@ public class ShowStats implements CommandExecutor
                                 {
                                     if (timeRemaining == 1)
                                     {
-                                        printToLog(1, "§4" + src.getName() + "§c has to wait §4one §cmore second. Exit.");
+                                        printToLog(1, "§6" + src.getName() + "§e has to wait §6one §emore second. Exit.");
                                         src.sendMessage(Text.of("§4Error: §cYou must wait §4one §cmore second. You can do this!"));
                                     }
                                     else
                                     {
-                                        printToLog(1, "§4" + src.getName() + "§c has to wait another §4" + timeRemaining + "§c seconds. Exit.");
-                                        src.sendMessage(Text.of("§4Error: §cYou must wait another §4" + timeRemaining + "§c seconds."));
+                                        printToLog(1, "§6" + src.getName() + "§e has to wait another §6" +
+                                                timeRemaining + "§e seconds. Exit.");
+                                        src.sendMessage(Text.of("§4Error: §cYou must wait another §4" +
+                                                timeRemaining + "§c seconds."));
                                     }
 
                                     canContinue = false;
@@ -254,14 +256,16 @@ public class ShowStats implements CommandExecutor
 
                                             if (transactionResult.getResult() == ResultType.SUCCESS)
                                             {
-                                                printToLog(1, "Showing off slot " + slot + ", and taking " + costToConfirm + " coins.");
+                                                printToLog(1, "Showing off slot §6" + slot +
+                                                        "§e, and taking §6" + costToConfirm + "§e coins.");
                                                 cooldownMap.put(playerUUID, currentTime);
                                                 checkAndShowStats(nbt, player);
                                             }
                                             else
                                             {
                                                 BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                                printToLog(1, "Not enough coins! Cost: §3" + costToConfirm + "§b, lacking: §3" + balanceNeeded);
+                                                printToLog(1, "Not enough coins! Cost: §6" +
+                                                        costToConfirm + "§e, lacking: §6" + balanceNeeded);
                                                 src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
                                             }
                                         }
@@ -275,13 +279,14 @@ public class ShowStats implements CommandExecutor
                                     {
                                         printToLog(1, "Got cost but no confirmation; end of the line. Exit.");
 
-                                        src.sendMessage(Text.of("§6Warning: §eShowing off a Pokémon's stats costs §6" + costToConfirm + "§e coins."));
+                                        src.sendMessage(Text.of("§6Warning: §eShowing off a Pokémon's stats costs §6" +
+                                                costToConfirm + "§e coins."));
                                         src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " " + slot + " -c"));
                                     }
                                 }
                                 else
                                 {
-                                    printToLog(1, "Showing off slot " + slot + ". Config price is 0, taking nothing.");
+                                    printToLog(1, "Showing off slot §6" + slot + "§e. Config price is §60§e, taking nothing.");
                                     cooldownMap.put(playerUUID, currentTime);
                                     checkAndShowStats(nbt, player);
                                 }
@@ -292,7 +297,7 @@ public class ShowStats implements CommandExecutor
             }
         }
         else
-            CommonMethods.showConsoleError("/showstats");
+            printToLog(0,"This command cannot run from the console or command blocks.");
 
         return CommandResult.success();
     }
@@ -335,14 +340,14 @@ public class ShowStats implements CommandExecutor
         int spDefIV = nbt.getInteger(NbtKeys.IV_SP_DEF);
         int speedIV = nbt.getInteger(NbtKeys.IV_SPEED);
         BigDecimal totalIVs = BigDecimal.valueOf(HPIV + attackIV + defenseIV + spAttIV + spDefIV + speedIV);
-        BigDecimal percentIVs = totalIVs.multiply(new BigDecimal("100")).divide(new BigDecimal("186"), 2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal percentIVs =
+                totalIVs.multiply(new BigDecimal("100")).divide(new BigDecimal("186"), 2, BigDecimal.ROUND_HALF_UP);
 
         // Set up for our anti-cheat notifier.
         boolean nicknameTooLong = false;
 
         // Get a bunch of data from our GetPokemonInfo utility class. Used for messages, later on.
-        ArrayList<String> natureArray = GetPokemonInfo.getNatureStrings(nbt.getInteger(NbtKeys.NATURE),
-                shortenedSpecialAttack, shortenedSpecialDefense, shortenedSpeed);
+        ArrayList<String> natureArray = GetPokemonInfo.getNatureStrings(nbt.getInteger(NbtKeys.NATURE));
         String natureName = natureArray.get(0);
         String plusVal = natureArray.get(1);
         String minusVal = natureArray.get(2);
@@ -395,13 +400,17 @@ public class ShowStats implements CommandExecutor
         String nicknameString = "§e, \"§6" + nickname + "§e\"!";
 
         if (!nickname.equals("") && showNicknames && nbt.getInteger(NbtKeys.IS_SHINY) != 1)
-            MessageChannel.TO_PLAYERS.send(Text.of(startString + nicknameString + "§f (§e" + genderCharacter + "§r)"));
+            MessageChannel.TO_PLAYERS.send(Text.of(startString + nicknameString + "§f (§e" +
+                    genderCharacter + "§r)"));
         else if (!nickname.equals("") && showNicknames && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
-            MessageChannel.TO_PLAYERS.send(Text.of(startString + nicknameString + "§f (§e§lshiny§r §e" + genderCharacter + "§r)"));
+            MessageChannel.TO_PLAYERS.send(Text.of(startString + nicknameString + "§f (§e§lshiny§r §e" +
+                    genderCharacter + "§r)"));
         else if (nickname.equals("") && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
-            MessageChannel.TO_PLAYERS.send(Text.of(startString + "§f (§e§lshiny§r §e" + genderCharacter + "§r)"));
+            MessageChannel.TO_PLAYERS.send(Text.of(startString + "§f (§e§lshiny§r §e" +
+                    genderCharacter + "§r)"));
         else
-            MessageChannel.TO_PLAYERS.send(Text.of(startString + "§f (§e" + genderCharacter + "§r)"));
+            MessageChannel.TO_PLAYERS.send(Text.of(startString + "§f (§e" +
+                    genderCharacter + "§r)"));
 
         MessageChannel.TO_PLAYERS.send(Text.of(""));
         MessageChannel.TO_PLAYERS.send(Text.of("§bIVs§f: §a" + ivs1 + ivs2 + ivs3 + ivs4 + ivs5 + ivs6));
@@ -454,9 +463,11 @@ public class ShowStats implements CommandExecutor
                 }
 
                 if (fuseCount != 0 && fuseCount < fusionCap)
-                    MessageChannel.TO_PLAYERS.send(Text.of(startString + "has been fused §6" + fuseCount + "§e/§6" + fusionCap + " §etimes."));
+                    MessageChannel.TO_PLAYERS.send(Text.of(startString + "has been fused §6" +
+                            fuseCount + "§e/§6" + fusionCap + " §etimes."));
                 else if (fuseCount == 0 && fuseCount < fusionCap)
-                    MessageChannel.TO_PLAYERS.send(Text.of(startString + "can be fused §6" + fusionCap + "§e more times."));
+                    MessageChannel.TO_PLAYERS.send(Text.of(startString + "can be fused §6" +
+                            fusionCap + "§e more times."));
                 else
                     MessageChannel.TO_PLAYERS.send(Text.of(startString + "cannot be fused any further!"));
             }
@@ -496,9 +507,11 @@ public class ShowStats implements CommandExecutor
                 }
 
                 if (upgradeCount != 0 && upgradeCount < upgradeCap)
-                    MessageChannel.TO_PLAYERS.send(Text.of(startString + "has been upgraded §6" + upgradeCount + "§e/§6" + upgradeCap + " §etimes."));
+                    MessageChannel.TO_PLAYERS.send(Text.of(startString + "has been upgraded §6" +
+                            upgradeCount + "§e/§6" + upgradeCap + " §etimes."));
                 else if (upgradeCount == 0 && upgradeCount < upgradeCap)
-                    MessageChannel.TO_PLAYERS.send(Text.of(startString + "can be upgraded §6" + upgradeCap + "§e more times."));
+                    MessageChannel.TO_PLAYERS.send(Text.of(startString + "can be upgraded §6" +
+                            upgradeCap + "§e more times."));
                 else
                     MessageChannel.TO_PLAYERS.send(Text.of(startString + "has been fully upgraded!"));
             }

@@ -1,5 +1,6 @@
 package rs.expand.pixelupgrade.utilities;
 
+// Remote imports.
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,6 +12,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// Local imports.
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.commands.CheckEgg;
 
@@ -33,6 +35,10 @@ public class ConfigOperations
         else
             return null;
     }
+
+    // Pass any debug messages onto final printing.
+    private void printDebug (String inputString)
+    { CommonMethods.doPrint("PixelUpgrade", true, 2, inputString); }
 
     // Called during initial setup, either when the server is booting up or when /pureload has been executed.
     public String setupConfig(String callSource, String defaultAlias, Path checkPath, String mainPath, ConfigurationLoader<CommentedConfigurationNode> configLoader)
@@ -118,10 +124,10 @@ public class ConfigOperations
     @SuppressWarnings({"ConstantConditions"})
     public void loadConfig(String callSource)
     {
-        PixelUpgrade.log.info("§4PixelUpgrade // DEBUG: §cReading: §4" + callSource);
+        printDebug("DISABLED | Reading: §4" + callSource);
         CommentedConfigurationNode commandConfig;
 
-        try
+        /*try
         {
             switch (callSource) // TODO: Added a new command? Update the switch list! Default should NEVER be called!
             {
@@ -175,7 +181,7 @@ public class ConfigOperations
             }
         }
         catch (Exception F)
-        { pLog.info("§4" + callSource + " // error: §cIssue!"); }
+        { pLog.info("§4" + callSource + " // error: §cIssue!"); }*/
     }
 
     public CommentedConfigurationNode getConfig()

@@ -34,7 +34,7 @@ public class ResetEVs implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.doPrint("ResetEVs", debugNum, inputString); }
+    { CommonMethods.doPrint("ResetEVs", false, debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -55,7 +55,7 @@ public class ResetEVs implements CommandExecutor
             }
             else
             {
-                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
+                printToLog(1, "Called by player §6" + src.getName() + "§e. Starting!");
 
                 Player player = (Player) src;
                 boolean canContinue = true, commandConfirmed = false;
@@ -140,12 +140,14 @@ public class ResetEVs implements CommandExecutor
                                     if (transactionResult.getResult() == ResultType.SUCCESS)
                                     {
                                         resetPlayerEVs(nbt, player);
-                                        printToLog(1, "Reset EVs for slot " + slot + ", and took " + costToConfirm + " coins.");
+                                        printToLog(1, "Reset EVs for slot §6" + slot +
+                                                "§e, and took §6" + costToConfirm + "§e coins.");
                                     }
                                     else
                                     {
                                         BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                        printToLog(1, "Not enough coins! Cost: §3" + costToConfirm + "§b, lacking: §3" + balanceNeeded);
+                                        printToLog(1, "Not enough coins! Cost: §6" + costToConfirm +
+                                                "§e, lacking: §6" + balanceNeeded);
 
                                         src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
                                     }
@@ -159,7 +161,8 @@ public class ResetEVs implements CommandExecutor
                             else
                             {
                                 resetPlayerEVs(nbt, player);
-                                printToLog(1, "Reset EVs for slot " + slot + ". Config price is 0, taking nothing.");
+                                printToLog(1, "Reset EVs for slot §6" + slot +
+                                        "§e. Config price is §60§e, taking nothing.");
                             }
                         }
                         else
@@ -178,7 +181,7 @@ public class ResetEVs implements CommandExecutor
             }
         }
         else
-            CommonMethods.showConsoleError("/resetevs");
+            printToLog(0,"This command cannot run from the console or command blocks.");
 
         return CommandResult.success();
 	}
@@ -193,7 +196,8 @@ public class ResetEVs implements CommandExecutor
         int EVSPD = nbt.getInteger(NbtKeys.EV_SPEED);
 
         printToLog(1, "Command has been confirmed, printing old EVs...");
-        printToLog(1, "HP: " + EVHP + " | ATK: " + EVATT + " | DEF: " + EVDEF + " | SPATK: " + EVSPATT + " | SPDEF: " + EVSPDEF + " | SPD: " + EVSPD);
+        printToLog(1, "HP: §6" + EVHP + "§e | ATK: §6" + EVATT + "§e | DEF: §6" + EVDEF +
+                "§e | SPATK: §6" + EVSPATT + "§e | SPDEF: §6" + EVSPDEF + "§e | SPD: §6" + EVSPD);
 
         nbt.setInteger(NbtKeys.EV_HP, 0);
         nbt.setInteger(NbtKeys.EV_ATTACK, 0);

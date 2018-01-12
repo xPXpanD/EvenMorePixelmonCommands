@@ -51,7 +51,7 @@ public class UpgradeIVs implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.doPrint("DittoFusion", debugNum, inputString); }
+    { CommonMethods.doPrint("DittoFusion", false, debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -104,7 +104,7 @@ public class UpgradeIVs implements CommandExecutor
             }
             else
             {
-                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
+                printToLog(1, "Called by player §6" + src.getName() + "§e. Starting!");
 
                 Player player = (Player) src;
                 String stat = null, fixedStat = null, cleanStat = "Error, please report!";
@@ -201,7 +201,7 @@ public class UpgradeIVs implements CommandExecutor
 
                     if (!statWasValid)
                     {
-                        printToLog(1, "Got an invalid IV type, exit. Type was: §3" + stat);
+                        printToLog(1, "Got an invalid IV type, exit. Type was: §6" + stat);
 
                         player.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid IV type \"§4" + stat + "§c\". See below."));
@@ -326,20 +326,24 @@ public class UpgradeIVs implements CommandExecutor
                                 isLegendary = true;
                             }
 
-                            /*                                                                *\
-                                TODO: Find out if there are more 3*31IVs babies in Reforged.
-                                 Riolu, Mime Jr. andHappiny are known examples from 5.1.2.
-                            \*                                                                */
-
-                            if (nbt.getString("Name").equals("Riolu") || nbt.getString("Name").equals("Mime Jr.") || nbt.getString("Name").equals("Happiny"))
+                            // Run through the baby check, too. Babies spawn with 3*31 guaranteed IVs.
+                            switch (nbt.getString("Name"))
                             {
-                                printToLog(2, "Provided Pokémon is a known 3*31 IV baby.");
-                                isBaby = true;
+                                case "Pichu": case "Pickachu": case "Raichu": case "Cleffa": case "Clefairy":
+                                case "Clefable": case "Igglybuff": case "Jigglypuff": case "Wigglytuff": case "Togepi":
+                                case "Togetic": case "Togekiss": case "Tyrogue": case "Hitmonlee": case "Hitmonchan":
+                                case "Hitmontop": case "Smoochum": case "Jynx": case "Elekid": case "Electabuzz":
+                                case "Electivire": case "Magby": case "Magmar": case "Magmortar": case "Azurill":
+                                case "Marill": case "Azumarill": case "Wynaut": case "Wobbuffet": case "Budew":
+                                case "Roselia": case "Roserade": case "Chingling": case "Chimecho": case "Bonsly":
+                                case "Sudowoodo": case "Mime Jr.": case "Mr. Mime": case "Happiny": case "Chansey":
+                                case "Blissey": case "Munchlax": case "Snorlax": case "Riolu": case "Lucario":
+                                case "Mantyke": case "Mantine":
+                                {
+                                    printToLog(2, "Provided Pokémon is a known 3*31 IV baby.");
+                                    isBaby = true;
+                                }
                             }
-                            /*switch (nbt.getString("Name)"))
-                            {
-                                case "Riolu": case "Mime Jr.": case "Happiny":
-                            }*/
 
                             // Let's go through the big ol' wall of checks.
                             if (totalIVs >= 186)
@@ -455,7 +459,8 @@ public class UpgradeIVs implements CommandExecutor
                                 costToConfirm = BigDecimal.valueOf((iteratedValue * priceMultiplier) + addFlatFee);
                                 costToConfirm = costToConfirm.setScale(2, RoundingMode.HALF_UP); // Two decimals is all we need.
 
-                                printToLog(2, "Remainder is now: §2" + remainder + "§a. Freshly baked price: §2" + costToConfirm + "§a.");
+                                printToLog(2, "Remainder is now: §2" + remainder +
+                                        "§a. Freshly baked price: §2" + costToConfirm + "§a.");
 
                                 if (commandConfirmed)
                                 {
@@ -504,7 +509,7 @@ public class UpgradeIVs implements CommandExecutor
                                         {
                                             UniqueAccount uniqueAccount = optionalAccount.get();
                                             BigDecimal newTotal = uniqueAccount.getBalance(economyService.getDefaultCurrency());
-                                            printToLog(2, "Entering final stage, got confirmation. Current cash: §6" + newTotal + "§e.");
+                                            printToLog(2, "Entering final stage, got confirmation. Current cash: §2" + newTotal + "§a.");
 
                                             TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
                                                         costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
@@ -545,14 +550,17 @@ public class UpgradeIVs implements CommandExecutor
                                                 player.sendMessage(Text.of("§7-----------------------------------------------------"));
 
                                                 newTotal = uniqueAccount.getBalance(economyService.getDefaultCurrency());
-                                                printToLog(1, "Upgraded one or more IVs, and took §3" + costToConfirm + "§b coins. New total: §3" + newTotal);
+                                                printToLog(1, "Upgraded one or more IVs, and took §6" +
+                                                        costToConfirm + "§a coins. New total: §6" + newTotal);
                                             }
                                             else
                                             {
                                                 BigDecimal balanceNeeded = newTotal.subtract(costToConfirm).abs();
-                                                printToLog(1, "Not enough coins! Cost: §3" + costToConfirm + "§b, lacking: §3" + balanceNeeded);
+                                                printToLog(1, "Not enough coins! Cost: §6" +
+                                                        costToConfirm + "§e, lacking: §6" + balanceNeeded);
 
-                                                src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
+                                                src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded +
+                                                        "§c more coins to do this."));
                                             }
                                         }
                                         else
@@ -607,7 +615,7 @@ public class UpgradeIVs implements CommandExecutor
             }
         }
         else
-            CommonMethods.showConsoleError("/upgradeivs");
+            printToLog(0,"This command cannot run from the console or command blocks.");
 
         return CommandResult.success();
 	}

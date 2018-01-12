@@ -42,7 +42,7 @@ public class CheckEgg implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.doPrint("CheckEgg", debugNum, inputString); }
+    { CommonMethods.doPrint("CheckEgg", false, debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -98,7 +98,7 @@ public class CheckEgg implements CommandExecutor
             }
             else
             {
-                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
+                printToLog(1, "Called by player §6" + src.getName() + "§e. Starting!");
 
                 int slot = 0;
                 String targetString = null, slotString;
@@ -118,7 +118,7 @@ public class CheckEgg implements CommandExecutor
 
                         if (targetString.matches("^[1-6]"))
                         {
-                            printToLog(2, "Found a slot in argument 1. Continuing to confirmation checks.");
+                            printToLog(2, "Found slot in argument 1. Continuing to confirmation checks.");
                             slot = Integer.parseInt(targetString);
                             canContinue = true;
                         }
@@ -133,28 +133,28 @@ public class CheckEgg implements CommandExecutor
                                     targetAcquired = true;
                                 }
                                 else
-                                    printToLog(2, "Played entered their own name as target.");
+                                    printToLog(2, "Player targeted own name. Let's pretend that didn't happen.");
 
                                 canContinue = true;
                             }
                             else if (Pattern.matches("[a-zA-Z]+", targetString)) // Make an assumption; input is non-numeric so probably not a slot.
                             {
-                                printToLog(1, "First argument was invalid. Input not numeric, assuming misspelled name. Exit.");
+                                printToLog(1, "Invalid first argument. Input not numeric, assuming misspelled name. Exit.");
 
                                 checkAndAddHeader(commandCost, player);
                                 src.sendMessage(Text.of("§4Error: §cCould not find the given target. Check your spelling."));
                                 printCorrectPerm(commandCost, player);
                                 checkAndAddFooter(commandCost, player);
                             }
-                            else  // Throw a "safe" error that works for both missing slots and targets.
-                            { // Might not be as clean, which is why we check patterns above.
-                                printToLog(1, "First argument was invalid, and input has numbers. Throwing generic error. Exit.");
+                            else  // Throw a "safe" error, works for missing slots AND targets. Bit messy, hence the pattern check above.
+                            {
+                                printToLog(1, "Invalid first argument, input has numbers. Throwing generic error. Exit.");
                                 throwArg1Error(commandCost, true, player);
                             }
                         }
                         else
                         {
-                            printToLog(1, "Invalid slot provided, and player has no \"other\" perm. Exit.");
+                            printToLog(1, "Invalid slot provided, and player has no \"§6other§e\" perm. Exit.");
                             throwArg1Error(commandCost, false, player);
                         }
                     }
@@ -181,7 +181,7 @@ public class CheckEgg implements CommandExecutor
                     }
                     else if (hasOtherPerm)
                     {
-                        printToLog(2, "Found something in the second argument slot, and we're clear to use it!");
+                        printToLog(2, "Found something in second argument slot, and we're clear to use it!");
                         slotString = args.<String>getOne("slot").get();
 
                         if (slotString.matches("^[1-6]"))
@@ -268,9 +268,11 @@ public class CheckEgg implements CommandExecutor
 
                                 // Keep this below the printEggResults call, or your debug message order will look weird.
                                 if (commandCost == 0)
-                                    printToLog(1, "Checking egg in slot " + slot + ". Config price is 0, taking nothing.");
+                                    printToLog(1, "Checking egg in slot §6" + slot +
+                                            "§e. Config price is §60§e, taking nothing.");
                                 else
-                                    printToLog(1, "Checking egg, slot " + slot + ". Detected a recheck, taking nothing as per config.");
+                                    printToLog(1, "Checking egg, slot §6" + slot +
+                                            "§e. Detected a recheck, taking nothing as per config.");
                             }
                             else
                             {
@@ -291,14 +293,17 @@ public class CheckEgg implements CommandExecutor
                                             printEggResults(nbt, pokemon, wasEggChecked, commandCost, player);
 
                                             // Keep this below the printEggResults call, or your debug message order will look weird.
-                                            printToLog(1, "Checking egg in slot " + slot + ", and taking " + costToConfirm + " coins.");
+                                            printToLog(1, "Checking egg in slot §6" + slot +
+                                                    "§e, and taking §6" + costToConfirm + "§e coins.");
                                         }
                                         else
                                         {
                                             BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                            printToLog(1, "Not enough coins! Cost: §3" + costToConfirm + "§b, lacking: §3" + balanceNeeded);
+                                            printToLog(1, "Not enough coins! Cost: §6" + costToConfirm +
+                                                    "§e, lacking: §6" + balanceNeeded);
 
-                                            src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
+                                            src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded +
+                                                    "§c more coins to do this."));
                                         }
                                     }
                                     else
@@ -314,13 +319,17 @@ public class CheckEgg implements CommandExecutor
                                     if (targetAcquired)
                                     {
                                         slot = Integer.parseInt(args.<String>getOne("slot").get());
-                                        src.sendMessage(Text.of("§6Warning: §eChecking this egg's status costs §6" + costToConfirm + "§e coins."));
-                                        src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + targetString + " " + slot + " -c"));
+                                        src.sendMessage(Text.of("§6Warning: §eChecking this egg's status costs §6" +
+                                                costToConfirm + "§e coins."));
+                                        src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " +
+                                                targetString + " " + slot + " -c"));
                                     }
                                     else
                                     {
-                                        src.sendMessage(Text.of("§6Warning: §eChecking an egg's status costs §6" + costToConfirm + "§e coins."));
-                                        src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
+                                        src.sendMessage(Text.of("§6Warning: §eChecking an egg's status costs §6" +
+                                                costToConfirm + "§e coins."));
+                                        src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " +
+                                                slot + " -c"));
                                     }
                                 }
                             }
@@ -330,7 +339,7 @@ public class CheckEgg implements CommandExecutor
             }
         }
         else
-            CommonMethods.showConsoleError("/checkegg");
+            printToLog(0,"This command cannot run from the console or command blocks.");
 
         return CommandResult.success();
     }
@@ -447,8 +456,7 @@ public class CheckEgg implements CommandExecutor
             player.sendMessage(Text.of("§bIVs§f: §a" + ivs1 + "" + ivs2 + "" + ivs3 + "" + ivs4 + "" + ivs5 + "" + ivs6));
 
             // Get a bunch of data from our GetPokemonInfo utility class.
-            ArrayList<String> natureArray = GetPokemonInfo.getNatureStrings(nbt.getInteger(NbtKeys.NATURE),
-                    shortenedSpecialAttack, shortenedSpecialDefense, shortenedSpeed);
+            ArrayList<String> natureArray = GetPokemonInfo.getNatureStrings(nbt.getInteger(NbtKeys.NATURE));
             String natureName = natureArray.get(0);
             String plusVal = natureArray.get(1);
             String minusVal = natureArray.get(2);
@@ -492,7 +500,7 @@ public class CheckEgg implements CommandExecutor
         }
         else if (!wasEggChecked && recheckIsFree && cost > 0)
         {
-            printToLog(2, "First-time check, recheckIsFree is enabled. Flagging the egg for free future rechecks.");
+            printToLog(2, "First-time check, recheckIsFree enabled. Flagging egg for free rechecks.");
             pokemon.getEntityData().setBoolean("hadEggChecked", true);
         }
 

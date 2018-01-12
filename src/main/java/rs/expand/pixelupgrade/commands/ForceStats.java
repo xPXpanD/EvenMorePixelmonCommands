@@ -26,7 +26,7 @@ public class ForceStats implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.doPrint("ForceStats", debugNum, inputString); }
+    { CommonMethods.doPrint("ForceStats", false, debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -47,7 +47,7 @@ public class ForceStats implements CommandExecutor
             }
             else
             {
-                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
+                printToLog(1, "Called by player §6" + src.getName() + "§e. Starting!");
 
                 boolean canContinue = true, statWasFixed = true, forceValue = false, shinyFix = false, valueIsInt = false;
                 int slot = 0, intValue = 0;
@@ -228,9 +228,11 @@ public class ForceStats implements CommandExecutor
                             };
 
                             printToLog(2, "Value is not forced, but is valid. Let's patch up the player's input.");
-                            printToLog(2, "Found stat §2" + stat + "§a, trying adjustment... It is now §2" + fixedStat + "§a.");
+                            printToLog(2, "Found stat §2" + stat +
+                                    "§a, trying adjustment... It is now §2" + fixedStat + "§a.");
 
-                            if (Arrays.asList(validIVEV).contains(fixedStat) && intValue > 32767 || Arrays.asList(validIVEV).contains(fixedStat) && intValue < -32768)
+                            if (Arrays.asList(validIVEV).contains(fixedStat) && intValue > 32767 ||
+                                    Arrays.asList(validIVEV).contains(fixedStat) && intValue < -32768)
                             {
                                 printToLog(1, "Found an IV or EV so high that it'd roll over. Exit.");
                                 src.sendMessage(Text.of("§4Error: §cIV/EV value out of bounds. Valid range: -32768 ~ 32767"));
@@ -252,7 +254,8 @@ public class ForceStats implements CommandExecutor
                             }
                             else
                             {
-                                printToLog(1, "Changing value. Stat: §3" + fixedStat + "§b. Old: §3" + nbt.getInteger(fixedStat) + "§b. New: §3" + intValue + "§b.");
+                                printToLog(1, "Changing value. Stat: §3" + fixedStat + "§b. Old: §3" +
+                                        nbt.getInteger(fixedStat) + "§b. New: §3" + intValue + "§b.");
 
                                 nbt.setInteger(fixedStat, intValue);
                                 if (shinyFix)
@@ -264,7 +267,7 @@ public class ForceStats implements CommandExecutor
                         }
                         else if (!forceValue)
                         {
-                            printToLog(1, "Provided value was a string, but they're only supported in force mode. Exit.");
+                            printToLog(1, "Provided value was a string, but they're only supported when forced. Exit.");
 
                             src.sendMessage(Text.of("§5-----------------------------------------------------"));
                             src.sendMessage(Text.of("§4Error: §cGot a non-integer value, but no flag. Try a number."));
@@ -274,7 +277,10 @@ public class ForceStats implements CommandExecutor
                         else
                         {
                             try
-                            { printToLog(1, "Value is being forced! Old value: §6" + nbt.getInteger(stat) + "§e."); }
+                            {
+                                printToLog(1, "Value is being forced! Old value: §6" +
+                                    nbt.getInteger(stat) + "§e.");
+                            }
                             catch (Exception F)
                             { printToLog(1, "Value is being forced! Tried to grab old value, but couldn't read it..."); }
 
@@ -284,7 +290,8 @@ public class ForceStats implements CommandExecutor
                             {
                                 printToLog(2, "Found a known stat in force mode. Checking and fixing, just in case...");
 
-                                src.sendMessage(Text.of("§cFound known bad stat \"§4" + stat + "§c\", adjusting to \"§4" + fixedStat + "§c\"..."));
+                                src.sendMessage(Text.of("§cFound known bad stat \"§4" + stat +
+                                        "§c\", adjusting to \"§4" + fixedStat + "§c\"..."));
                                 stat = fixedStat;
                             }
 
@@ -313,7 +320,7 @@ public class ForceStats implements CommandExecutor
             }
         }
         else
-            CommonMethods.showConsoleError("/forcestats");
+            printToLog(0,"This command cannot run from the console or command blocks.");
 
         return CommandResult.success();
 	}

@@ -896,6 +896,7 @@ public enum EnumPokemonList
             if (pokemon.name().equalsIgnoreCase(name))
                 return pokemon;
         }
+
         // If the loop does not find and return a Pokémon, do this.
         return null;
     }

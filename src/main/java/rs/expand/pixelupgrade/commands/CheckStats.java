@@ -49,7 +49,7 @@ public class CheckStats implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.doPrint("CheckStats", debugNum, inputString); }
+    { CommonMethods.doPrint("CheckStats", false, debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -102,7 +102,7 @@ public class CheckStats implements CommandExecutor
             }
             else
             {
-                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
+                printToLog(1, "Called by player §6" + src.getName() + "§e. Starting!");
                 boolean canContinue = false, gotCheckEggError = false;
 
                 if (showDittoFusionHelper || showUpgradeHelper)
@@ -110,7 +110,7 @@ public class CheckStats implements CommandExecutor
                     ArrayList<String> upgradeErrorArray = new ArrayList<>(), fusionErrorArray = new ArrayList<>();
                     if (showDittoFusionHelper)
                     {
-                        printToLog(2, "Entering DittoFusion config loading. Errors will be logged.");
+                        printToLog(2, "Entering §2DittoFusion §aconfig loading. Errors will be logged.");
 
                         if (DittoFusion.regularCap == null)
                             fusionErrorArray.add("regularCap");
@@ -122,7 +122,7 @@ public class CheckStats implements CommandExecutor
 
                     if (showUpgradeHelper)
                     {
-                        printToLog(2, "Entering UpgradeIVs config loading. Errors will be logged.");
+                        printToLog(2, "Entering §2UpgradeIVs §aconfig loading. Errors will be logged.");
 
                         if (UpgradeIVs.legendaryAndShinyCap == null)
                             upgradeErrorArray.add("legendaryAndShinyCap");
@@ -140,7 +140,7 @@ public class CheckStats implements CommandExecutor
 
                     if (!fusionErrorArray.isEmpty() || !upgradeErrorArray.isEmpty())
                     {
-                        printToLog(0, "Found invalid variables in the remote config(s). Disabling integration.");
+                        printToLog(0, "Found invalid variables in remote config(s). Disabling integration.");
 
                         // Set up our "got an error" flags. Reset to false if we didn't, so we don't cause issues later.
                         gotFusionError = !fusionErrorArray.isEmpty();
@@ -150,7 +150,7 @@ public class CheckStats implements CommandExecutor
 
                 if (enableCheckEggIntegration && CheckEgg.commandAlias == null)
                 {
-                    printToLog(0, "Could not read alias for command \"/checkegg\". Disabling integration.");
+                    printToLog(0, "Could not read alias for command \"§4/checkegg§c\". Disabling integration.");
                     gotCheckEggError = true;
                 }
 
@@ -183,17 +183,17 @@ public class CheckStats implements CommandExecutor
                                 if (!player.getName().equalsIgnoreCase(targetString))
                                 {
                                     target = Sponge.getServer().getPlayer(targetString).get();
-                                    printToLog(2, "Found a valid online target! Printed for your convenience: " + target.getName());
+                                    printToLog(2, "Found a valid online target! Printed for your convenience: §2" + target.getName());
                                     targetAcquired = true;
                                 }
                                 else
-                                    printToLog(2, "Player targeted their own name. Let's just pretend that didn't happen.");
+                                    printToLog(2, "Player targeted own name. Let's pretend that didn't happen.");
 
                                 canContinue = true;
                             }
                             else if (Pattern.matches("[a-zA-Z]+", targetString)) // Making an assumption; input is non-numeric so probably not a slot.
                             {
-                                printToLog(1, "First argument was invalid. Input not numeric, assuming misspelled name. Exit.");
+                                printToLog(1, "Invalid first argument. Input not numeric, assuming misspelled name. Exit.");
 
                                 checkAndAddHeader(commandCost, player);
                                 src.sendMessage(Text.of("§4Error: §cCould not find the given target. Check your spelling."));
@@ -202,13 +202,13 @@ public class CheckStats implements CommandExecutor
                             }
                             else  // Throw a "safe" error that works for both missing slots and targets. Might not be as clean, which is why we check patterns above.
                             {
-                                printToLog(1, "First argument was invalid, and input has numbers. Throwing generic error. Exit.");
+                                printToLog(1, "Invalid first argument, input has numbers. Throwing generic error. Exit.");
                                 throwArg1Error(commandCost, true, player);
                             }
                         }
                         else
                         {
-                            printToLog(1, "Invalid slot provided, and player has no \"other\" perm. Exit.");
+                            printToLog(1, "Invalid slot provided, and player has no \"§6other§e\" perm. Exit.");
                             throwArg1Error(commandCost, false, player);
                         }
                     }
@@ -306,7 +306,7 @@ public class CheckStats implements CommandExecutor
 
                         if (targetAcquired && showTeamWhenSlotEmpty && nbt == null)
                         {
-                            printToLog(1, "Slot provided on target is empty, printing team to chat as per config.");
+                            printToLog(1, "No target slot provided, printing team to chat as per config.");
 
                             int slotTicker = 0;
                             player.sendMessage(Text.of("§7-----------------------------------------------------"));
@@ -369,13 +369,13 @@ public class CheckStats implements CommandExecutor
                         }
                         else if (nbt.getBoolean("isEgg") && enableCheckEggIntegration && !gotCheckEggError)
                         {
-                            printToLog(1, "Found an egg, recommended /checkegg's alias as per config. Exit.");
+                            printToLog(1, "Found an egg, recommended CheckEgg alias as per config. Exit.");
                             player.sendMessage(Text.of("§4Error: §cThis command only checks hatched Pokémon. Check out §4/" +
                                     CheckEgg.commandAlias + "§c."));
                         }
                         else if (nbt.getBoolean("isEgg"))
                         {
-                            printToLog(1, "Found an egg. Printed error instead of recommending /checkegg, as per config.");
+                            printToLog(1, "Found an egg. Printing error instead of recommending CheckEgg, as per config.");
                             player.sendMessage(Text.of("§4Error: §cYou can only check hatched Pokémon."));
                         }
                         else if (commandCost > 0)
@@ -394,13 +394,15 @@ public class CheckStats implements CommandExecutor
 
                                     if (transactionResult.getResult() == ResultType.SUCCESS)
                                     {
-                                        printToLog(1, "Checked Pokémon in slot " + slot + ", and took " + costToConfirm + " coins.");
+                                        printToLog(1, "Checked Pokémon in slot §6" + slot +
+                                                "§e, and took §6" + costToConfirm + "§e coins.");
                                         checkAndShow(nbt, targetAcquired, player, target);
                                     }
                                     else
                                     {
                                         BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                        printToLog(1, "Not enough coins! Cost: §3" + costToConfirm + "§b, lacking: §3" + balanceNeeded);
+                                        printToLog(1, "Not enough coins! Cost: §6" + costToConfirm +
+                                                "§e, lacking: §6" + balanceNeeded);
 
                                         src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
                                     }
@@ -418,19 +420,23 @@ public class CheckStats implements CommandExecutor
                                 if (targetAcquired)
                                 {
                                     slot = Integer.parseInt(args.<String>getOne("slot").get());
-                                    src.sendMessage(Text.of("§6Warning: §eChecking this Pokémon's status costs §6" + costToConfirm + "§e coins."));
-                                    src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " " + targetString + " " + slot + " -c"));
+                                    src.sendMessage(Text.of("§6Warning: §eChecking this Pokémon's status costs §6" +
+                                            costToConfirm + "§e coins."));
+                                    src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " " +
+                                            targetString + " " + slot + " -c"));
                                 }
                                 else
                                 {
-                                    src.sendMessage(Text.of("§6Warning: §eChecking a Pokémon's status costs §6" + costToConfirm + "§e coins."));
+                                    src.sendMessage(Text.of("§6Warning: §eChecking a Pokémon's status costs §6" +
+                                            costToConfirm + "§e coins."));
                                     src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " " + slot + " -c"));
                                 }
                             }
                         }
                         else
                         {
-                            printToLog(1, "Checked Pokémon in slot " + slot + ". Config price is 0, taking nothing.");
+                            printToLog(1, "Checked Pokémon in slot §6" + slot +
+                                    "§e. Config price is §60 §e, taking nothing.");
                             checkAndShow(nbt, targetAcquired, player, target);
                         }
                     }
@@ -438,7 +444,7 @@ public class CheckStats implements CommandExecutor
             }
         }
         else
-            CommonMethods.showConsoleError("/checkstats");
+            printToLog(0,"This command cannot run from the console or command blocks.");
 
         return CommandResult.success();
 	}
@@ -519,8 +525,7 @@ public class CheckStats implements CommandExecutor
         BigDecimal percentEVs = totalEVs.multiply(new BigDecimal("100")).divide(new BigDecimal("510"), 2, BigDecimal.ROUND_HALF_UP);
 
         // Get a bunch of data from our GetPokemonInfo utility class. Used for messages, later on.
-        ArrayList<String> natureArray = GetPokemonInfo.getNatureStrings(nbt.getInteger(NbtKeys.NATURE),
-                shortenedSpecialAttack, shortenedSpecialDefense, shortenedSpeed);
+        ArrayList<String> natureArray = GetPokemonInfo.getNatureStrings(nbt.getInteger(NbtKeys.NATURE));
         String natureName = natureArray.get(0);
         String plusVal = natureArray.get(1);
         String minusVal = natureArray.get(2);
