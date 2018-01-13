@@ -42,7 +42,7 @@ public class CheckEgg implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.doPrint("CheckEgg", false, debugNum, inputString); }
+    { CommonMethods.printFormattedMessage("CheckEgg", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -98,7 +98,7 @@ public class CheckEgg implements CommandExecutor
             }
             else
             {
-                printToLog(1, "Called by player §6" + src.getName() + "§e. Starting!");
+                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 int slot = 0;
                 String targetString = null, slotString;
@@ -154,7 +154,7 @@ public class CheckEgg implements CommandExecutor
                         }
                         else
                         {
-                            printToLog(1, "Invalid slot provided, and player has no \"§6other§e\" perm. Exit.");
+                            printToLog(1, "Invalid slot provided, and player has no \"§3other§b\" perm. Exit.");
                             throwArg1Error(commandCost, false, player);
                         }
                     }
@@ -268,11 +268,11 @@ public class CheckEgg implements CommandExecutor
 
                                 // Keep this below the printEggResults call, or your debug message order will look weird.
                                 if (commandCost == 0)
-                                    printToLog(1, "Checking egg in slot §6" + slot +
-                                            "§e. Config price is §60§e, taking nothing.");
+                                    printToLog(1, "Checking egg in slot §3" + slot +
+                                            "§b. Config price is §30§b, taking nothing.");
                                 else
-                                    printToLog(1, "Checking egg, slot §6" + slot +
-                                            "§e. Detected a recheck, taking nothing as per config.");
+                                    printToLog(1, "Checking egg, slot §3" + slot +
+                                            "§b. Detected a recheck, taking nothing as per config.");
                             }
                             else
                             {
@@ -293,14 +293,14 @@ public class CheckEgg implements CommandExecutor
                                             printEggResults(nbt, pokemon, wasEggChecked, commandCost, player);
 
                                             // Keep this below the printEggResults call, or your debug message order will look weird.
-                                            printToLog(1, "Checking egg in slot §6" + slot +
-                                                    "§e, and taking §6" + costToConfirm + "§e coins.");
+                                            printToLog(1, "Checking egg in slot §3" + slot +
+                                                    "§b, and taking §3" + costToConfirm + "§b coins.");
                                         }
                                         else
                                         {
                                             BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                            printToLog(1, "Not enough coins! Cost: §6" + costToConfirm +
-                                                    "§e, lacking: §6" + balanceNeeded);
+                                            printToLog(1, "Not enough coins! Cost: §3" + costToConfirm +
+                                                    "§b, lacking: §3" + balanceNeeded);
 
                                             src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded +
                                                     "§c more coins to do this."));

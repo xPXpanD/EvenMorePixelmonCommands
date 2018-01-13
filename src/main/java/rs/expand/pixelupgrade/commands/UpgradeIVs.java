@@ -51,7 +51,7 @@ public class UpgradeIVs implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.doPrint("DittoFusion", false, debugNum, inputString); }
+    { CommonMethods.printFormattedMessage("DittoFusion", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -104,7 +104,7 @@ public class UpgradeIVs implements CommandExecutor
             }
             else
             {
-                printToLog(1, "Called by player §6" + src.getName() + "§e. Starting!");
+                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 Player player = (Player) src;
                 String stat = null, fixedStat = null, cleanStat = "Error, please report!";
@@ -201,7 +201,7 @@ public class UpgradeIVs implements CommandExecutor
 
                     if (!statWasValid)
                     {
-                        printToLog(1, "Got an invalid IV type, exit. Type was: §6" + stat);
+                        printToLog(1, "Got an invalid IV type, exit. Type was: §3" + stat);
 
                         player.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid IV type \"§4" + stat + "§c\". See below."));
@@ -550,14 +550,14 @@ public class UpgradeIVs implements CommandExecutor
                                                 player.sendMessage(Text.of("§7-----------------------------------------------------"));
 
                                                 newTotal = uniqueAccount.getBalance(economyService.getDefaultCurrency());
-                                                printToLog(1, "Upgraded one or more IVs, and took §6" +
-                                                        costToConfirm + "§a coins. New total: §6" + newTotal);
+                                                printToLog(1, "Upgraded one or more IVs, and took §3" +
+                                                        costToConfirm + "§a coins. New total: §3" + newTotal);
                                             }
                                             else
                                             {
                                                 BigDecimal balanceNeeded = newTotal.subtract(costToConfirm).abs();
-                                                printToLog(1, "Not enough coins! Cost: §6" +
-                                                        costToConfirm + "§e, lacking: §6" + balanceNeeded);
+                                                printToLog(1, "Not enough coins! Cost: §3" +
+                                                        costToConfirm + "§b, lacking: §3" + balanceNeeded);
 
                                                 src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded +
                                                         "§c more coins to do this."));

@@ -35,7 +35,7 @@ public class SwitchGender implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.doPrint("SwitchGender", false, debugNum, inputString); }
+    { CommonMethods.printFormattedMessage("SwitchGender", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -56,7 +56,7 @@ public class SwitchGender implements CommandExecutor
             }
             else
             {
-                printToLog(1, "Called by player §6" + src.getName() + "§e. Starting!");
+                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 Player player = (Player) src;
                 boolean canContinue = true, commandConfirmed = false;
@@ -146,16 +146,16 @@ public class SwitchGender implements CommandExecutor
 
                                         if (transactionResult.getResult() == ResultType.SUCCESS)
                                         {
-                                            printToLog(1, "Switched gender for slot §6" + slot +
-                                                    "§e, and took §6" + costToConfirm + "§e coins.");
+                                            printToLog(1, "Switched gender for slot §3" + slot +
+                                                    "§b, and took §3" + costToConfirm + "§b coins.");
                                             switchGenders(nbt, player, gender);
                                             storageCompleted.sendUpdatedList();
                                         }
                                         else
                                         {
                                             BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                            printToLog(1, "Not enough coins! Cost: §6" +
-                                                    costToConfirm + "§e, lacking: §6" + balanceNeeded);
+                                            printToLog(1, "Not enough coins! Cost: §3" +
+                                                    costToConfirm + "§b, lacking: §3" + balanceNeeded);
 
                                             src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded +
                                                     "§c more coins to do this."));
@@ -169,8 +169,8 @@ public class SwitchGender implements CommandExecutor
                                 }
                                 else
                                 {
-                                    printToLog(1, "Switched gender for slot §6" + slot +
-                                            "§e. Config price is §60§e, taking nothing.");
+                                    printToLog(1, "Switched gender for slot §3" + slot +
+                                            "§b. Config price is §30§b, taking nothing.");
                                     switchGenders(nbt, player, gender);
                                     storageCompleted.sendUpdatedList();
                                 }

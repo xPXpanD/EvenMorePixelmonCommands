@@ -36,7 +36,7 @@ public class FixLevel implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.doPrint("FixLevel", false, debugNum, inputString); }
+    { CommonMethods.printFormattedMessage("FixLevel", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -57,7 +57,7 @@ public class FixLevel implements CommandExecutor
             }
             else
             {
-                printToLog(1, "Called by player §6" + src.getName() + "§e. Starting!");
+                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 Player player = (Player) src;
                 boolean canContinue = true, commandConfirmed = false;
@@ -153,14 +153,14 @@ public class FixLevel implements CommandExecutor
                                             if (transactionResult.getResult() == ResultType.SUCCESS)
                                             {
                                                 printToLog(1, "Fixed level for slot §6" + slot +
-                                                        "§e, and took §6" + costToConfirm + "§e coins.");
+                                                        "§b, and took §6" + costToConfirm + "§b coins.");
                                                 pokemon.getLvl().setLevel(configLevel - 1);
                                             }
                                             else
                                             {
                                                 BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
                                                 printToLog(1, "Not enough coins! Cost: §6" + costToConfirm +
-                                                        "§e, lacking: §6" + balanceNeeded);
+                                                        "§b, lacking: §6" + balanceNeeded);
 
                                                 src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded +
                                                         "§c more coins to do this."));
@@ -177,7 +177,7 @@ public class FixLevel implements CommandExecutor
                                     else
                                     {
                                         printToLog(1, "Fixed level for slot §6" + slot +
-                                                "§e. Config price is §60§e, taking nothing.");
+                                                "§b. Config price is §60§e, taking nothing.");
                                         pokemon.getLvl().setLevel(configLevel - 1);
                                     }
 

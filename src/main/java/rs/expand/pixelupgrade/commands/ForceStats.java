@@ -26,7 +26,7 @@ public class ForceStats implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.doPrint("ForceStats", false, debugNum, inputString); }
+    { CommonMethods.printFormattedMessage("ForceStats", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -47,7 +47,7 @@ public class ForceStats implements CommandExecutor
             }
             else
             {
-                printToLog(1, "Called by player §6" + src.getName() + "§e. Starting!");
+                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 boolean canContinue = true, statWasFixed = true, forceValue = false, shinyFix = false, valueIsInt = false;
                 int slot = 0, intValue = 0;
@@ -278,8 +278,8 @@ public class ForceStats implements CommandExecutor
                         {
                             try
                             {
-                                printToLog(1, "Value is being forced! Old value: §6" +
-                                    nbt.getInteger(stat) + "§e.");
+                                printToLog(1, "Value is being forced! Old value: §3" +
+                                    nbt.getInteger(stat) + "§b.");
                             }
                             catch (Exception F)
                             { printToLog(1, "Value is being forced! Tried to grab old value, but couldn't read it..."); }

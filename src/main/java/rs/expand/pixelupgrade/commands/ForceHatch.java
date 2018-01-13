@@ -25,7 +25,7 @@ public class ForceHatch implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.doPrint("ForceHatch", false, debugNum, inputString); }
+    { CommonMethods.printFormattedMessage("ForceHatch", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -46,7 +46,7 @@ public class ForceHatch implements CommandExecutor
                 boolean targetAcquired = false, canContinue = false;
                 int slot = 0;
 
-                printToLog(1, "Called by player §6" + src.getName() + "§e. Starting!");
+                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 if (args.<String>getOne("target or slot").isPresent())
                 {

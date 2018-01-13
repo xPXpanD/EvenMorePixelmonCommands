@@ -39,7 +39,7 @@ public class CheckTypes implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.doPrint("CheckTypes", false, debugNum, inputString); }
+    { CommonMethods.printFormattedMessage("CheckTypes", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
