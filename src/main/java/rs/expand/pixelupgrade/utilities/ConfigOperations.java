@@ -36,6 +36,190 @@ public class ConfigOperations
             return null;
     }
 
+    // Called during initial load, and when a command is reloaded. Load configs, and print a pretty list.
+    public static void initializeAndGrabAliases(boolean firstRun)
+    {
+        // Register other aliases and set up configs. Similar to the above, any errors/warnings will be printed.
+        String checkEggAlias = ConfigOperations.setupConfig(
+                "CheckEgg", "egg", checkEggPath, path);
+        String checkStatsAlias = ConfigOperations.setupConfig(
+                "CheckStats", "cs", checkStatsPath, path);
+        String checkTypesAlias = ConfigOperations.setupConfig(
+                "CheckTypes", "type", checkTypesPath, path);
+        String dittoFusionAlias = ConfigOperations.setupConfig(
+                "DittoFusion", "fuse", dittoFusionPath, path);
+        String fixEVsAlias = ConfigOperations.setupConfig(
+                "FixEVs", "fixevs", fixEVsPath, path);
+        String fixLevelAlias = ConfigOperations.setupConfig(
+                "FixLevel", "fixlevel", fixLevelPath, path);
+        String forceHatchAlias = ConfigOperations.setupConfig(
+                "ForceHatch", "fhatch", forceHatchPath, path);
+        String forceStatsAlias = ConfigOperations.setupConfig(
+                "ForceStats", "fstats", forceStatsPath, path);
+        String puInfoAlias = ConfigOperations.setupConfig(
+                "PixelUpgradeInfo", "pu", puInfoPath, path);
+        String resetCountAlias = ConfigOperations.setupConfig(
+                "ResetCount", "delcount", resetCountPath, path);
+        String resetEVsAlias = ConfigOperations.setupConfig(
+                "ResetEVs", "delevs", resetEVsPath, path);
+        String showStatsAlias = ConfigOperations.setupConfig(
+                "ShowStats", "show", showStatsPath, path);
+        String switchGenderAlias = ConfigOperations.setupConfig(
+                "SwitchGender", "bend", switchGenderPath, path);
+        String upgradeIVsAlias = ConfigOperations.setupConfig(
+                "UpgradeIVs", "upgrade", upgradeIVsPath, path);
+
+        // Do some initial setup for our formatted messages later on. We'll show three commands per line.
+        ArrayList<String> commandList = new ArrayList<>();
+        StringBuilder formattedCommand = new StringBuilder(), printableList = new StringBuilder();
+        String commandAlias = "ERROR PLEASE REPORT", commandString = null;
+
+        // Format our commands and aliases and add them to the lists that we'll print in a bit.
+        // TODO: If you add a command, update this list!
+        for (int i = 1; i <= 15; i++)
+        {
+            switch (i)
+            {
+                // Normal commands. If the alias is null (error returned), we pass the base command again instead.
+                // This prevents NPEs while also letting us hide commands by checking whether they've returned null.
+                case 1:
+                {
+                    commandAlias = checkEggAlias;
+                    commandString = "/checkegg";
+                    break;
+                }
+                case 2:
+                {
+                    commandAlias = checkStatsAlias;
+                    commandString = "/checkstats";
+                    break;
+                }
+                case 3:
+                {
+                    commandAlias = checkTypesAlias;
+                    commandString = "/checktypes";
+                    break;
+                }
+                case 4:
+                {
+                    commandAlias = dittoFusionAlias;
+                    commandString = "/dittofusion";
+                    break;
+                }
+                case 5:
+                {
+                    commandAlias = fixEVsAlias;
+                    commandString = "/fixevs";
+                    break;
+                }
+                case 6:
+                {
+                    commandAlias = fixLevelAlias;
+                    commandString = "/fixlevel";
+                    break;
+                }
+                case 7:
+                {
+                    commandAlias = forceHatchAlias;
+                    commandString = "/forcehatch";
+                    break;
+                }
+                case 8:
+                {
+                    commandAlias = forceStatsAlias;
+                    commandString = "/forcestats";
+                    break;
+                }
+                case 9:
+                {
+                    commandAlias = puInfoAlias;
+                    commandString = "/pixelupgrade";
+                    break;
+                }
+                case 10:
+                {
+                    commandAlias = "pureload"; // Will be omitted, as there's a check for aliases matching base commands.
+                    commandString = "/pureload";
+                    break;
+                }
+                case 11:
+                {
+                    commandAlias = resetCountAlias;
+                    commandString = "/resetcount";
+                    break;
+                }
+                case 12:
+                {
+                    commandAlias = resetEVsAlias;
+                    commandString = "/resetevs";
+                    break;
+                }
+                case 13:
+                {
+                    commandAlias = switchGenderAlias;
+                    commandString = "/switchgender";
+                    break;
+                }
+                case 14:
+                {
+                    commandAlias = showStatsAlias;
+                    commandString = "/showstats";
+                    break;
+                }
+                case 15:
+                {
+                    commandAlias = upgradeIVsAlias;
+                    commandString = "/upgradeivs";
+                    break;
+                }
+            }
+
+            if (commandAlias != null)
+            {
+                // Format the command.
+                formattedCommand.append("§2");
+                formattedCommand.append(commandString);
+
+                if (commandString.equals("/" + commandAlias))
+                    formattedCommand.append("§a, ");
+                else
+                {
+                    formattedCommand.append("§a (§2/");
+                    formattedCommand.append(commandAlias.toLowerCase());
+                    formattedCommand.append("§a), ");
+                }
+
+                // If we're at the last command, shank the trailing comma for a clean end.
+                if (i == 15)
+                    formattedCommand.setLength(formattedCommand.length() - 2);
+
+                // Add the formatted command to the list, and then clear the StringBuilder so we can re-use it.
+                commandList.add(formattedCommand.toString());
+                formattedCommand.setLength(0);
+            }
+        }
+
+        // Print the formatted commands + aliases.
+        int listSize = commandList.size();
+        if (firstRun)
+            printUnformattedMessage("--> §aSuccessfully registered a bunch of commands! See below.");
+        else
+            printUnformattedMessage("--> §aSuccessfully loaded a bunch of commands! See below.");
+
+        for (int q = 1; q < listSize + 1; q++)
+        {
+            printableList.append(commandList.get(q - 1));
+
+            if (q == listSize) // Are we on the last entry of the list? Exit.
+                printUnformattedMessage("    " + printableList);
+            else if (q % 3 == 0) // Is the loop number a multiple of 3? If so, we have three commands stocked up. Print!
+            {
+                printUnformattedMessage("    " + printableList);
+                printableList.setLength(0); // Wipe the list so we can re-use it for the next three commands.
+            }
+        }
+    }
+
     // Called during initial setup, either when the server is booting up or when /pureload has been executed.
     public static String setupConfig(String callSource, String defaultAlias, Path checkPath, String mainPath)
     {
@@ -48,12 +232,12 @@ public class ConfigOperations
                 Files.copy(ConfigOperations.class.getResourceAsStream("/assets/" + callSource + ".conf"),
                         Paths.get(mainPath, callSource + ".conf"));
 
-                //config = configLoader.load();
+                loadConfig(callSource);
             }
             catch (IOException F)
             {
-                printUnformattedMessage("§cInitial \"§4/" + callSource.toLowerCase()
-                        + "§c\" config setup failed! Please report this.");
+                printUnformattedMessage("§cConfig setup for command \"§4/" + callSource.toLowerCase()
+                        + "§c\" failed! Please report this.");
                 printUnformattedMessage("§cAdd any useful info you may have (operating system?). Stack trace:");
                 F.printStackTrace();
             }
@@ -67,7 +251,7 @@ public class ConfigOperations
             if (Objects.equals(alias, null))
             {
                 printUnformattedMessage("§cError on \"§4/" + callSource.toLowerCase() +
-                        "§c\", variable \"§4commandAlias§c\"! Check or regen this config!");
+                        "§c\", variable \"§4commandAlias§c\"! Check or regen this config.");
             }
 
             return alias;
@@ -86,11 +270,11 @@ public class ConfigOperations
                 Files.copy(ConfigOperations.class.getResourceAsStream("/assets/PixelUpgradeMain.conf"),
                         Paths.get(mainPath, "PixelUpgrade.conf"));
 
-                //config = configLoader.load();
+                loadConfig("PixelUpgrade");
             }
             catch (IOException F)
             {
-                printUnformattedMessage("§cInitial primary config setup has failed! Please report this.");
+                printUnformattedMessage("§cPrimary config setup has failed! Please report this.");
                 printUnformattedMessage("§cAdd any useful info you may have (operating system?). Stack trace:");
 
                 F.printStackTrace();
@@ -98,187 +282,6 @@ public class ConfigOperations
         }
         else
             loadConfig("PixelUpgrade");
-    }
-
-    // Called during initial load, and when a command is reloaded.
-    public static boolean initializeAndGrabAliases(boolean firstRun)
-    {
-        if (!firstRun)
-            printUnformattedMessage("===========================================================================");
-
-        // Register other aliases and set up configs. Similar to the above, any errors/warnings will be printed.
-        printUnformattedMessage("--> §aLoading command-specific settings...");
-        String checkEggAlias = ConfigOperations.setupConfig(
-                "CheckEgg", "egg", checkEggPath, path);
-        String checkStatsAlias = ConfigOperations.setupConfig(
-                "CheckStats", "cs", checkStatsPath, path);
-        String checkTypesAlias = ConfigOperations.setupConfig(
-                "CheckTypes", "type", checkTypesPath, path);
-        String dittoFusionAlias = ConfigOperations.setupConfig(
-                "DittoFusion", "fuse", dittoFusionPath, path);
-        String fixEVsAlias = ConfigOperations.setupConfig(
-                "FixEVs", "fixevs", fixEVsPath, path);
-        String fixLevelAlias = ConfigOperations.setupConfig(
-                "FixLevel", "fixlevel", fixLevelPath, path);
-        String forceHatchAlias = ConfigOperations.setupConfig(
-                "ForceHatch", "fhatch", forceHatchPath, path);
-        String forceStatsAlias = ConfigOperations.setupConfig(
-                "ForceStats", "fstats", forceStatsPath, path);
-        String resetCountAlias = ConfigOperations.setupConfig(
-                "ResetCount", "delcount", resetCountPath, path);
-        String resetEVsAlias = ConfigOperations.setupConfig(
-                "ResetEVs", "delevs", resetEVsPath, path);
-        String showStatsAlias = ConfigOperations.setupConfig(
-                "ShowStats", "show", showStatsPath, path);
-        String switchGenderAlias = ConfigOperations.setupConfig(
-                "SwitchGender", "bend", switchGenderPath, path);
-        String upgradeIVsAlias = ConfigOperations.setupConfig(
-                "UpgradeIVs", "upgrade", upgradeIVsPath, path);
-
-        // Do some initial setup for our formatted messages later on. We'll show three commands per line.
-        ArrayList<String> commandList = new ArrayList<>();
-        StringBuilder formattedCommand = new StringBuilder(), printableList = new StringBuilder();
-        String commandAlias = null, commandString = null;
-        boolean gotError = false;
-
-        // Format our commands and aliases and add them to the lists that we'll print in a bit.
-        // TODO: If you add a command, update this list!
-        for (int i = 1; i <= 14; i++)
-        {
-            switch (i)
-            {
-                // Normal commands. If the alias is null (error returned), we pass the base command again instead.
-                // This prevents NPEs while also letting us hide commands by checking whether they've returned null.
-                case 1:
-                    commandAlias = checkEggAlias;
-                    if (checkEggAlias == null)
-                        checkEggAlias = "/checkegg";
-                    commandString = "/checkegg";
-                    break;
-                case 2:
-                    commandAlias = checkStatsAlias;
-                    if (checkStatsAlias == null)
-                        checkStatsAlias = "/checkstats";
-                    commandString = "/checkstats";
-                    break;
-                case 3:
-                    commandAlias = checkTypesAlias;
-                    if (checkTypesAlias == null)
-                        checkTypesAlias = "/checktypes";
-                    commandString = "/checktypes";
-                    break;
-                case 4:
-                    commandAlias = dittoFusionAlias;
-                    if (dittoFusionAlias == null)
-                        dittoFusionAlias = "/dittofusion";
-                    commandString = "/dittofusion";
-                    break;
-                case 5:
-                    commandAlias = fixEVsAlias;
-                    if (fixEVsAlias == null)
-                        fixEVsAlias = "/fixevs";
-                    commandString = "/fixevs";
-                    break;
-                case 6:
-                    commandAlias = fixLevelAlias;
-                    if (fixLevelAlias == null)
-                        fixLevelAlias = "/fixlevel";
-                    commandString = "/fixlevel";
-                    break;
-                case 7:
-                    commandAlias = forceHatchAlias;
-                    if (forceHatchAlias == null)
-                        forceHatchAlias = "/forcehatch";
-                    commandString = "/forcehatch";
-                    break;
-                case 8:
-                    commandAlias = forceStatsAlias;
-                    if (forceStatsAlias == null)
-                        forceStatsAlias = "/forcestats";
-                    commandString = "/forcestats";
-                    break;
-                case 9:
-                    commandAlias = "no alias";
-                    commandString = "/pureload";
-                    break;
-                case 10:
-                    commandAlias = resetCountAlias;
-                    if (resetCountAlias == null)
-                        resetCountAlias = "/resetcount";
-                    commandString = "/resetcount";
-                    break;
-                case 11:
-                    commandAlias = resetEVsAlias;
-                    if (resetEVsAlias == null)
-                        resetEVsAlias = "/resetevs";
-                    commandString = "/resetevs";
-                    break;
-                case 12:
-                    commandAlias = switchGenderAlias;
-                    if (switchGenderAlias == null)
-                        switchGenderAlias = "/switchgender";
-                    commandString = "/switchgender";
-                    break;
-                case 13:
-                    commandAlias = showStatsAlias;
-                    if (showStatsAlias == null)
-                        showStatsAlias = "/showstats";
-                    commandString = "/showstats";
-                    break;
-                case 14:
-                    commandAlias = upgradeIVsAlias;
-                    if (upgradeIVsAlias == null)
-                        upgradeIVsAlias = "/upgradeivs";
-                    commandString = "/upgradeivs";
-                    break;
-            }
-
-            if (commandAlias != null)
-            {
-                // Format the command.
-                formattedCommand.append("§2");
-                formattedCommand.append(commandString);
-
-                if (commandAlias.equals("no alias") || commandString.equals("/" + commandAlias))
-                    formattedCommand.append("§a, ");
-                else
-                {
-                    formattedCommand.append("§a (§2/");
-                    formattedCommand.append(commandAlias.toLowerCase());
-                    formattedCommand.append("§a), ");
-                }
-
-                // If we're at the last command, shank the trailing comma for a clean end.
-                if (i == 14)
-                    formattedCommand.setLength(formattedCommand.length() - 2);
-
-                // Add the formatted command to the list, and then clear the StringBuilder so we can re-use it.
-                commandList.add(formattedCommand.toString());
-                formattedCommand.setLength(0);
-            }
-        }
-
-        // Print the formatted commands + aliases.
-        int listSize = commandList.size();
-        printUnformattedMessage("--> §aSuccessfully registered a bunch of commands! See below.");
-
-        for (int q = 1; q < listSize + 1; q++)
-        {
-            printableList.append(commandList.get(q - 1));
-
-            if (q == listSize) // Are we on the last entry of the list? Exit.
-                printUnformattedMessage("    " + printableList);
-            else if (q % 3 == 0) // Is the loop number a multiple of 3? If so, we have three commands stocked up. Print!
-            {
-                printUnformattedMessage("    " + printableList);
-                printableList.setLength(0); // Wipe the list so we can re-use it for the next three commands.
-            }
-        }
-
-        if (!firstRun)
-            printUnformattedMessage("===========================================================================");
-
-        return gotError;
     }
 
     // Grabs a specified config, then loads all of the variables into the matching command.
@@ -560,8 +563,8 @@ public class ConfigOperations
         }
         catch (Exception F)
         {
-            printUnformattedMessage("§4" + callSource + " §c had an issue during config loading!");
-            printUnformattedMessage("§cThis is a bug, please report this. Stack trace:");
+            printUnformattedMessage("§4" + callSource + "§c had an issue during config loading!");
+            printUnformattedMessage("§cCheck your configs for stray/missing characters. Stack trace:");
             F.printStackTrace();
         }
 

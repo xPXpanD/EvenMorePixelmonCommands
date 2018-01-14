@@ -6,7 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import net.minecraftforge.fml.common.Loader;
+import java.util.Optional;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
@@ -22,8 +22,9 @@ import org.spongepowered.api.text.Text;
 
 // Local imports.
 import rs.expand.pixelupgrade.commands.*;
-import rs.expand.pixelupgrade.utilities.CommonMethods;
 import rs.expand.pixelupgrade.utilities.ConfigOperations;
+
+import static rs.expand.pixelupgrade.utilities.CommonMethods.printUnformattedMessage;
 
 // New things:
 // TODO: Make a Pokémon transfer command.
@@ -43,7 +44,6 @@ import rs.expand.pixelupgrade.utilities.ConfigOperations;
 // TODO: Maybe turn /dittofusion into a generic /fuse, with a Ditto-only config option.
 // TODO: Add a Mew clone count check to /checkstats and /showstats.
 // TODO: Add a compact mode to /showstats, maybe using hovers. Thanks for the idea, Willynator.
-// TODO: Fix double command registration. This does not cause issues, but does cause Sponge to print warnings.
 
 @Plugin
 (
@@ -51,7 +51,7 @@ import rs.expand.pixelupgrade.utilities.ConfigOperations;
         name = "PixelUpgrade",
         version = "3.1 beta",
         dependencies = @Dependency(id = "pixelmon"),
-        description = "Adds a whole bunch of utility commands to Pixelmon, and some economy-integrated commands, too.",
+        description = "Adds a whole bunch of utility commands to Pixelmon, with optional economy integration.",
         authors = "XpanD"
 
         // Not listed but certainly appreciated:
@@ -68,18 +68,9 @@ import rs.expand.pixelupgrade.utilities.ConfigOperations;
 
 public class PixelUpgrade
 {
-    // Pass any debug messages onto final printing. Check CommonMethods for formatting info.
-    private void printStartupInfo (String inputString)
-    { CommonMethods.printUnformattedMessage(inputString); }
-
-    // Some more basic setup.
+    // Some basic setup.
     public static EconomyService economyService;
-    public static boolean economyEnabled;
-
-    // Set up our config paths, and grab an OS-specific file path separator. This will usually be a forward slash.
-    private static String separator = FileSystems.getDefault().getSeparator();
-    public static String primaryPath = "config" + separator;
-    public static String path = "config" + separator + "PixelUpgrade" + separator;
+    public static boolean economyEnabled = false;
 
     // Load up a ton of variables for use by other commands. We'll fill these in during pre-init.
     public static Integer configVersion;
@@ -91,6 +82,11 @@ public class PixelUpgrade
     public static String shortenedSpecialAttack;
     public static String shortenedSpecialDefense;
     public static String shortenedSpeed;
+
+    // Set up our config paths, and grab an OS-specific file path separator. This will usually be a forward slash.
+    private static String separator = FileSystems.getDefault().getSeparator();
+    public static String primaryPath = "config" + separator;
+    public static String path = "config" + separator + "PixelUpgrade" + separator;
 
     // Create the config paths.
     public static Path primaryConfigPath = Paths.get(primaryPath, "PixelUpgrade.conf");
@@ -273,70 +269,29 @@ public class PixelUpgrade
             .build();
 
     @Listener
-    public void onPreInitializationEvent(GamePreInitializationEvent event)
+    public void onPreInitEvent(GamePreInitializationEvent event)
     {
-        // Do startup stuff.
-        CommonMethods.printBlankLine();
-        printStartupInfo("§bPixelUpgrade is starting up!");
-
-        if (Loader.isModLoaded("EconomyLite") || Loader.isModLoaded("TotalEconomy"))
-        {
-            economyEnabled = true;
-
-            if (Loader.isModLoaded("EconomyLite"))
-                printStartupInfo("§bEconomyLite detected, enabling integration.");
-            else
-                printStartupInfo("§bTotalEconomy detected, enabling integration.");
-        }
-        else
-        {
-            printStartupInfo("§bNo economy plugin was found, we'll proceed with integration disabled.");
-            economyEnabled = false;
-        }
-
-        CommonMethods.printBlankLine();
-
         // Load up the primary config and the info command config, and figure out the info alias.
         // We start printing stuff, here. If any warnings/errors pop up they'll be shown here.
         // Note: We run an overloaded method for the primary config. That's why it knows where to go.
-        printStartupInfo("===========================================================================");
-        printStartupInfo("--> §aLoading global settings and PixelUpgrade command listing...");
+        printUnformattedMessage("========================= P I X E L U P G R A D E =========================");
 
         // Create a config directory if it doesn't exist. Silently swallow an error if it does. I/O is awkward.
         try
         {
-
             Files.createDirectory(Paths.get(path));
-            printStartupInfo("--> §aDetected first run, creating a new folder for the command configs...");
+            printUnformattedMessage("--> §aDetected first run, created a new folder for the command configs.");
         }
         catch (IOException ignored) {}
 
+        printUnformattedMessage("--> §aLoading and validating primary config...");
         ConfigOperations.setupPrimaryConfig(primaryConfigPath, primaryPath);
-        String puInfoAlias = ConfigOperations.setupConfig("PixelUpgradeInfo", "pu", puInfoPath, path);
-        if (puInfoAlias != null && !puInfoAlias.equals("/pixelupgrade"))
-            printStartupInfo("--> §aCreated §2/pixelupgrade§a info command with alias §2/" + puInfoAlias + "§a.");
 
-        boolean gotError = ConfigOperations.initializeAndGrabAliases(true);
+        printUnformattedMessage("--> §aLoading and validating command-specific settings...");
+        ConfigOperations.initializeAndGrabAliases(true);
 
-        printStartupInfo("===========================================================================");
-        CommonMethods.printBlankLine();
-
-        // Do some sanity checking on the sidemod-wide debug logger.
-        if (debugLevel == null || debugLevel < 0 || debugLevel > 2)
-        {
-            if (debugLevel == null)
-                printStartupInfo("§cConfig variable \"§4debugVerbosityMode§c\" could not be read!");
-            else
-                printStartupInfo("§cInvalid value on config variable \"§4debugVerbosityMode§c\"! Valid range: §40§c-§42");
-
-            printStartupInfo("§cLogging will be set to verbose mode (§42§c) until this is resolved!");
-
-            debugLevel = 2;
-            gotError = true;
-        }
-
-        if (gotError)
-            CommonMethods.printBlankLine();
+        printUnformattedMessage("--> §aLoaded command settings. Pre-init completed.");
+        printUnformattedMessage("===========================================================================");
 
         // And finally, register the aliases we grabbed earlier.
         if (CheckEgg.commandAlias != null && !CheckEgg.commandAlias.equals("checkegg"))
@@ -413,11 +368,22 @@ public class PixelUpgrade
     }
 
     @Listener
-    public void onServerStart(GameStartedServerEvent event)
+    public void onPostInitEvent(GamePostInitializationEvent event)
     {
-        if (!economyEnabled)
-            printStartupInfo("§f[§7PU§f] §bNo economy plugin found, running in reduced-functionality mode.");
+        printUnformattedMessage("========================= P I X E L U P G R A D E =========================");
+        printUnformattedMessage("--> §aChecking whether an economy plugin is present...");
 
-        printStartupInfo("§f[§7PU§f] §bAll systems nominal.");
+        Optional<EconomyService> potentialEconomyService = Sponge.getServiceManager().provide(EconomyService.class);
+        if (!potentialEconomyService.isPresent())
+            printUnformattedMessage("--> §eNo economy plugin was found. Proceeding with integration disabled.");
+        else
+        {
+            printUnformattedMessage("--> §aAn economy plugin was detected. Enabling integration!");
+            economyEnabled = true;
+            economyService = potentialEconomyService.get();
+        }
+
+        printUnformattedMessage("--> §aAll systems nominal.");
+        printUnformattedMessage("===========================================================================");
     }
 }

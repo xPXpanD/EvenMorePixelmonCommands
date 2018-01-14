@@ -51,13 +51,6 @@ public class CommonMethods
                 console.sendMessage(Text.of("§f" + inputString)));
     }
 
-    // Add a way for classes to print blank lines in the console.
-    public static void printBlankLine()
-    {
-        getConsole().ifPresent(console ->
-                console.sendMessage(Text.of("")));
-    }
-
     // If we can't read a config parameter, format and throw this error.
     public static void printNodeError(String callSource, ArrayList<String> nodes, int errorType)
     {
