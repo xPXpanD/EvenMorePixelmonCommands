@@ -9,11 +9,11 @@ import java.util.ArrayList;
 import java.util.Objects;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanObject;
-import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
 // Local imports.
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.commands.*;
+import static rs.expand.pixelupgrade.PixelUpgrade.*;
 import static rs.expand.pixelupgrade.utilities.CommonMethods.printUnformattedMessage;
 
 public class ConfigOperations
@@ -64,6 +64,8 @@ public class ConfigOperations
                 "ResetEVs", "delevs", resetEVsPath, path);
         String showStatsAlias = ConfigOperations.setupConfig(
                 "ShowStats", "show", showStatsPath, path);
+        String spawnDexAlias = ConfigOperations.setupConfig(
+                "SpawnDex", "spawndex", spawnDexPath, path);
         String switchGenderAlias = ConfigOperations.setupConfig(
                 "SwitchGender", "bend", switchGenderPath, path);
         String upgradeIVsAlias = ConfigOperations.setupConfig(
@@ -76,7 +78,7 @@ public class ConfigOperations
 
         // Format our commands and aliases and add them to the lists that we'll print in a bit.
         // TODO: If you add a command, update this list!
-        for (int i = 1; i <= 15; i++)
+        for (int i = 1; i <= 16; i++)
         {
             switch (i)
             {
@@ -156,17 +158,23 @@ public class ConfigOperations
                 }
                 case 13:
                 {
-                    commandAlias = switchGenderAlias;
-                    commandString = "/switchgender";
-                    break;
-                }
-                case 14:
-                {
                     commandAlias = showStatsAlias;
                     commandString = "/showstats";
                     break;
                 }
+                case 14:
+                {
+                    commandAlias = spawnDexAlias;
+                    commandString = "/spawndex";
+                    break;
+                }
                 case 15:
+                {
+                    commandAlias = switchGenderAlias;
+                    commandString = "/switchgender";
+                    break;
+                }
+                case 16:
                 {
                     commandAlias = upgradeIVsAlias;
                     commandString = "/upgradeivs";
@@ -190,7 +198,7 @@ public class ConfigOperations
                 }
 
                 // If we're at the last command, shank the trailing comma for a clean end.
-                if (i == 15)
+                if (i == 16)
                     formattedCommand.setLength(formattedCommand.length() - 2);
 
                 // Add the formatted command to the list, and then clear the StringBuilder so we can re-use it.
@@ -504,6 +512,15 @@ public class ConfigOperations
                             interpretInteger(commandConfig.getNode("commandCost").getString());
 
                     return ShowStats.commandAlias;
+                }
+                case "SpawnDex":
+                {
+                    commandConfig = PixelUpgrade.spawnDexLoader.load();
+
+                    SpawnDex.commandAlias =
+                            commandConfig.getNode("commandAlias").getString();
+
+                    return SpawnDex.commandAlias;
                 }
                 case "SwitchGender":
                 {

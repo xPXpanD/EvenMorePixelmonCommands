@@ -817,6 +817,11 @@ public enum EnumPokemonList
     Necrozma(800, "Psychic"),
     Magearna(801, "Steel, Fairy"),
     Marshadow(802, "Fighting, Ghost"),
+    Poipole(803, "Poison"),
+    Naganadel(804, "Poison, Dragon"),
+    Stakataka(805, "Rock, Steel"),
+    Blacephalon(806, "Fire, Ghost"),
+    Zeraora(807, "Electric"),
 
     // Forms. Be careful -- cannot be accessed or checked through ID, as it disallows checking 0.
     CastformSunny(0, "Fire"),

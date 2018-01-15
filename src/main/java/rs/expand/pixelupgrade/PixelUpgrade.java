@@ -38,6 +38,7 @@ import static rs.expand.pixelupgrade.utilities.CommonMethods.printUnformattedMes
 // TODO: Do something with setPixelmonScale. Maybe a /spawnboss for super big high HP IV bosses with custom loot?
 // TODO: Make a /devolve, or something along those lines.
 // TODO: Make a /fixgender. Priority.
+// TODO: Make a /spawndex. Useful for testing.
 
 // Improvements to existing things:
 // TODO: Tab completion on player names.
@@ -101,8 +102,9 @@ public class PixelUpgrade
     public static Path puInfoPath = Paths.get(path, "PixelUpgradeInfo.conf");
     public static Path resetCountPath = Paths.get(path, "ResetCount.conf");
     public static Path resetEVsPath = Paths.get(path, "ResetEVs.conf");
-    public static Path switchGenderPath = Paths.get(path, "SwitchGender.conf");
     public static Path showStatsPath = Paths.get(path, "ShowStats.conf");
+    public static Path spawnDexPath = Paths.get(path, "SpawnDex.conf");
+    public static Path switchGenderPath = Paths.get(path, "SwitchGender.conf");
     public static Path upgradeIVsPath = Paths.get(path, "UpgradeIVs.conf");
 
     // Set up said paths.
@@ -130,10 +132,12 @@ public class PixelUpgrade
             HoconConfigurationLoader.builder().setPath(resetCountPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> resetEVsLoader =
             HoconConfigurationLoader.builder().setPath(resetEVsPath).build();
-    public static ConfigurationLoader<CommentedConfigurationNode> switchGenderLoader =
-            HoconConfigurationLoader.builder().setPath(switchGenderPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> showStatsLoader =
             HoconConfigurationLoader.builder().setPath(showStatsPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> spawnDexLoader =
+            HoconConfigurationLoader.builder().setPath(spawnDexPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> switchGenderLoader =
+            HoconConfigurationLoader.builder().setPath(switchGenderPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> upgradeIVsLoader =
             HoconConfigurationLoader.builder().setPath(upgradeIVsPath).build();
 
@@ -242,17 +246,25 @@ public class PixelUpgrade
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
             .build();
 
-    private CommandSpec switchgender = CommandSpec.builder()
-            .permission("pixelupgrade.command.switchgender")
-            .executor(new SwitchGender())
+    private CommandSpec showstats = CommandSpec.builder()
+            .permission("pixelupgrade.command.showstats")
+            .executor(new ShowStats())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
             .build();
 
-    private CommandSpec showstats = CommandSpec.builder()
-            .permission("pixelupgrade.command.showstats")
-            .executor(new ShowStats())
+    public static CommandSpec spawndex = CommandSpec.builder()
+            .permission("pixelupgrade.command.staff.spawndex")
+            .executor(new SpawnDex())
+            .arguments(
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("number"))),
+                    GenericArguments.flags().flag("s").buildWith(GenericArguments.none()))
+            .build();
+
+    private CommandSpec switchgender = CommandSpec.builder()
+            .permission("pixelupgrade.command.switchgender")
+            .executor(new SwitchGender())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
@@ -351,15 +363,20 @@ public class PixelUpgrade
         else
             Sponge.getCommandManager().register(this, resetevs, "resetevs", "resetev");
 
-        if (SwitchGender.commandAlias != null && !SwitchGender.commandAlias.equals("switchgender"))
-            Sponge.getCommandManager().register(this, switchgender, "switchgender", SwitchGender.commandAlias);
-        else
-            Sponge.getCommandManager().register(this, switchgender, "switchgender");
-
         if (ShowStats.commandAlias != null && !ShowStats.commandAlias.equals("showstats"))
             Sponge.getCommandManager().register(this, showstats, "showstats", ShowStats.commandAlias);
         else
             Sponge.getCommandManager().register(this, showstats, "showstats");
+
+        if (SpawnDex.commandAlias != null && !SpawnDex.commandAlias.equals("spawndex"))
+            Sponge.getCommandManager().register(this, spawndex, "spawndex", "spawnid", SpawnDex.commandAlias);
+        else
+            Sponge.getCommandManager().register(this, spawndex, "spawndex", "spawnid");
+
+        if (SwitchGender.commandAlias != null && !SwitchGender.commandAlias.equals("switchgender"))
+            Sponge.getCommandManager().register(this, switchgender, "switchgender", SwitchGender.commandAlias);
+        else
+            Sponge.getCommandManager().register(this, switchgender, "switchgender");
 
         if (UpgradeIVs.commandAlias != null && !UpgradeIVs.commandAlias.equals("upgradeivs"))
             Sponge.getCommandManager().register(this, upgradeivs, "upgradeivs", "upgradeiv", UpgradeIVs.commandAlias);

@@ -312,7 +312,7 @@ public class UpgradeIVs implements CommandExecutor
 
                             EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
                             int upgradeTicker = 0, upgradeCount = pokemon.getEntityData().getInteger("upgradeCount");
-                            boolean isShiny = false, isLegendary = false, isBaby = false;
+                            boolean isShiny = false, isLegendary = false, isBaby = false, isEvolvedBaby = false;
 
                             // Let's see what kind of Pokémon we've been provided.
                             if (nbt.getInteger(NbtKeys.IS_SHINY) == 1)
@@ -329,19 +329,24 @@ public class UpgradeIVs implements CommandExecutor
                             // Run through the baby check, too. Babies spawn with 3*31 guaranteed IVs.
                             switch (nbt.getString("Name"))
                             {
-                                case "Pichu": case "Pickachu": case "Raichu": case "Cleffa": case "Clefairy":
-                                case "Clefable": case "Igglybuff": case "Jigglypuff": case "Wigglytuff": case "Togepi":
-                                case "Togetic": case "Togekiss": case "Tyrogue": case "Hitmonlee": case "Hitmonchan":
-                                case "Hitmontop": case "Smoochum": case "Jynx": case "Elekid": case "Electabuzz":
-                                case "Electivire": case "Magby": case "Magmar": case "Magmortar": case "Azurill":
-                                case "Marill": case "Azumarill": case "Wynaut": case "Wobbuffet": case "Budew":
-                                case "Roselia": case "Roserade": case "Chingling": case "Chimecho": case "Bonsly":
-                                case "Sudowoodo": case "Mime Jr.": case "Mr. Mime": case "Happiny": case "Chansey":
-                                case "Blissey": case "Munchlax": case "Snorlax": case "Riolu": case "Lucario":
-                                case "Mantyke": case "Mantine":
+                                case "Pichu": case "Cleffa": case "Igglybuff": case "Togepi": case "Tyrogue":
+                                case "Smoochum": case "Elekid": case "Magby": case "Azurill": case "Wynaut":
+                                case "Budew": case "Chingling": case "Bonsly": case "Mime Jr.": case "Happiny":
+                                case "Munchlax": case "Riolu": case "Mantyke":
                                 {
                                     printToLog(2, "Provided Pokémon is a known 3*31 IV baby.");
                                     isBaby = true;
+                                }
+
+                                case "Pickachu": case "Raichu": case "Clefairy": case "Clefable": case "Jigglypuff":
+                                case "Wigglytuff": case "Togetic": case "Togekiss": case "Hitmonlee": case "Hitmonchan":
+                                case "Hitmontop": case "Jynx": case "Electabuzz": case "Electivire": case "Magmar":
+                                case "Magmortar": case "Marill": case "Azumarill": case "Wobbuffet":case "Roselia":
+                                case "Roserade": case "Chimecho": case "Sudowoodo": case "Mr. Mime": case "Chansey":
+                                case "Blissey": case "Snorlax": case "Lucario": case "Mantine":
+                                {
+                                    printToLog(2, "Provided Pokémon is a known 3*31 IV baby evolution.");
+                                    isEvolvedBaby = true;
                                 }
                             }
 
@@ -376,6 +381,11 @@ public class UpgradeIVs implements CommandExecutor
                                 printToLog(1, "Hit cap on baby Pokémon. Exit.");
                                 src.sendMessage(Text.of("§4Error: §cThis §6baby§c's upgrade cap has been reached!"));
                             }
+                            else if (!isShiny && isEvolvedBaby && upgradeCount >= babyCap)
+                            {
+                                printToLog(1, "Hit cap on evolved baby Pokémon. Exit.");
+                                src.sendMessage(Text.of("§4Error: §cThis §6baby evolution§c's upgrade cap has been reached!"));
+                            }
                             else if (!isShiny && !isLegendary && !isBaby && upgradeCount >= regularCap)
                             {
                                 printToLog(1, "Hit cap on regular Pokémon. Exit.");
@@ -400,7 +410,7 @@ public class UpgradeIVs implements CommandExecutor
                                     remainder = shinyCap - upgradeCount;
                                     priceMultiplier = shinyMult;
                                 }
-                                else if (isBaby)
+                                else if (isBaby || isEvolvedBaby)
                                 {
                                     remainder = babyCap - upgradeCount;
                                     priceMultiplier = babyMult;
@@ -471,7 +481,7 @@ public class UpgradeIVs implements CommandExecutor
                                         upgradeCount = legendaryAndShinyCap - remainder;
                                     else if (isShiny)
                                         upgradeCount = shinyCap - remainder;
-                                    else if (isBaby)
+                                    else if (isBaby || isEvolvedBaby)
                                         upgradeCount = babyCap - remainder;
                                     else if (isLegendary)
                                         upgradeCount = legendaryCap - remainder;
@@ -556,8 +566,8 @@ public class UpgradeIVs implements CommandExecutor
                                             else
                                             {
                                                 BigDecimal balanceNeeded = newTotal.subtract(costToConfirm).abs();
-                                                printToLog(1, "Not enough coins! Cost: §3" +
-                                                        costToConfirm + "§b, lacking: §3" + balanceNeeded);
+                                                printToLog(1, "Not enough coins! Cost is §3" +
+                                                        costToConfirm + "§b, player lacks: §3" + balanceNeeded);
 
                                                 src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded +
                                                         "§c more coins to do this."));

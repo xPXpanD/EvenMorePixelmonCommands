@@ -8,7 +8,8 @@ Released ???
    * Redid the internal config loader. Config errors now tell you more, and the mod is much smaller.
    * Edited several configs to make more sense, and removed per-config versions. Old configs still work.
    * Fixed /pixelupgrade (the command list) throwing an error when used from console.
-   * Added all babies and baby-based evolutions to /upgradeivs.
+   * Added all babies and baby-based evolutions to /upgradeivs, and edited messages to fit.
+   * Added Poipole (ID 803) and up to /checktypes and the new /spawnid.
 
 3.0.0 for 6.0.0
 Released December 28, 2017.

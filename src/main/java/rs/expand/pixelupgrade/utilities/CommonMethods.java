@@ -34,7 +34,7 @@ public class CommonMethods
                     break;
                 case 1:
                     getConsole().ifPresent(console ->
-                            console.sendMessage(Text.of("§b[§3" + callSource + " §e:: §3INFO§b] " + inputString)));
+                            console.sendMessage(Text.of("§b[§3" + callSource + " §b:: §3INFO§b] " + inputString)));
                     break;
                 default:
                     getConsole().ifPresent(console ->

@@ -4,11 +4,17 @@ package rs.expand.pixelupgrade.commands;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Set;
+
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.command.CommandMapping;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
@@ -163,6 +169,39 @@ public class ReloadConfigs implements CommandExecutor
                         returnString = "--> §aLoaded config for command §2/showstats§a, alias §2/" + ShowStats.commandAlias + "§a.";
                         break;
                     }
+                    case "SPAWNDEX":
+                    {
+                        printLineAndAddition(src, false);
+                        Object oldAlias = SpawnDex.commandAlias;
+                        PluginContainer puContainer = Sponge.getPluginManager().getPlugin("pixelupgrade").get();
+                        Set<CommandMapping> commandSet = Sponge.getCommandManager().getOwnedBy(puContainer);
+                        src.sendMessage(Text.of("§acommandSet: " + commandSet));
+
+                        if (Sponge.getCommandManager().getOwnedBy(puContainer.getInstance().get()).contains(oldAlias))
+                            src.sendMessage(Text.of("§aFound an existing alias owned by PU."));
+
+                        /*if (Sponge.getCommandManager().containsAlias(SpawnDex.commandAlias) &&
+                                Sponge.getCommandManager().getOwnedBy(Sponge.getPluginManager().getPlugin(
+                                    "pixelupgrade").get().getInstance().get()).contains(SpawnDex.commandAlias))
+                        {
+                            src.sendMessage(Text.of("§aAlias found, unloading..."));
+                            Sponge.getCommandManager().removeMapping(Sponge.getCommandManager().get(SpawnDex.commandAlias).get());
+                        }
+                        else if (Sponge.getCommandManager().containsAlias(SpawnDex.commandAlias))
+                            src.sendMessage(Text.of("§aCommand was owned by something else or fell through check."));*/
+
+                        setupConfig("SpawnDex", "spawndex", spawnDexPath, path);
+                        returnString = "--> §aLoaded config for command §2/spawndex§a, alias §2/" + SpawnDex.commandAlias + "§a.";
+
+                        /*if (SpawnDex.commandAlias != null && !SpawnDex.commandAlias.equals("spawndex") && !SpawnDex.commandAlias.equals(oldAlias))
+                        {
+                            src.sendMessage(Text.of("§aLoading updated alias..."));
+                            Sponge.getCommandManager().register(Sponge.getPluginManager().getPlugin(
+                                    "pixelupgrade").get().getInstance().get(), PixelUpgrade.spawndex, SpawnDex.commandAlias);
+                        }*/
+
+                        break;
+                    }
                     case "SWITCHGENDER":
                     {
                         printLineAndAddition(src, false);
@@ -205,8 +244,8 @@ public class ReloadConfigs implements CommandExecutor
                 src.sendMessage(Text.of(""));
                 src.sendMessage(Text.of("§6Commands: §eCheckEgg, CheckStats, CheckTypes, DittoFusion"));
                 src.sendMessage(Text.of("§6Commands: §eFixEVs, FixLevel, ForceHatch, ForceStats, Info"));
-                src.sendMessage(Text.of("§6Commands: §eResetCount, ResetEVs, SwitchGender, ShowStats"));
-                src.sendMessage(Text.of("§6Commands: §eUpgradeIVs"));
+                src.sendMessage(Text.of("§6Commands: §eResetCount, ResetEVs, ShowStats, SpawnDex"));
+                src.sendMessage(Text.of("§6Commands: §eSwitchGender, UpgradeIVs"));
                 src.sendMessage(Text.of("§6Other: §eAll (reloads ALL configs!), Main (reloads global config)"));
 
                 src.sendMessage(Text.of("§5-----------------------------------------------------"));
@@ -224,8 +263,8 @@ public class ReloadConfigs implements CommandExecutor
                 src.sendMessage(Text.of(""));
                 src.sendMessage(Text.of("§6Commands: §eCheckEgg, CheckStats, CheckTypes, DittoFusion"));
                 src.sendMessage(Text.of("§6Commands: §eFixEVs, FixLevel, ForceHatch, ForceStats, Info"));
-                src.sendMessage(Text.of("§6Commands: §eResetCount, ResetEVs, SwitchGender, ShowStats"));
-                src.sendMessage(Text.of("§6Commands: §eUpgradeIVs"));
+                src.sendMessage(Text.of("§6Commands: §eResetCount, ResetEVs, ShowStats, SpawnDex"));
+                src.sendMessage(Text.of("§6Commands: §eSwitchGender, UpgradeIVs"));
                 src.sendMessage(Text.of("§6Other: §eAll (reloads ALL configs), Main (reloads global config)"));
 
                 printUnformattedMessage("===========================================================================");

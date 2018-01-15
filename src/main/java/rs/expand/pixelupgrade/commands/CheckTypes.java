@@ -94,10 +94,10 @@ public class CheckTypes implements CommandExecutor
                         inputIsInteger = true;
                         inputInteger = Integer.parseInt(inputString);
 
-                        if (inputInteger > 802 || inputInteger < 1)
+                        if (inputInteger > 807 || inputInteger < 1)
                         {
                             checkAndAddHeader(commandCost, player);
-                            src.sendMessage(Text.of("§4Error: §cInvalid Pokédex number! Valid range is 1-802."));
+                            src.sendMessage(Text.of("§4Error: §cInvalid Pokédex number! Valid range is 1-807."));
                             printCorrectHelper(commandCost, player);
                             checkAndAddFooter(commandCost, player);
 
@@ -517,7 +517,7 @@ public class CheckTypes implements CommandExecutor
         String suctionCups =
                 "Octillery, Lileep, Cradily, Inkay, Malamar";
         String voltAbsorb =
-                "Jolteon, Chinchou, Lanturn, Thundurus, Raikou, Minun, Pachirisu";
+                "Jolteon, Chinchou, Lanturn, Thundurus, Raikou, Minun, Pachirisu, Zeraora";
         String stormDrain =
                 "Lileep, Cradily, Shellos, Gastrodon, Finneon, Lumineon, Maractus";
         String drySkin =

@@ -355,8 +355,7 @@ public class CheckEgg implements CommandExecutor
         if (cost != 0)
         {
             player.sendMessage(Text.of(""));
-            player.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're sure!"));
-            player.sendMessage(Text.of("§eConfirming will cost you §6" + cost + "§e coins."));
+            player.sendMessage(Text.of("§6Warning: §eAdd -c only if you're sure! Confirming costs §6" + cost + "§e coins."));
             player.sendMessage(Text.of("§5-----------------------------------------------------"));
         }
     }

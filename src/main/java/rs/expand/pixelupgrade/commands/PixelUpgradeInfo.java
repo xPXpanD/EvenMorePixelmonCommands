@@ -48,50 +48,21 @@ public class PixelUpgradeInfo implements CommandExecutor
         else
         {
             List<Text> permissionMessageList = new ArrayList<>();
-            boolean hasNoPermission = true, usedFromConsole = false;
-            boolean permCheckEgg = false, permCheckEggOther = false, permCheckStats = false, permCheckStatsOther = false;
-            boolean permCheckTypes = false, permDittoFusion = false, permFixEVs = false, permFixLevel = false;
-            boolean permForceHatch = false, permForceStats = false, permPixelHeal = false, permPixelSell = false;
-            boolean permReloadConfig = false, permResetCount = false, permResetEVs = false, permSwitchGender = false;
-            boolean permShowStats = false, permUpgradeIVs = false;
+            boolean hasNoPermission = true, usedFromConsole = true;
 
             if (src instanceof Player)
             {
-                Player player = (Player) src;
-
-                permCheckEgg = player.hasPermission("pixelupgrade.command.checkegg");
-                permCheckEggOther = player.hasPermission("pixelupgrade.command.other.checkegg");
-                permCheckStats = player.hasPermission("pixelupgrade.command.checkstats");
-                permCheckStatsOther = player.hasPermission("pixelupgrade.command.other.checkstats");
-                permCheckTypes = player.hasPermission("pixelupgrade.command.checktypes");
-                permDittoFusion = player.hasPermission("pixelupgrade.command.dittofusion");
-                permFixEVs = player.hasPermission("pixelupgrade.command.fixevs");
-                permFixLevel = player.hasPermission("pixelupgrade.command.fixlevel");
-                permForceHatch = player.hasPermission("pixelupgrade.command.staff.forcehatch");
-                permForceStats = player.hasPermission("pixelupgrade.command.staff.forcestats");
-                permPixelHeal = player.hasPermission("pixelupgrade.command.pixelheal");
-                permPixelSell = player.hasPermission("pixelupgrade.command.pixelsell");
-                permReloadConfig = player.hasPermission("pixelupgrade.command.staff.reload");
-                permResetCount = player.hasPermission("pixelupgrade.command.staff.resetcount");
-                permResetEVs = player.hasPermission("pixelupgrade.command.resetevs");
-                permSwitchGender = player.hasPermission("pixelupgrade.command.switchgender");
-                permShowStats = player.hasPermission("pixelupgrade.command.showstats");
-                permUpgradeIVs = player.hasPermission("pixelupgrade.command.upgradeivs");
+                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
+                usedFromConsole = false;
             }
-            else
-                usedFromConsole = true;
 
-            if (usedFromConsole || permCheckEgg)
+            if (usedFromConsole || src.hasPermission("pixelupgrade.command.checkegg"))
             {
-                printToLog(2, "§5/checkegg §dpermission found, trying to add helpers to list.");
-
                 if (CheckEgg.commandCost != null && CheckEgg.commandAlias != null)
                 {
-                    printToLog(2, "Valid config found. Printing helpers for this command!");
-
                     if (CheckEgg.commandCost > 0)
                     {
-                        if (usedFromConsole || permCheckEggOther)
+                        if (usedFromConsole || src.hasPermission("pixelupgrade.command.other.checkegg"))
                             permissionMessageList.add(Text.of("§6/" + CheckEgg.commandAlias +
                                     " [optional target] <slot> {confirm flag}"));
                         else
@@ -100,7 +71,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                     }
                     else
                     {
-                        if (usedFromConsole || permCheckEggOther)
+                        if (usedFromConsole || src.hasPermission("pixelupgrade.command.other.checkegg"))
                             permissionMessageList.add(Text.of("§6/" + CheckEgg.commandAlias +
                                     " [optional target] <slot>"));
                         else
@@ -114,17 +85,13 @@ public class PixelUpgradeInfo implements CommandExecutor
                 else printToLog(1, "§3/checkegg §bhas a malformed config, hiding from list.");
             }
 
-            if (usedFromConsole || permCheckStats)
+            if (usedFromConsole || src.hasPermission("pixelupgrade.command.checkstats"))
             {
-                printToLog(2, "§5/checkstats §dpermission found, trying to add helpers to list.");
-
                 if (CheckStats.commandCost != null && CheckStats.commandAlias != null)
                 {
-                    printToLog(2, "Valid config found. Printing helpers for this command!");
-
                     if (CheckStats.commandCost > 0)
                     {
-                        if (usedFromConsole || permCheckStatsOther)
+                        if (usedFromConsole || src.hasPermission("pixelupgrade.command.other.checkstats"))
                             permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
                                     " [optional target] <slot> {confirm flag}"));
                         else
@@ -133,7 +100,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                     }
                     else
                     {
-                        if (usedFromConsole || permCheckStatsOther)
+                        if (usedFromConsole || src.hasPermission("pixelupgrade.command.other.checkstats"))
                             permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
                                     " [optional target] <slot>"));
                         else
@@ -147,14 +114,10 @@ public class PixelUpgradeInfo implements CommandExecutor
                 else printToLog(1, "§3/checkstats §bhas a malformed config, hiding from list.");
             }
 
-            if (usedFromConsole || permCheckTypes)
+            if (usedFromConsole || src.hasPermission("pixelupgrade.command.checktypes"))
             {
-                printToLog(2, "§5/checktypes §dpermission found, trying to add helpers to list.");
-
                 if (CheckTypes.commandCost != null && CheckTypes.commandAlias != null)
                 {
-                    printToLog(2, "Valid config found. Printing helpers for this command!");
-
                     if (CheckTypes.commandCost != 0)
                         permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
                                 " <Pokémon name/number> {confirm flag}"));
@@ -168,14 +131,10 @@ public class PixelUpgradeInfo implements CommandExecutor
                 else printToLog(1, "§3/checktypes §bhas a malformed config, hiding from list.");
             }
 
-            if (usedFromConsole || permDittoFusion)
+            if (usedFromConsole || src.hasPermission("pixelupgrade.command.dittofusion"))
             {
-                printToLog(2, "§5/dittofusion §dpermission found, trying to add helpers to list.");
-
                 if (DittoFusion.commandAlias != null)
                 {
-                    printToLog(2, "Valid config found. Printing helpers for this command!");
-
                     permissionMessageList.add(Text.of("§6/" + DittoFusion.commandAlias +
                             " <target slot> <sacrifice slot> {confirm flag}"));
 
@@ -185,14 +144,10 @@ public class PixelUpgradeInfo implements CommandExecutor
                 else printToLog(1, "§3/dittofusion §bhas a malformed config, hiding from list.");
             }
 
-            if (usedFromConsole || permFixEVs)
+            if (usedFromConsole || src.hasPermission("pixelupgrade.command.fixevs"))
             {
-                printToLog(2, "§5/fixevs §dpermission found, trying to add helpers to list.");
-
                 if (FixEVs.commandCost != null && FixEVs.commandAlias != null)
                 {
-                    printToLog(2, "Valid config found. Printing helpers for this command!");
-
                     if (FixEVs.commandCost != 0)
                         permissionMessageList.add(Text.of("§6/" + FixEVs.commandAlias + " <slot> {confirm flag}"));
                     else
@@ -204,14 +159,10 @@ public class PixelUpgradeInfo implements CommandExecutor
                 else printToLog(1, "§3/fixevs §bhas a malformed config, hiding from list.");
             }
 
-            if (usedFromConsole || permFixLevel)
+            if (usedFromConsole || src.hasPermission("pixelupgrade.command.fixlevel"))
             {
-                printToLog(2, "§5/fixlevel §dpermission found, trying to add helpers to list.");
-
                 if (FixLevel.commandCost != null && FixLevel.commandAlias != null)
                 {
-                    printToLog(2, "Valid config found. Printing helpers for this command!");
-
                     permissionMessageList.add(Text.of("§6/" + FixLevel.commandAlias + " <slot> {confirm flag}"));
                     permissionMessageList.add(Text.of("§f --> §eWant to lower your level to get more EVs? Try this."));
                     hasNoPermission = false;
@@ -219,14 +170,10 @@ public class PixelUpgradeInfo implements CommandExecutor
                 else printToLog(1, "§3/fixlevel §bhas a malformed config, hiding from list.");
             }
 
-            if (usedFromConsole || permForceHatch)
+            if (usedFromConsole || src.hasPermission("pixelupgrade.command.staff.forcehatch"))
             {
-                printToLog(2, "§5/forcehatch §dpermission found, trying to add helpers to list.");
-
                 if (ForceHatch.commandAlias != null)
                 {
-                    printToLog(2, "Valid config found. Printing helpers for this command!");
-
                     permissionMessageList.add(Text.of("§6/" + ForceHatch.commandAlias + " [optional target] <slot>"));
                     permissionMessageList.add(Text.of("§f --> §eHatch any eggs instantly. Supports remote players!"));
                     hasNoPermission = false;
@@ -234,38 +181,28 @@ public class PixelUpgradeInfo implements CommandExecutor
                 else printToLog(1, "§3/forcehatch §bhas a malformed config, hiding from list.");
             }
 
-            if (usedFromConsole || permForceStats)
+            if (usedFromConsole || src.hasPermission("pixelupgrade.command.staff.forcestats"))
             {
-                printToLog(2, "§5/forcestats §dpermission found, trying to add helpers to list.");
-
                 if (ForceStats.commandAlias != null)
                 {
-                    printToLog(2, "Valid config found. Printing helpers for this command!");
-
-                    permissionMessageList.add(Text.of("§6/" + ForceHatch.commandAlias + " <slot> <stat> <value> {force flag}"));
+                    permissionMessageList.add(Text.of("§6/" + ForceStats.commandAlias + " <slot> <stat> <value> {force flag}"));
                     permissionMessageList.add(Text.of("§f --> §eChange supported stats, or pass -f and go crazy."));
                     hasNoPermission = false;
                 }
                 else printToLog(1, "§3/forcestats §bhas a malformed config, hiding from list.");
             }
 
-            if (usedFromConsole || permReloadConfig)
+            if (usedFromConsole || src.hasPermission("pixelupgrade.command.staff.reload"))
             {
-                printToLog(2, "§5/pureload §dpermission found, adding helpers to list.");
-
                 permissionMessageList.add(Text.of("§6/pureload <config>"));
-                permissionMessageList.add(Text.of("§f --> §eReload one or more of the configs on the fly."));
+                permissionMessageList.add(Text.of("§f --> §eReload one or more PixelUpgrade configs on the fly."));
                 hasNoPermission = false;
             }
 
-            if (usedFromConsole || permResetCount)
+            if (usedFromConsole || src.hasPermission("pixelupgrade.command.staff.resetcount"))
             {
-                printToLog(2, "§5/resetcount §dpermission found, trying to add helpers to list.");
-
                 if (ResetCount.commandAlias != null)
                 {
-                    printToLog(2, "Valid config found. Printing helpers for this command!");
-
                     permissionMessageList.add(Text.of("§6/" + ResetCount.commandAlias + " <slot, 1-6> <count> {confirm flag}"));
                     permissionMessageList.add(Text.of("§f --> §eWant to upgrade further? Reset counters with this."));
                     hasNoPermission = false;
@@ -273,14 +210,10 @@ public class PixelUpgradeInfo implements CommandExecutor
                 else printToLog(1, "§3/resetcount §bhas a malformed config, hiding from list.");
             }
 
-            if (usedFromConsole || permResetEVs)
+            if (usedFromConsole || src.hasPermission("pixelupgrade.command.resetevs"))
             {
-                printToLog(2, "§5/resetevs §dpermission found, trying to add helpers to list.");
-
                 if (ResetEVs.commandCost != null && ResetEVs.commandAlias != null)
                 {
-                    printToLog(2, "Valid config found. Printing helpers for this command!");
-
                     permissionMessageList.add(Text.of("§6/" + ResetEVs.commandAlias + " <slot> {confirm flag}"));
                     permissionMessageList.add(Text.of("§f --> §eNot happy with your EV spread? This wipes all EVs."));
                     hasNoPermission = false;
@@ -288,29 +221,10 @@ public class PixelUpgradeInfo implements CommandExecutor
                 else printToLog(1, "§3/resetevs §bhas a malformed config, hiding from list.");
             }
 
-            if (usedFromConsole || permSwitchGender)
+            if (usedFromConsole || src.hasPermission("pixelupgrade.command.showstats"))
             {
-                printToLog(2, "§5/switchgender §dpermission found, trying to add helpers to list.");
-
-                if (SwitchGender.commandCost != null && SwitchGender.commandAlias != null)
-                {
-                    printToLog(2, "Valid config found. Printing helpers for this command!");
-
-                    permissionMessageList.add(Text.of("§6/" + SwitchGender.commandAlias + " <slot> {confirm flag}"));
-                    permissionMessageList.add(Text.of("§f --> §eWant to change a Pokémon's gender? Try this."));
-                    hasNoPermission = false;
-                }
-                else printToLog(1, "§3/switchgender §bhas a malformed config, hiding from list.");
-            }
-
-            if (usedFromConsole || permShowStats)
-            {
-                printToLog(2, "§5/showstats §dpermission found, trying to add helpers to list.");
-
                 if (ShowStats.commandCost != null && ShowStats.commandAlias != null)
                 {
-                    printToLog(2, "Valid config found. Printing helpers for this command!");
-
                     if (ShowStats.commandCost != 0)
                         permissionMessageList.add(Text.of("§6/" + ShowStats.commandAlias + " <slot> {confirm flag}"));
                     else
@@ -322,14 +236,32 @@ public class PixelUpgradeInfo implements CommandExecutor
                 else printToLog(1, "§3/showstats §bhas a malformed config, hiding from list.");
             }
 
-            if (usedFromConsole || permUpgradeIVs)
+            if (usedFromConsole || src.hasPermission("pixelupgrade.command.staff.spawndex"))
             {
-                printToLog(2, "§5/upgradeivs §dpermission found, trying to add helpers to list.");
+                if (SpawnDex.commandAlias != null)
+                {
+                    permissionMessageList.add(Text.of("§6/" + SpawnDex.commandAlias + " <Pokédex number> {shiny flag}"));
+                    permissionMessageList.add(Text.of("§f --> §eSpawns a Pokémon from a given Pokédex number."));
+                    hasNoPermission = false;
+                }
+                else printToLog(1, "§3/spawndex §bhas a malformed config, hiding from list.");
+            }
 
+            if (usedFromConsole || src.hasPermission("pixelupgrade.command.switchgender"))
+            {
+                if (SwitchGender.commandCost != null && SwitchGender.commandAlias != null)
+                {
+                    permissionMessageList.add(Text.of("§6/" + SwitchGender.commandAlias + " <slot> {confirm flag}"));
+                    permissionMessageList.add(Text.of("§f --> §eWant to change a Pokémon's gender? Try this."));
+                    hasNoPermission = false;
+                }
+                else printToLog(1, "§3/switchgender §bhas a malformed config, hiding from list.");
+            }
+
+            if (usedFromConsole || src.hasPermission("pixelupgrade.command.upgradeivs"))
+            {
                 if (UpgradeIVs.commandAlias != null)
                 {
-                    printToLog(2, "Valid config found. Printing helpers for this command!");
-
                     permissionMessageList.add(Text.of("§6/" + UpgradeIVs.commandAlias + " <slot> <IV type> [optional amount] {confirm flag}"));
                     permissionMessageList.add(Text.of("§f --> §eBuy upgrades for your Pokémon's IVs."));
                     hasNoPermission = false;
@@ -339,16 +271,27 @@ public class PixelUpgradeInfo implements CommandExecutor
 
             if (hasNoPermission)
             {
+                printToLog(2, "Player has no permissions. Letting them know, and exiting.");
                 permissionMessageList.add(Text.of("§cYou have no permissions for any PixelUpgrade commands."));
                 permissionMessageList.add(Text.of("§cPlease contact staff if you believe this to be in error."));
             }
+            else
+            {
+                PaginationList.Builder list = PaginationList.builder()
+                        .title(Text.of(TextColors.DARK_PURPLE, "§dPixelUpgrade commands"))
+                        .contents(permissionMessageList)
+                        .padding(Text.of(TextColors.DARK_PURPLE, "="));
 
-            PaginationList.builder()
-                    .title(Text.of(TextColors.DARK_PURPLE, "§dPixelUpgrade commands"))
-                    .contents(permissionMessageList)
-                    .padding(Text.of(TextColors.DARK_PURPLE, "="))
-                    .linesPerPage(numLinesPerPage)
-                    .sendTo(src); // TODO: Check.
+                if (src instanceof Player)
+                {
+                    printToLog(1, "Player was shown a list of the commands they have access to. Exit.");
+                    list.linesPerPage(numLinesPerPage);
+                }
+                else // Add 2 to ArrayList size so title/padding doesn't create a new page. Can't click those in console.
+                    list.linesPerPage(permissionMessageList.size() + 2);
+
+                list.sendTo(src);
+            }
         }
         return CommandResult.success();
 	}
