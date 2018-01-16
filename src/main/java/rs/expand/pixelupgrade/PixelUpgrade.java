@@ -1,8 +1,6 @@
 package rs.expand.pixelupgrade;
 
 // Remote imports.
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,7 +21,6 @@ import org.spongepowered.api.text.Text;
 // Local imports.
 import rs.expand.pixelupgrade.commands.*;
 import rs.expand.pixelupgrade.utilities.ConfigOperations;
-
 import static rs.expand.pixelupgrade.utilities.CommonMethods.printUnformattedMessage;
 
 // New things:
@@ -38,7 +35,6 @@ import static rs.expand.pixelupgrade.utilities.CommonMethods.printUnformattedMes
 // TODO: Do something with setPixelmonScale. Maybe a /spawnboss for super big high HP IV bosses with custom loot?
 // TODO: Make a /devolve, or something along those lines.
 // TODO: Make a /fixgender. Priority.
-// TODO: Make a /spawndex. Useful for testing.
 
 // Improvements to existing things:
 // TODO: Tab completion on player names.
@@ -57,16 +53,18 @@ import static rs.expand.pixelupgrade.utilities.CommonMethods.printUnformattedMes
 
         // Not listed but certainly appreciated:
 
-        // NickImpact (helping me understand how to manipulate NBTs)
+        // NickImpact (helping me understand NBTs and remove console tags from my messages)
         // Proxying (writing to entities in a copy-persistent manner)
         // Karanum (fancy paginated command lists)
         // Hiroku (tip + snippet for setting up UTF-8 encoding; made § work)
+        // Simon_Flash (helping with Sponge-related questions)
         // Xenoyia (helping get PU off the ground, and co-owning the server it started on)
         // ...and everybody else who contributed ideas and reported issues.
 
         // Thanks for helping make PU what it is now, people!
 )
 
+// Note: printUnformattedMessage is a static import for a function from CommonMethods, for convenience.
 public class PixelUpgrade
 {
     // Some basic setup.
@@ -87,25 +85,26 @@ public class PixelUpgrade
     // Set up our config paths, and grab an OS-specific file path separator. This will usually be a forward slash.
     private static String separator = FileSystems.getDefault().getSeparator();
     public static String primaryPath = "config" + separator;
-    public static String path = "config" + separator + "PixelUpgrade" + separator;
+    public static String commandConfigPath = "config" + separator + "PixelUpgrade" + separator;
 
     // Create the config paths.
     public static Path primaryConfigPath = Paths.get(primaryPath, "PixelUpgrade.conf");
-    public static Path checkEggPath = Paths.get(path, "CheckEgg.conf");
-    public static Path checkStatsPath = Paths.get(path, "CheckStats.conf");
-    public static Path checkTypesPath = Paths.get(path, "CheckTypes.conf");
-    public static Path dittoFusionPath = Paths.get(path, "DittoFusion.conf");
-    public static Path fixEVsPath = Paths.get(path, "FixEVs.conf");
-    public static Path fixLevelPath = Paths.get(path, "FixLevel.conf");
-    public static Path forceHatchPath = Paths.get(path, "ForceHatch.conf");
-    public static Path forceStatsPath = Paths.get(path, "ForceStats.conf");
-    public static Path puInfoPath = Paths.get(path, "PixelUpgradeInfo.conf");
-    public static Path resetCountPath = Paths.get(path, "ResetCount.conf");
-    public static Path resetEVsPath = Paths.get(path, "ResetEVs.conf");
-    public static Path showStatsPath = Paths.get(path, "ShowStats.conf");
-    public static Path spawnDexPath = Paths.get(path, "SpawnDex.conf");
-    public static Path switchGenderPath = Paths.get(path, "SwitchGender.conf");
-    public static Path upgradeIVsPath = Paths.get(path, "UpgradeIVs.conf");
+    public static Path checkEggPath = Paths.get(commandConfigPath, "CheckEgg.conf");
+    public static Path checkStatsPath = Paths.get(commandConfigPath, "CheckStats.conf");
+    public static Path checkTypesPath = Paths.get(commandConfigPath, "CheckTypes.conf");
+    public static Path dittoFusionPath = Paths.get(commandConfigPath, "DittoFusion.conf");
+    public static Path fixEVsPath = Paths.get(commandConfigPath, "FixEVs.conf");
+    public static Path fixLevelPath = Paths.get(commandConfigPath, "FixLevel.conf");
+    public static Path forceHatchPath = Paths.get(commandConfigPath, "ForceHatch.conf");
+    public static Path forceStatsPath = Paths.get(commandConfigPath, "ForceStats.conf");
+    public static Path pokeCurePath = Paths.get(commandConfigPath, "PokeCure.conf");
+    public static Path puInfoPath = Paths.get(commandConfigPath, "PixelUpgradeInfo.conf");
+    public static Path resetCountPath = Paths.get(commandConfigPath, "ResetCount.conf");
+    public static Path resetEVsPath = Paths.get(commandConfigPath, "ResetEVs.conf");
+    public static Path showStatsPath = Paths.get(commandConfigPath, "ShowStats.conf");
+    public static Path spawnDexPath = Paths.get(commandConfigPath, "SpawnDex.conf");
+    public static Path switchGenderPath = Paths.get(commandConfigPath, "SwitchGender.conf");
+    public static Path upgradeIVsPath = Paths.get(commandConfigPath, "UpgradeIVs.conf");
 
     // Set up said paths.
     public static ConfigurationLoader<CommentedConfigurationNode> primaryConfigLoader =
@@ -126,6 +125,8 @@ public class PixelUpgrade
             HoconConfigurationLoader.builder().setPath(forceHatchPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> forceStatsLoader =
             HoconConfigurationLoader.builder().setPath(forceStatsPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> pokeCureLoader =
+            HoconConfigurationLoader.builder().setPath(pokeCurePath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> puInfoLoader =
             HoconConfigurationLoader.builder().setPath(puInfoPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> resetCountLoader =
@@ -144,14 +145,14 @@ public class PixelUpgrade
     /*                       *\
          Utility commands.
     \*                       */
-    private CommandSpec reloadconfigs = CommandSpec.builder()
+    public static CommandSpec reloadconfigs = CommandSpec.builder()
             .permission("pixelupgrade.command.staff.reload")
             .executor(new ReloadConfigs())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("config"))))
             .build();
 
-    private CommandSpec pixelupgradeinfo = CommandSpec.builder()
+    public static CommandSpec pixelupgradeinfo = CommandSpec.builder()
             .executor(new PixelUpgradeInfo())
             .arguments( // Ignore all arguments, don't error on anything. Command doesn't use them, anyways.
                     GenericArguments.optional(GenericArguments.remainingJoinedStrings(Text.of(""))))
@@ -160,7 +161,7 @@ public class PixelUpgrade
     /*                    *\
          Main commands.
     \*                    */
-    private CommandSpec checkegg = CommandSpec.builder()
+    public static CommandSpec checkegg = CommandSpec.builder()
             .permission("pixelupgrade.command.checkegg")
             .executor(new CheckEgg())
             .arguments(
@@ -169,7 +170,7 @@ public class PixelUpgrade
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("confirmation"))))
             .build();
 
-    private CommandSpec checkstats = CommandSpec.builder()
+    public static CommandSpec checkstats = CommandSpec.builder()
             .permission("pixelupgrade.command.checkstats")
             .executor(new CheckStats())
             .arguments(
@@ -178,7 +179,7 @@ public class PixelUpgrade
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("confirmation"))))
             .build();
 
-    private CommandSpec checktypes = CommandSpec.builder()
+    public static CommandSpec checktypes = CommandSpec.builder()
             .permission("pixelupgrade.command.checktypes")
             .executor(new CheckTypes())
             .arguments(
@@ -186,7 +187,7 @@ public class PixelUpgrade
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
             .build();
 
-    private CommandSpec dittofusion = CommandSpec.builder()
+    public static CommandSpec dittofusion = CommandSpec.builder()
             .permission("pixelupgrade.command.dittofusion")
             .executor(new DittoFusion())
             .arguments(
@@ -195,7 +196,7 @@ public class PixelUpgrade
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
             .build();
 
-    private CommandSpec fixevs = CommandSpec.builder()
+    public static CommandSpec fixevs = CommandSpec.builder()
             .permission("pixelupgrade.command.fixevs")
             .executor(new FixEVs())
             .arguments(
@@ -203,7 +204,7 @@ public class PixelUpgrade
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
             .build();
 
-    private CommandSpec fixlevel = CommandSpec.builder()
+    public static CommandSpec fixlevel = CommandSpec.builder()
             .permission("pixelupgrade.command.fixlevel")
             .executor(new FixLevel())
             .arguments(
@@ -211,7 +212,7 @@ public class PixelUpgrade
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
             .build();
 
-    private CommandSpec forcehatch = CommandSpec.builder()
+    public static CommandSpec forcehatch = CommandSpec.builder()
             .permission("pixelupgrade.command.staff.forcehatch")
             .executor(new ForceHatch())
             .arguments(
@@ -219,7 +220,7 @@ public class PixelUpgrade
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))))
             .build();
 
-    private CommandSpec forcestats = CommandSpec.builder()
+    public static CommandSpec forcestats = CommandSpec.builder()
             .permission("pixelupgrade.command.staff.forcestats")
             .executor(new ForceStats())
             .arguments(
@@ -229,7 +230,15 @@ public class PixelUpgrade
                     GenericArguments.flags().flag("f").buildWith(GenericArguments.none()))
             .build();
 
-    private CommandSpec resetcount = CommandSpec.builder()
+    public static CommandSpec pokecure = CommandSpec.builder()
+            .permission("pixelupgrade.command.pokecure")
+            .executor(new PokeCure())
+            .arguments(
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
+                    GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
+            .build();
+
+    public static CommandSpec resetcount = CommandSpec.builder()
             .permission("pixelupgrade.command.staff.resetcount")
             .executor(new ResetCount())
             .arguments(
@@ -238,7 +247,7 @@ public class PixelUpgrade
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
             .build();
 
-    private CommandSpec resetevs = CommandSpec.builder()
+    public static CommandSpec resetevs = CommandSpec.builder()
             .permission("pixelupgrade.command.resetevs")
             .executor(new ResetEVs())
             .arguments(
@@ -246,7 +255,7 @@ public class PixelUpgrade
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
             .build();
 
-    private CommandSpec showstats = CommandSpec.builder()
+    public static CommandSpec showstats = CommandSpec.builder()
             .permission("pixelupgrade.command.showstats")
             .executor(new ShowStats())
             .arguments(
@@ -262,7 +271,7 @@ public class PixelUpgrade
                     GenericArguments.flags().flag("s").buildWith(GenericArguments.none()))
             .build();
 
-    private CommandSpec switchgender = CommandSpec.builder()
+    public static CommandSpec switchgender = CommandSpec.builder()
             .permission("pixelupgrade.command.switchgender")
             .executor(new SwitchGender())
             .arguments(
@@ -270,7 +279,7 @@ public class PixelUpgrade
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
             .build();
 
-    private CommandSpec upgradeivs = CommandSpec.builder()
+    public static CommandSpec upgradeivs = CommandSpec.builder()
             .permission("pixelupgrade.command.upgradeivs")
             .executor(new UpgradeIVs())
             .arguments(
@@ -285,103 +294,26 @@ public class PixelUpgrade
     {
         // Load up the primary config and the info command config, and figure out the info alias.
         // We start printing stuff, here. If any warnings/errors pop up they'll be shown here.
-        // Note: We run an overloaded method for the primary config. That's why it knows where to go.
         printUnformattedMessage("========================= P I X E L U P G R A D E =========================");
 
         // Create a config directory if it doesn't exist. Silently swallow an error if it does. I/O is awkward.
-        try
-        {
-            Files.createDirectory(Paths.get(path));
-            printUnformattedMessage("--> §aDetected first run, created a new folder for the command configs.");
-        }
-        catch (IOException ignored) {}
+        ConfigOperations.checkConfigDir();
 
         printUnformattedMessage("--> §aLoading and validating primary config...");
-        ConfigOperations.setupPrimaryConfig(primaryConfigPath, primaryPath);
+        ConfigOperations.loadConfig("PixelUpgrade");
+
+        // TODO: Catch wrong values.
 
         printUnformattedMessage("--> §aLoading and validating command-specific settings...");
-        ConfigOperations.initializeAndGrabAliases(true);
+        ConfigOperations.loadAllCommandConfigs();
+        ConfigOperations.printCommandsAndAliases();
 
-        printUnformattedMessage("--> §aLoaded command settings. Pre-init completed.");
+        printUnformattedMessage("--> §aRegistering commands and known aliases with Sponge...");
+        boolean registrationCompleted = ConfigOperations.registerCommands();
+
+        if (registrationCompleted)
+            printUnformattedMessage("--> §aPre-init completed.");
         printUnformattedMessage("===========================================================================");
-
-        // And finally, register the aliases we grabbed earlier.
-        if (CheckEgg.commandAlias != null && !CheckEgg.commandAlias.equals("checkegg"))
-            Sponge.getCommandManager().register(this, checkegg, "checkegg", "eggcheck", CheckEgg.commandAlias);
-        else
-            Sponge.getCommandManager().register(this, checkegg, "checkegg", "eggcheck");
-
-        if (CheckStats.commandAlias != null && !CheckStats.commandAlias.equals("checkstats"))
-            Sponge.getCommandManager().register(this, checkstats, "checkstats", "getstats", CheckStats.commandAlias);
-        else
-            Sponge.getCommandManager().register(this, checkstats, "checkstats", "getstats");
-
-        if (CheckTypes.commandAlias != null && !CheckTypes.commandAlias.equals("checktypes"))
-            Sponge.getCommandManager().register(this, checktypes, "checktypes", "checktype", "weakness", CheckTypes.commandAlias);
-        else
-            Sponge.getCommandManager().register(this, checktypes, "checktypes", "checktype", "weakness");
-
-        if (DittoFusion.commandAlias != null && !DittoFusion.commandAlias.equals("dittofusion"))
-            Sponge.getCommandManager().register(this, dittofusion, "dittofusion", "fuseditto", DittoFusion.commandAlias);
-        else
-            Sponge.getCommandManager().register(this, dittofusion, "dittofusion", "fuseditto");
-
-        if (FixEVs.commandAlias != null && !FixEVs.commandAlias.equals("fixevs"))
-            Sponge.getCommandManager().register(this, fixevs, "fixevs", "fixev", FixEVs.commandAlias);
-        else
-            Sponge.getCommandManager().register(this, fixevs, "fixevs", "fixev");
-
-        if (FixLevel.commandAlias != null && !FixLevel.commandAlias.equals("fixlevel"))
-            Sponge.getCommandManager().register(this, fixlevel, "fixlevel", "fixlevels", FixLevel.commandAlias);
-        else
-            Sponge.getCommandManager().register(this, fixlevel, "fixlevel", "fixlevels");
-
-        if (ForceHatch.commandAlias != null && !ForceHatch.commandAlias.equals("forcehatch"))
-            Sponge.getCommandManager().register(this, forcehatch, "forcehatch", ForceHatch.commandAlias);
-        else
-            Sponge.getCommandManager().register(this, forcehatch, "forcehatch");
-
-        if (ForceStats.commandAlias != null && !ForceStats.commandAlias.equals("forcestats"))
-            Sponge.getCommandManager().register(this, forcestats, "forcestats", "forcestat", ForceStats.commandAlias);
-        else
-            Sponge.getCommandManager().register(this, forcestats, "forcestats", "forcestat");
-
-        if (PixelUpgradeInfo.commandAlias != null && !PixelUpgradeInfo.commandAlias.equals("pixelupgrade"))
-            Sponge.getCommandManager().register(this, pixelupgradeinfo, "pixelupgrade", "pixelupgradeinfo", PixelUpgradeInfo.commandAlias);
-        else
-            Sponge.getCommandManager().register(this, pixelupgradeinfo, "pixelupgrade", "pixelupgradeinfo");
-
-        Sponge.getCommandManager().register(this, reloadconfigs, "pureload", "pixelupgradereload");
-
-        if (ResetCount.commandAlias != null && !ResetCount.commandAlias.equals("resetcount"))
-            Sponge.getCommandManager().register(this, resetcount, "resetcount", "resetcounts", ResetCount.commandAlias);
-        else
-            Sponge.getCommandManager().register(this, resetcount, "resetcount", "resetcounts");
-
-        if (ResetEVs.commandAlias != null && !ResetEVs.commandAlias.equals("resetevs"))
-            Sponge.getCommandManager().register(this, resetevs, "resetevs", "resetev", ResetEVs.commandAlias);
-        else
-            Sponge.getCommandManager().register(this, resetevs, "resetevs", "resetev");
-
-        if (ShowStats.commandAlias != null && !ShowStats.commandAlias.equals("showstats"))
-            Sponge.getCommandManager().register(this, showstats, "showstats", ShowStats.commandAlias);
-        else
-            Sponge.getCommandManager().register(this, showstats, "showstats");
-
-        if (SpawnDex.commandAlias != null && !SpawnDex.commandAlias.equals("spawndex"))
-            Sponge.getCommandManager().register(this, spawndex, "spawndex", "spawnid", SpawnDex.commandAlias);
-        else
-            Sponge.getCommandManager().register(this, spawndex, "spawndex", "spawnid");
-
-        if (SwitchGender.commandAlias != null && !SwitchGender.commandAlias.equals("switchgender"))
-            Sponge.getCommandManager().register(this, switchgender, "switchgender", SwitchGender.commandAlias);
-        else
-            Sponge.getCommandManager().register(this, switchgender, "switchgender");
-
-        if (UpgradeIVs.commandAlias != null && !UpgradeIVs.commandAlias.equals("upgradeivs"))
-            Sponge.getCommandManager().register(this, upgradeivs, "upgradeivs", "upgradeiv", UpgradeIVs.commandAlias);
-        else
-            Sponge.getCommandManager().register(this, upgradeivs, "upgradeivs", "upgradeiv");
     }
 
     @Listener

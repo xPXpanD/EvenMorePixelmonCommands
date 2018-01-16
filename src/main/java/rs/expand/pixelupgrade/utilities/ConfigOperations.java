@@ -6,22 +6,25 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Objects;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanObject;
 
 // Local imports.
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.plugin.PluginContainer;
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.commands.*;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
 import static rs.expand.pixelupgrade.utilities.CommonMethods.printUnformattedMessage;
 
+// Note: printUnformattedMessage is a static import for a function from CommonMethods, for convenience.
+// Also, PixelUpgrade class variables are loaded in the same way. Used in loadConfig and registerCommands.
 public class ConfigOperations
 {
     // Make a little converter for safely handling possibly null Strings that have an integer value inside.
-    private static Integer interpretInteger(String input)
+    private static Integer interpretInteger(String input) // TODO: Check null.
     {
-        if (input != null && input.matches("^[0-9]\\d*$"))
+        if (input.matches("^[0-9]\\d*$"))
             return Integer.parseInt(input);
         else
             return null;
@@ -30,55 +33,133 @@ public class ConfigOperations
     // Do the same for doubles.
     private static Double interpretDouble(String input)
     {
-        if (input != null && input.matches("\\(?\\d+\\.\\d+\\)?"))
+        if (input.matches("\\(?\\d+\\.\\d+\\)?"))
             return Double.parseDouble(input);
         else
             return null;
     }
 
-    // Called during initial load, and when a command is reloaded. Load configs, and print a pretty list.
-    public static void initializeAndGrabAliases(boolean firstRun)
+    // Create a config directory if it doesn't exist. Silently swallow an error if it does. I/O is awkward.
+    public static void checkConfigDir()
     {
-        // Register other aliases and set up configs. Similar to the above, any errors/warnings will be printed.
-        String checkEggAlias = ConfigOperations.setupConfig(
-                "CheckEgg", "egg", checkEggPath, path);
-        String checkStatsAlias = ConfigOperations.setupConfig(
-                "CheckStats", "cs", checkStatsPath, path);
-        String checkTypesAlias = ConfigOperations.setupConfig(
-                "CheckTypes", "type", checkTypesPath, path);
-        String dittoFusionAlias = ConfigOperations.setupConfig(
-                "DittoFusion", "fuse", dittoFusionPath, path);
-        String fixEVsAlias = ConfigOperations.setupConfig(
-                "FixEVs", "fixevs", fixEVsPath, path);
-        String fixLevelAlias = ConfigOperations.setupConfig(
-                "FixLevel", "fixlevel", fixLevelPath, path);
-        String forceHatchAlias = ConfigOperations.setupConfig(
-                "ForceHatch", "fhatch", forceHatchPath, path);
-        String forceStatsAlias = ConfigOperations.setupConfig(
-                "ForceStats", "fstats", forceStatsPath, path);
-        String puInfoAlias = ConfigOperations.setupConfig(
-                "PixelUpgradeInfo", "pu", puInfoPath, path);
-        String resetCountAlias = ConfigOperations.setupConfig(
-                "ResetCount", "delcount", resetCountPath, path);
-        String resetEVsAlias = ConfigOperations.setupConfig(
-                "ResetEVs", "delevs", resetEVsPath, path);
-        String showStatsAlias = ConfigOperations.setupConfig(
-                "ShowStats", "show", showStatsPath, path);
-        String spawnDexAlias = ConfigOperations.setupConfig(
-                "SpawnDex", "spawndex", spawnDexPath, path);
-        String switchGenderAlias = ConfigOperations.setupConfig(
-                "SwitchGender", "bend", switchGenderPath, path);
-        String upgradeIVsAlias = ConfigOperations.setupConfig(
-                "UpgradeIVs", "upgrade", upgradeIVsPath, path);
+        try
+        {
+            Files.createDirectory(Paths.get(PixelUpgrade.commandConfigPath));
+            printUnformattedMessage("--> §aPixelUpgrade folder not found, making a new one for command configs...");
+        }
+        catch (IOException ignored) {}
+    }
 
+    public static boolean registerCommands()
+    {
+        PluginContainer puContainer = Sponge.getPluginManager().getPlugin("pixelupgrade").orElse(null);
+
+        if (puContainer != null)
+        {
+            if (CheckEgg.commandAlias != null && !CheckEgg.commandAlias.equals("checkegg"))
+                Sponge.getCommandManager().register(puContainer, checkegg, "checkegg", "eggcheck", CheckEgg.commandAlias);
+            else
+                Sponge.getCommandManager().register(puContainer, checkegg, "checkegg", "eggcheck");
+
+            if (CheckStats.commandAlias != null && !CheckStats.commandAlias.equals("checkstats"))
+                Sponge.getCommandManager().register(puContainer, checkstats, "checkstats", "getstats", CheckStats.commandAlias);
+            else
+                Sponge.getCommandManager().register(puContainer, checkstats, "checkstats", "getstats");
+
+            if (CheckTypes.commandAlias != null && !CheckTypes.commandAlias.equals("checktypes"))
+                Sponge.getCommandManager().register(puContainer, checktypes, "checktypes", "checktype", "weakness", CheckTypes.commandAlias);
+            else
+                Sponge.getCommandManager().register(puContainer, checktypes, "checktypes", "checktype", "weakness");
+
+            if (DittoFusion.commandAlias != null && !DittoFusion.commandAlias.equals("dittofusion"))
+                Sponge.getCommandManager().register(puContainer, dittofusion, "dittofusion", "fuseditto", DittoFusion.commandAlias);
+            else
+                Sponge.getCommandManager().register(puContainer, dittofusion, "dittofusion", "fuseditto");
+
+            if (FixEVs.commandAlias != null && !FixEVs.commandAlias.equals("fixevs"))
+                Sponge.getCommandManager().register(puContainer, fixevs, "fixevs", "fixev", FixEVs.commandAlias);
+            else
+                Sponge.getCommandManager().register(puContainer, fixevs, "fixevs", "fixev");
+
+            if (FixLevel.commandAlias != null && !FixLevel.commandAlias.equals("fixlevel"))
+                Sponge.getCommandManager().register(puContainer, fixlevel, "fixlevel", "fixlevels", FixLevel.commandAlias);
+            else
+                Sponge.getCommandManager().register(puContainer, fixlevel, "fixlevel", "fixlevels");
+
+            if (ForceHatch.commandAlias != null && !ForceHatch.commandAlias.equals("forcehatch"))
+                Sponge.getCommandManager().register(puContainer, forcehatch, "forcehatch", ForceHatch.commandAlias);
+            else
+                Sponge.getCommandManager().register(puContainer, forcehatch, "forcehatch");
+
+            if (ForceStats.commandAlias != null && !ForceStats.commandAlias.equals("forcestats"))
+                Sponge.getCommandManager().register(puContainer, forcestats, "forcestats", "forcestat", ForceStats.commandAlias);
+            else
+                Sponge.getCommandManager().register(puContainer, forcestats, "forcestats", "forcestat");
+
+            if (PixelUpgradeInfo.commandAlias != null && !PixelUpgradeInfo.commandAlias.equals("pixelupgrade"))
+                Sponge.getCommandManager().register(puContainer, pixelupgradeinfo, "pixelupgrade", "pixelupgradeinfo", PixelUpgradeInfo.commandAlias);
+            else
+                Sponge.getCommandManager().register(puContainer, pixelupgradeinfo, "pixelupgrade", "pixelupgradeinfo");
+
+            if (PokeCure.commandAlias != null && !PokeCure.commandAlias.equals("pokecure"))
+                Sponge.getCommandManager().register(puContainer, pokecure, "pokecure", PokeCure.commandAlias);
+            else
+                Sponge.getCommandManager().register(puContainer, pokecure, "pokecure");
+
+            Sponge.getCommandManager().register(puContainer, reloadconfigs, "pureload", "pixelupgradereload");
+
+            if (ResetCount.commandAlias != null && !ResetCount.commandAlias.equals("resetcount"))
+                Sponge.getCommandManager().register(puContainer, resetcount, "resetcount", "resetcounts", ResetCount.commandAlias);
+            else
+                Sponge.getCommandManager().register(puContainer, resetcount, "resetcount", "resetcounts");
+
+            if (ResetEVs.commandAlias != null && !ResetEVs.commandAlias.equals("resetevs"))
+                Sponge.getCommandManager().register(puContainer, resetevs, "resetevs", "resetev", ResetEVs.commandAlias);
+            else
+                Sponge.getCommandManager().register(puContainer, resetevs, "resetevs", "resetev");
+
+            if (ShowStats.commandAlias != null && !ShowStats.commandAlias.equals("showstats"))
+                Sponge.getCommandManager().register(puContainer, showstats, "showstats", ShowStats.commandAlias);
+            else
+                Sponge.getCommandManager().register(puContainer, showstats, "showstats");
+
+            if (SpawnDex.commandAlias != null && !SpawnDex.commandAlias.equals("spawndex"))
+                Sponge.getCommandManager().register(puContainer, spawndex, "spawndex", "spawnid", SpawnDex.commandAlias);
+            else
+                Sponge.getCommandManager().register(puContainer, spawndex, "spawndex", "spawnid");
+
+            if (SwitchGender.commandAlias != null && !SwitchGender.commandAlias.equals("switchgender"))
+                Sponge.getCommandManager().register(puContainer, switchgender, "switchgender", SwitchGender.commandAlias);
+            else
+                Sponge.getCommandManager().register(puContainer, switchgender, "switchgender");
+
+            if (UpgradeIVs.commandAlias != null && !UpgradeIVs.commandAlias.equals("upgradeivs"))
+                Sponge.getCommandManager().register(puContainer, upgradeivs, "upgradeivs", "upgradeiv", UpgradeIVs.commandAlias);
+            else
+                Sponge.getCommandManager().register(puContainer, upgradeivs, "upgradeivs", "upgradeiv");
+
+            return true;
+        }
+        else
+        {
+            printUnformattedMessage("§cCommand re-initialization failed. Please report this, this is a bug.");
+            printUnformattedMessage("§cPixelUpgrade's commands have been disabled. A reboot or reload may work.");
+
+            return false;
+        }
+    }
+
+    // Called during initial load, and when a command is reloaded. Load configs, and print a pretty list.
+    public static void printCommandsAndAliases()
+    {
         // Do some initial setup for our formatted messages later on. We'll show three commands per line.
         ArrayList<String> commandList = new ArrayList<>();
         StringBuilder formattedCommand = new StringBuilder(), printableList = new StringBuilder();
         String commandAlias = "ERROR PLEASE REPORT", commandString = null;
 
         // Format our commands and aliases and add them to the lists that we'll print in a bit.
-        // TODO: If you add a command, update this list!
-        for (int i = 1; i <= 16; i++)
+        // TODO: If you add a command, update this list and increment the counters! (currently 17)
+        for (int i = 1; i <= 17; i++)
         {
             switch (i)
             {
@@ -86,97 +167,103 @@ public class ConfigOperations
                 // This prevents NPEs while also letting us hide commands by checking whether they've returned null.
                 case 1:
                 {
-                    commandAlias = checkEggAlias;
+                    commandAlias = CheckEgg.commandAlias;
                     commandString = "/checkegg";
                     break;
                 }
                 case 2:
                 {
-                    commandAlias = checkStatsAlias;
+                    commandAlias = CheckStats.commandAlias;
                     commandString = "/checkstats";
                     break;
                 }
                 case 3:
                 {
-                    commandAlias = checkTypesAlias;
+                    commandAlias = CheckTypes.commandAlias;
                     commandString = "/checktypes";
                     break;
                 }
                 case 4:
                 {
-                    commandAlias = dittoFusionAlias;
+                    commandAlias = DittoFusion.commandAlias;
                     commandString = "/dittofusion";
                     break;
                 }
                 case 5:
                 {
-                    commandAlias = fixEVsAlias;
+                    commandAlias = FixEVs.commandAlias;
                     commandString = "/fixevs";
                     break;
                 }
                 case 6:
                 {
-                    commandAlias = fixLevelAlias;
+                    commandAlias = FixLevel.commandAlias;
                     commandString = "/fixlevel";
                     break;
                 }
                 case 7:
                 {
-                    commandAlias = forceHatchAlias;
+                    commandAlias = ForceHatch.commandAlias;
                     commandString = "/forcehatch";
                     break;
                 }
                 case 8:
                 {
-                    commandAlias = forceStatsAlias;
+                    commandAlias = ForceStats.commandAlias;
                     commandString = "/forcestats";
                     break;
                 }
                 case 9:
                 {
-                    commandAlias = puInfoAlias;
+                    commandAlias = PixelUpgradeInfo.commandAlias;
                     commandString = "/pixelupgrade";
                     break;
                 }
                 case 10:
                 {
-                    commandAlias = "pureload"; // Will be omitted, as there's a check for aliases matching base commands.
-                    commandString = "/pureload";
+                    commandAlias = PokeCure.commandAlias;
+                    commandString = "/pokecure";
                     break;
                 }
                 case 11:
                 {
-                    commandAlias = resetCountAlias;
-                    commandString = "/resetcount";
+                    commandAlias = "pureload"; // Will be omitted, as there's a check for aliases matching base commands.
+                    commandString = "/pureload";
                     break;
                 }
                 case 12:
                 {
-                    commandAlias = resetEVsAlias;
-                    commandString = "/resetevs";
+                    commandAlias = ResetCount.commandAlias;
+                    commandString = "/resetcount";
                     break;
                 }
                 case 13:
                 {
-                    commandAlias = showStatsAlias;
-                    commandString = "/showstats";
+                    commandAlias = ResetEVs.commandAlias;
+                    commandString = "/resetevs";
                     break;
                 }
                 case 14:
                 {
-                    commandAlias = spawnDexAlias;
-                    commandString = "/spawndex";
+                    commandAlias = ShowStats.commandAlias;
+                    commandString = "/showstats";
                     break;
                 }
                 case 15:
                 {
-                    commandAlias = switchGenderAlias;
-                    commandString = "/switchgender";
+                    commandAlias = SpawnDex.commandAlias;
+                    commandString = "/spawndex";
                     break;
                 }
                 case 16:
                 {
-                    commandAlias = upgradeIVsAlias;
+                    commandAlias = SwitchGender.commandAlias;
+                    commandString = "/switchgender";
+                    break;
+                }
+                case 17:
+                {
+                    commandAlias = UpgradeIVs.commandAlias;
                     commandString = "/upgradeivs";
                     break;
                 }
@@ -185,8 +272,7 @@ public class ConfigOperations
             if (commandAlias != null)
             {
                 // Format the command.
-                formattedCommand.append("§2");
-                formattedCommand.append(commandString);
+                formattedCommand.append("§2").append(commandString);
 
                 if (commandString.equals("/" + commandAlias))
                     formattedCommand.append("§a, ");
@@ -198,7 +284,7 @@ public class ConfigOperations
                 }
 
                 // If we're at the last command, shank the trailing comma for a clean end.
-                if (i == 16)
+                if (i == 17)
                     formattedCommand.setLength(formattedCommand.length() - 2);
 
                 // Add the formatted command to the list, and then clear the StringBuilder so we can re-use it.
@@ -208,12 +294,9 @@ public class ConfigOperations
         }
 
         // Print the formatted commands + aliases.
-        int listSize = commandList.size();
-        if (firstRun)
-            printUnformattedMessage("--> §aSuccessfully registered a bunch of commands! See below.");
-        else
-            printUnformattedMessage("--> §aSuccessfully loaded a bunch of commands! See below.");
+        printUnformattedMessage("--> §aSuccessfully loaded a bunch of commands! See below.");
 
+        int listSize = commandList.size();
         for (int q = 1; q < listSize + 1; q++)
         {
             printableList.append(commandList.get(q - 1));
@@ -229,82 +312,109 @@ public class ConfigOperations
     }
 
     // Called during initial setup, either when the server is booting up or when /pureload has been executed.
-    public static String setupConfig(String callSource, String defaultAlias, Path checkPath, String mainPath)
+    private static void tryCreateConfig(String callSource, Path checkPath)
     {
         if (Files.notExists(checkPath))
         {
-            try
+            if (callSource.equals("PixelUpgrade"))
             {
-                printUnformattedMessage("§eNo \"§6/" + callSource.toLowerCase() + "§e\" configuration file found, creating...");
+                try
+                {
+                    printUnformattedMessage("§eNo primary configuration file found, creating...");
 
-                Files.copy(ConfigOperations.class.getResourceAsStream("/assets/" + callSource + ".conf"),
-                        Paths.get(mainPath, callSource + ".conf"));
+                    Files.copy(ConfigOperations.class.getResourceAsStream("/assets/PixelUpgradeMain.conf"),
+                            Paths.get(PixelUpgrade.primaryPath, "PixelUpgrade.conf"));
+                }
+                catch (IOException F)
+                {
+                    printUnformattedMessage("§cPrimary config setup has failed! Please report this.");
+                    printUnformattedMessage("§cAdd any useful info you may have (operating system?). Stack trace:");
 
-                loadConfig(callSource);
+                    F.printStackTrace();
+                }
             }
-            catch (IOException F)
+            else
             {
-                printUnformattedMessage("§cConfig setup for command \"§4/" + callSource.toLowerCase()
-                        + "§c\" failed! Please report this.");
-                printUnformattedMessage("§cAdd any useful info you may have (operating system?). Stack trace:");
-                F.printStackTrace();
+                try
+                {
+                    printUnformattedMessage("§eNo §6/" + callSource.toLowerCase() +
+                            "§e configuration file found, creating...");
+
+                    Files.copy(ConfigOperations.class.getResourceAsStream("/assets/" + callSource + ".conf"),
+                            Paths.get(PixelUpgrade.commandConfigPath, callSource + ".conf"));
+                }
+                catch (IOException F)
+                {
+                    printUnformattedMessage("§cConfig setup for command \"§4/" + callSource.toLowerCase()
+                            + "§c\" failed! Please report this.");
+                    printUnformattedMessage("§cAdd any useful info you may have (operating system?). Stack trace:");
+                    F.printStackTrace();
+                }
             }
-
-            return defaultAlias;
-        }
-        else
-        {
-            String alias = loadConfig(callSource);
-
-            if (Objects.equals(alias, null))
-            {
-                printUnformattedMessage("§cError on \"§4/" + callSource.toLowerCase() +
-                        "§c\", variable \"§4commandAlias§c\"! Check or regen this config.");
-            }
-
-            return alias;
         }
     }
 
-    // An alternative to setupConfig for use with the main config.
-    public static void setupPrimaryConfig(Path checkPath, String mainPath)
+    // aaaaaaaaaaaaaaaAAAAAAAAAAAAAAAAAAAAAAAAAA
+    public static void loadAllCommandConfigs()
     {
-        if (Files.notExists(checkPath))
-        {
-            try
-            {
-                printUnformattedMessage("§eNo primary configuration file found, creating...");
-
-                Files.copy(ConfigOperations.class.getResourceAsStream("/assets/PixelUpgradeMain.conf"),
-                        Paths.get(mainPath, "PixelUpgrade.conf"));
-
-                loadConfig("PixelUpgrade");
-            }
-            catch (IOException F)
-            {
-                printUnformattedMessage("§cPrimary config setup has failed! Please report this.");
-                printUnformattedMessage("§cAdd any useful info you may have (operating system?). Stack trace:");
-
-                F.printStackTrace();
-            }
-        }
-        else
-            loadConfig("PixelUpgrade");
+        loadConfig("CheckEgg");
+        loadConfig("CheckStats");
+        loadConfig("CheckTypes");
+        loadConfig("DittoFusion");
+        loadConfig("FixEVs");
+        loadConfig("FixLevel");
+        loadConfig("ForceHatch");
+        loadConfig("ForceStats");
+        loadConfig("PixelUpgradeInfo");
+        loadConfig("PokeCure");
+        loadConfig("ResetCount");
+        loadConfig("ResetEVs");
+        loadConfig("ShowStats");
+        loadConfig("SpawnDex");
+        loadConfig("SwitchGender");
+        loadConfig("UpgradeIVs");
     }
 
-    // Grabs a specified config, then loads all of the variables into the matching command.
-    // Check the imports, toBooleanObject is imported as static to make things a bit easier to maintain.
-    private static String loadConfig(String callSource)
+    // Grab a specified config, create/read its config file, then load all of the variables into the matching command
+    public static String loadConfig(String callSource)
     {
-        CommentedConfigurationNode commandConfig;
-
         try
         {
             switch (callSource) // TODO: Added a new command? Update the switch list! Default should NEVER be called!
             {
+                // Special.
+                case "PixelUpgrade":
+                {
+                    tryCreateConfig("PixelUpgrade", primaryConfigPath);
+                    CommentedConfigurationNode commandConfig = PixelUpgrade.primaryConfigLoader.load();
+
+                    PixelUpgrade.configVersion =
+                            interpretInteger(commandConfig.getNode("configVersion").getString());
+                    PixelUpgrade.debugLevel =
+                            interpretInteger(commandConfig.getNode("debugVerbosityMode").getString());
+                    PixelUpgrade.useBritishSpelling =
+                            toBooleanObject(commandConfig.getNode("useBritishSpelling").getString());
+                    PixelUpgrade.shortenedHP =
+                            commandConfig.getNode("shortenedHealth").getString();
+                    PixelUpgrade.shortenedAttack =
+                            commandConfig.getNode("shortenedAttack").getString();
+                    PixelUpgrade.shortenedDefense =
+                            commandConfig.getNode("shortenedDefense").getString();
+                    PixelUpgrade.shortenedSpecialAttack =
+                            commandConfig.getNode("shortenedSpecialAttack").getString();
+                    PixelUpgrade.shortenedSpecialDefense =
+                            commandConfig.getNode("shortenedSpecialDefense").getString();
+                    PixelUpgrade.shortenedSpeed =
+                            commandConfig.getNode("shortenedSpeed").getString();
+
+                    return null;
+                }
+
+                // Commands.
                 case "CheckEgg":
                 {
-                    commandConfig = PixelUpgrade.checkEggLoader.load();
+                    tryCreateConfig("CheckEgg", checkEggPath);
+                    CommentedConfigurationNode commandConfig = PixelUpgrade.checkEggLoader.load();
 
                     CheckEgg.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -323,7 +433,8 @@ public class ConfigOperations
                 }
                 case "CheckStats":
                 {
-                    commandConfig = PixelUpgrade.checkStatsLoader.load();
+                    tryCreateConfig("CheckStats", checkStatsPath);
+                    CommentedConfigurationNode commandConfig = PixelUpgrade.checkStatsLoader.load();
 
                     CheckStats.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -346,7 +457,8 @@ public class ConfigOperations
                 }
                 case "CheckTypes":
                 {
-                    commandConfig = PixelUpgrade.checkTypesLoader.load();
+                    tryCreateConfig("CheckTypes", checkTypesPath);
+                    CommentedConfigurationNode commandConfig = PixelUpgrade.checkTypesLoader.load();
 
                     CheckTypes.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -361,7 +473,8 @@ public class ConfigOperations
                 }
                 case "DittoFusion":
                 {
-                    commandConfig = PixelUpgrade.dittoFusionLoader.load();
+                    tryCreateConfig("DittoFusion", dittoFusionPath);
+                    CommentedConfigurationNode commandConfig = PixelUpgrade.dittoFusionLoader.load();
 
                     DittoFusion.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -396,7 +509,8 @@ public class ConfigOperations
                 }
                 case "FixEVs":
                 {
-                    commandConfig = PixelUpgrade.fixEVsLoader.load();
+                    tryCreateConfig("FixEVs", fixEVsPath);
+                    CommentedConfigurationNode commandConfig = PixelUpgrade.fixEVsLoader.load();
 
                     FixEVs.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -407,7 +521,8 @@ public class ConfigOperations
                 }
                 case "FixLevel":
                 {
-                    commandConfig = PixelUpgrade.fixLevelLoader.load();
+                    tryCreateConfig("FixLevel", fixLevelPath);
+                    CommentedConfigurationNode commandConfig = PixelUpgrade.fixLevelLoader.load();
 
                     FixLevel.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -418,7 +533,8 @@ public class ConfigOperations
                 }
                 case "ForceHatch":
                 {
-                    commandConfig = PixelUpgrade.forceHatchLoader.load();
+                    tryCreateConfig("ForceHatch", forceHatchPath);
+                    CommentedConfigurationNode commandConfig = PixelUpgrade.forceHatchLoader.load();
 
                     ForceHatch.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -427,7 +543,8 @@ public class ConfigOperations
                 }
                 case "ForceStats":
                 {
-                    commandConfig = PixelUpgrade.forceStatsLoader.load();
+                    tryCreateConfig("ForceStats", forceStatsPath);
+                    CommentedConfigurationNode commandConfig = PixelUpgrade.forceStatsLoader.load();
 
                     ForceStats.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -436,7 +553,8 @@ public class ConfigOperations
                 }
                 case "PixelUpgradeInfo":
                 {
-                    commandConfig = PixelUpgrade.puInfoLoader.load();
+                    tryCreateConfig("PixelUpgradeInfo", puInfoPath);
+                    CommentedConfigurationNode commandConfig = PixelUpgrade.puInfoLoader.load();
 
                     PixelUpgradeInfo.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -445,34 +563,30 @@ public class ConfigOperations
 
                     return PixelUpgradeInfo.commandAlias;
                 }
-                case "PixelUpgrade":
+                case "PokeCure":
                 {
-                    commandConfig = PixelUpgrade.primaryConfigLoader.load();
+                    tryCreateConfig("PokeCure", pokeCurePath);
+                    CommentedConfigurationNode commandConfig = PixelUpgrade.pokeCureLoader.load();
 
-                    PixelUpgrade.configVersion =
-                            interpretInteger(commandConfig.getNode("configVersion").getString());
-                    PixelUpgrade.debugLevel =
-                            interpretInteger(commandConfig.getNode("debugVerbosityMode").getString());
-                    PixelUpgrade.useBritishSpelling =
-                            toBooleanObject(commandConfig.getNode("useBritishSpelling").getString());
-                    PixelUpgrade.shortenedHP =
-                            commandConfig.getNode("shortenedHealth").getString();
-                    PixelUpgrade.shortenedAttack =
-                            commandConfig.getNode("shortenedAttack").getString();
-                    PixelUpgrade.shortenedDefense =
-                            commandConfig.getNode("shortenedDefense").getString();
-                    PixelUpgrade.shortenedSpecialAttack =
-                            commandConfig.getNode("shortenedSpecialAttack").getString();
-                    PixelUpgrade.shortenedSpecialDefense =
-                            commandConfig.getNode("shortenedSpecialDefense").getString();
-                    PixelUpgrade.shortenedSpeed =
-                            commandConfig.getNode("shortenedSpeed").getString();
+                    PokeCure.commandAlias =
+                            commandConfig.getNode("commandAlias").getString();
+                    PokeCure.cooldownInSeconds =
+                            interpretInteger(commandConfig.getNode("cooldownInSeconds").getString());
+                    PokeCure.altCooldownInSeconds =
+                            interpretInteger(commandConfig.getNode("altCooldownInSeconds").getString());
+                    PokeCure.healParty  =
+                            toBooleanObject(commandConfig.getNode("healParty").getString());
+                    PokeCure.cureAilments =
+                            toBooleanObject(commandConfig.getNode("cureAilments").getString());
+                    PokeCure.commandCost =
+                            interpretInteger(commandConfig.getNode("commandCost").getString());
 
-                    return null;
+                    return PokeCure.commandAlias;
                 }
                 case "ResetCount":
                 {
-                    commandConfig = PixelUpgrade.resetCountLoader.load();
+                    tryCreateConfig("ResetCount", resetCountPath);
+                    CommentedConfigurationNode commandConfig = PixelUpgrade.resetCountLoader.load();
 
                     ResetCount.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -481,7 +595,8 @@ public class ConfigOperations
                 }
                 case "ResetEVs":
                 {
-                    commandConfig = PixelUpgrade.resetEVsLoader.load();
+                    tryCreateConfig("ResetEVs", resetEVsPath);
+                    CommentedConfigurationNode commandConfig = PixelUpgrade.resetEVsLoader.load();
 
                     ResetEVs.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -492,12 +607,17 @@ public class ConfigOperations
                 }
                 case "ShowStats":
                 {
-                    commandConfig = PixelUpgrade.showStatsLoader.load();
+                    tryCreateConfig("ShowStats", showStatsPath);
+                    CommentedConfigurationNode commandConfig = PixelUpgrade.showStatsLoader.load();
 
                     ShowStats.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
                     ShowStats.cooldownInSeconds =
                             interpretInteger(commandConfig.getNode("cooldownInSeconds").getString());
+                    ShowStats.altCooldownInSeconds =
+                            interpretInteger(commandConfig.getNode("altCooldownInSeconds").getString());
+                    ShowStats.compactMode =
+                            toBooleanObject(commandConfig.getNode("compactMode").getString());
                     ShowStats.showCounts =
                             toBooleanObject(commandConfig.getNode("showCounts").getString());
                     ShowStats.showNicknames =
@@ -506,8 +626,6 @@ public class ConfigOperations
                             toBooleanObject(commandConfig.getNode("clampBadNicknames").getString());
                     ShowStats.notifyBadNicknames =
                             toBooleanObject(commandConfig.getNode("notifyBadNicknames").getString());
-                    ShowStats.showExtraInfo =
-                            toBooleanObject(commandConfig.getNode("showExtraInfo").getString());
                     ShowStats.commandCost =
                             interpretInteger(commandConfig.getNode("commandCost").getString());
 
@@ -515,7 +633,8 @@ public class ConfigOperations
                 }
                 case "SpawnDex":
                 {
-                    commandConfig = PixelUpgrade.spawnDexLoader.load();
+                    tryCreateConfig("SpawnDex", spawnDexPath);
+                    CommentedConfigurationNode commandConfig = PixelUpgrade.spawnDexLoader.load();
 
                     SpawnDex.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -524,7 +643,8 @@ public class ConfigOperations
                 }
                 case "SwitchGender":
                 {
-                    commandConfig = PixelUpgrade.switchGenderLoader.load();
+                    tryCreateConfig("SwitchGender", switchGenderPath);
+                    CommentedConfigurationNode commandConfig = PixelUpgrade.switchGenderLoader.load();
 
                     SwitchGender.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -535,7 +655,8 @@ public class ConfigOperations
                 }
                 case "UpgradeIVs":
                 {
-                    commandConfig = PixelUpgrade.upgradeIVsLoader.load();
+                    tryCreateConfig("UpgradeIVs", upgradeIVsPath);
+                    CommentedConfigurationNode commandConfig = PixelUpgrade.upgradeIVsLoader.load();
 
                     UpgradeIVs.commandAlias =
                             commandConfig.getNode("commandAlias").getString();

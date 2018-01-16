@@ -1,5 +1,5 @@
 package rs.expand.pixelupgrade.commands;
 
-public class PixelHeal
+public class PokeCure
 {
 }

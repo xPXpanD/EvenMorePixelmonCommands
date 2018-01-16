@@ -1,15 +1,17 @@
 3.1.0 for 6.0.1
 Released ???
 
+   * Added /spawndex, which spawns Pokémon from their Pokédex number. Mostly useful for testing.
    * Fixed missing spaces in front of the pipes when showing EVs in /checkstats.
    * Made the /checkstats messages referring to /checkegg a bit more... professional.
-   * Fixed a bunch of debug logger typos
-   * Fixed a few wrong mentions of the debug logger.
+   * Fixed a bunch of debug logger typos and wrong mentions.
    * Redid the internal config loader. Config errors now tell you more, and the mod is much smaller.
-   * Edited several configs to make more sense, and removed per-config versions. Old configs still work.
+   * Changing command aliases no longer requires a reboot.
+   * Removed per-config settings, as they were useless. Your old configs will still work.
+   * Reworded several helper messages on configs to make more sense.
    * Fixed /pixelupgrade (the command list) throwing an error when used from console.
    * Added all babies and baby-based evolutions to /upgradeivs, and edited messages to fit.
-   * Added Poipole (ID 803) and up to /checktypes and the new /spawnid.
+   * Added Poipole (ID 803) and up to /checktypes and the new /spawndex.
 
 3.0.0 for 6.0.0
 Released December 28, 2017.
