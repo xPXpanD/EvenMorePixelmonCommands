@@ -25,6 +25,7 @@ import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.channel.MessageChannel;
 
 // Local imports.
@@ -32,12 +33,15 @@ import rs.expand.pixelupgrade.utilities.CommonMethods;
 import rs.expand.pixelupgrade.utilities.GetPokemonInfo;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
+// Note: printUnformattedMessage is a static import for a function from CommonMethods, for convenience.
 public class ShowStats implements CommandExecutor
 {
     // Initialize some variables. We'll load stuff into these when we call the config loader.
     // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
     public static Integer cooldownInSeconds;
+    public static Integer altCooldownInSeconds;
+    public static Boolean compactMode;
     public static Boolean showCounts;
     public static Boolean showNicknames;
     public static Boolean clampBadNicknames;
@@ -46,7 +50,7 @@ public class ShowStats implements CommandExecutor
     public static Integer commandCost;
 
     // Set up some more variables for internal use.
-    private boolean gotExternalConfigError = false;
+    private boolean gotExternalConfigError = false, outdatedCompactMode = false, outdatedAltCooldownInSeconds = false;
     private HashMap<UUID, Long> cooldownMap = new HashMap<>();
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
@@ -79,6 +83,8 @@ public class ShowStats implements CommandExecutor
 
             // Also get some stuff from PixelUpgrade.conf.
             ArrayList<String> mainConfigErrorArray = new ArrayList<>();
+            if (configVersion == null)
+                mainConfigErrorArray.add("configVersion");
             if (shortenedHP == null)
                 mainConfigErrorArray.add("shortenedHP");
             if (shortenedAttack == null)
@@ -97,6 +103,17 @@ public class ShowStats implements CommandExecutor
                 CommonMethods.printNodeError("ShowStats", nativeErrorArray, 1);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
+            else if (compactMode == null && configVersion >= 310 || altCooldownInSeconds == null && configVersion >= 310)
+            { // These are new 3.1 features. Run a separate check, so we can fail gracefully if the config's outdated.
+                ArrayList<String> newOptionErrorArray = new ArrayList<>();
+                if (compactMode == null)
+                    newOptionErrorArray.add("compactMode");
+                if (altCooldownInSeconds == null)
+                    newOptionErrorArray.add("altCooldownInSeconds");
+
+                CommonMethods.printNodeError("ShowStats", newOptionErrorArray, 1);
+                src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
+            }
             else if (!mainConfigErrorArray.isEmpty())
             {
                 CommonMethods.printNodeError("PixelUpgrade", mainConfigErrorArray, 0);
@@ -104,10 +121,24 @@ public class ShowStats implements CommandExecutor
             }
             else
             {
-                printToLog(1, "Called by player §6" + src.getName() + "§e. Starting!");
+                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
                 boolean canContinue = true;
 
-                if (showExtraInfo)
+                if (compactMode == null || altCooldownInSeconds == null)
+                {
+                    if (compactMode == null)
+                        outdatedCompactMode = true;
+                    if (altCooldownInSeconds == null)
+                        outdatedAltCooldownInSeconds = true;
+
+                    printToLog(0, "Your §4/showstats§c config is outdated.");
+                    printToLog(0, "Running in safe mode. Stuff will work the way it did in 3.0.");
+                    printToLog(0, "For a how-to-fix, check the earlier lines of §4latest.log§c.");
+                }
+
+                printToLog(0, "outdatedCompactMode" + outdatedCompactMode + " | compactMode: " + compactMode);
+
+                if (outdatedCompactMode && showCounts || !outdatedCompactMode && !compactMode && showCounts)
                 {
                     ArrayList<String> upgradeErrorArray = new ArrayList<>(), fusionErrorArray = new ArrayList<>();
 
@@ -141,8 +172,6 @@ public class ShowStats implements CommandExecutor
                     }
                 }
 
-                printToLog(1, "Called by player §6" + src.getName() + "§e. Starting!");
-
                 boolean commandConfirmed = false;
                 int slot = 0;
 
@@ -150,7 +179,8 @@ public class ShowStats implements CommandExecutor
                 {
                     printToLog(1, "No arguments provided. Exit.");
 
-                    checkAndAddHeader(commandCost, src);
+                    if (commandCost > 0)
+                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
                     printCorrectHelper(commandCost, src);
                     checkAndAddFooter(commandCost, src);
@@ -170,7 +200,8 @@ public class ShowStats implements CommandExecutor
                     {
                         printToLog(1, "Invalid slot provided. Exit.");
 
-                        checkAndAddHeader(commandCost, src);
+                        if (commandCost > 0)
+                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
                         printCorrectHelper(commandCost, src);
                         checkAndAddFooter(commandCost, src);
@@ -209,15 +240,29 @@ public class ShowStats implements CommandExecutor
                         }
                         else
                         {
-                            Player player = (Player) src;
-                            UUID playerUUID = player.getUniqueId(); // why is the "d" in "Id" lowercase :(
+                            UUID playerUUID = ((Player) src).getUniqueId(); // why is the "d" in "Id" lowercase :(
                             long currentTime = System.currentTimeMillis();
                             long cooldownInMillis = cooldownInSeconds * 1000;
+                            boolean hasBypassPermission = false;
 
-                            if (!src.hasPermission("pixelupgrade.command.bypass.showstats") && cooldownMap.containsKey(playerUUID))
+                            // Legacy perm support.
+                            if (src.hasPermission("pixelupgrade.command.showstats.bypasscooldown") || src.hasPermission("pixelupgrade.command.bypass.showstats"))
+                                hasBypassPermission = true;
+
+                            if (!hasBypassPermission && cooldownMap.containsKey(playerUUID))
                             {
-                                long timeDifference = currentTime - cooldownMap.get(playerUUID);
-                                long timeRemaining = cooldownInSeconds - timeDifference / 1000; // Stored in milliseconds, so /1000.
+                                if (src.hasPermission("pixelupgrade.command.bypass.showstats"))
+                                {
+                                    printToLog(2, "Legacy permission \"§2pixelupgrade.command.bypass.showstats§a\" found.");
+                                    printToLog(2, "This will not cause issues, but might be good to replace.");
+                                }
+
+                                // Time is stored in milliseconds, so /1000.
+                                long timeDifference = currentTime - cooldownMap.get(playerUUID), timeRemaining;
+                                if (!outdatedAltCooldownInSeconds && src.hasPermission("pixelupgrade.command.showstats.altcooldown"))
+                                    timeRemaining = altCooldownInSeconds - timeDifference / 1000;
+                                else
+                                    timeRemaining = cooldownInSeconds - timeDifference / 1000;
 
                                 if (cooldownMap.get(playerUUID) > currentTime - cooldownInMillis)
                                 {
@@ -259,11 +304,12 @@ public class ShowStats implements CommandExecutor
                                                 printToLog(1, "Showing off slot §6" + slot +
                                                         "§e, and taking §6" + costToConfirm + "§e coins.");
                                                 cooldownMap.put(playerUUID, currentTime);
-                                                checkAndShowStats(nbt, player);
+                                                checkAndShowStats(nbt, (Player) src);
                                             }
                                             else
                                             {
-                                                BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
+                                                BigDecimal balanceNeeded = uniqueAccount.getBalance(
+                                                        economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
                                                 printToLog(1, "Not enough coins! Cost: §6" +
                                                         costToConfirm + "§e, lacking: §6" + balanceNeeded);
                                                 src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
@@ -288,7 +334,7 @@ public class ShowStats implements CommandExecutor
                                 {
                                     printToLog(1, "Showing off slot §6" + slot + "§e. Config price is §60§e, taking nothing.");
                                     cooldownMap.put(playerUUID, currentTime);
-                                    checkAndShowStats(nbt, player);
+                                    checkAndShowStats(nbt, (Player) src);
                                 }
                             }
                         }
@@ -300,14 +346,6 @@ public class ShowStats implements CommandExecutor
             printToLog(0,"This command cannot run from the console or command blocks.");
 
         return CommandResult.success();
-    }
-
-    private void checkAndAddHeader(int cost, CommandSource src)
-    {
-        if (cost > 0)
-        {
-            src.sendMessage(Text.of("§5-----------------------------------------------------"));
-        }
     }
 
     private void checkAndAddFooter(int cost, CommandSource src)
@@ -332,7 +370,6 @@ public class ShowStats implements CommandExecutor
     private void checkAndShowStats(NBTTagCompound nbt, Player player)
     {
         // Set up IVs and matching math.
-        String ivs1, ivs2, ivs3, ivs4, ivs5, ivs6;
         int HPIV = nbt.getInteger(NbtKeys.IV_HP);
         int attackIV = nbt.getInteger(NbtKeys.IV_ATTACK);
         int defenseIV = nbt.getInteger(NbtKeys.IV_DEFENCE);
@@ -354,75 +391,193 @@ public class ShowStats implements CommandExecutor
         String growthName = GetPokemonInfo.getGrowthName(nbt.getInteger(NbtKeys.GROWTH));
         String genderCharacter = GetPokemonInfo.getGenderCharacter(nbt.getInteger(NbtKeys.GENDER));
 
-        // Format the IVs for use later, so we can print them.
-        if (HPIV < 31)
-            ivs1 = String.valueOf(HPIV + " §2" + shortenedHP + " §f|§a ");
-        else
-            ivs1 = String.valueOf("§l" + HPIV + " §2" + shortenedHP + " §r§f|§a ");
-
-        if (attackIV < 31)
-            ivs2 = String.valueOf(attackIV + " §2" + shortenedAttack + " §f|§a ");
-        else
-            ivs2 = String.valueOf("§l" + attackIV + " §2" + shortenedAttack + " §r§f|§a ");
-
-        if (defenseIV < 31)
-            ivs3 = String.valueOf(defenseIV + " §2" + shortenedDefense + " §f|§a ");
-        else
-            ivs3 = String.valueOf("§l" + defenseIV + " §2" + shortenedDefense + " §r§f|§a ");
-
-        if (spAttIV < 31)
-            ivs4 = String.valueOf(spAttIV + " §2" + shortenedSpecialAttack + " §f|§a ");
-        else
-            ivs4 = String.valueOf("§l" + spAttIV + " §2" + shortenedSpecialAttack + " §r§f|§a ");
-
-        if (spDefIV < 31)
-            ivs5 = String.valueOf(spDefIV + " §2" + shortenedSpecialDefense + " §f|§a ");
-        else
-            ivs5 = String.valueOf("§l" + spDefIV + " §2" + shortenedSpecialDefense + " §r§f|§a ");
-
-        if (speedIV < 31)
-            ivs6 = String.valueOf(speedIV + " §2" + shortenedSpeed + "");
-        else
-            ivs6 = String.valueOf("§l" + speedIV + " §2" + shortenedSpeed + "");
-
-        // Format the last few bits and print!
-        MessageChannel.TO_PLAYERS.send(Text.of("§7-----------------------------------------------------"));
-        String startString = "§6" + player.getName() + "§e is showing off their §6" + nbt.getString("Name");
+        // Some of this logic could be in a more limited scope, but it's more convenient to do it now.
+        String startString = "§6" + player.getName() + "§e is showing off their ";
+        String name = "§6" + nbt.getString("Name");
         String nickname = nbt.getString("Nickname");
-        if (nickname.length() > 11)
-        {
-            if (clampBadNicknames)
-                nickname = nickname.substring(0, 11);
+        if (nickname.length() > 11 && notifyBadNicknames)
+            nicknameTooLong = true;
 
-            if (notifyBadNicknames)
-                nicknameTooLong = true;
+        if (!outdatedCompactMode && compactMode)
+        {
+            // Grab a gender string from GetPokemonInfo. Returns a blank ("") string if the Pokémon is ungendered.
+            String gender = GetPokemonInfo.getGender(nbt.getInteger(NbtKeys.GENDER));
+
+            if (nbt.getInteger(NbtKeys.IS_SHINY) == 1)
+                MessageChannel.TO_PLAYERS.send(Text.of("§7--- " + startString + gender + "§lshiny§r §e" + name + "§7 ---"));
+            else
+                MessageChannel.TO_PLAYERS.send(Text.of(" §7---" + startString + gender + name + "§7 ---"));
+
+            // Format some IV strings for use later, so we can print them.
+            String ivHelper;
+            if (totalIVs.compareTo(new BigDecimal(186)) > 0) // totalIVs is greater than 186
+                ivHelper = "§aThis Pokémon has §2" + totalIVs + "§a out of §2186§a IVs, hover over for more info.";
+            else
+                ivHelper = "§aThis Pokémon has §2" + totalIVs + "§a IVs, hover over for more info.";
+
+            String HPString = "§2Health IVs§f: §a";
+            String attackString = "§2Attack IVs§f: §a";
+            String defenseString = "§2Defense IVs§f: §a";
+            String spAttString = "§2Special Attack IVs§f: §a";
+            String spDefString = "§2Special Defense IVs§f: §a";
+            String speedString = "§2Speed IVs§f: §a";
+
+            if (HPIV > 30)
+                HPString = HPString + String.valueOf("§l");
+            if (attackIV > 30)
+                attackString = attackString + String.valueOf("§l");
+            if (defenseIV > 30)
+                defenseString = defenseString + String.valueOf("§l");
+            if (spAttIV > 30)
+                spAttString = spAttString + String.valueOf("§l");
+            if (spDefIV > 30)
+                spDefString = spDefString + String.valueOf("§l");
+            if (speedIV > 30)
+                speedString = speedString + String.valueOf("§l");
+
+            ArrayList<String> hovers = new ArrayList<>();
+            hovers.add(HPString + HPIV + "\n" + attackString + attackIV + "\n" + defenseString + defenseIV +
+                    "\n" + spAttString + spAttIV + "\n" + spDefString + spDefIV + "\n" + speedString + speedIV);
+
+            Text ivBuilder = Text.builder(ivHelper)
+                    .onHover(TextActions.showText(Text.of(hovers.get(0))))
+                    .build();
+
+            MessageChannel.TO_PLAYERS.send(ivBuilder);
         }
-        String nicknameString = "§e, \"§6" + nickname + "§e\"!";
-
-        if (!nickname.equals("") && showNicknames && nbt.getInteger(NbtKeys.IS_SHINY) != 1)
-            MessageChannel.TO_PLAYERS.send(Text.of(startString + nicknameString + "§f (§e" +
-                    genderCharacter + "§r)"));
-        else if (!nickname.equals("") && showNicknames && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
-            MessageChannel.TO_PLAYERS.send(Text.of(startString + nicknameString + "§f (§e§lshiny§r §e" +
-                    genderCharacter + "§r)"));
-        else if (nickname.equals("") && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
-            MessageChannel.TO_PLAYERS.send(Text.of(startString + "§f (§e§lshiny§r §e" +
-                    genderCharacter + "§r)"));
         else
-            MessageChannel.TO_PLAYERS.send(Text.of(startString + "§f (§e" +
-                    genderCharacter + "§r)"));
-
-        MessageChannel.TO_PLAYERS.send(Text.of(""));
-        MessageChannel.TO_PLAYERS.send(Text.of("§bIVs§f: §a" + ivs1 + ivs2 + ivs3 + ivs4 + ivs5 + ivs6));
-
-        // Show extra info, which we mostly grabbed from GetPokemonInfo, if enabled.
-        if (showExtraInfo)
         {
-            String extraInfo1 = String.valueOf("§bTotal§f: §a" + totalIVs + "§f (§a" + percentIVs +
-                    "%§f) | §bSize§f: " + growthName + "§f | ");
-            String extraInfo2 = String.valueOf("§bNature§f: " + natureName +
-                    "§f (§a" + plusVal + "§f/§c" + minusVal + "§f)");
-            MessageChannel.TO_PLAYERS.send(Text.of(extraInfo1 + extraInfo2));
+            // Format the last few bits and print!
+            MessageChannel.TO_PLAYERS.send(Text.of("§7-----------------------------------------------------"));
+
+            if (nicknameTooLong && clampBadNicknames)
+                nickname = nickname.substring(0, 11);
+            String nicknameString = "§e, \"§6" + nickname + "§e\"!";
+
+            if (!nickname.equals("") && showNicknames && nbt.getInteger(NbtKeys.IS_SHINY) != 1)
+                MessageChannel.TO_PLAYERS.send(Text.of(startString + name + nicknameString + "§f (§e" +
+                        genderCharacter + "§r)"));
+            else if (!nickname.equals("") && showNicknames && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
+                MessageChannel.TO_PLAYERS.send(Text.of(startString + name + nicknameString + "§f (§e§lshiny§r §e" +
+                        genderCharacter + "§r)"));
+            else if (nickname.equals("") && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
+                MessageChannel.TO_PLAYERS.send(Text.of(startString + name + "§f (§e§lshiny§r §e" +
+                        genderCharacter + "§r)"));
+            else
+                MessageChannel.TO_PLAYERS.send(Text.of(startString + name + "§f (§e" +
+                        genderCharacter + "§r)"));
+
+            // Format some IV strings for use later, so we can print them.
+            String ivs1 = String.valueOf(HPIV + " §2" + shortenedHP + " §f|§a ");
+            String ivs2 = String.valueOf(attackIV + " §2" + shortenedAttack + " §f|§a ");
+            String ivs3 = String.valueOf(defenseIV + " §2" + shortenedDefense + " §f|§a ");
+            String ivs4 = String.valueOf(spAttIV + " §2" + shortenedSpecialAttack + " §f|§a ");
+            String ivs5 = String.valueOf(spDefIV + " §2" + shortenedSpecialDefense + " §f|§a ");
+            String ivs6 = String.valueOf(speedIV + " §2" + shortenedSpeed + "");
+
+            if (HPIV > 30)
+                ivs1 = String.valueOf("§l") + ivs1;
+            if (attackIV > 30)
+                ivs2 = String.valueOf("§l") + ivs2;
+            if (defenseIV > 30)
+                ivs3 = String.valueOf("§l") + ivs3;
+            if (spAttIV > 30)
+                ivs4 = String.valueOf("§l") + ivs4;
+            if (spDefIV > 30)
+                ivs5 = String.valueOf("§l") + ivs5;
+            if (speedIV > 30)
+                ivs6 = String.valueOf("§l") + ivs6;
+
+            MessageChannel.TO_PLAYERS.send(Text.of(""));
+            MessageChannel.TO_PLAYERS.send(Text.of("§bIVs§f: §a" + ivs1 + ivs2 + ivs3 + ivs4 + ivs5 + ivs6));
+
+            // Show extra info, which we mostly grabbed from GetPokemonInfo, if enabled.
+            if (showExtraInfo)
+            {
+                String extraInfo1 = String.valueOf("§bTotal§f: §a" + totalIVs + "§f (§a" + percentIVs +
+                        "%§f) | §bSize§f: " + growthName + "§f | ");
+                String extraInfo2 = String.valueOf("§bNature§f: " + natureName +
+                        "§f (§a" + plusVal + "§f/§c" + minusVal + "§f)");
+                MessageChannel.TO_PLAYERS.send(Text.of(extraInfo1 + extraInfo2));
+            }
+
+            // Check and show whether the Pokémon can be upgraded/fused further, if enabled in config.
+            if (showCounts && !gotExternalConfigError)
+            {
+                EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
+                boolean isShiny = nbt.getInteger(NbtKeys.IS_SHINY) == 1;
+                boolean isDitto = nbt.getString("Name").equals("Ditto");
+                MessageChannel.TO_PLAYERS.send(Text.of(""));
+
+                if (isDitto)
+                {
+                    int fuseCount = pokemon.getEntityData().getInteger("fuseCount"), fusionCap;
+
+                    if (isShiny)
+                    {
+                        startString = "§eThis §6shiny Ditto §e"; // Adjust for shinyness!
+                        fusionCap = DittoFusion.shinyCap; // Shiny cap.
+                    }
+                    else
+                    {
+                        startString = "§eThis §6Ditto §e";
+                        fusionCap = DittoFusion.regularCap; // Regular cap.
+                    }
+
+                    if (fuseCount != 0 && fuseCount < fusionCap)
+                        MessageChannel.TO_PLAYERS.send(Text.of(startString + "has been fused §6" +
+                                fuseCount + "§e/§6" + fusionCap + " §etimes."));
+                    else if (fuseCount == 0 && fuseCount < fusionCap)
+                        MessageChannel.TO_PLAYERS.send(Text.of(startString + "can be fused §6" +
+                                fusionCap + "§e more times."));
+                    else
+                        MessageChannel.TO_PLAYERS.send(Text.of(startString + "cannot be fused any further!"));
+                }
+                else
+                {
+                    String pName = nbt.getString("Name");
+                    int upgradeCount = pokemon.getEntityData().getInteger("upgradeCount"), upgradeCap;
+                    boolean isLegendary = EnumPokemon.legendaries.contains(nbt.getString("Name"));
+                    boolean isBaby = false;
+                    if (pName.equals("Riolu") || pName.equals("Mime Jr.") || pName.equals("Happiny"))
+                        isBaby = true;
+
+                    if (isShiny && isLegendary)
+                    {
+                        startString = "§eThis §6shiny legendary §e";
+                        upgradeCap = UpgradeIVs.legendaryAndShinyCap; // Legendary + shiny cap.
+                    }
+                    else if (isShiny)
+                    {
+                        startString = "§eThis §6shiny Pokémon §e";
+                        upgradeCap = UpgradeIVs.shinyCap; // Shiny cap.
+                    }
+                    else if (isLegendary)
+                    {
+                        startString = "§eThis §6legendary Pokémon §e";
+                        upgradeCap = UpgradeIVs.legendaryCap; // Legendary cap.
+                    }
+                    else if (isBaby)
+                    {
+                        startString = "§eThis §6baby Pokémon §e";
+                        upgradeCap = UpgradeIVs.babyCap; // Baby cap.
+                    }
+                    else
+                    {
+                        startString = "§eThis §6Pokémon §e";
+                        upgradeCap = UpgradeIVs.regularCap; // Regular cap.
+                    }
+
+                    if (upgradeCount != 0 && upgradeCount < upgradeCap)
+                        MessageChannel.TO_PLAYERS.send(Text.of(startString + "has been upgraded §6" +
+                                upgradeCount + "§e/§6" + upgradeCap + " §etimes."));
+                    else if (upgradeCount == 0 && upgradeCount < upgradeCap)
+                        MessageChannel.TO_PLAYERS.send(Text.of(startString + "can be upgraded §6" +
+                                upgradeCap + "§e more times."));
+                    else
+                        MessageChannel.TO_PLAYERS.send(Text.of(startString + "has been fully upgraded!"));
+                }
+            }
         }
 
         // If our anti-cheat caught something, notify people with the correct permissions here.
@@ -439,84 +594,7 @@ public class ShowStats implements CommandExecutor
                     "§4(only those with the staff permission can see this warning)"));
         }
 
-        // Check and show whether the Pokémon can be upgraded/fused further, if enabled in config.
-        if (showCounts && !gotExternalConfigError)
-        {
-            EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
-            boolean isShiny = nbt.getInteger(NbtKeys.IS_SHINY) == 1;
-            boolean isDitto = nbt.getString("Name").equals("Ditto");
-            MessageChannel.TO_PLAYERS.send(Text.of(""));
-
-            if (isDitto)
-            {
-                int fuseCount = pokemon.getEntityData().getInteger("fuseCount"), fusionCap;
-
-                if (isShiny)
-                {
-                    startString = "§eThis §6shiny Ditto §e"; // Adjust for shinyness!
-                    fusionCap = DittoFusion.shinyCap; // Shiny cap.
-                }
-                else
-                {
-                    startString = "§eThis §6Ditto §e";
-                    fusionCap = DittoFusion.regularCap; // Regular cap.
-                }
-
-                if (fuseCount != 0 && fuseCount < fusionCap)
-                    MessageChannel.TO_PLAYERS.send(Text.of(startString + "has been fused §6" +
-                            fuseCount + "§e/§6" + fusionCap + " §etimes."));
-                else if (fuseCount == 0 && fuseCount < fusionCap)
-                    MessageChannel.TO_PLAYERS.send(Text.of(startString + "can be fused §6" +
-                            fusionCap + "§e more times."));
-                else
-                    MessageChannel.TO_PLAYERS.send(Text.of(startString + "cannot be fused any further!"));
-            }
-            else
-            {
-                String pName = nbt.getString("Name");
-                int upgradeCount = pokemon.getEntityData().getInteger("upgradeCount"), upgradeCap;
-                boolean isLegendary = EnumPokemon.legendaries.contains(nbt.getString("Name"));
-                boolean isBaby = false;
-                if (pName.equals("Riolu") || pName.equals("Mime Jr.") || pName.equals("Happiny"))
-                    isBaby = true;
-
-                if (isShiny && isLegendary)
-                {
-                    startString = "§eThis §6shiny legendary §e";
-                    upgradeCap = UpgradeIVs.legendaryAndShinyCap; // Legendary + shiny cap.
-                }
-                else if (isShiny)
-                {
-                    startString = "§eThis §6shiny Pokémon §e";
-                    upgradeCap = UpgradeIVs.shinyCap; // Shiny cap.
-                }
-                else if (isLegendary)
-                {
-                    startString = "§eThis §6legendary Pokémon §e";
-                    upgradeCap = UpgradeIVs.legendaryCap; // Legendary cap.
-                }
-                else if (isBaby)
-                {
-                    startString = "§eThis §6baby Pokémon §e";
-                    upgradeCap = UpgradeIVs.babyCap; // Baby cap.
-                }
-                else
-                {
-                    startString = "§eThis §6Pokémon §e";
-                    upgradeCap = UpgradeIVs.regularCap; // Regular cap.
-                }
-
-                if (upgradeCount != 0 && upgradeCount < upgradeCap)
-                    MessageChannel.TO_PLAYERS.send(Text.of(startString + "has been upgraded §6" +
-                            upgradeCount + "§e/§6" + upgradeCap + " §etimes."));
-                else if (upgradeCount == 0 && upgradeCount < upgradeCap)
-                    MessageChannel.TO_PLAYERS.send(Text.of(startString + "can be upgraded §6" +
-                            upgradeCap + "§e more times."));
-                else
-                    MessageChannel.TO_PLAYERS.send(Text.of(startString + "has been fully upgraded!"));
-            }
-        }
-
-        MessageChannel.TO_PLAYERS.send(Text.of("§7-----------------------------------------------------"));
+        if (!outdatedCompactMode && compactMode)
+            MessageChannel.TO_PLAYERS.send(Text.of("§7-----------------------------------------------------"));
     }
 }

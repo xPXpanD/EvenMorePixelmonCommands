@@ -19,6 +19,16 @@ public class GetPokemonInfo
         }
     }
 
+    public static String getGender(int genderNum)
+    {
+        switch (genderNum)
+        {
+            case 0: return "male ";
+            case 1: return "female ";
+            default: return "";
+        }
+    }
+
     public static String getGrowthName(int growthNum)
     {
         switch (growthNum)

@@ -22,9 +22,9 @@ import static rs.expand.pixelupgrade.utilities.CommonMethods.printUnformattedMes
 public class ConfigOperations
 {
     // Make a little converter for safely handling possibly null Strings that have an integer value inside.
-    private static Integer interpretInteger(String input) // TODO: Check null.
+    private static Integer interpretInteger(String input)
     {
-        if (input.matches("^[0-9]\\d*$"))
+        if (input != null && input.matches("^[0-9]\\d*$"))
             return Integer.parseInt(input);
         else
             return null;
@@ -33,7 +33,7 @@ public class ConfigOperations
     // Do the same for doubles.
     private static Double interpretDouble(String input)
     {
-        if (input.matches("\\(?\\d+\\.\\d+\\)?"))
+        if (input != null && input.matches("\\(?\\d+\\.\\d+\\)?"))
             return Double.parseDouble(input);
         else
             return null;
@@ -102,9 +102,9 @@ public class ConfigOperations
                 Sponge.getCommandManager().register(puContainer, pixelupgradeinfo, "pixelupgrade", "pixelupgradeinfo");
 
             if (PokeCure.commandAlias != null && !PokeCure.commandAlias.equals("pokecure"))
-                Sponge.getCommandManager().register(puContainer, pokecure, "pokecure", PokeCure.commandAlias);
+                Sponge.getCommandManager().register(puContainer, pokecure, "pokecure", "pokécure", PokeCure.commandAlias);
             else
-                Sponge.getCommandManager().register(puContainer, pokecure, "pokecure");
+                Sponge.getCommandManager().register(puContainer, pokecure, "pokecure", "pokécure");
 
             Sponge.getCommandManager().register(puContainer, reloadconfigs, "pureload", "pixelupgradereload");
 
@@ -626,6 +626,8 @@ public class ConfigOperations
                             toBooleanObject(commandConfig.getNode("clampBadNicknames").getString());
                     ShowStats.notifyBadNicknames =
                             toBooleanObject(commandConfig.getNode("notifyBadNicknames").getString());
+                    ShowStats.showExtraInfo =
+                            toBooleanObject(commandConfig.getNode("showExtraInfo").getString());
                     ShowStats.commandCost =
                             interpretInteger(commandConfig.getNode("commandCost").getString());
 

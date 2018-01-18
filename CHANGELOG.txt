@@ -12,6 +12,7 @@ Released ???
    * Fixed /pixelupgrade (the command list) throwing an error when used from console.
    * Added all babies and baby-based evolutions to /upgradeivs, and edited messages to fit.
    * Added Poipole (ID 803) and up to /checktypes and the new /spawndex.
+   * Changed bypass perm ordering. Old perms still work, but new ones need to follow the new format.
 
 3.0.0 for 6.0.0
 Released December 28, 2017.

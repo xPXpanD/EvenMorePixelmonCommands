@@ -70,6 +70,7 @@ public class PixelUpgrade
     // Some basic setup.
     public static EconomyService economyService;
     public static boolean economyEnabled = false;
+    public static int currentInternalVersion = 310;
 
     // Load up a ton of variables for use by other commands. We'll fill these in during pre-init.
     public static Integer configVersion;
@@ -334,5 +335,23 @@ public class PixelUpgrade
 
         printUnformattedMessage("--> §aAll systems nominal.");
         printUnformattedMessage("===========================================================================");
+    }
+
+    @Listener
+    public void onServerStartedEvent(GameStartedServerEvent event)
+    {
+        if (PixelUpgrade.configVersion != null && currentInternalVersion > PixelUpgrade.configVersion)
+        {
+            printUnformattedMessage("===========================================================================");
+            printUnformattedMessage("§4/showstats §clikely has an outdated config due to changes in PU 3.1.");
+            printUnformattedMessage("");
+            printUnformattedMessage("§6Please follow these steps to fix this:");
+            printUnformattedMessage("§61. §eIf you modified §6ShowStats.conf§e, copy it somewhere safe.");
+            printUnformattedMessage("§62. §eOpen §6PixelUpgrade.conf §eand change §6configVersion§e to §6310§e.");
+            printUnformattedMessage("§63. §eUse §6/pureload all§e to create a new config and update the version.");
+            printUnformattedMessage("");
+            printUnformattedMessage("§cThe command will have reduced functionality until this is fixed.");
+            printUnformattedMessage("===========================================================================");
+        }
     }
 }
