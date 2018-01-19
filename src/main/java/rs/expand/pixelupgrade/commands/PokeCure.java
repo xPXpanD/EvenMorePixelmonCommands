@@ -207,7 +207,7 @@ public class PokeCure implements CommandExecutor
                                                             "§b, and taking §3" + costToConfirm + "§b coins.");
 
                                                 cooldownMap.put(playerUUID, currentTime);
-                                                checkAndShowStats();
+                                                doHeal();
                                             }
                                             else
                                             {
@@ -246,7 +246,7 @@ public class PokeCure implements CommandExecutor
                                         printToLog(1, "Healing slot §3" + slot + "§b. Config price is §30§b, taking nothing.");
 
                                     cooldownMap.put(playerUUID, currentTime);
-                                    checkAndShowStats();
+                                    doHeal();
                                 }
                             }
                         }
@@ -279,7 +279,7 @@ public class PokeCure implements CommandExecutor
             src.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <slot, 1-6>"));
     }
 
-    private void checkAndShowStats()
+    private void doHeal()
     {
 
 
