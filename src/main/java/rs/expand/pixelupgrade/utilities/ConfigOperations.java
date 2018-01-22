@@ -15,9 +15,9 @@ import org.spongepowered.api.plugin.PluginContainer;
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.commands.*;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
-import static rs.expand.pixelupgrade.utilities.CommonMethods.printUnformattedMessage;
+import static rs.expand.pixelupgrade.utilities.CommonMethods.printBasicMessage;
 
-// Note: printUnformattedMessage is a static import for a function from CommonMethods, for convenience.
+// Note: printBasicMessage is a static import for a function from CommonMethods, for convenience.
 // Also, PixelUpgrade class variables are loaded in the same way. Used in loadConfig and registerCommands.
 public class ConfigOperations
 {
@@ -45,7 +45,7 @@ public class ConfigOperations
         try
         {
             Files.createDirectory(Paths.get(PixelUpgrade.commandConfigPath));
-            printUnformattedMessage("--> §aPixelUpgrade folder not found, making a new one for command configs...");
+            printBasicMessage("--> §aPixelUpgrade folder not found, making a new one for command configs...");
         }
         catch (IOException ignored) {}
     }
@@ -80,6 +80,11 @@ public class ConfigOperations
                 Sponge.getCommandManager().register(puContainer, fixevs, "fixevs", "fixev", FixEVs.commandAlias);
             else
                 Sponge.getCommandManager().register(puContainer, fixevs, "fixevs", "fixev");
+
+            if (FixGender.commandAlias != null && !FixGender.commandAlias.equals("fixgender"))
+                Sponge.getCommandManager().register(puContainer, fixgender, "fixgender", FixGender.commandAlias);
+            else
+                Sponge.getCommandManager().register(puContainer, fixgender, "fixgender");
 
             if (FixLevel.commandAlias != null && !FixLevel.commandAlias.equals("fixlevel"))
                 Sponge.getCommandManager().register(puContainer, fixlevel, "fixlevel", "fixlevels", FixLevel.commandAlias);
@@ -142,8 +147,8 @@ public class ConfigOperations
         }
         else
         {
-            printUnformattedMessage("§cCommand re-initialization failed. Please report this, this is a bug.");
-            printUnformattedMessage("§cPixelUpgrade's commands have been disabled. A reboot or reload may work.");
+            printBasicMessage("§cCommand re-initialization failed. Please report this, this is a bug.");
+            printBasicMessage("§cPixelUpgrade's commands are likely dead. A reboot or reload may work.");
 
             return false;
         }
@@ -159,7 +164,7 @@ public class ConfigOperations
 
         // Format our commands and aliases and add them to the lists that we'll print in a bit.
         // TODO: If you add a command, update this list and increment the counters! (currently 17)
-        for (int i = 1; i <= 17; i++)
+        for (int i = 1; i <= 18; i++)
         {
             switch (i)
             {
@@ -197,71 +202,77 @@ public class ConfigOperations
                 }
                 case 6:
                 {
+                    commandAlias = FixGender.commandAlias;
+                    commandString = "/fixgender";
+                    break;
+                }
+                case 7:
+                {
                     commandAlias = FixLevel.commandAlias;
                     commandString = "/fixlevel";
                     break;
                 }
-                case 7:
+                case 8:
                 {
                     commandAlias = ForceHatch.commandAlias;
                     commandString = "/forcehatch";
                     break;
                 }
-                case 8:
+                case 9:
                 {
                     commandAlias = ForceStats.commandAlias;
                     commandString = "/forcestats";
                     break;
                 }
-                case 9:
+                case 10:
                 {
                     commandAlias = PixelUpgradeInfo.commandAlias;
                     commandString = "/pixelupgrade";
                     break;
                 }
-                case 10:
+                case 11:
                 {
                     commandAlias = PokeCure.commandAlias;
                     commandString = "/pokecure";
                     break;
                 }
-                case 11:
+                case 12:
                 {
                     commandAlias = "pureload"; // Will be omitted, as there's a check for aliases matching base commands.
                     commandString = "/pureload";
                     break;
                 }
-                case 12:
+                case 13:
                 {
                     commandAlias = ResetCount.commandAlias;
                     commandString = "/resetcount";
                     break;
                 }
-                case 13:
+                case 14:
                 {
                     commandAlias = ResetEVs.commandAlias;
                     commandString = "/resetevs";
                     break;
                 }
-                case 14:
+                case 15:
                 {
                     commandAlias = ShowStats.commandAlias;
                     commandString = "/showstats";
                     break;
                 }
-                case 15:
+                case 16:
                 {
                     commandAlias = SpawnDex.commandAlias;
                     commandString = "/spawndex";
                     break;
                 }
-                case 16:
+                case 17:
                 {
                     commandAlias = SwitchGender.commandAlias;
                     commandString = "/switchgender";
                     break;
                 }
-                case 17:
+                case 18:
                 {
                     commandAlias = UpgradeIVs.commandAlias;
                     commandString = "/upgradeivs";
@@ -283,8 +294,8 @@ public class ConfigOperations
                     formattedCommand.append("§a), ");
                 }
 
-                // If we're at the last command, shank the trailing comma for a clean end.
-                if (i == 17)
+                // If we're at the last command, shank the trailing comma and space for a clean end.
+                if (i == 18)
                     formattedCommand.setLength(formattedCommand.length() - 2);
 
                 // Add the formatted command to the list, and then clear the StringBuilder so we can re-use it.
@@ -294,7 +305,7 @@ public class ConfigOperations
         }
 
         // Print the formatted commands + aliases.
-        printUnformattedMessage("--> §aSuccessfully loaded a bunch of commands! See below.");
+        printBasicMessage("--> §aSuccessfully loaded a bunch of commands! See below.");
 
         int listSize = commandList.size();
         for (int q = 1; q < listSize + 1; q++)
@@ -302,10 +313,10 @@ public class ConfigOperations
             printableList.append(commandList.get(q - 1));
 
             if (q == listSize) // Are we on the last entry of the list? Exit.
-                printUnformattedMessage("    " + printableList);
+                printBasicMessage("    " + printableList);
             else if (q % 3 == 0) // Is the loop number a multiple of 3? If so, we have three commands stocked up. Print!
             {
-                printUnformattedMessage("    " + printableList);
+                printBasicMessage("    " + printableList);
                 printableList.setLength(0); // Wipe the list so we can re-use it for the next three commands.
             }
         }
@@ -320,15 +331,15 @@ public class ConfigOperations
             {
                 try
                 {
-                    printUnformattedMessage("§eNo primary configuration file found, creating...");
+                    printBasicMessage("§eNo primary configuration file found, creating...");
 
                     Files.copy(ConfigOperations.class.getResourceAsStream("/assets/PixelUpgradeMain.conf"),
                             Paths.get(PixelUpgrade.primaryPath, "PixelUpgrade.conf"));
                 }
                 catch (IOException F)
                 {
-                    printUnformattedMessage("§cPrimary config setup has failed! Please report this.");
-                    printUnformattedMessage("§cAdd any useful info you may have (operating system?). Stack trace:");
+                    printBasicMessage("§cPrimary config setup has failed! Please report this.");
+                    printBasicMessage("§cAdd any useful info you may have (operating system?). Stack trace:");
 
                     F.printStackTrace();
                 }
@@ -337,7 +348,7 @@ public class ConfigOperations
             {
                 try
                 {
-                    printUnformattedMessage("§eNo §6/" + callSource.toLowerCase() +
+                    printBasicMessage("§eNo §6/" + callSource.toLowerCase() +
                             "§e configuration file found, creating...");
 
                     Files.copy(ConfigOperations.class.getResourceAsStream("/assets/" + callSource + ".conf"),
@@ -345,16 +356,19 @@ public class ConfigOperations
                 }
                 catch (IOException F)
                 {
-                    printUnformattedMessage("§cConfig setup for command \"§4/" + callSource.toLowerCase()
+                    printBasicMessage("§cConfig setup for command \"§4/" + callSource.toLowerCase()
                             + "§c\" failed! Please report this.");
-                    printUnformattedMessage("§cAdd any useful info you may have (operating system?). Stack trace:");
+                    printBasicMessage("§cAdd any useful info you may have (operating system?). Stack trace:");
                     F.printStackTrace();
                 }
             }
         }
     }
 
-    // aaaaaaaaaaaaaaaAAAAAAAAAAAAAAAAAAAAAAAAAA
+    //                                             __     __     __     __     __     __     __     __
+    //            SO MUCH REPETITION              /__\   /__\   /__\   /__\   /__\   /__\   /__\   /__\
+    //                                           /(__)\ /(__)\ /(__)\ /(__)\ /(__)\ /(__)\ /(__)\ /(__)\
+    // aaaaaaaaaaaaaaaAAAAAAAAAAAAAAAAAAAAAAAAAA(__)(__|__)(__|__)(__|__)(__|__)(__|__)(__|__)(__|__)(__)
     public static void loadAllCommandConfigs()
     {
         loadConfig("CheckEgg");
@@ -362,6 +376,7 @@ public class ConfigOperations
         loadConfig("CheckTypes");
         loadConfig("DittoFusion");
         loadConfig("FixEVs");
+        loadConfig("FixGender");
         loadConfig("FixLevel");
         loadConfig("ForceHatch");
         loadConfig("ForceStats");
@@ -390,7 +405,7 @@ public class ConfigOperations
 
                     PixelUpgrade.configVersion =
                             interpretInteger(commandConfig.getNode("configVersion").getString());
-                    PixelUpgrade.debugLevel =
+                    PixelUpgrade.debugVerbosityMode =
                             interpretInteger(commandConfig.getNode("debugVerbosityMode").getString());
                     PixelUpgrade.useBritishSpelling =
                             toBooleanObject(commandConfig.getNode("useBritishSpelling").getString());
@@ -406,6 +421,19 @@ public class ConfigOperations
                             commandConfig.getNode("shortenedSpecialDefense").getString();
                     PixelUpgrade.shortenedSpeed =
                             commandConfig.getNode("shortenedSpeed").getString();
+
+                    if (debugVerbosityMode == null)
+                    {
+                        printBasicMessage("§cCould not read §4debugVerbosityMode§c. Other things may be broken, too.");
+                        printBasicMessage("§cCheck your config. We'll enable high verbosity (mode 2) for now.");
+                        debugVerbosityMode = 2;
+                    }
+                    else if (debugVerbosityMode < 0 || debugVerbosityMode > 2)
+                    {
+                        printBasicMessage("§cValue of §4debugVerbosityMode§c is out of bounds.");
+                        printBasicMessage("§cCheck your config. We'll enable high verbosity (mode 2) for now.");
+                        debugVerbosityMode = 2;
+                    }
 
                     return null;
                 }
@@ -518,6 +546,16 @@ public class ConfigOperations
                             interpretInteger(commandConfig.getNode("commandCost").getString());
 
                     return FixEVs.commandAlias;
+                }
+                case "FixGender":
+                {
+                    tryCreateConfig("FixGender", fixGenderPath);
+                    CommentedConfigurationNode commandConfig = PixelUpgrade.fixGenderLoader.load();
+
+                    FixGender.commandAlias =
+                            commandConfig.getNode("commandAlias").getString();
+
+                    return FixGender.commandAlias;
                 }
                 case "FixLevel":
                 {
@@ -695,16 +733,16 @@ public class ConfigOperations
                 }
                 default:
                 {
-                    printUnformattedMessage("§cConfig gathering failed; fell through the switch.");
-                    printUnformattedMessage("§cIf you're on an official release, this is a bug. Source: §4" + callSource);
+                    printBasicMessage("§cConfig gathering failed; fell through the switch.");
+                    printBasicMessage("§cIf you're on an official release, this is a bug. Source: §4" + callSource);
                     return null;
                 }
             }
         }
         catch (Exception F)
         {
-            printUnformattedMessage("§4" + callSource + "§c had an issue during config loading!");
-            printUnformattedMessage("§cCheck your configs for stray/missing characters. Stack trace:");
+            printBasicMessage("§4" + callSource + "§c had an issue during config loading!");
+            printBasicMessage("§cCheck your configs for stray/missing characters. Stack trace:");
             F.printStackTrace();
         }
 

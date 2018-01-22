@@ -27,28 +27,23 @@ import org.spongepowered.api.text.Text;
 import rs.expand.pixelupgrade.utilities.CommonMethods;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
+/*                                                                           *\
+    TODO: Turn /dittofusion into a generic /fuse that works on everything?
+    Would need a Ditto-only config setting. May be a nice feature for 4.0?
+\*                                                                           */
+
 public class DittoFusion implements CommandExecutor
 {
     // Initialize some variables. We'll load stuff into these when we call the config loader.
     // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
-    public static Integer stat0to5;
-    public static Integer stat6to10;
-    public static Integer stat11to15;
-    public static Integer stat16to20;
-    public static Integer stat21to25;
-    public static Integer stat26to30;
-    public static Integer stat31plus;
-    public static Integer regularCap;
-    public static Integer shinyCap;
+    public static Integer stat0to5, stat6to10, stat11to15, stat16to20, stat21to25, stat26to30, stat31plus, regularCap;
+    public static Integer shinyCap, pointMultiplierForCost, previouslyUpgradedMultiplier, addFlatFee;
     public static Boolean passOnShinyStatus;
-    public static Integer pointMultiplierForCost;
-    public static Integer previouslyUpgradedMultiplier;
-    public static Integer addFlatFee;
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.printFormattedMessage("DittoFusion", debugNum, inputString); }
+    { CommonMethods.printDebugMessage("DittoFusion", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -88,7 +83,7 @@ public class DittoFusion implements CommandExecutor
 
             if (!nativeErrorArray.isEmpty())
             {
-                CommonMethods.printNodeError("DittoFusion", nativeErrorArray, 1);
+                CommonMethods.printCommandNodeError("DittoFusion", nativeErrorArray);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else if (useBritishSpelling == null)
@@ -99,7 +94,7 @@ public class DittoFusion implements CommandExecutor
             }
             else
             {
-                printToLog(1, "Called by player §6" + src.getName() + "§e. Starting!");
+                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 Player player = (Player) src;
                 int slot1 = 0, slot2 = 0;
@@ -111,7 +106,7 @@ public class DittoFusion implements CommandExecutor
 
                     src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo slots were provided. Please provide two valid slots."));
-                    checkAndAddFooter(player);
+                    addHelperAndFooter(src);
 
                     canContinue = false;
                 }
@@ -130,7 +125,7 @@ public class DittoFusion implements CommandExecutor
 
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid value on target slot. Valid values are 1-6."));
-                        checkAndAddFooter(player);
+                        addHelperAndFooter(src);
 
                         canContinue = false;
                     }
@@ -142,7 +137,7 @@ public class DittoFusion implements CommandExecutor
 
                     src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo sacrifice provided. Please provide two valid slots."));
-                    checkAndAddFooter(player);
+                    addHelperAndFooter(src);
 
                     canContinue = false;
                 }
@@ -169,7 +164,7 @@ public class DittoFusion implements CommandExecutor
 
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid value on sacrifice slot. Valid values are 1-6."));
-                        checkAndAddFooter(player);
+                        addHelperAndFooter(src);
 
                         canContinue = false;
                     }
@@ -180,7 +175,7 @@ public class DittoFusion implements CommandExecutor
 
                 if (canContinue)
                 {
-                    printToLog(2, "No error encountered, input should be valid. Continuing!");
+                    printToLog(2, "No errors encountered, input should be valid. Continuing!");
                     Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
                     if (!storage.isPresent())
@@ -232,8 +227,9 @@ public class DittoFusion implements CommandExecutor
                                 }
                                 else
                                 {
-                                    EntityPixelmon targetPokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt1, (World) player.getWorld());
-                                    EntityPixelmon sacrificePokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt2, (World) player.getWorld());
+                                    World currentWorld = (World) player.getWorld();
+                                    EntityPixelmon targetPokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt1, currentWorld);
+                                    EntityPixelmon sacrificePokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt2, currentWorld);
                                     int targetFuseCount = targetPokemon.getEntityData().getInteger("fuseCount");
                                     int sacrificeFuseCount = sacrificePokemon.getEntityData().getInteger("fuseCount");
 
@@ -364,7 +360,7 @@ public class DittoFusion implements CommandExecutor
 
                                             if (transactionResult.getResult() == ResultType.SUCCESS)
                                             {
-                                                player.sendMessage(Text.of("§7-----------------------------------------------------"));
+                                                src.sendMessage(Text.of("§7-----------------------------------------------------"));
                                                 src.sendMessage(Text.of("§eThe §6Ditto §ein slot §6" + slot2 +
                                                     "§e was eaten, taking §6" + costToConfirm + "§e coins with it."));
                                                 src.sendMessage(Text.of(""));
@@ -432,29 +428,29 @@ public class DittoFusion implements CommandExecutor
                                                     storageCompleted.sendUpdatedList();
                                                 }
 
-                                                player.sendMessage(Text.of("§7-----------------------------------------------------"));
+                                                src.sendMessage(Text.of("§7-----------------------------------------------------"));
 
                                                 targetPokemon.getEntityData().setInteger("fuseCount", targetFuseCount + 1);
                                                 storageCompleted.changePokemonAndAssignID(slot2 - 1, null);
                                                 //storageCompleted.update(targetPokemon, EnumUpdateType.Status);
 
-                                                printToLog(1, "Transaction successful. Took: §6" + costToConfirm +
-                                                        "§e and a Ditto. Current cash: " + uniqueAccount.getBalance(economyService.getDefaultCurrency()));
+                                                printToLog(1, "Transaction successful. Took §3" + costToConfirm +
+                                                        "§b coins and a Ditto, remainder is §3" + uniqueAccount.getBalance(economyService.getDefaultCurrency()));
                                             }
                                             else
                                             {
                                                 BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                                printToLog(1, "Not enough coins! Cost: §6" + costToConfirm +
-                                                        "§e, lacking: §6" + balanceNeeded);
+                                                printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
+                                                        "§b, and we're lacking §3" + balanceNeeded);
 
                                                 src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
                                             }
                                         }
                                         else
                                         {
-                                            printToLog(1, "Got cost but no confirmation; end of the line. Exit.");
+                                            printToLog(1, "Got cost but no confirmation; end of the line.");
 
-                                            player.sendMessage(Text.of("§7-----------------------------------------------------"));
+                                            src.sendMessage(Text.of("§7-----------------------------------------------------"));
                                             if (nbt2.getInteger(NbtKeys.IS_SHINY) == 1 && passOnShinyStatus)
                                                 src.sendMessage(Text.of("§eThe Ditto in slot §6" + slot1 + "§e will be upgraded. Transferring shiny status!"));
                                             else
@@ -510,7 +506,7 @@ public class DittoFusion implements CommandExecutor
                                             src.sendMessage(Text.of("§aReady? Use: §2" + commandAlias + " " + slot1 + " " + slot2 + " -c"));
 
                                             src.sendMessage(Text.of("§4Warning: §cThe Ditto in slot §4" + slot2 + "§c will be §ldeleted§r§c!"));
-                                            player.sendMessage(Text.of("§7-----------------------------------------------------"));
+                                            src.sendMessage(Text.of("§7-----------------------------------------------------"));
                                         }
                                     }
                                 }
@@ -531,11 +527,11 @@ public class DittoFusion implements CommandExecutor
         return CommandResult.success();
     }
 
-    private void checkAndAddFooter(Player player)
+    private void addHelperAndFooter(CommandSource src)
     {
-        player.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <target slot> <sacrifice slot> {-c to confirm}"));
-        player.sendMessage(Text.of(""));
-        player.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're ready to spend money!"));
-        player.sendMessage(Text.of("§5-----------------------------------------------------"));
+        src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <target slot> <sacrifice slot> {-c to confirm}"));
+        src.sendMessage(Text.of(""));
+        src.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're ready to spend money!"));
+        src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
 }

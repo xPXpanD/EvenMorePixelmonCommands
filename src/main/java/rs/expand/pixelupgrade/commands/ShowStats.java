@@ -33,21 +33,13 @@ import rs.expand.pixelupgrade.utilities.CommonMethods;
 import rs.expand.pixelupgrade.utilities.GetPokemonInfo;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
-// Note: printUnformattedMessage is a static import for a function from CommonMethods, for convenience.
 public class ShowStats implements CommandExecutor
 {
     // Initialize some variables. We'll load stuff into these when we call the config loader.
     // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
-    public static Integer cooldownInSeconds;
-    public static Integer altCooldownInSeconds;
-    public static Boolean compactMode;
-    public static Boolean showCounts;
-    public static Boolean showNicknames;
-    public static Boolean clampBadNicknames;
-    public static Boolean notifyBadNicknames;
-    public static Boolean showExtraInfo;
-    public static Integer commandCost;
+    public static Integer cooldownInSeconds, altCooldownInSeconds, commandCost;
+    public static Boolean compactMode, showCounts, showNicknames, clampBadNicknames, notifyBadNicknames, showExtraInfo;
 
     // Set up some more variables for internal use.
     private boolean gotExternalConfigError = false, outdatedCompactMode = false, outdatedAltCooldownInSeconds = false;
@@ -55,7 +47,7 @@ public class ShowStats implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.printFormattedMessage("ShowStats", debugNum, inputString); }
+    { CommonMethods.printDebugMessage("ShowStats", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -100,23 +92,24 @@ public class ShowStats implements CommandExecutor
 
             if (!nativeErrorArray.isEmpty())
             {
-                CommonMethods.printNodeError("ShowStats", nativeErrorArray, 1);
+                CommonMethods.printCommandNodeError("ShowStats", nativeErrorArray);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else if (compactMode == null && configVersion >= 310 || altCooldownInSeconds == null && configVersion >= 310)
-            { // These are new 3.1 features. Run a separate check, so we can fail gracefully if the config's outdated.
+            {
+                // These are new 3.1 features. Run a separate check, so we can fail gracefully if the config's outdated.
                 ArrayList<String> newOptionErrorArray = new ArrayList<>();
                 if (compactMode == null)
                     newOptionErrorArray.add("compactMode");
                 if (altCooldownInSeconds == null)
                     newOptionErrorArray.add("altCooldownInSeconds");
 
-                CommonMethods.printNodeError("ShowStats", newOptionErrorArray, 1);
+                CommonMethods.printCommandNodeError("ShowStats", newOptionErrorArray);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else if (!mainConfigErrorArray.isEmpty())
             {
-                CommonMethods.printNodeError("PixelUpgrade", mainConfigErrorArray, 0);
+                CommonMethods.printMainNodeError("PixelUpgrade", mainConfigErrorArray);
                 src.sendMessage(Text.of("§4Error: §cCould not parse main config. Please report to staff."));
             }
             else
@@ -131,18 +124,15 @@ public class ShowStats implements CommandExecutor
                     if (altCooldownInSeconds == null)
                         outdatedAltCooldownInSeconds = true;
 
-                    printToLog(0, "Your §4/showstats§c config is outdated.");
+                    printToLog(0, "Outdated §4/showstats§c config! Check §4latest.log§c startup for help.");
                     printToLog(0, "Running in safe mode. Stuff will work the way it did in 3.0.");
-                    printToLog(0, "For a how-to-fix, check the earlier lines of §4latest.log§c.");
                 }
-
-                printToLog(0, "outdatedCompactMode" + outdatedCompactMode + " | compactMode: " + compactMode);
 
                 if (outdatedCompactMode && showCounts || !outdatedCompactMode && !compactMode && showCounts)
                 {
                     ArrayList<String> upgradeErrorArray = new ArrayList<>(), fusionErrorArray = new ArrayList<>();
 
-                    printToLog(2, "Entering external config loading. Errors will be logged.");
+                    printToLog(2, "Entering external config validation. Errors will be logged.");
 
                     if (DittoFusion.regularCap == null)
                         fusionErrorArray.add("regularCap");
@@ -182,8 +172,8 @@ public class ShowStats implements CommandExecutor
                     if (commandCost > 0)
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
-                    printCorrectHelper(commandCost, src);
-                    checkAndAddFooter(commandCost, src);
+                    printSyntaxHelper(src);
+                    CommonMethods.checkAndAddFooter(commandCost, src);
 
                     canContinue = false;
                 }
@@ -203,8 +193,8 @@ public class ShowStats implements CommandExecutor
                         if (commandCost > 0)
                             src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
-                        printCorrectHelper(commandCost, src);
-                        checkAndAddFooter(commandCost, src);
+                        printSyntaxHelper(src);
+                        CommonMethods.checkAndAddFooter(commandCost, src);
 
                         canContinue = false;
                     }
@@ -215,7 +205,7 @@ public class ShowStats implements CommandExecutor
 
                 if (canContinue)
                 {
-                    printToLog(2, "No error encountered, input should be valid. Continuing!");
+                    printToLog(2, "No errors encountered, input should be valid. Continuing!");
                     Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
                     if (!storage.isPresent())
@@ -242,24 +232,13 @@ public class ShowStats implements CommandExecutor
                         {
                             UUID playerUUID = ((Player) src).getUniqueId(); // why is the "d" in "Id" lowercase :(
                             long currentTime = System.currentTimeMillis();
-                            long cooldownInMillis = cooldownInSeconds * 1000;
-                            boolean hasBypassPermission = false;
 
-                            // Legacy perm support.
-                            if (src.hasPermission("pixelupgrade.command.showstats.bypasscooldown") || src.hasPermission("pixelupgrade.command.bypass.showstats"))
-                                hasBypassPermission = true;
-
-                            if (!hasBypassPermission && cooldownMap.containsKey(playerUUID))
+                            if (!src.hasPermission("pixelupgrade.command.bypass.showstats") && cooldownMap.containsKey(playerUUID))
                             {
-                                if (src.hasPermission("pixelupgrade.command.bypass.showstats"))
-                                {
-                                    printToLog(2, "Legacy permission \"§2pixelupgrade.command.bypass.showstats§a\" found.");
-                                    printToLog(2, "This will not cause issues, but might be good to replace.");
-                                }
-
-                                // Time is stored in milliseconds, so /1000.
+                                long cooldownInMillis = cooldownInSeconds * 1000;
                                 long timeDifference = currentTime - cooldownMap.get(playerUUID), timeRemaining;
-                                if (!outdatedAltCooldownInSeconds && src.hasPermission("pixelupgrade.command.showstats.altcooldown"))
+
+                                if (!outdatedAltCooldownInSeconds && src.hasPermission("pixelupgrade.command.altcooldown.showstats"))
                                     timeRemaining = altCooldownInSeconds - timeDifference / 1000;
                                 else
                                     timeRemaining = cooldownInSeconds - timeDifference / 1000;
@@ -268,13 +247,13 @@ public class ShowStats implements CommandExecutor
                                 {
                                     if (timeRemaining == 1)
                                     {
-                                        printToLog(1, "§6" + src.getName() + "§e has to wait §6one §emore second. Exit.");
+                                        printToLog(1, "§3" + src.getName() + "§b has to wait §3one §bmore second. Exit.");
                                         src.sendMessage(Text.of("§4Error: §cYou must wait §4one §cmore second. You can do this!"));
                                     }
                                     else
                                     {
-                                        printToLog(1, "§6" + src.getName() + "§e has to wait another §6" +
-                                                timeRemaining + "§e seconds. Exit.");
+                                        printToLog(1, "§3" + src.getName() + "§b has to wait another §3" +
+                                                timeRemaining + "§b seconds. Exit.");
                                         src.sendMessage(Text.of("§4Error: §cYou must wait another §4" +
                                                 timeRemaining + "§c seconds."));
                                     }
@@ -301,8 +280,8 @@ public class ShowStats implements CommandExecutor
 
                                             if (transactionResult.getResult() == ResultType.SUCCESS)
                                             {
-                                                printToLog(1, "Showing off slot §6" + slot +
-                                                        "§e, and taking §6" + costToConfirm + "§e coins.");
+                                                printToLog(1, "Showing off slot §3" + slot +
+                                                        "§b, and taking §3" + costToConfirm + "§b coins.");
                                                 cooldownMap.put(playerUUID, currentTime);
                                                 checkAndShowStats(nbt, (Player) src);
                                             }
@@ -310,8 +289,8 @@ public class ShowStats implements CommandExecutor
                                             {
                                                 BigDecimal balanceNeeded = uniqueAccount.getBalance(
                                                         economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                                printToLog(1, "Not enough coins! Cost: §6" +
-                                                        costToConfirm + "§e, lacking: §6" + balanceNeeded);
+                                                printToLog(1, "Not enough coins! Cost: §3" +
+                                                        costToConfirm + "§b, lacking: §3" + balanceNeeded);
                                                 src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
                                             }
                                         }
@@ -323,7 +302,7 @@ public class ShowStats implements CommandExecutor
                                     }
                                     else
                                     {
-                                        printToLog(1, "Got cost but no confirmation; end of the line. Exit.");
+                                        printToLog(1, "Got cost but no confirmation; end of the line.");
 
                                         src.sendMessage(Text.of("§6Warning: §eShowing off a Pokémon's stats costs §6" +
                                                 costToConfirm + "§e coins."));
@@ -332,7 +311,7 @@ public class ShowStats implements CommandExecutor
                                 }
                                 else
                                 {
-                                    printToLog(1, "Showing off slot §6" + slot + "§e. Config price is §60§e, taking nothing.");
+                                    printToLog(1, "Showing off slot §3" + slot + "§b. Config price is §30§b, taking nothing.");
                                     cooldownMap.put(playerUUID, currentTime);
                                     checkAndShowStats(nbt, (Player) src);
                                 }
@@ -348,23 +327,12 @@ public class ShowStats implements CommandExecutor
         return CommandResult.success();
     }
 
-    private void checkAndAddFooter(int cost, CommandSource src)
+    private void printSyntaxHelper(CommandSource src)
     {
-        if (cost > 0)
-        {
-            src.sendMessage(Text.of(""));
-            src.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're sure!"));
-            src.sendMessage(Text.of("§eConfirming will cost you §6" + cost + "§e coins."));
-            src.sendMessage(Text.of("§5-----------------------------------------------------"));
-        }
-    }
-
-    private void printCorrectHelper(int cost, CommandSource src)
-    {
-        if (cost != 0)
-            src.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <slot, 1-6> {-c to confirm}"));
+        if (commandCost != 0)
+            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> {-c to confirm}"));
         else
-            src.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <slot, 1-6>"));
+            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6>"));
     }
 
     private void checkAndShowStats(NBTTagCompound nbt, Player player)

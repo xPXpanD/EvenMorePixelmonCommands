@@ -20,30 +20,32 @@ import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.channel.MessageChannel;
 
 // Local imports.
 import rs.expand.pixelupgrade.utilities.CommonMethods;
+import static com.pixelmonmod.pixelmon.storage.NbtKeys.*;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
-// Note: printUnformattedMessage is a static import for a function from CommonMethods, for convenience.
+/*                                                      *\
+    TODO: Maybe add target and console usage support?
+    Healing a team from command blocks could be cool.
+\*                                                      */
+
+// Note: printBasicMessage is a static import for a function from CommonMethods, for convenience.
 public class PokeCure implements CommandExecutor
 {
     // Initialize some variables. We'll load stuff into these when we call the config loader.
     // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
-    public static Integer cooldownInSeconds;
-    public static Integer altCooldownInSeconds;
-    public static Boolean healParty;
-    public static Boolean cureAilments;
-    public static Integer commandCost;
+    public static Integer cooldownInSeconds, altCooldownInSeconds, commandCost;
+    public static Boolean healParty, cureAilments;
 
     // Set up some more variables for internal use.
     private HashMap<UUID, Long> cooldownMap = new HashMap<>();
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.printFormattedMessage("ShowStats", debugNum, inputString); }
+    { CommonMethods.printDebugMessage("PokeCure", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -65,7 +67,7 @@ public class PokeCure implements CommandExecutor
 
             if (!nativeErrorArray.isEmpty())
             {
-                CommonMethods.printNodeError("ShowStats", nativeErrorArray, 1);
+                CommonMethods.printCommandNodeError("ShowStats", nativeErrorArray);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else
@@ -83,8 +85,8 @@ public class PokeCure implements CommandExecutor
                         if (commandCost > 0)
                             src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
-                        printCorrectHelper(commandCost, src);
-                        checkAndAddFooter(commandCost, src);
+                        printSyntaxHelper(src);
+                        CommonMethods.checkAndAddFooter(commandCost, src);
 
                         canContinue = false;
                     }
@@ -104,8 +106,8 @@ public class PokeCure implements CommandExecutor
                             if (commandCost > 0)
                                 src.sendMessage(Text.of("§5-----------------------------------------------------"));
                             src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
-                            printCorrectHelper(commandCost, src);
-                            checkAndAddFooter(commandCost, src);
+                            printSyntaxHelper(src);
+                            CommonMethods.checkAndAddFooter(commandCost, src);
 
                             canContinue = false;
                         }
@@ -117,7 +119,7 @@ public class PokeCure implements CommandExecutor
 
                 if (canContinue)
                 {
-                    printToLog(2, "No error encountered, input should be valid. Continuing!");
+                    printToLog(2, "No errors encountered, input should be valid. Continuing!");
                     Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
                     if (!storage.isPresent())
@@ -128,11 +130,10 @@ public class PokeCure implements CommandExecutor
                     else
                     {
                         PlayerStorage storageCompleted = (PlayerStorage) storage.get();
+                        NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
 
                         if (!healParty)
                         {
-                            NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
-
                             if (nbt == null)
                             {
                                 printToLog(1, "No NBT found in slot, probably empty. Exit.");
@@ -151,13 +152,13 @@ public class PokeCure implements CommandExecutor
                         {
                             UUID playerUUID = ((Player) src).getUniqueId(); // why is the "d" in "Id" lowercase :(
                             long currentTime = System.currentTimeMillis();
-                            long cooldownInMillis = cooldownInSeconds * 1000;
 
-                            if (!src.hasPermission("pixelupgrade.command.pokecure.bypasscooldown") && cooldownMap.containsKey(playerUUID))
+                            if (!src.hasPermission("pixelupgrade.command.bypass.pokecure") && cooldownMap.containsKey(playerUUID))
                             {
-                                // Time is stored in milliseconds, so /1000.
+                                long cooldownInMillis = cooldownInSeconds * 1000;
                                 long timeDifference = currentTime - cooldownMap.get(playerUUID), timeRemaining;
-                                if (src.hasPermission("pixelupgrade.command.pokecure.altcooldown"))
+
+                                if (src.hasPermission("pixelupgrade.command.altcooldown.pokecure"))
                                     timeRemaining = altCooldownInSeconds - timeDifference / 1000;
                                 else
                                     timeRemaining = cooldownInSeconds - timeDifference / 1000;
@@ -207,7 +208,7 @@ public class PokeCure implements CommandExecutor
                                                             "§b, and taking §3" + costToConfirm + "§b coins.");
 
                                                 cooldownMap.put(playerUUID, currentTime);
-                                                doHeal();
+                                                doHeal(src, storageCompleted, nbt);
                                             }
                                             else
                                             {
@@ -227,15 +228,20 @@ public class PokeCure implements CommandExecutor
                                     }
                                     else
                                     {
-                                        printToLog(1, "Got cost but no confirmation; end of the line. Exit.");
+                                        printToLog(1, "Got cost but no confirmation; end of the line.");
 
                                         if (healParty)
-                                            src.sendMessage(Text.of("§6Warning: §eHealing a Pokémon's wounds costs §6" +
+                                        {
+                                            src.sendMessage(Text.of("§6Warning: §eHealing a Pokémon costs §6" +
                                                     costToConfirm + "§e coins."));
+                                            src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " -c"));
+                                        }
                                         else
-                                            src.sendMessage(Text.of("§6Warning: §eHealing your team's wounds costs §6" +
+                                        {
+                                            src.sendMessage(Text.of("§6Warning: §eHealing your team costs §6" +
                                                     costToConfirm + "§e coins."));
-                                        src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " " + slot + " -c"));
+                                            src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " " + slot + " -c"));
+                                        }
                                     }
                                 }
                                 else
@@ -246,7 +252,7 @@ public class PokeCure implements CommandExecutor
                                         printToLog(1, "Healing slot §3" + slot + "§b. Config price is §30§b, taking nothing.");
 
                                     cooldownMap.put(playerUUID, currentTime);
-                                    doHeal();
+                                    doHeal(src, storageCompleted, nbt);
                                 }
                             }
                         }
@@ -260,29 +266,45 @@ public class PokeCure implements CommandExecutor
         return CommandResult.success();
     }
 
-    private void checkAndAddFooter(int cost, CommandSource src)
+    private void printSyntaxHelper(CommandSource src)
     {
-        if (cost > 0)
-        {
-            src.sendMessage(Text.of(""));
-            src.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're sure!"));
-            src.sendMessage(Text.of("§eConfirming will cost you §6" + cost + "§e coins."));
-            src.sendMessage(Text.of("§5-----------------------------------------------------"));
-        }
-    }
-
-    private void printCorrectHelper(int cost, CommandSource src)
-    {
-        if (cost != 0)
-            src.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <slot, 1-6> {-c to confirm}"));
+        if (commandCost != 0 && healParty)
+            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " {-c to confirm}"));
+        else if (healParty)
+            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias));
+        else if (commandCost != 0)
+            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> {-c to confirm}"));
         else
-            src.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <slot, 1-6>"));
+            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6>"));
     }
 
-    private void doHeal()
+    private void doHeal(CommandSource src, PlayerStorage storage, NBTTagCompound nbt)
     {
+        if (healParty)
+        {
+            printToLog(2, "Party healing is enabled, doing it.");
 
+            EntityPlayerMP playerEntity = (EntityPlayerMP) src;
+            storage.healAllPokemon(playerEntity.getServerWorld());
 
-        MessageChannel.TO_PLAYERS.send(Text.of("§7------------------------TODO-------------------------"));
+            src.sendMessage(Text.of("§aYour party has been healed!"));
+        }
+        else
+        {
+            printToLog(2, "Party healing is disabled, healing specified slot.");
+
+            // Partially nicked from the "heal" method in Pixelmon, as that's private.
+            nbt.setFloat(HEALTH, (float) nbt.getInteger(STATS_HP));
+            nbt.setBoolean(IS_FAINTED, false);
+            nbt.removeTag("Status");
+
+            int numberOfMoves = nbt.getInteger(PIXELMON_NUMBER_MOVES);
+            for (int i = 0; i < numberOfMoves; i++)
+                nbt.setInteger(PIXELMON_MOVE_PP + i, nbt.getInteger(PIXELMON_MOVE_PPBASE + i));
+
+            storage.sendUpdatedList();
+
+            src.sendMessage(Text.of("§aThe chosen Pokémon has been healed."));
+        }
     }
 }

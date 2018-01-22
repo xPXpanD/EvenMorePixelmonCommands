@@ -27,7 +27,7 @@ public class ResetCount implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.printFormattedMessage("ResetCount", debugNum, inputString); }
+    { CommonMethods.printDebugMessage("ResetCount", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -55,7 +55,7 @@ public class ResetCount implements CommandExecutor
 
                     src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
-                    addFooter(player);
+                    addFooter(src);
 
                     canContinue = false;
                 }
@@ -74,7 +74,7 @@ public class ResetCount implements CommandExecutor
 
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
-                        addFooter(player);
+                        addFooter(src);
 
                         canContinue = false;
                     }
@@ -102,9 +102,9 @@ public class ResetCount implements CommandExecutor
                 {
                     printToLog(1, "Could not find a valid count to reset. Exit.");
 
-                    player.sendMessage(Text.of("§5-----------------------------------------------------"));
-                    player.sendMessage(Text.of("§4Error: §cInvalid count provided. See below for valid ones."));
-                    addFooter(player);
+                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                    src.sendMessage(Text.of("§4Error: §cInvalid count provided. See below for valid ones."));
+                    addFooter(src);
 
                     canContinue = false;
                 }
@@ -114,12 +114,12 @@ public class ResetCount implements CommandExecutor
 
                 if (canContinue)
                 {
-                    printToLog(2, "No error encountered, input should be valid. Continuing!");
+                    printToLog(2, "No errors encountered, input should be valid. Continuing!");
                     Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
                     if (!storage.isPresent())
                     {
-                        printToLog(0, "§4" + player.getName() + "§c does not have a Pixelmon storage, aborting. May be a bug?");
+                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. May be a bug?");
                         src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
                     }
                     else
@@ -142,7 +142,6 @@ public class ResetCount implements CommandExecutor
                                 boolean isDitto = nbt.getString("Name").equals("Ditto");
 
                                 printToLog(2, "Command was confirmed, proceeding to execution.");
-
 
                                 if (fixedCount.matches("Fusion"))
                                 {
@@ -186,14 +185,14 @@ public class ResetCount implements CommandExecutor
         return CommandResult.success();
     }
 
-    private void addFooter(Player player)
+    private void addFooter(CommandSource src)
     {
-        player.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <slot, 1-6> <count> {-c to confirm}"));
-        player.sendMessage(Text.of(""));
-        player.sendMessage(Text.of("§6Valid counts: §eUpgrade§6, §eFusion"));
-        player.sendMessage(Text.of(""));
-        player.sendMessage(Text.of("§5Warning: §dThe -c flag immediately wipes the chosen count!"));
-        player.sendMessage(Text.of("§d(these counts are a Pokémon's upgrade/fusion totals)"));
-        player.sendMessage(Text.of("§5-----------------------------------------------------"));
+        src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> <count> {-c to confirm}"));
+        src.sendMessage(Text.of(""));
+        src.sendMessage(Text.of("§6Valid counts: §eUpgrade§6, §eFusion"));
+        src.sendMessage(Text.of(""));
+        src.sendMessage(Text.of("§5Warning: §dThe -c flag immediately wipes the chosen count!"));
+        src.sendMessage(Text.of("§d(these counts are a Pokémon's upgrade/fusion totals)"));
+        src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
 }

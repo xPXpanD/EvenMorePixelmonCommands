@@ -18,6 +18,11 @@ import org.spongepowered.api.text.Text;
 import rs.expand.pixelupgrade.utilities.CommonMethods;
 import rs.expand.pixelupgrade.utilities.EnumPokemonList;
 
+/*                                                      *\
+    TODO: Maybe add target and console usage support?
+    Spawning stuff near online players could be cool.
+\*                                                      */
+
 public class SpawnDex implements CommandExecutor
 {
     // Initialize a config variable. We'll load stuff into it when we call the config loader.
@@ -26,7 +31,7 @@ public class SpawnDex implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.printFormattedMessage("SpawnDex", debugNum, inputString); }
+    { CommonMethods.printDebugMessage("SpawnDex", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -92,7 +97,7 @@ public class SpawnDex implements CommandExecutor
 
                 if (canContinue)
                 {
-                    printToLog(2, "No error encountered, input should be valid. Continuing!");
+                    printToLog(2, "No errors encountered, input should be valid. Continuing!");
 
                     /*                                                                    *\
                         TODO: Get the player's facing angle, and spawn in front of them.

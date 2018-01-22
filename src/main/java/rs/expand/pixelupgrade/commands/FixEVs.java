@@ -36,7 +36,7 @@ public class FixEVs implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.printFormattedMessage("FixEVs", debugNum, inputString); }
+    { CommonMethods.printDebugMessage("FixEVs", debugNum, inputString); }
 
 	@SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -52,7 +52,7 @@ public class FixEVs implements CommandExecutor
 
             if (!nativeErrorArray.isEmpty())
             {
-                CommonMethods.printNodeError("FixEVs", nativeErrorArray, 1);
+                CommonMethods.printCommandNodeError("FixEVs", nativeErrorArray);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else if (useBritishSpelling == null)
@@ -63,7 +63,7 @@ public class FixEVs implements CommandExecutor
             }
             else
             {
-                printToLog(1, "Called by player §6" + src.getName() + "§e. Starting!");
+                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 Player player = (Player) src;
                 boolean canContinue = true, commandConfirmed = false;
@@ -73,10 +73,12 @@ public class FixEVs implements CommandExecutor
                 {
                     printToLog(1, "No arguments provided. Exit.");
 
-                    checkAndAddHeader(commandCost, player);
+                    if (commandCost > 0)
+                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
+
                     src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
-                    printCorrectHelper(commandCost, player);
-                    checkAndAddFooter(commandCost, player);
+                    printSyntaxHelper(src);
+                    CommonMethods.checkAndAddFooter(commandCost, src);
 
                     canContinue = false;
                 }
@@ -93,10 +95,12 @@ public class FixEVs implements CommandExecutor
                     {
                         printToLog(1, "Invalid slot provided. Exit.");
 
-                        checkAndAddHeader(commandCost, player);
+                        if (commandCost > 0)
+                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
+
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
-                        printCorrectHelper(commandCost, player);
-                        checkAndAddFooter(commandCost, player);
+                        printSyntaxHelper(src);
+                        CommonMethods.checkAndAddFooter(commandCost, src);
 
                         canContinue = false;
                     }
@@ -107,12 +111,12 @@ public class FixEVs implements CommandExecutor
 
                 if (canContinue)
                 {
-                    printToLog(2, "No error encountered, input should be valid. Continuing!");
+                    printToLog(2, "No errors encountered, input should be valid. Continuing!");
                     Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
                     if (!storage.isPresent())
                     {
-                        printToLog(0, "§4" + player.getName() + "§c does not have a Pixelmon storage, aborting. May be a bug?");
+                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. May be a bug?");
                         src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
                     }
                     else
@@ -193,15 +197,15 @@ public class FixEVs implements CommandExecutor
 
                                         if (transactionResult.getResult() == ResultType.SUCCESS)
                                         {
-                                            printToLog(1, "Fixed EVs for slot §6" + slot +
-                                                    "§e, and took §6" + costToConfirm + "§e coins.");
-                                            fixPlayerEVs(nbt, player, HPEV, attackEV, defenceEV, spAttackEV, spDefenceEV, speedEV);
+                                            printToLog(1, "Fixed EVs for slot §3" + slot +
+                                                    "§b, and took §3" + costToConfirm + "§b coins.");
+                                            fixPlayerEVs(nbt, src, HPEV, attackEV, defenceEV, spAttackEV, spDefenceEV, speedEV);
                                         }
                                         else
                                         {
                                             BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                            printToLog(1, "Not enough coins! Cost: §6" +
-                                                    costToConfirm + "§e, lacking: §6" + balanceNeeded);
+                                            printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
+                                                        "§b, and we're lacking §3" + balanceNeeded);
 
                                             src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded +
                                                     "§c more coins to do this."));
@@ -217,7 +221,7 @@ public class FixEVs implements CommandExecutor
                                 }
                                 else
                                 {
-                                    printToLog(1, "Got cost but no confirmation; end of the line. Exit.");
+                                    printToLog(1, "Got cost but no confirmation; end of the line.");
 
                                     src.sendMessage(Text.of("§6Warning: §eFixing EVs will cost §6" + costToConfirm + "§e coins."));
                                     src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " " + slot + " -c"));
@@ -227,8 +231,8 @@ public class FixEVs implements CommandExecutor
                             }
                             else
                             {
-                                printToLog(1, "Fixed EVs for slot §6" + slot + "§e. Config price is §60§e, taking nothing.");
-                                fixPlayerEVs(nbt, player, HPEV, attackEV, defenceEV, spAttackEV, spDefenceEV, speedEV);
+                                printToLog(1, "Fixed EVs for slot §3" + slot + "§b. Config price is §30§b, taking nothing.");
+                                fixPlayerEVs(nbt, src, HPEV, attackEV, defenceEV, spAttackEV, spDefenceEV, speedEV);
                             }
 
                             if (canContinue)
@@ -249,73 +253,56 @@ public class FixEVs implements CommandExecutor
         return CommandResult.success();
 	}
 
-	private void fixPlayerEVs(NBTTagCompound nbt, Player player, int HPEV, int attackEV, int defenceEV, int spAttackEV, int spDefenceEV, int speedEV)
+	private void printSyntaxHelper(CommandSource src)
+    {
+        if (commandCost != 0)
+            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> {-c to confirm}"));
+        else
+            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6>"));
+    }
+
+	private void fixPlayerEVs(NBTTagCompound nbt, CommandSource src, int HPEV, int attackEV, int defenceEV, int spAttackEV, int spDefenceEV, int speedEV)
     {
         if (HPEV > 252)
         {
-            player.sendMessage(Text.of("§aStat §2HP §ais above 252 and has been fixed!"));
+            src.sendMessage(Text.of("§aStat §2HP §ais above 252 and has been fixed!"));
             nbt.setInteger(NbtKeys.EV_HP, 252);
         }
 
         if (attackEV > 252)
         {
-            player.sendMessage(Text.of("§aStat §2Attack §ais above 252 and has been fixed!"));
+            src.sendMessage(Text.of("§aStat §2Attack §ais above 252 and has been fixed!"));
             nbt.setInteger(NbtKeys.EV_ATTACK, 252);
         }
 
         if (defenceEV > 252)
         {
             if (useBritishSpelling)
-                player.sendMessage(Text.of("§aStat §2Defence §ais above 252 and has been fixed!"));
+                src.sendMessage(Text.of("§aStat §2Defence §ais above 252 and has been fixed!"));
             else
-                player.sendMessage(Text.of("§aStat §2Defense §ais above 252 and has been fixed!"));
+                src.sendMessage(Text.of("§aStat §2Defense §ais above 252 and has been fixed!"));
             nbt.setInteger(NbtKeys.EV_DEFENCE, 252);
         }
 
         if (spAttackEV > 252)
         {
-            player.sendMessage(Text.of("§aStat §2Special Attack §ais above 252 and has been fixed!"));
+            src.sendMessage(Text.of("§aStat §2Special Attack §ais above 252 and has been fixed!"));
             nbt.setInteger(NbtKeys.EV_SPECIAL_ATTACK, 252);
         }
 
         if (spDefenceEV > 252)
         {
             if (useBritishSpelling)
-                player.sendMessage(Text.of("§aStat §2Special Defence §ais above 252 and has been fixed!"));
+                src.sendMessage(Text.of("§aStat §2Special Defence §ais above 252 and has been fixed!"));
             else
-                player.sendMessage(Text.of("§aStat §2Special Defense §ais above 252 and has been fixed!"));
+                src.sendMessage(Text.of("§aStat §2Special Defense §ais above 252 and has been fixed!"));
             nbt.setInteger(NbtKeys.EV_SPECIAL_DEFENCE, 252);
         }
 
         if (speedEV > 252)
         {
-            player.sendMessage(Text.of("§aStat §2Speed §ais above 252 and has been fixed!"));
+            src.sendMessage(Text.of("§aStat §2Speed §ais above 252 and has been fixed!"));
             nbt.setInteger(NbtKeys.EV_SPEED, 252);
         }
-    }
-
-    private void checkAndAddHeader(int cost, Player player)
-    {
-        if (cost > 0)
-            player.sendMessage(Text.of("§5-----------------------------------------------------"));
-    }
-
-    private void checkAndAddFooter(int cost, Player player)
-    {
-        if (cost > 0)
-        {
-            player.sendMessage(Text.of(""));
-            player.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're sure!"));
-            player.sendMessage(Text.of("§eConfirming will cost you §6" + cost + "§e coins."));
-            player.sendMessage(Text.of("§5-----------------------------------------------------"));
-        }
-    }
-
-    private void printCorrectHelper(int cost, Player player)
-    {
-        if (cost != 0)
-            player.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <slot, 1-6> {-c to confirm}"));
-        else
-            player.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <slot, 1-6>"));
     }
 }

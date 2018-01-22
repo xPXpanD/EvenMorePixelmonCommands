@@ -18,6 +18,11 @@ import org.spongepowered.api.text.Text;
 import rs.expand.pixelupgrade.utilities.CommonMethods;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
+/*                                                         *\
+    TODO: Add target and console support. This will hurt.
+    This could end up being VERY potent, if done right...
+\*                                                         */
+
 public class ForceStats implements CommandExecutor
 {
     // Initialize a config variable. We'll load stuff into it when we call the config loader.
@@ -26,7 +31,7 @@ public class ForceStats implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.printFormattedMessage("ForceStats", debugNum, inputString); }
+    { CommonMethods.printDebugMessage("ForceStats", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -59,7 +64,7 @@ public class ForceStats implements CommandExecutor
 
                     src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo parameters found. See below."));
-                    printCorrectPerm(src);
+                    printSyntaxHelper(src);
                     addFooter(src);
 
                     canContinue = false;
@@ -79,7 +84,7 @@ public class ForceStats implements CommandExecutor
 
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
-                        printCorrectPerm(src);
+                        printSyntaxHelper(src);
                         addFooter(src);
 
                         canContinue = false;
@@ -151,7 +156,7 @@ public class ForceStats implements CommandExecutor
 
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid stat provided. See below for valid stats."));
-                        printCorrectPerm(src);
+                        printSyntaxHelper(src);
                         addHelper(src);
                         addFooter(src);
 
@@ -164,7 +169,7 @@ public class ForceStats implements CommandExecutor
 
                     src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo stat provided. See below for valid stats."));
-                    printCorrectPerm(src);
+                    printSyntaxHelper(src);
                     addHelper(src);
                     addFooter(src);
 
@@ -177,7 +182,7 @@ public class ForceStats implements CommandExecutor
 
                     src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo value or amount was provided."));
-                    printCorrectPerm(src);
+                    printSyntaxHelper(src);
                     addFooter(src);
 
                     canContinue = false;
@@ -201,7 +206,7 @@ public class ForceStats implements CommandExecutor
 
                 if (canContinue)
                 {
-                    printToLog(2, "No error encountered, input should be valid. Continuing!");
+                    printToLog(2, "No errors encountered, input should be valid. Continuing!");
                     Optional<PlayerStorage> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
                     if (!storage.isPresent())
@@ -271,7 +276,7 @@ public class ForceStats implements CommandExecutor
 
                             src.sendMessage(Text.of("§5-----------------------------------------------------"));
                             src.sendMessage(Text.of("§4Error: §cGot a non-integer value, but no flag. Try a number."));
-                            printCorrectPerm(src);
+                            printSyntaxHelper(src);
                             addFooter(src);
                         }
                         else
@@ -325,9 +330,10 @@ public class ForceStats implements CommandExecutor
         return CommandResult.success();
 	}
 
-    private void printCorrectPerm(CommandSource src)
+	// Might look a bit odd, but done this way so we only have to edit one message if this ever changes.
+    private void printSyntaxHelper(CommandSource src)
     {
-        src.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <slot> <stat> <value> {-f to force}"));
+        src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot> <stat> <value> {-f to force}"));
     }
 
     private void addFooter(CommandSource src)

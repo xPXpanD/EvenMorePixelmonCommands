@@ -21,12 +21,11 @@ import org.spongepowered.api.text.Text;
 // Local imports.
 import rs.expand.pixelupgrade.commands.*;
 import rs.expand.pixelupgrade.utilities.ConfigOperations;
-import static rs.expand.pixelupgrade.utilities.CommonMethods.printUnformattedMessage;
+import static rs.expand.pixelupgrade.utilities.CommonMethods.printBasicMessage;
 
 // New things:
 // TODO: Make a Pokémon transfer command.
 // TODO: Make a token redeeming command for shinies. Maybe make it a starter picker command, even.
-// TODO: Maybe make a heal command with a hour-long cooldown?
 // TODO: Make a /pokesell, maybe one that sells based on ball worth.
 // TODO: Check public static final String PC_RAVE = "rave";
 // TODO: See if recoloring Pokémon is possible.
@@ -34,13 +33,12 @@ import static rs.expand.pixelupgrade.utilities.CommonMethods.printUnformattedMes
 // TODO: Make a Pokéball changing command, get it to write the old ball to the Pokémon for ball sale purposes.
 // TODO: Do something with setPixelmonScale. Maybe a /spawnboss for super big high HP IV bosses with custom loot?
 // TODO: Make a /devolve, or something along those lines.
-// TODO: Make a /fixgender. Priority.
+// TODO: Make a legendary spawner that mimics the vanilla Pixelmon spawning message.
 
 // Improvements to existing things:
 // TODO: Tab completion on player names.
-// TODO: Maybe turn /dittofusion into a generic /fuse, with a Ditto-only config option.
 // TODO: Add a Mew clone count check to /checkstats and /showstats.
-// TODO: Add a compact mode to /showstats, maybe using hovers. Thanks for the idea, Willynator.
+// TODO: Actually add an economy safe mode to things.
 
 @Plugin
 (
@@ -64,17 +62,15 @@ import static rs.expand.pixelupgrade.utilities.CommonMethods.printUnformattedMes
         // Thanks for helping make PU what it is now, people!
 )
 
-// Note: printUnformattedMessage is a static import for a function from CommonMethods, for convenience.
+// Note: printBasicMessage is a static import for a function from CommonMethods, for convenience.
 public class PixelUpgrade
 {
     // Some basic setup.
     public static EconomyService economyService;
-    public static boolean economyEnabled = false;
-    public static int currentInternalVersion = 310;
 
     // Load up a ton of variables for use by other commands. We'll fill these in during pre-init.
     public static Integer configVersion;
-    public static Integer debugLevel;
+    public static Integer debugVerbosityMode;
     public static Boolean useBritishSpelling;
     public static String shortenedHP;
     public static String shortenedAttack;
@@ -95,6 +91,7 @@ public class PixelUpgrade
     public static Path checkTypesPath = Paths.get(commandConfigPath, "CheckTypes.conf");
     public static Path dittoFusionPath = Paths.get(commandConfigPath, "DittoFusion.conf");
     public static Path fixEVsPath = Paths.get(commandConfigPath, "FixEVs.conf");
+    public static Path fixGenderPath = Paths.get(commandConfigPath, "FixGender.conf");
     public static Path fixLevelPath = Paths.get(commandConfigPath, "FixLevel.conf");
     public static Path forceHatchPath = Paths.get(commandConfigPath, "ForceHatch.conf");
     public static Path forceStatsPath = Paths.get(commandConfigPath, "ForceStats.conf");
@@ -120,6 +117,8 @@ public class PixelUpgrade
             HoconConfigurationLoader.builder().setPath(dittoFusionPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> fixEVsLoader =
             HoconConfigurationLoader.builder().setPath(fixEVsPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> fixGenderLoader =
+            HoconConfigurationLoader.builder().setPath(fixGenderPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> fixLevelLoader =
             HoconConfigurationLoader.builder().setPath(fixLevelPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> forceHatchLoader =
@@ -166,7 +165,6 @@ public class PixelUpgrade
             .permission("pixelupgrade.command.checkegg")
             .executor(new CheckEgg())
             .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target or slot"))),
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("confirmation"))))
             .build();
@@ -203,6 +201,14 @@ public class PixelUpgrade
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
+            .build();
+
+    public static CommandSpec fixgender = CommandSpec.builder()
+            .permission("pixelupgrade.command.fixgender")
+            .executor(new FixGender())
+            .arguments(
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target or slot"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))))
             .build();
 
     public static CommandSpec fixlevel = CommandSpec.builder()
@@ -295,63 +301,69 @@ public class PixelUpgrade
     {
         // Load up the primary config and the info command config, and figure out the info alias.
         // We start printing stuff, here. If any warnings/errors pop up they'll be shown here.
-        printUnformattedMessage("========================= P I X E L U P G R A D E =========================");
+        printBasicMessage("========================= P I X E L U P G R A D E =========================");
 
         // Create a config directory if it doesn't exist. Silently swallow an error if it does. I/O is awkward.
         ConfigOperations.checkConfigDir();
 
-        printUnformattedMessage("--> §aLoading and validating primary config...");
+        printBasicMessage("--> §aLoading and validating primary config...");
         ConfigOperations.loadConfig("PixelUpgrade");
 
-        // TODO: Catch wrong values.
-
-        printUnformattedMessage("--> §aLoading and validating command-specific settings...");
+        printBasicMessage("--> §aLoading and validating command-specific settings...");
         ConfigOperations.loadAllCommandConfigs();
         ConfigOperations.printCommandsAndAliases();
 
-        printUnformattedMessage("--> §aRegistering commands and known aliases with Sponge...");
+        printBasicMessage("--> §aRegistering commands and known aliases with Sponge...");
         boolean registrationCompleted = ConfigOperations.registerCommands();
 
         if (registrationCompleted)
-            printUnformattedMessage("--> §aPre-init completed.");
-        printUnformattedMessage("===========================================================================");
+            printBasicMessage("--> §aPre-init completed.");
+        printBasicMessage("===========================================================================");
     }
 
     @Listener
     public void onPostInitEvent(GamePostInitializationEvent event)
     {
-        printUnformattedMessage("========================= P I X E L U P G R A D E =========================");
-        printUnformattedMessage("--> §aChecking whether an economy plugin is present...");
+        printBasicMessage("========================= P I X E L U P G R A D E =========================");
+        printBasicMessage("--> §aChecking whether an economy plugin is present...");
 
         Optional<EconomyService> potentialEconomyService = Sponge.getServiceManager().provide(EconomyService.class);
         if (!potentialEconomyService.isPresent())
-            printUnformattedMessage("--> §eNo economy plugin was found. Proceeding with integration disabled.");
+        {
+            printBasicMessage("--> §cNo economy plugin was found. Some commands will break!");
+            printBasicMessage("--> §eProper support for running without economies is coming soon.");
+            //printBasicMessage("--> §eNo economy plugin was found. Proceeding with integration disabled.");
+        }
         else
         {
-            printUnformattedMessage("--> §aAn economy plugin was detected. Enabling integration!");
-            economyEnabled = true;
+            printBasicMessage("--> §aAn economy plugin was detected.");
+            //printBasicMessage("--> §aAn economy plugin was detected. Enabling integration!");
+            //economyEnabled = true;
             economyService = potentialEconomyService.get();
+
+            printBasicMessage("--> §aAll systems nominal.");
         }
 
-        printUnformattedMessage("--> §aAll systems nominal.");
-        printUnformattedMessage("===========================================================================");
+        //printBasicMessage("--> §aAll systems nominal.");
+        printBasicMessage("===========================================================================");
     }
 
     @Listener
     public void onServerStartedEvent(GameStartedServerEvent event)
     {
+        int currentInternalVersion = 310;
         if (PixelUpgrade.configVersion != null && currentInternalVersion > PixelUpgrade.configVersion)
         {
-            printUnformattedMessage("===========================================================================");
-            printUnformattedMessage("§4/showstats §clikely has an outdated config due to changes in PU 3.1.");
-            printUnformattedMessage("");
-            printUnformattedMessage("§6Please follow these steps to fix this:");
-            printUnformattedMessage("§61. §eIf you modified §6ShowStats.conf§e, copy it somewhere safe.");
-            printUnformattedMessage("§62. §eOpen §6PixelUpgrade.conf §eand change §6configVersion§e to §6310§e.");
-            printUnformattedMessage("§63. §eUse §6/pureload all§e to create a new config and update the version.");
-            printUnformattedMessage("");
-            printUnformattedMessage("§cThe command will have reduced functionality until this is fixed.");
-            printUnformattedMessage("===========================================================================");
+            printBasicMessage("===========================================================================");
+            printBasicMessage("§4/showstats §clikely has an outdated config due to changes in PU 3.1.");
+            printBasicMessage("");
+            printBasicMessage("§6Please follow these steps to fix this:");
+            printBasicMessage("§61. §eDelete §6ShowStats.conf§e, or copy it somewhere safe if you edited it.");
+            printBasicMessage("§62. §eOpen §6PixelUpgrade.conf §eand change §6configVersion§e's value to §6310§e.");
+            printBasicMessage("§63. §eUse §6/pureload all§e to create a new config and update the version.");
+            printBasicMessage("");
+            printBasicMessage("§cThe command will have reduced functionality until this is fixed.");
+            printBasicMessage("===========================================================================");
         }
     }
 }

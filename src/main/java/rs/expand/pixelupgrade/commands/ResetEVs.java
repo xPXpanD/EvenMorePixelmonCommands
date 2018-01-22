@@ -34,7 +34,7 @@ public class ResetEVs implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.printFormattedMessage("ResetEVs", debugNum, inputString); }
+    { CommonMethods.printDebugMessage("ResetEVs", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -50,12 +50,12 @@ public class ResetEVs implements CommandExecutor
 
             if (!nativeErrorArray.isEmpty())
             {
-                CommonMethods.printNodeError("ResetEVs", nativeErrorArray, 1);
+                CommonMethods.printCommandNodeError("ResetEVs", nativeErrorArray);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else
             {
-                printToLog(1, "Called by player §6" + src.getName() + "§e. Starting!");
+                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 Player player = (Player) src;
                 boolean canContinue = true, commandConfirmed = false;
@@ -65,10 +65,12 @@ public class ResetEVs implements CommandExecutor
                 {
                     printToLog(1, "No arguments provided. Exit.");
 
-                    checkAndAddHeader(commandCost, player);
+                    if (commandCost > 0)
+                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
+
                     src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
-                    printCorrectHelper(commandCost, player);
-                    checkAndAddFooter(commandCost, player);
+                    printSyntaxHelper(src);
+                    CommonMethods.checkAndAddFooter(commandCost, src);
 
                     canContinue = false;
                 }
@@ -85,10 +87,12 @@ public class ResetEVs implements CommandExecutor
                     {
                         printToLog(1, "Invalid slot provided. Exit.");
 
-                        checkAndAddHeader(commandCost, player);
+                        if (commandCost > 0)
+                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
+
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
-                        printCorrectHelper(commandCost, player);
-                        checkAndAddFooter(commandCost, player);
+                        printSyntaxHelper(src);
+                        CommonMethods.checkAndAddFooter(commandCost, src);
 
                         canContinue = false;
                     }
@@ -99,12 +103,12 @@ public class ResetEVs implements CommandExecutor
 
                 if (canContinue)
                 {
-                    printToLog(2, "No error encountered, input should be valid. Continuing!");
+                    printToLog(2, "No errors encountered, input should be valid. Continuing!");
                     Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
                     if (!storage.isPresent())
                     {
-                        printToLog(0, "§4" + player.getName() + "§c does not have a Pixelmon storage, aborting. May be a bug?");
+                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. May be a bug?");
                         src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
                     }
                     else
@@ -139,15 +143,16 @@ public class ResetEVs implements CommandExecutor
 
                                     if (transactionResult.getResult() == ResultType.SUCCESS)
                                     {
-                                        resetPlayerEVs(nbt, player);
-                                        printToLog(1, "Reset EVs for slot §6" + slot +
-                                                "§e, and took §6" + costToConfirm + "§e coins.");
+                                        resetPlayerEVs(nbt, src);
+                                        printToLog(1, "Reset EVs for slot §3" + slot +
+                                                "§b, and took §3" + costToConfirm + "§b coins.");
                                     }
                                     else
                                     {
                                         BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                        printToLog(1, "Not enough coins! Cost: §6" + costToConfirm +
-                                                "§e, lacking: §6" + balanceNeeded);
+                                        printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
+                                                "§b, and we're lacking §3" + balanceNeeded);
+
 
                                         src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
                                     }
@@ -160,9 +165,9 @@ public class ResetEVs implements CommandExecutor
                             }
                             else
                             {
-                                resetPlayerEVs(nbt, player);
-                                printToLog(1, "Reset EVs for slot §6" + slot +
-                                        "§e. Config price is §60§e, taking nothing.");
+                                resetPlayerEVs(nbt, src);
+                                printToLog(1, "Reset EVs for slot §3" + slot +
+                                        "§b. Config price is §30§b, taking nothing.");
                             }
                         }
                         else
@@ -186,7 +191,7 @@ public class ResetEVs implements CommandExecutor
         return CommandResult.success();
 	}
 
-	private void resetPlayerEVs(NBTTagCompound nbt, Player player)
+	private void resetPlayerEVs(NBTTagCompound nbt, CommandSource src)
     {
         int EVHP = nbt.getInteger(NbtKeys.EV_HP);
         int EVATT = nbt.getInteger(NbtKeys.EV_ATTACK);
@@ -196,8 +201,8 @@ public class ResetEVs implements CommandExecutor
         int EVSPD = nbt.getInteger(NbtKeys.EV_SPEED);
 
         printToLog(1, "Command has been confirmed, printing old EVs...");
-        printToLog(1, "HP: §6" + EVHP + "§e | ATK: §6" + EVATT + "§e | DEF: §6" + EVDEF +
-                "§e | SPATK: §6" + EVSPATT + "§e | SPDEF: §6" + EVSPDEF + "§e | SPD: §6" + EVSPD);
+        printToLog(1, "HP: §3" + EVHP + "§b | ATK: §3" + EVATT + "§b | DEF: §3" + EVDEF +
+                "§b | SPATK: §3" + EVSPATT + "§b | SPDEF: §3" + EVSPDEF + "§b | SPD: §3" + EVSPD);
 
         nbt.setInteger(NbtKeys.EV_HP, 0);
         nbt.setInteger(NbtKeys.EV_ATTACK, 0);
@@ -207,33 +212,16 @@ public class ResetEVs implements CommandExecutor
         nbt.setInteger(NbtKeys.EV_SPEED, 0);
 
         if (nbt.getString("Nickname").equals(""))
-            player.sendMessage(Text.of("§2" + nbt.getString("Name") + "§a had its EVs wiped!"));
+            src.sendMessage(Text.of("§2" + nbt.getString("Name") + "§a had its EVs wiped!"));
         else
-            player.sendMessage(Text.of("§aYour §2" + nbt.getString("Nickname") + "§a had its EVs wiped!"));
+            src.sendMessage(Text.of("§aYour §2" + nbt.getString("Nickname") + "§a had its EVs wiped!"));
     }
 
-    private void checkAndAddHeader(int cost, Player player)
+    private void printSyntaxHelper(CommandSource src)
     {
-        if (cost > 0)
-            player.sendMessage(Text.of("§5-----------------------------------------------------"));
-    }
-
-    private void checkAndAddFooter(int cost, Player player)
-    {
-        if (cost > 0)
-        {
-            player.sendMessage(Text.of(""));
-            player.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're sure!"));
-            player.sendMessage(Text.of("§eConfirming will cost you §6" + cost + "§e coins."));
-            player.sendMessage(Text.of("§5-----------------------------------------------------"));
-        }
-    }
-
-    private void printCorrectHelper(int cost, Player player)
-    {
-        if (cost != 0)
-            player.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <slot, 1-6> {-c to confirm}"));
+        if (commandCost != 0)
+            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> {-c to confirm}"));
         else
-            player.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <slot, 1-6>"));
+            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6>"));
     }
 }

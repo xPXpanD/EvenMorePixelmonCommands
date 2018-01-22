@@ -823,7 +823,7 @@ public enum EnumPokemonList
     Blacephalon(806, "Fire, Ghost"),
     Zeraora(807, "Electric"),
 
-    // Forms. Be careful -- cannot be accessed or checked through ID, as it disallows checking 0.
+    // Forms. Be careful -- these can only be checked through their name, as /checktypes disallows checking 0.
     CastformSunny(0, "Fire"),
     CastformRainy(0, "Water"),
     CastformSnowy(0, "Ice"),
@@ -857,7 +857,8 @@ public enum EnumPokemonList
     GrimerAlolan(0, "Poison, Dark"),
     MukAlolan(0, "Poison, Dark"),
     ExeggutorAlolan(0, "Grass, Dragon"),
-    MarowakAlolan(0, "Fire, Ghost");
+    MarowakAlolan(0, "Fire, Ghost"),
+    ;
 
     // Set up some variables for the Pokémon check.
     public int index;

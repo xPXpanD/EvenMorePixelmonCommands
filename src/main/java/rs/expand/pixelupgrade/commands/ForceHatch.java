@@ -23,160 +23,196 @@ public class ForceHatch implements CommandExecutor
     // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
 
+    // Set up a console-checking variable for internal use.
+    private boolean runningFromConsole;
+
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
+    // If we're running from console, we need to swallow everything to avoid cluttering it.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.printFormattedMessage("ForceHatch", debugNum, inputString); }
+    {
+        if (!runningFromConsole)
+            CommonMethods.printDebugMessage("ForceHatch", debugNum, inputString);
+    }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
     {
-        if (src instanceof Player)
-        {
-            if (commandAlias == null)
-            {
-                printToLog(0, "Could not read node \"§4commandAlias§c\".");
-                printToLog(0, "This command's config could not be parsed. Exiting.");
-                src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please check the file."));
-            }
-            else
-            {
-                Player player = (Player) src;
-                Optional<Player> target = player.getPlayer();
-                String targetString;
-                boolean targetAcquired = false, canContinue = false;
-                int slot = 0;
+        // Are we running from the console? Let's tell our code that. If "src" is not a Player, this becomes true.
+        runningFromConsole = !(src instanceof Player);
 
+        if (commandAlias == null)
+        {
+            printToLog(0, "Could not read node \"§4commandAlias§c\".");
+            printToLog(0, "This command's config could not be parsed. Exiting.");
+            src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please check the file."));
+        }
+        else
+        {
+            if (runningFromConsole)
+                CommonMethods.printDebugMessage("ForceHatch", 1,
+                        "Called by console, starting. Omitting debug messages for clarity.");
+            else
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
-                if (args.<String>getOne("target or slot").isPresent())
+            int slot = 0;
+            String targetString = null, slotString;
+            boolean targetAcquired = false, canContinue = false;
+            Player target;
+
+            // Is the first argument present?
+            if (args.<String>getOne("target or slot").isPresent())
+            {
+                printToLog(2, "There's something in the first argument slot!");
+                targetString = args.<String>getOne("target or slot").get();
+
+                // Is the first argument numeric, and does it look like a slot?
+                if (targetString.matches("^[1-6]"))
                 {
-                    targetString = args.<String>getOne("target or slot").get();
-                    target = Sponge.getServer().getPlayer(targetString);
-                    if (!args.<String>getOne("slot").isPresent())
+                    if (!runningFromConsole)
                     {
-                        if (targetString.matches("^[1-6]"))
-                        {
-                            printToLog(2, "Found a slot in argument 1. Skipping everything else.");
-                            slot = Integer.parseInt(targetString);
-                            canContinue = true;
-                        }
-                        else
-                        {
-                            if (target.isPresent())
-                            {
-                                printToLog(1, "Found a target, but no slot was provided. Exit.");
-                                src.sendMessage(Text.of("§4Error: §cFound a target, but no slot was provided."));
-                            }
-                            else if (targetString.matches("\\d+"))
-                            {
-                                printToLog(1, "First argument was numeric, but not valid. Exit.");
-                                src.sendMessage(Text.of("§4Error: §cSlot value out of bounds! Valid values are 1-6."));
-                            }
-                            else
-                            {
-                                printToLog(1, "Target does not exist, or is offline. Exit.");
-                                src.sendMessage(Text.of("§4Error: §cYour target does not exist, or is offline."));
-                            }
-
-                            printCorrectPerm(player);
-                        }
+                        printToLog(2, "Found a slot in argument 1. Continuing to confirmation checks.");
+                        slot = Integer.parseInt(targetString);
+                        canContinue = true;
                     }
-                    else if (!target.isPresent())
+                    else // Console needs a target.
                     {
-                        printToLog(1, "Provided target does not seem to be present. Exit.");
-
-                        src.sendMessage(Text.of("§4Error: §cYour target does not exist, or is offline."));
-                        printCorrectPerm(player);
-                    }
-                    else
-                    {
-                        String slotString = args.<String>getOne("slot").get();
-
-                        if (slotString.matches("\\d+"))
-                        {
-                            slot = Integer.parseInt(args.<String>getOne("slot").get());
-
-                            if (!(slot < 7 && slot > 0))
-                            {
-                                printToLog(1, "Second argument was numeric, but not a valid slot. Exit.");
-
-                                src.sendMessage(Text.of("§4Error: §cSlot value out of bounds. Valid values are 1-6."));
-                                printCorrectPerm(player);
-                            }
-                            else
-                            {
-                                printToLog(2, "Provided target exists and is online! Target logic is go.");
-                                targetAcquired = true;
-                                canContinue = true;
-                            }
-                        }
-                        else
-                        {
-                            printToLog(1, "Slot value was not an integer. Exit.");
-
-                            src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
-                            printCorrectPerm(player);
-                        }
+                        src.sendMessage(Text.of("§4Error: §cInvalid target. See below."));
+                        printSyntaxHelper(src, true);
                     }
                 }
                 else
                 {
-                    printToLog(1, "No arguments provided. Exit.");
-
-                    src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide at least a slot."));
-                    printCorrectPerm(player);
-                }
-
-                if (canContinue)
-                {
-                    printToLog(2, "No error encountered, input should be valid. Continuing!");
-
-                    Optional<PlayerStorage> storage;
-                    if (targetAcquired)
-                        storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) target.get()));
-                    else
-                        storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) player));
-
-                    if (!storage.isPresent())
+                    // Is our target an actual online player?
+                    if (Sponge.getServer().getPlayer(targetString).isPresent())
                     {
-                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. May be a bug?");
-                        src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
+                        // If we're not running from console, check if the player targeted themself.
+                        if (runningFromConsole || !src.getName().equalsIgnoreCase(targetString))
+                        {
+                            target = Sponge.getServer().getPlayer(targetString).get();
+                            printToLog(2, "Found a valid online target! Printed for your convenience: §2" +
+                                    target.getName());
+                            targetAcquired = true;
+                        }
+                        else
+                            printToLog(2, "Player targeted own name. Let's pretend that didn't happen.");
+
+                        canContinue = true;
                     }
                     else
                     {
-                        PlayerStorage storageCompleted = storage.get();
-                        NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
+                        printToLog(1, "Invalid first argument, input has numbers. Throwing generic error. Exit.");
 
-                        if (nbt == null)
-                        {
-                            printToLog(1, "No Pokémon was found in the provided slot. Abort, abort!");
-                            src.sendMessage(Text.of("§4Error: §cThere's nothing in that slot!"));
-                        }
-                        else if (!nbt.getBoolean("isEgg"))
-                        {
-                            printToLog(1, "Tried to hatch an actual Pokémon. Since that's too brutal, let's exit.");
-                            src.sendMessage(Text.of("§4Error: §cThat's not an egg. Don't hatch actual Pokémon, kids!"));
-                        }
+                        if (runningFromConsole)
+                            src.sendMessage(Text.of("§4Error: §cInvalid target. See below."));
                         else
-                        {
-                            printToLog(1, "Passed all checks, hatching us an egg!");
+                            src.sendMessage(Text.of("§4Error: §cInvalid target or slot provided. See below."));
 
-                            nbt.setBoolean("isEgg", false);
-                            storageCompleted.changePokemonAndAssignID(slot - 1, nbt);
-                            src.sendMessage(Text.of("§eCongratulations, it's a healthy baby §6" + nbt.getString("Name") + "§e!"));
-                        }
+                        printSyntaxHelper(src, runningFromConsole);
+                    }
+                }
+            }
+            else
+            {
+                printToLog(1, "No arguments provided. Exit.");
+
+                if (runningFromConsole)
+                    src.sendMessage(Text.of("§4Error: §cNo parameters found. See below."));
+                else
+                    src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide at least a slot."));
+
+                printSyntaxHelper(src, runningFromConsole);
+            }
+
+            if (!runningFromConsole)
+            {
+                printToLog(2, "We're not running from console, moving on to secondary checks.");
+
+                if (canContinue && args.<String>getOne("slot").isPresent())
+                {
+                    printToLog(2, "There's something in the second argument slot! Checking.");
+                    slotString = args.<String>getOne("slot").get();
+
+                    if (slotString.matches("^[1-6]"))
+                    {
+                        printToLog(2, "Found a slot in argument 2.");
+                        slot = Integer.parseInt(slotString);
+
+                        canContinue = true;
+                    }
+                    else
+                    {
+                        printToLog(1, "Second argument is not a slot. Exit.");
+
+                        src.sendMessage(Text.of("§4Error: §cInvalid slot provided. See below."));
+                        printSyntaxHelper(src, false);
+                    }
+                }
+                else if (canContinue)
+                {
+                    printToLog(1, "Failed final check, no slot was found. Exit.");
+
+                    src.sendMessage(Text.of("§4Error: §cCould not find a valid slot. See below."));
+                    printSyntaxHelper(src, false);
+                }
+            }
+
+            if (canContinue)
+            {
+                printToLog(2, "No errors encountered, input should be valid. Continuing!");
+
+                Optional<PlayerStorage> storage;
+                if (targetAcquired)
+                {
+                    target = Sponge.getServer().getPlayer(targetString).get();
+                    storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) target));
+                }
+                else
+                    storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
+
+                if (!storage.isPresent())
+                {
+                    printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. May be a bug?");
+                    src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
+                }
+                else
+                {
+                    printToLog(2, "Found a Pixelmon storage, moving on.");
+
+                    PlayerStorage storageCompleted = storage.get();
+                    NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
+
+                    if (nbt == null)
+                    {
+                        printToLog(1, "No Pokémon was found in the provided slot. Abort, abort!");
+                        src.sendMessage(Text.of("§4Error: §cThere's nothing in that slot!"));
+                    }
+                    else if (!nbt.getBoolean("isEgg"))
+                    {
+                        printToLog(1, "Tried to hatch an actual Pokémon. Since that's too brutal, let's exit.");
+                        src.sendMessage(Text.of("§4Error: §cThat's not an egg. Don't hatch actual Pokémon, kids!"));
+                    }
+                    else
+                    {
+                        printToLog(1, "Passed all checks, hatching us an egg!");
+
+                        nbt.setBoolean("isEgg", false);
+                        storageCompleted.changePokemonAndAssignID(slot - 1, nbt);
+
+                        src.sendMessage(Text.of("§aCongratulations, it's a healthy baby §2" + nbt.getString("Name") + "§a!"));
                     }
                 }
             }
         }
-        else
-            printToLog(0,"This command cannot run from the console or command blocks.");
 
         return CommandResult.success();
     }
 
-    private void printCorrectPerm(Player player)
+    // Might look a bit odd, but done this way so we only have to edit one message if this ever changes.
+    private void printSyntaxHelper(CommandSource src, boolean isConsole)
     {
-        player.sendMessage(Text.of("§4Usage: §c" + commandAlias + " [optional target] <slot, 1-6>"));
+        if (isConsole)
+            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <target> <slot, 1-6>"));
+        else
+            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [optional target] <slot, 1-6>"));
     }
 }

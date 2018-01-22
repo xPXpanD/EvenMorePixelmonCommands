@@ -4,7 +4,6 @@ package rs.expand.pixelupgrade.commands;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import com.pixelmonmod.pixelmon.config.PixelmonEntityList;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import com.pixelmonmod.pixelmon.storage.NbtKeys;
@@ -34,15 +33,12 @@ public class CheckEgg implements CommandExecutor
     // Initialize some variables. We'll load stuff into these when we call the config loader.
     // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
-    public static Boolean showName;
-    public static Boolean explicitReveal;
-    public static Integer babyHintPercentage;
-    public static Integer commandCost;
-    public static Boolean recheckIsFree;
+    public static Boolean showName, explicitReveal, recheckIsFree;
+    public static Integer babyHintPercentage, commandCost;
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.printFormattedMessage("CheckEgg", debugNum, inputString); }
+    { CommonMethods.printDebugMessage("CheckEgg", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -79,21 +75,14 @@ public class CheckEgg implements CommandExecutor
             if (shortenedSpeed == null)
                 mainConfigErrorArray.add("shortenedSpeed");
 
-            src.sendMessage(Text.of("commandAlias is: " + commandAlias));
-            src.sendMessage(Text.of("showName is: " + showName));
-            src.sendMessage(Text.of("explicitReveal is: " + explicitReveal));
-            src.sendMessage(Text.of("babyHintPercentage is: " + babyHintPercentage));
-            src.sendMessage(Text.of("commandCost is: " + commandCost));
-            src.sendMessage(Text.of("recheckIsFree is: " + recheckIsFree));
-
             if (!nativeErrorArray.isEmpty())
             {
-                CommonMethods.printNodeError("CheckEgg", nativeErrorArray, 1);
+                CommonMethods.printCommandNodeError("CheckEgg", nativeErrorArray);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else if (!mainConfigErrorArray.isEmpty())
             {
-                CommonMethods.printNodeError("PixelUpgrade", mainConfigErrorArray, 0);
+                CommonMethods.printMainNodeError("PixelUpgrade", mainConfigErrorArray);
                 src.sendMessage(Text.of("§4Error: §cCould not parse main config. Please report to staff."));
             }
             else
@@ -101,142 +90,54 @@ public class CheckEgg implements CommandExecutor
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 int slot = 0;
-                String targetString = null, slotString;
-                boolean targetAcquired = false, commandConfirmed = false, canContinue = false, hasOtherPerm = false;
-                Player player = (Player) src, target = player;
+                boolean commandConfirmed = false, canContinue = true;
+                Player player = (Player) src;
 
-                if (src.hasPermission("pixelupgrade.command.other.checkegg"))
-                    hasOtherPerm = true;
-
-                if (args.<String>getOne("target or slot").isPresent())
+                if (!args.<String>getOne("slot").isPresent())
                 {
-                    // Check whether we have a confirmation flag.
-                    if (!args.<String>getOne("target or slot").get().equalsIgnoreCase("-c"))
-                    {
-                        printToLog(2, "There's something in the first argument slot!");
-                        targetString = args.<String>getOne("target or slot").get();
+                    printToLog(1, "No arguments provided. Exit.");
 
-                        if (targetString.matches("^[1-6]"))
-                        {
-                            printToLog(2, "Found slot in argument 1. Continuing to confirmation checks.");
-                            slot = Integer.parseInt(targetString);
-                            canContinue = true;
-                        }
-                        else if (hasOtherPerm)
-                        {
-                            if (Sponge.getServer().getPlayer(targetString).isPresent())
-                            {
-                                if (!player.getName().equalsIgnoreCase(targetString))
-                                {
-                                    target = Sponge.getServer().getPlayer(targetString).get();
-                                    printToLog(2, "Found a valid online target! Printed for your convenience: " + target.getName());
-                                    targetAcquired = true;
-                                }
-                                else
-                                    printToLog(2, "Player targeted own name. Let's pretend that didn't happen.");
+                    if (commandCost > 0)
+                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
 
-                                canContinue = true;
-                            }
-                            else if (Pattern.matches("[a-zA-Z]+", targetString)) // Make an assumption; input is non-numeric so probably not a slot.
-                            {
-                                printToLog(1, "Invalid first argument. Input not numeric, assuming misspelled name. Exit.");
+                    src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
+                    printSyntaxHelper(src);
+                    CommonMethods.checkAndAddFooter(commandCost, src);
 
-                                checkAndAddHeader(commandCost, player);
-                                src.sendMessage(Text.of("§4Error: §cCould not find the given target. Check your spelling."));
-                                printCorrectPerm(commandCost, player);
-                                checkAndAddFooter(commandCost, player);
-                            }
-                            else  // Throw a "safe" error, works for missing slots AND targets. Bit messy, hence the pattern check above.
-                            {
-                                printToLog(1, "Invalid first argument, input has numbers. Throwing generic error. Exit.");
-                                throwArg1Error(commandCost, true, player);
-                            }
-                        }
-                        else
-                        {
-                            printToLog(1, "Invalid slot provided, and player has no \"§3other§b\" perm. Exit.");
-                            throwArg1Error(commandCost, false, player);
-                        }
-                    }
+                    canContinue = false;
                 }
                 else
                 {
-                    printToLog(1, "No arguments found. Exit.");
+                    String slotString = args.<String>getOne("slot").get();
 
-                    checkAndAddHeader(commandCost, player);
-                    src.sendMessage(Text.of("§4Error: §cNo arguments found. Please provide at least a slot."));
-                    printCorrectPerm(commandCost, player);
-                    checkAndAddFooter(commandCost, player);
-
-                    canContinue = false;
-                }
-
-                if (args.<String>getOne("slot").isPresent() && canContinue)
-                {
-                    String confirmString = args.<String>getOne("slot").get();
-                    if (confirmString.equalsIgnoreCase("-c"))
+                    if (slotString.matches("^[1-6]"))
                     {
-                        printToLog(2, "Got a confirmation flag on argument 2!");
-                        commandConfirmed = true;
+                        printToLog(2, "Slot was a valid slot number. Let's move on!");
+                        slot = Integer.parseInt(args.<String>getOne("slot").get());
                     }
-                    else if (hasOtherPerm)
+                    else
                     {
-                        printToLog(2, "Found something in second argument slot, and we're clear to use it!");
-                        slotString = args.<String>getOne("slot").get();
+                        printToLog(1, "Invalid slot provided. Exit.");
 
-                        if (slotString.matches("^[1-6]"))
-                        {
-                            printToLog(2, "Found a slot in argument 2.");
-                            slot = Integer.parseInt(slotString);
-                        }
-                        else
-                        {
-                            printToLog(1, "Argument is not a slot or a confirmation flag. Exit.");
+                        if (commandCost > 0)
+                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
 
-                            checkAndAddHeader(commandCost, player);
-                            if (commandCost > 0)
-                                player.sendMessage(Text.of("§4Error: §cInvalid slot or flag on second argument. See below."));
-                            else
-                                player.sendMessage(Text.of("§4Error: §cInvalid slot provided. See below."));
-                            printCorrectPerm(commandCost, player);
-                            checkAndAddFooter(commandCost, player);
+                        src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
+                        printSyntaxHelper(src);
+                        CommonMethods.checkAndAddFooter(commandCost, src);
 
-                            canContinue = false;
-                        }
+                        canContinue = false;
                     }
                 }
 
-                if (args.<String>getOne("confirmation").isPresent() && hasOtherPerm && canContinue)
-                {
-                    String confirmString = args.<String>getOne("confirmation").get();
-                    if (confirmString.equalsIgnoreCase("-c"))
-                    {
-                        printToLog(2, "Got a confirmation flag on argument 3!");
-                        commandConfirmed = true;
-                    }
-                }
-
-                if (slot == 0 && canContinue)
-                {
-                    printToLog(1, "Failed final check, no slot was found. Exit.");
-
-                    checkAndAddHeader(commandCost, player);
-                    player.sendMessage(Text.of("§4Error: §cCould not find a valid slot. See below."));
-                    printCorrectPerm(commandCost, player);
-                    checkAndAddFooter(commandCost, player);
-
-                    canContinue = false;
-                }
+                if (args.hasAny("c"))
+                    commandConfirmed = true;
 
                 if (canContinue)
                 {
-                    printToLog(2, "No error encountered, input should be valid. Continuing!");
+                    printToLog(2, "No errors encountered, input should be valid. Continuing!");
 
-                    Optional<PlayerStorage> storage;
-                    if (targetAcquired)
-                        storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) target));
-                    else
-                        storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
+                    Optional<PlayerStorage> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
                     if (!storage.isPresent())
                     {
@@ -245,14 +146,14 @@ public class CheckEgg implements CommandExecutor
                     }
                     else
                     {
-                        printToLog(2, "Found a Pixelmon storage on the player. Moving along.");
+                        printToLog(2, "Found a Pixelmon storage, moving on.");
 
                         PlayerStorage storageCompleted = storage.get();
                         NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
 
                         if (nbt == null || !nbt.getBoolean("isEgg"))
                         {
-                            printToLog(1, "Could not find an egg in the provided slot, or no Pokémon was found. Exit.");
+                            printToLog(1, "Provided slot was not an egg, or a proper Pokémon. Exit.");
                             src.sendMessage(Text.of("§4Error: §cCould not find an egg in the provided slot."));
                         }
                         else
@@ -264,15 +165,19 @@ public class CheckEgg implements CommandExecutor
 
                             if (commandCost == 0 || wasEggChecked && recheckIsFree)
                             {
-                                printEggResults(nbt, pokemon, wasEggChecked, commandCost, player);
+                                printEggResults(nbt, pokemon, wasEggChecked, src);
 
                                 // Keep this below the printEggResults call, or your debug message order will look weird.
                                 if (commandCost == 0)
+                                {
                                     printToLog(1, "Checking egg in slot §3" + slot +
                                             "§b. Config price is §30§b, taking nothing.");
+                                }
                                 else
+                                {
                                     printToLog(1, "Checking egg, slot §3" + slot +
                                             "§b. Detected a recheck, taking nothing as per config.");
+                                }
                             }
                             else
                             {
@@ -290,7 +195,7 @@ public class CheckEgg implements CommandExecutor
 
                                         if (transactionResult.getResult() == ResultType.SUCCESS)
                                         {
-                                            printEggResults(nbt, pokemon, wasEggChecked, commandCost, player);
+                                            printEggResults(nbt, pokemon, wasEggChecked, src);
 
                                             // Keep this below the printEggResults call, or your debug message order will look weird.
                                             printToLog(1, "Checking egg in slot §3" + slot +
@@ -316,21 +221,9 @@ public class CheckEgg implements CommandExecutor
                                 {
                                     printToLog(1, "Showed cost, no confirmation was provided. Exit.");
 
-                                    if (targetAcquired)
-                                    {
-                                        slot = Integer.parseInt(args.<String>getOne("slot").get());
-                                        src.sendMessage(Text.of("§6Warning: §eChecking this egg's status costs §6" +
-                                                costToConfirm + "§e coins."));
-                                        src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " +
-                                                targetString + " " + slot + " -c"));
-                                    }
-                                    else
-                                    {
-                                        src.sendMessage(Text.of("§6Warning: §eChecking an egg's status costs §6" +
-                                                costToConfirm + "§e coins."));
-                                        src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " +
-                                                slot + " -c"));
-                                    }
+                                    src.sendMessage(Text.of("§6Warning: §eChecking an egg's status costs §6" +
+                                            costToConfirm + "§e coins."));
+                                    src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
                                 }
                             }
                         }
@@ -344,55 +237,15 @@ public class CheckEgg implements CommandExecutor
         return CommandResult.success();
     }
 
-    private void checkAndAddHeader(int cost, Player player)
+    private void printSyntaxHelper(CommandSource src)
     {
-        if (cost > 0)
-            player.sendMessage(Text.of("§5-----------------------------------------------------"));
-    }
-
-    private void checkAndAddFooter(int cost, Player player)
-    {
-        if (cost != 0)
-        {
-            player.sendMessage(Text.of(""));
-            player.sendMessage(Text.of("§6Warning: §eAdd -c only if you're sure! Confirming costs §6" + cost + "§e coins."));
-            player.sendMessage(Text.of("§5-----------------------------------------------------"));
-        }
-    }
-
-    // Called when it's necessary to figure out the right perm message, or when it's just convenient. Saves typing!
-    private void printCorrectPerm(int cost, Player player)
-    {
-        if (cost != 0)
-        {
-            if (player.hasPermission("pixelupgrade.command.other.checkegg"))
-                player.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [optional target] <slot, 1-6> {-c to confirm}"));
-            else
-                player.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot> {-c to confirm} §7(no perms for target)"));
-        }
+        if (commandCost != 0)
+            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot> {-c to confirm}"));
         else
-        {
-            if (player.hasPermission("pixelupgrade.command.other.checkegg"))
-                player.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [optional target] <slot, 1-6>"));
-            else
-                player.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot> §7(no perms for target)"));
-        }
+            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot>"));
     }
 
-    private void throwArg1Error(int cost, boolean hasOtherPerm, Player player)
-    {
-        checkAndAddHeader(cost, player);
-        if (hasOtherPerm)
-            player.sendMessage(Text.of("§4Error: §cInvalid target or slot on first argument. See below."));
-        else if (cost > 0)
-            player.sendMessage(Text.of("§4Error: §cInvalid slot provided on first argument. See below."));
-        else
-            player.sendMessage(Text.of("§4Error: §cInvalid slot provided. See below."));
-        printCorrectPerm(cost, player);
-        checkAndAddFooter(cost, player);
-    }
-
-    private void printEggResults(NBTTagCompound nbt, EntityPixelmon pokemon, boolean wasEggChecked, int cost, Player player)
+    private void printEggResults(NBTTagCompound nbt, EntityPixelmon pokemon, boolean wasEggChecked, CommandSource src)
     {
         printToLog(2, "We have entered the executing method. Checking stats now!");
 
@@ -407,12 +260,12 @@ public class CheckEgg implements CommandExecutor
         int percentIVs = totalIVs * 100 / 186;
         boolean isShiny = nbt.getInteger(NbtKeys.IS_SHINY) == 1;
 
-        player.sendMessage(Text.of("§7-----------------------------------------------------"));
+        src.sendMessage(Text.of("§7-----------------------------------------------------"));
         if (showName)
         {
-            player.sendMessage(Text.of("§eThere's a healthy §6" + nbt.getString("Name") + "§e inside of this egg!"));
+            src.sendMessage(Text.of("§eThere's a healthy §6" + nbt.getString("Name") + "§e inside of this egg!"));
             if (explicitReveal)
-                player.sendMessage(Text.of(""));
+                src.sendMessage(Text.of(""));
         }
 
         if (explicitReveal)
@@ -451,8 +304,8 @@ public class CheckEgg implements CommandExecutor
             else
                 ivs6 = String.valueOf("§l" + speedIV + " §2" + shortenedSpeed + "");
 
-            player.sendMessage(Text.of("§bTotal IVs§f: §a" + totalIVs + "§f/§a186§f (§a" + percentIVs + "%§f)"));
-            player.sendMessage(Text.of("§bIVs§f: §a" + ivs1 + "" + ivs2 + "" + ivs3 + "" + ivs4 + "" + ivs5 + "" + ivs6));
+            src.sendMessage(Text.of("§bTotal IVs§f: §a" + totalIVs + "§f/§a186§f (§a" + percentIVs + "%§f)"));
+            src.sendMessage(Text.of("§bIVs§f: §a" + ivs1 + "" + ivs2 + "" + ivs3 + "" + ivs4 + "" + ivs5 + "" + ivs6));
 
             // Get a bunch of data from our GetPokemonInfo utility class.
             ArrayList<String> natureArray = GetPokemonInfo.getNatureStrings(nbt.getInteger(NbtKeys.NATURE));
@@ -467,42 +320,51 @@ public class CheckEgg implements CommandExecutor
                     "§f | §bSize§f: " + growthName + "§f | ");
             String extraInfo2 = String.valueOf("§bNature§f: " + natureName +
                     "§f (§a" + plusVal + "§f/§c" + minusVal + "§f)");
-            player.sendMessage(Text.of(extraInfo1 + extraInfo2));
+            src.sendMessage(Text.of(extraInfo1 + extraInfo2));
 
             // Lucky!
             if (isShiny)
             {
-                player.sendMessage(Text.of(""));
-                player.sendMessage(Text.of("§6§lCongratulations! §r§eThis baby is shiny!"));
+                src.sendMessage(Text.of(""));
+                src.sendMessage(Text.of("§6§lCongratulations! §r§eThis baby is shiny!"));
             }
         }
         else
         {
             printToLog(2, "Explicit reveal disabled, printing vague status.");
 
+            int sanitizedBabyHintPercentage = babyHintPercentage;
+            if (babyHintPercentage > 100)
+                sanitizedBabyHintPercentage = 100;
+            //else if (babyHintPercentage < 0)
+            //sanitizedBabyHintPercentage = 0;
+
             // Figure out whether the baby is anything special. Uses a config-set percentage for stat checks.
-            if (percentIVs >= babyHintPercentage && nbt.getInteger(NbtKeys.IS_SHINY) != 1)
-                player.sendMessage(Text.of("§6What's this? §eThis baby seems to be bursting with energy!"));
-            else if (!(percentIVs >= babyHintPercentage) && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
-                player.sendMessage(Text.of("§6What's this? §eThis baby seems to have an odd sheen to it!"));
-            else if (percentIVs >= babyHintPercentage && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
-                player.sendMessage(Text.of("§6What's this? §eSomething about this baby seems real special!"));
+            if (percentIVs >= sanitizedBabyHintPercentage && nbt.getInteger(NbtKeys.IS_SHINY) != 1)
+                src.sendMessage(Text.of("§6What's this? §eThis baby seems to be bursting with energy!"));
+            else if (!(percentIVs >= sanitizedBabyHintPercentage) && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
+                src.sendMessage(Text.of("§6What's this? §eThis baby seems to have an odd sheen to it!"));
+            else if (percentIVs >= sanitizedBabyHintPercentage && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
+                src.sendMessage(Text.of("§6What's this? §eSomething about this baby seems real special!"));
             else
-                player.sendMessage(Text.of("§eThis baby seems to be fairly ordinary..."));
+                src.sendMessage(Text.of("§eThis baby seems to be fairly ordinary..."));
         }
 
-        if (wasEggChecked && recheckIsFree)
+        if (commandCost > 0 && recheckIsFree)
         {
-            if (!isShiny || !explicitReveal)
-                player.sendMessage(Text.of(""));
-            player.sendMessage(Text.of("§dThis egg has been checked before, so this check was free!"));
-        }
-        else if (!wasEggChecked && recheckIsFree && cost > 0)
-        {
-            printToLog(2, "First-time check, recheckIsFree enabled. Flagging egg for free rechecks.");
-            pokemon.getEntityData().setBoolean("hadEggChecked", true);
+            if (wasEggChecked)
+            {
+                if (!isShiny || !explicitReveal)
+                    src.sendMessage(Text.of(""));
+                src.sendMessage(Text.of("§dThis egg has been checked before, so this check was free!"));
+            }
+            else
+            {
+                printToLog(2, "First-time check, recheckIsFree enabled. Flagging egg for free rechecks.");
+                pokemon.getEntityData().setBoolean("hadEggChecked", true);
+            }
         }
 
-        player.sendMessage(Text.of("§7-----------------------------------------------------"));
+        src.sendMessage(Text.of("§7-----------------------------------------------------"));
     }
 }

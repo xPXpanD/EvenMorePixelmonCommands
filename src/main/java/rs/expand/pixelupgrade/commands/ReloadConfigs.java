@@ -13,24 +13,24 @@ import org.spongepowered.api.text.Text;
 
 // Local imports.
 import rs.expand.pixelupgrade.utilities.ConfigOperations;
-import static rs.expand.pixelupgrade.utilities.CommonMethods.printUnformattedMessage;
+import static rs.expand.pixelupgrade.utilities.CommonMethods.printBasicMessage;
 
-// Note: printUnformattedMessage is a static import for a function from CommonMethods, for convenience.
+// Note: printBasicMessage is a static import for a function from CommonMethods, for convenience.
 public class ReloadConfigs implements CommandExecutor
 {
     // Formats the first of the messages shown to the player, and loads a config while at it.
     private void printHeaderAndCheckFolder(CommandSource src, boolean loadingEverything)
     {
-        printUnformattedMessage("===========================================================================");
+        printBasicMessage("===========================================================================");
         if (src instanceof Player)
-            printUnformattedMessage("--> §aPixelUpgrade config reload called by player §2" + src.getName() + "§a.");
+            printBasicMessage("--> §aPixelUpgrade config reload called by player §2" + src.getName() + "§a.");
 
         ConfigOperations.checkConfigDir();
 
         if (loadingEverything)
-            printUnformattedMessage("--> §aStarting a (re-)load of all configuration files...");
+            printBasicMessage("--> §aStarting a (re-)load of all configuration files...");
         else
-            printUnformattedMessage("--> §aStarting a command-specific reload...");
+            printBasicMessage("--> §aStarting a command-specific reload...");
     }
 
     private boolean reloadMappings()
@@ -64,10 +64,11 @@ public class ReloadConfigs implements CommandExecutor
                 ConfigOperations.loadConfig("PixelUpgrade");
                 ConfigOperations.loadAllCommandConfigs();
                 ConfigOperations.printCommandsAndAliases();
+                printBasicMessage("--> §aRe-registering commands and known aliases with Sponge...");
                 successfulInit = reloadMappings();
 
                 if (successfulInit)
-                    printUnformattedMessage("--> §aLoaded command settings. All done!");
+                    printBasicMessage("--> §aLoaded command settings. All done!");
             }
             else
             {
@@ -158,6 +159,14 @@ public class ReloadConfigs implements CommandExecutor
                                 PixelUpgradeInfo.commandAlias + "§a.";
                         break;
                     }
+                    case "POKECURE":
+                    {
+                        printHeaderAndCheckFolder(src, false);
+                        oldAlias = PokeCure.commandAlias;
+                        newAlias = ConfigOperations.loadConfig("PokeCure");
+                        returnString = "--> §aLoaded config for command §2/pokecure§a, alias §2/" + PokeCure.commandAlias + "§a.";
+                        break;
+                    }
                     case "RESETCOUNT":
                     {
                         printHeaderAndCheckFolder(src, false);
@@ -182,7 +191,7 @@ public class ReloadConfigs implements CommandExecutor
                         returnString = "--> §aLoaded config for command §2/showstats§a, alias §2/" + ShowStats.commandAlias + "§a.";
                         break;
                     }
-                    case "SPAWNDEX": // TODO: Craft the mess below into a functional alias reload.
+                    case "SPAWNDEX":
                     {
                         printHeaderAndCheckFolder(src, false);
                         oldAlias = SpawnDex.commandAlias;
@@ -212,18 +221,12 @@ public class ReloadConfigs implements CommandExecutor
 
                 if (!gotConfigError)
                 {
-                    printUnformattedMessage(returnString);
-
-                    src.sendMessage(Text.of("oldAlias: " + oldAlias));
-                    src.sendMessage(Text.of("newAlias: " + newAlias));
+                    printBasicMessage(returnString);
 
                     if (newAlias != null && !newAlias.equals(oldAlias))
-                    {
-                        printUnformattedMessage("--> §aDetected a changed alias, re-registering PU commands.");
-
-                    }
+                        printBasicMessage("--> §aDetected a changed alias, re-registering PU commands.");
                     else if (newAlias != null)
-                        printUnformattedMessage("--> §aAlias was unchanged, skipping command re-registration.");
+                        printBasicMessage("--> §aAlias was unchanged, skipping command re-registration.");
                 }
             }
         }
@@ -253,7 +256,7 @@ public class ReloadConfigs implements CommandExecutor
             }
             else
             {
-                printUnformattedMessage("===========================================================================");
+                printBasicMessage("===========================================================================");
 
                 if (args.<String>getOne("config").isPresent())
                     src.sendMessage(Text.of("§cInvalid config provided. See below for valid configs."));
@@ -268,7 +271,7 @@ public class ReloadConfigs implements CommandExecutor
                 src.sendMessage(Text.of("§6Commands: §eSwitchGender, UpgradeIVs"));
                 src.sendMessage(Text.of("§6Other: §eAll (reloads ALL configs), Main (reloads global config)"));
 
-                printUnformattedMessage("===========================================================================");
+                printBasicMessage("===========================================================================");
             }
         }
         else
@@ -281,7 +284,7 @@ public class ReloadConfigs implements CommandExecutor
                 src.sendMessage(Text.of("§7-----------------------------------------------------"));
             }
 
-            printUnformattedMessage("===========================================================================");
+            printBasicMessage("===========================================================================");
         }
 
         return CommandResult.success();

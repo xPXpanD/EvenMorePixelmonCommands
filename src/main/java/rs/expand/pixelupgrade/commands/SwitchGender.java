@@ -35,7 +35,7 @@ public class SwitchGender implements CommandExecutor
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.printFormattedMessage("SwitchGender", debugNum, inputString); }
+    { CommonMethods.printDebugMessage("SwitchGender", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -51,7 +51,7 @@ public class SwitchGender implements CommandExecutor
 
             if (!nativeErrorArray.isEmpty())
             {
-                CommonMethods.printNodeError("SwitchGender", nativeErrorArray, 1);
+                CommonMethods.printCommandNodeError("SwitchGender", nativeErrorArray);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else
@@ -66,9 +66,9 @@ public class SwitchGender implements CommandExecutor
                 {
                     printToLog(1, "No arguments provided. Exit.");
 
-                    player.sendMessage(Text.of("§5-----------------------------------------------------"));
+                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
-                    checkAndAddFooter(commandCost, player);
+                    addHelperAndFooter(src);
 
                     canContinue = false;
                 }
@@ -85,9 +85,9 @@ public class SwitchGender implements CommandExecutor
                     {
                         printToLog(1, "Invalid slot provided. Exit.");
 
-                        player.sendMessage(Text.of("§5-----------------------------------------------------"));
+                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
-                        checkAndAddFooter(commandCost, player);
+                        addHelperAndFooter(src);
 
                         canContinue = false;
                     }
@@ -98,7 +98,7 @@ public class SwitchGender implements CommandExecutor
 
                 if (canContinue)
                 {
-                    printToLog(2, "No error encountered, input should be valid. Continuing!");
+                    printToLog(2, "No errors encountered, input should be valid. Continuing!");
                     Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
                     if (!storage.isPresent())
@@ -148,7 +148,7 @@ public class SwitchGender implements CommandExecutor
                                         {
                                             printToLog(1, "Switched gender for slot §3" + slot +
                                                     "§b, and took §3" + costToConfirm + "§b coins.");
-                                            switchGenders(nbt, player, gender);
+                                            switchGenders(nbt, src, gender);
                                             storageCompleted.sendUpdatedList();
                                         }
                                         else
@@ -171,7 +171,7 @@ public class SwitchGender implements CommandExecutor
                                 {
                                     printToLog(1, "Switched gender for slot §3" + slot +
                                             "§b. Config price is §30§b, taking nothing.");
-                                    switchGenders(nbt, player, gender);
+                                    switchGenders(nbt, src, gender);
                                     storageCompleted.sendUpdatedList();
                                 }
                             }
@@ -197,7 +197,7 @@ public class SwitchGender implements CommandExecutor
         return CommandResult.success();
     }
 
-    private void switchGenders(NBTTagCompound nbt, Player player, int genderNum)
+    private void switchGenders(NBTTagCompound nbt, CommandSource src, int genderNum)
     {
         String pokemonName, genderName;
         if (nbt.getString("Nickname").equals(""))
@@ -215,16 +215,16 @@ public class SwitchGender implements CommandExecutor
                 genderName = "male"; break;
         }
 
-        player.sendMessage(Text.of("§aMagic! Your §2" + pokemonName + "§a just turned into a " + genderName + "!"));
+        src.sendMessage(Text.of("§aMagic! Your §2" + pokemonName + "§a just turned into a " + genderName + "!"));
     }
 
-    private void checkAndAddFooter(int cost, Player player)
+    private void addHelperAndFooter(CommandSource src)
     {
-        player.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <slot, 1-6> {-c to confirm}"));
-        player.sendMessage(Text.of(""));
-        player.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're sure!"));
-        if (cost > 0)
-            player.sendMessage(Text.of("§eConfirming will cost you §6" + cost + "§e coins."));
-        player.sendMessage(Text.of("§5-----------------------------------------------------"));
+        src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> {-c to confirm}"));
+        src.sendMessage(Text.of(""));
+        src.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're sure!"));
+        if (commandCost > 0)
+            src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coins."));
+        src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
 }

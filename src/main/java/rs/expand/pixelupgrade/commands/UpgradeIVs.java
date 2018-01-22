@@ -34,24 +34,13 @@ public class UpgradeIVs implements CommandExecutor
     // Initialize some variables. We'll load stuff into these when we call the config loader.
     // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
-    public static Integer legendaryAndShinyCap;
-    public static Integer legendaryCap;
-    public static Integer regularCap;
-    public static Integer shinyCap;
-    public static Integer babyCap;
-    public static Double mathMultiplier;
-    public static Integer fixedUpgradeCost;
-    public static Double legendaryAndShinyMult;
-    public static Double legendaryMult;
-    public static Double regularMult;
-    public static Double shinyMult;
-    public static Double babyMult;
-    public static Integer upgradesFreeBelow;
-    public static Integer addFlatFee;
+    public static Integer legendaryAndShinyCap, legendaryCap, regularCap, shinyCap, babyCap, fixedUpgradeCost;
+    public static Integer upgradesFreeBelow, addFlatFee;
+    public static Double mathMultiplier, legendaryAndShinyMult, legendaryMult, regularMult, shinyMult, babyMult;
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
-    { CommonMethods.printFormattedMessage("DittoFusion", debugNum, inputString); }
+    { CommonMethods.printDebugMessage("DittoFusion", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(CommandSource src, CommandContext args)
@@ -93,7 +82,7 @@ public class UpgradeIVs implements CommandExecutor
 
             if (!nativeErrorArray.isEmpty())
             {
-                CommonMethods.printNodeError("DittoFusion", nativeErrorArray, 1);
+                CommonMethods.printCommandNodeError("DittoFusion", nativeErrorArray);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else if (useBritishSpelling == null)
@@ -115,10 +104,9 @@ public class UpgradeIVs implements CommandExecutor
                 {
                     printToLog(1, "No parameters provided. Exit.");
 
-                    player.sendMessage(Text.of("§5-----------------------------------------------------"));
+                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
-                    printCorrectPerm(player);
-                    checkAndAddFooter(player);
+                    addHelperAndFooter(src);
 
                     canContinue = false;
                 }
@@ -135,10 +123,9 @@ public class UpgradeIVs implements CommandExecutor
                     {
                         printToLog(1, "Invalid slot provided. Exit.");
 
-                        player.sendMessage(Text.of("§5-----------------------------------------------------"));
+                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
-                        printCorrectPerm(player);
-                        checkAndAddFooter(player);
+                        addHelperAndFooter(src);
 
                         canContinue = false;
                     }
@@ -203,11 +190,9 @@ public class UpgradeIVs implements CommandExecutor
                     {
                         printToLog(1, "Got an invalid IV type, exit. Type was: §3" + stat);
 
-                        player.sendMessage(Text.of("§5-----------------------------------------------------"));
+                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid IV type \"§4" + stat + "§c\". See below."));
-                        printCorrectPerm(player);
-                        checkAndAddFooter(player);
-
+                        addHelperAndFooter(src);
                         canContinue = false;
                     }
                 }
@@ -215,10 +200,9 @@ public class UpgradeIVs implements CommandExecutor
                 {
                     printToLog(1, "No stat (IV type) provided. Exit.");
 
-                    player.sendMessage(Text.of("§5-----------------------------------------------------"));
+                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo IV type was provided. See below."));
-                    printCorrectPerm(player);
-                    checkAndAddFooter(player);
+                    addHelperAndFooter(src);
 
                     canContinue = false;
                 }
@@ -242,10 +226,9 @@ public class UpgradeIVs implements CommandExecutor
                     {
                         printToLog(1, "Quantity was not numeric and not a confirmation flag. Exit.");
 
-                        player.sendMessage(Text.of("§5-----------------------------------------------------"));
+                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cThe quantity (# of times) must be a positive number."));
-                        printCorrectPerm(player);
-                        checkAndAddFooter(player);
+                        addHelperAndFooter(src);
 
                         canContinue = false;
                     }
@@ -257,10 +240,9 @@ public class UpgradeIVs implements CommandExecutor
                         {
                             printToLog(1, "Quantity below 1. Exit.");
 
-                            player.sendMessage(Text.of("§5-----------------------------------------------------"));
+                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
                             src.sendMessage(Text.of("§4Error: §cInvalid # of times. Please enter a positive number."));
-                            printCorrectPerm(player);
-                            checkAndAddFooter(player);
+                            addHelperAndFooter(src);
 
                             canContinue = false;
                         }
@@ -496,12 +478,12 @@ public class UpgradeIVs implements CommandExecutor
                                         nbt.setInteger(fixedStat, nbt.getInteger(fixedStat) + upgradeTicker);
                                         pokemon.getEntityData().setInteger("upgradeCount", upgradeCount);
 
-                                        player.sendMessage(Text.of("§7-----------------------------------------------------"));
+                                        src.sendMessage(Text.of("§7-----------------------------------------------------"));
                                         if (singleUpgrade)
-                                            player.sendMessage(Text.of(upgradeString + "§e stat by §6one §epoint!"));
+                                            src.sendMessage(Text.of(upgradeString + "§e stat by §6one §epoint!"));
                                         else
-                                            player.sendMessage(Text.of(upgradeString + "§e stat by §6" + upgradeTicker + "§e points!"));
-                                        player.sendMessage(Text.of(""));
+                                            src.sendMessage(Text.of(upgradeString + "§e stat by §6" + upgradeTicker + "§e points!"));
+                                        src.sendMessage(Text.of(""));
 
                                         if (remainder == 1)
                                             src.sendMessage(Text.of("§aThis upgrade was free. You have §2one §aupgrade remaining..."));
@@ -509,7 +491,7 @@ public class UpgradeIVs implements CommandExecutor
                                             src.sendMessage(Text.of("§aThis upgrade was free. You have §2" + remainder + " §aupgrades remaining."));
                                         else
                                             src.sendMessage(Text.of("§aThis upgrade was free. This Pokémon is now at its limits."));
-                                        player.sendMessage(Text.of("§7-----------------------------------------------------"));
+                                        src.sendMessage(Text.of("§7-----------------------------------------------------"));
                                     }
                                     else
                                     {
@@ -528,16 +510,16 @@ public class UpgradeIVs implements CommandExecutor
                                                 nbt.setInteger(fixedStat, nbt.getInteger(fixedStat) + upgradeTicker);
                                                 pokemon.getEntityData().setInteger("upgradeCount", upgradeCount);
 
-                                                player.sendMessage(Text.of("§7-----------------------------------------------------"));
+                                                src.sendMessage(Text.of("§7-----------------------------------------------------"));
                                                 if (singleUpgrade)
-                                                    player.sendMessage(Text.of(upgradeString + "§e stat by §6one §epoint!"));
+                                                    src.sendMessage(Text.of(upgradeString + "§e stat by §6one §epoint!"));
                                                 else
-                                                    player.sendMessage(Text.of(upgradeString + "§e stat by §6" + upgradeTicker + "§e points!"));
+                                                    src.sendMessage(Text.of(upgradeString + "§e stat by §6" + upgradeTicker + "§e points!"));
 
                                                 if (costToConfirm.signum() == 1) // 1 = we've got a cost. 0 = cost is zero. -1 would be negative.
                                                 {
                                                     String paidString = "§aYou paid §2" + costToConfirm + "§a coins";
-                                                    player.sendMessage(Text.of(""));
+                                                    src.sendMessage(Text.of(""));
 
                                                     if (remainder == 1)
                                                         src.sendMessage(Text.of(paidString + ". §2One §aupgrade remains..."));
@@ -548,7 +530,7 @@ public class UpgradeIVs implements CommandExecutor
                                                 }
                                                 else if (costToConfirm.signum() == 0) // Cost is zero, either due to low stats or config.
                                                 {
-                                                    player.sendMessage(Text.of(""));
+                                                    src.sendMessage(Text.of(""));
 
                                                     if (remainder == 1)
                                                         src.sendMessage(Text.of("§2One §aupgrade remains..."));
@@ -557,7 +539,7 @@ public class UpgradeIVs implements CommandExecutor
                                                     else
                                                         src.sendMessage(Text.of("You've now reached this Pokémon's limits."));
                                                 }
-                                                player.sendMessage(Text.of("§7-----------------------------------------------------"));
+                                                src.sendMessage(Text.of("§7-----------------------------------------------------"));
 
                                                 newTotal = uniqueAccount.getBalance(economyService.getDefaultCurrency());
                                                 printToLog(1, "Upgraded one or more IVs, and took §3" +
@@ -584,7 +566,7 @@ public class UpgradeIVs implements CommandExecutor
                                 {
                                     printToLog(1, "Got no confirmation; end of the line. Exit.");
 
-                                    player.sendMessage(Text.of("§7-----------------------------------------------------"));
+                                    src.sendMessage(Text.of("§7-----------------------------------------------------"));
                                     String helperString = "§eThe §6" + cleanStat + "§e stat will be upgraded by §6";
                                     String quantityString = "§aReady? Use: §2" + commandAlias + " " + slot + " " + stat;
 
@@ -616,7 +598,7 @@ public class UpgradeIVs implements CommandExecutor
                                         src.sendMessage(Text.of(quantityString + " -c"));
                                     else
                                         src.sendMessage(Text.of(quantityString + " " + upgradeTicker + " -c"));
-                                    player.sendMessage(Text.of("§7-----------------------------------------------------"));
+                                    src.sendMessage(Text.of("§7-----------------------------------------------------"));
                                 }
                             }
                         }
@@ -630,20 +612,18 @@ public class UpgradeIVs implements CommandExecutor
         return CommandResult.success();
 	}
 
-    private void checkAndAddFooter(Player player)
+    private void addHelperAndFooter(CommandSource src)
     {
-        if (useBritishSpelling)
-            player.sendMessage(Text.of("§2Valid types: §aHP, Attack, Defence, SpAtt, SpDef, Speed"));
-        else
-            player.sendMessage(Text.of("§2Valid types: §aHP, Attack, Defense, SpAtt, SpDef, Speed"));
-        player.sendMessage(Text.of(""));
-        player.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're sure!"));
-        player.sendMessage(Text.of("§eConfirming will immediately take your money, if you have enough!"));
-        player.sendMessage(Text.of("§5-----------------------------------------------------"));
-    }
+        src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot> <IV type> [amount?] {-c to confirm}"));
 
-    private void printCorrectPerm(Player player)
-    {
-        player.sendMessage(Text.of("§4Usage: §c" + commandAlias + " <slot> <IV type> [amount?] {-c to confirm}"));
+        if (useBritishSpelling)
+            src.sendMessage(Text.of("§2Valid types: §aHP, Attack, Defence, SpAtt, SpDef, Speed"));
+        else
+            src.sendMessage(Text.of("§2Valid types: §aHP, Attack, Defense, SpAtt, SpDef, Speed"));
+
+        src.sendMessage(Text.of(""));
+        src.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're sure!"));
+        src.sendMessage(Text.of("§eConfirming will immediately take your money, if you have enough!"));
+        src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
 }
