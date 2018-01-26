@@ -171,7 +171,7 @@ public class ResetCount implements CommandExecutor
                                     src.sendMessage(Text.of("§6Warning: §eYou're about to reset all of this Pokémon's improvement counts!"));
                                 else
                                     src.sendMessage(Text.of("§6Warning: §eYou are about to reset this Pokémon's §6" + fixedCount + "§e count!"));
-                                src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " " + slot + " -c"));
+                                src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
                                 src.sendMessage(Text.of("§5-----------------------------------------------------"));
                             }
                         }

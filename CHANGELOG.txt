@@ -3,15 +3,19 @@ Released ???
 
    * Added /spawndex, which spawns Pokémon from their Pokédex number. Mostly useful for testing.
    * Added console support for /checkstats, /checktypes and /forcehatch.
+   * Changed max-IV formatting for stuff like /checkstats to Italic to work around an external bug.
    * Updated the /pixelupgrade info command to also work from console, showing only console commands.
    * Fixed /checkegg saying egg rechecks were free even with command cost set to 0.
    * Fixed missing spaces in front of the pipes when showing EVs in /checkstats.
+   * Fixed /upgradeivs saying legendaries were shiny on debug messages.
+   * Fixed /dittofusion mentioning upgrading instead of fusing in some places. Oops.
    * Made the /checkstats messages referring to /checkegg a bit more... professional.
-   * Fixed a bunch of debug logger typos and wrong mentions.
-   * Redid the internal config loader. Config errors now tell you more, and the mod is much smaller.
+   * Fixed a bunch of miscellaneous debug logger typos and wrong mentions.
+   * Rewrote the internal config loader. Config errors now tell you more, and the mod is much smaller.
    * Changing command aliases no longer requires a reboot. Experimental.
    * Removed per-config versions, as they were useless. Most old configs will still work, see below.
-   * New /showstats features: Super compact mode, and an alternate VIP cooldown. Redo this config.
+   ** New /showstats features: Super compact mode, and an alternate VIP cooldown. Redo this config.
+   ** New /upgradeivs features: Separate settings for shiny babies. Redo this config as well.
    * Added all babies and baby-based evolutions to /upgradeivs, and edited messages to fit.
    * Added Poipole (ID 803) and up to /checktypes and the new /spawndex.
 

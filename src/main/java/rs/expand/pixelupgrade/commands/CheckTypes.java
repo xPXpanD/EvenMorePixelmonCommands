@@ -4,6 +4,7 @@ package rs.expand.pixelupgrade.commands;
 // Remote imports.
 import com.pixelmonmod.pixelmon.enums.EnumType;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
@@ -37,13 +38,13 @@ public class CheckTypes implements CommandExecutor
     public static Integer commandCost;
 
     // Set up a console-checking variable for internal use.
-    private boolean runningFromConsole;
+    private boolean calledRemotely;
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     // If we're running from console, we need to swallow everything to avoid cluttering it.
     private void printToLog (int debugNum, String inputString)
     {
-        if (!runningFromConsole)
+        if (!calledRemotely)
             CommonMethods.printDebugMessage("CheckTypes", debugNum, inputString);
     }
 
@@ -51,7 +52,7 @@ public class CheckTypes implements CommandExecutor
     public CommandResult execute(CommandSource src, CommandContext args)
     {
         // Are we running from the console? Let's tell our code that. If "src" is not a Player, this becomes true.
-        runningFromConsole = !(src instanceof Player);
+        calledRemotely = !(src instanceof Player);
 
         // Validate the data we get from the command's main config.
         ArrayList<String> nativeErrorArray = new ArrayList<>();
@@ -71,9 +72,11 @@ public class CheckTypes implements CommandExecutor
         }
         else
         {
-            if (runningFromConsole)
+            if (calledRemotely)
+            {
                 CommonMethods.printDebugMessage("CheckTypes", 1,
                         "Called by console, starting. Omitting debug messages for clarity.");
+            }
             else
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
@@ -188,9 +191,9 @@ public class CheckTypes implements CommandExecutor
             {
                 printToLog(2, "Everything checks out, running code on input!");
 
-                if (!runningFromConsole && commandCost > 0)
+                if (!calledRemotely && commandCost > 0)
                 {
-                    @SuppressWarnings("ConstantConditions") // runningFromConsole already guarantees src is a player.
+                    @SuppressWarnings("ConstantConditions") // calledRemotely already guarantees src is a player.
                         Player player = (Player) src;
 
                     BigDecimal costToConfirm = new BigDecimal(commandCost);
@@ -214,9 +217,10 @@ public class CheckTypes implements CommandExecutor
                             else
                             {
                                 BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                printToLog(1, "Not enough coins! Cost: §3" + costToConfirm +
-                                        "§b, lacking: §3" + balanceNeeded);
+                                balanceNeeded = balanceNeeded.setScale(2, RoundingMode.CEILING);
 
+                                printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
+                                        "§b, and we're lacking §3" + balanceNeeded);
                                 src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
                             }
                         }
@@ -231,9 +235,16 @@ public class CheckTypes implements CommandExecutor
                     {
                         printToLog(1, "Got cost but no confirmation; end of the line.");
 
-                        src.sendMessage(Text.of("§6Warning: §eChecking a Pokémon's type stats costs §6" +
-                                costToConfirm + "§e coins."));
-                        src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " " + inputString + " -c"));
+                        // Is cost to confirm exactly one coin?
+                        if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
+                            src.sendMessage(Text.of("§6Warning: §eChecking types and stats costs §6one §ecoin."));
+                        else
+                        {
+                            src.sendMessage(Text.of("§6Warning: §eChecking types and stats costs §6" +
+                                    costToConfirm + "§e coins."));
+                        }
+
+                        src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + inputString + " -c"));
                     }
                 }
                 else

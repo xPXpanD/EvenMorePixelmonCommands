@@ -29,13 +29,13 @@ public class FixGender implements CommandExecutor
     public static String commandAlias;
 
     // Set up a console-checking variable for internal use.
-    private boolean runningFromConsole;
+    private boolean calledRemotely;
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     // If we're running from console, we need to swallow everything to avoid cluttering it.
     private void printToLog (int debugNum, String inputString)
     {
-        if (!runningFromConsole)
+        if (!calledRemotely)
             CommonMethods.printDebugMessage("FixGender", debugNum, inputString);
     }
 
@@ -43,7 +43,7 @@ public class FixGender implements CommandExecutor
     public CommandResult execute(CommandSource src, CommandContext args)
     {
         // Are we running from the console? Let's tell our code that. If "src" is not a Player, this becomes true.
-        runningFromConsole = !(src instanceof Player);
+        calledRemotely = !(src instanceof Player);
 
         if (commandAlias == null)
         {
@@ -53,9 +53,11 @@ public class FixGender implements CommandExecutor
         }
         else
         {
-            if (runningFromConsole)
+            if (calledRemotely)
+            {
                 CommonMethods.printDebugMessage("CheckStats", 1,
                         "Called by console, starting. Omitting debug messages for clarity.");
+            }
             else
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
@@ -76,44 +78,50 @@ public class FixGender implements CommandExecutor
                 // Is the first argument numeric, and does it look like a slot?
                 if (targetString.matches("^[1-6]"))
                 {
-                    if (!runningFromConsole)
+                    if (!calledRemotely)
                     {
                         printToLog(2, "Found a slot in argument 1. Continuing to confirmation checks.");
                         slot = Integer.parseInt(targetString);
                         canContinue = true;
-                    } else // Console needs a target.
+                    }
+                    else // Console needs a target.
                     {
                         src.sendMessage(Text.of("§4Error: §cInvalid target. See below."));
                         printSyntaxHelper(src, true);
                     }
-                } else if (runningFromConsole || hasOtherPerm)
+                }
+                else if (calledRemotely || hasOtherPerm)
                 {
                     // Is our target an actual online player?
                     if (Sponge.getServer().getPlayer(targetString).isPresent())
                     {
                         // If we're not running from console, check if the player targeted themself.
-                        if (runningFromConsole || !src.getName().equalsIgnoreCase(targetString))
+                        if (calledRemotely || !src.getName().equalsIgnoreCase(targetString))
                         {
                             target = Sponge.getServer().getPlayer(targetString).get();
                             printToLog(2, "Found a valid online target! Printed for your convenience: §2" +
                                     target.getName());
                             targetAcquired = true;
-                        } else
+                        }
+                        else
                             printToLog(2, "Player targeted own name. Let's pretend that didn't happen.");
 
                         canContinue = true;
-                    } else if (targetString.matches("[a-zA-Z]+")) // Making an assumption; input is non-numeric so probably not a slot.
+                    }
+                    else if (targetString.matches("[a-zA-Z]+")) // Making an assumption; input is non-numeric so probably not a slot.
                     {
-                        printToLog(1, "Invalid first argument. Input not numeric, assuming misspelled name. Exit.");
+                        printToLog(1, "Invalid first argument. Not numeric, assuming misspelled name. Exit.");
 
                         src.sendMessage(Text.of("§4Error: §cCould not find the given target. Check your spelling."));
-                        printSyntaxHelper(src, runningFromConsole);
-                    } else  // Throw a "safe" error that works everywhere. Might not be as clean, which is why we check patterns above.
-                    {
-                        printToLog(1, "Invalid first argument, input has numbers. Throwing generic error. Exit.");
-                        printArg1Error(true, src, runningFromConsole);
+                        printSyntaxHelper(src, calledRemotely);
                     }
-                } else
+                    else  // Throw a "safe" error that works everywhere. Might not be as clean, which is why we check patterns above.
+                    {
+                        printToLog(1, "Invalid first argument, input is numeric. Showing generic error.");
+                        printArg1Error(true, src, calledRemotely);
+                    }
+                }
+                else
                 {
                     printToLog(1, "Invalid slot provided, and player has no \"§3other§b\" perm. Exit.");
                     printArg1Error(false, src, false);
@@ -121,7 +129,7 @@ public class FixGender implements CommandExecutor
             }
             else
             {
-                if (!runningFromConsole)
+                if (!calledRemotely)
                 {
                     printToLog(1, "No arguments found. Showing command usage. Exit.");
                     src.sendMessage(Text.of("§4Error: §cNo arguments found. Please provide at least a slot."));
@@ -129,12 +137,12 @@ public class FixGender implements CommandExecutor
                 else
                     src.sendMessage(Text.of("§4Error: §cNo arguments found. See below."));
 
-                printSyntaxHelper(src, runningFromConsole);
+                printSyntaxHelper(src, calledRemotely);
             }
 
             if (canContinue && args.<String>getOne("slot").isPresent())
             {
-                if (runningFromConsole || hasOtherPerm)
+                if (calledRemotely || hasOtherPerm)
                 {
                     printToLog(2, "There's something in the second argument slot! Checking.");
                     slotString = args.<String>getOne("slot").get();
@@ -211,7 +219,7 @@ public class FixGender implements CommandExecutor
                     {
                         printToLog(2, "Pokémon in slot exists, starting gender checks.");
 
-                        if (!runningFromConsole)
+                        if (!calledRemotely)
                         {
                             //noinspection ConstantConditions
                             target = (Player) src;

@@ -97,14 +97,13 @@ public class ShowStats implements CommandExecutor
             }
             else if (compactMode == null && configVersion >= 310 || altCooldownInSeconds == null && configVersion >= 310)
             {
-                // These are new 3.1 features. Run a separate check, so we can fail gracefully if the config's outdated.
-                ArrayList<String> newOptionErrorArray = new ArrayList<>();
+                // These are new 3.1 features. Run a separate check, so we can fail gracefully if need be.
                 if (compactMode == null)
-                    newOptionErrorArray.add("compactMode");
+                    nativeErrorArray.add("compactMode");
                 if (altCooldownInSeconds == null)
-                    newOptionErrorArray.add("altCooldownInSeconds");
+                    nativeErrorArray.add("altCooldownInSeconds");
 
-                CommonMethods.printCommandNodeError("ShowStats", newOptionErrorArray);
+                CommonMethods.printCommandNodeError("ShowStats", nativeErrorArray);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else if (!mainConfigErrorArray.isEmpty())
@@ -289,8 +288,8 @@ public class ShowStats implements CommandExecutor
                                             {
                                                 BigDecimal balanceNeeded = uniqueAccount.getBalance(
                                                         economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                                printToLog(1, "Not enough coins! Cost: §3" +
-                                                        costToConfirm + "§b, lacking: §3" + balanceNeeded);
+                                                printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
+                                                        "§b, and we're lacking §3" + balanceNeeded);
                                                 src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
                                             }
                                         }
@@ -304,9 +303,16 @@ public class ShowStats implements CommandExecutor
                                     {
                                         printToLog(1, "Got cost but no confirmation; end of the line.");
 
-                                        src.sendMessage(Text.of("§6Warning: §eShowing off a Pokémon's stats costs §6" +
-                                                costToConfirm + "§e coins."));
-                                        src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " " + slot + " -c"));
+                                        // Is cost to confirm exactly one coin?
+                                        if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
+                                            src.sendMessage(Text.of("§6Warning: §eShowing off a Pokémon's stats costs §6one §ecoin."));
+                                        else
+                                        {
+                                            src.sendMessage(Text.of("§6Warning: §eShowing off a Pokémon's stats costs §6" +
+                                                    costToConfirm + "§e coins."));
+                                        }
+
+                                        src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
                                     }
                                 }
                                 else
@@ -391,17 +397,17 @@ public class ShowStats implements CommandExecutor
             String speedString = "§2Speed IVs§f: §a";
 
             if (HPIV > 30)
-                HPString = HPString + String.valueOf("§l");
+                HPString = HPString + String.valueOf("§o");
             if (attackIV > 30)
-                attackString = attackString + String.valueOf("§l");
+                attackString = attackString + String.valueOf("§o");
             if (defenseIV > 30)
-                defenseString = defenseString + String.valueOf("§l");
+                defenseString = defenseString + String.valueOf("§o");
             if (spAttIV > 30)
-                spAttString = spAttString + String.valueOf("§l");
+                spAttString = spAttString + String.valueOf("§o");
             if (spDefIV > 30)
-                spDefString = spDefString + String.valueOf("§l");
+                spDefString = spDefString + String.valueOf("§o");
             if (speedIV > 30)
-                speedString = speedString + String.valueOf("§l");
+                speedString = speedString + String.valueOf("§o");
 
             ArrayList<String> hovers = new ArrayList<>();
             hovers.add(HPString + HPIV + "\n" + attackString + attackIV + "\n" + defenseString + defenseIV +
@@ -435,26 +441,26 @@ public class ShowStats implements CommandExecutor
                 MessageChannel.TO_PLAYERS.send(Text.of(startString + name + "§f (§e" +
                         genderCharacter + "§r)"));
 
-            // Format some IV strings for use later, so we can print them.
-            String ivs1 = String.valueOf(HPIV + " §2" + shortenedHP + " §f|§a ");
-            String ivs2 = String.valueOf(attackIV + " §2" + shortenedAttack + " §f|§a ");
-            String ivs3 = String.valueOf(defenseIV + " §2" + shortenedDefense + " §f|§a ");
-            String ivs4 = String.valueOf(spAttIV + " §2" + shortenedSpecialAttack + " §f|§a ");
-            String ivs5 = String.valueOf(spDefIV + " §2" + shortenedSpecialDefense + " §f|§a ");
-            String ivs6 = String.valueOf(speedIV + " §2" + shortenedSpeed + "");
+            // Format the IVs for use later, so we can print them.
+            String ivs1 = String.valueOf(HPIV + " §2" + shortenedHP + " §r|§a ");
+            String ivs2 = String.valueOf(attackIV + " §2" + shortenedAttack + " §r|§a ");
+            String ivs3 = String.valueOf(defenseIV + " §2" + shortenedDefense + " §r|§a ");
+            String ivs4 = String.valueOf(spAttIV + " §2" + shortenedSpecialAttack + " §r|§a ");
+            String ivs5 = String.valueOf(spDefIV + " §2" + shortenedSpecialDefense + " §r|§a ");
+            String ivs6 = String.valueOf(speedIV + " §2" + shortenedSpeed);
 
             if (HPIV > 30)
-                ivs1 = String.valueOf("§l") + ivs1;
+                ivs1 = String.valueOf("§o") + ivs1;
             if (attackIV > 30)
-                ivs2 = String.valueOf("§l") + ivs2;
+                ivs2 = String.valueOf("§o") + ivs2;
             if (defenseIV > 30)
-                ivs3 = String.valueOf("§l") + ivs3;
+                ivs3 = String.valueOf("§o") + ivs3;
             if (spAttIV > 30)
-                ivs4 = String.valueOf("§l") + ivs4;
+                ivs4 = String.valueOf("§o") + ivs4;
             if (spDefIV > 30)
-                ivs5 = String.valueOf("§l") + ivs5;
+                ivs5 = String.valueOf("§o") + ivs5;
             if (speedIV > 30)
-                ivs6 = String.valueOf("§l") + ivs6;
+                ivs6 = String.valueOf("§o") + ivs6;
 
             MessageChannel.TO_PLAYERS.send(Text.of(""));
             MessageChannel.TO_PLAYERS.send(Text.of("§bIVs§f: §a" + ivs1 + ivs2 + ivs3 + ivs4 + ivs5 + ivs6));

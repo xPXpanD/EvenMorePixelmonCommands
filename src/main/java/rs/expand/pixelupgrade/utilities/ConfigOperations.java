@@ -6,12 +6,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.plugin.PluginContainer;
+import java.util.Scanner;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanObject;
 
 // Local imports.
-import org.spongepowered.api.Sponge;
-import org.spongepowered.api.plugin.PluginContainer;
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.commands.*;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
@@ -21,6 +22,9 @@ import static rs.expand.pixelupgrade.utilities.CommonMethods.printBasicMessage;
 // Also, PixelUpgrade class variables are loaded in the same way. Used in loadConfig and registerCommands.
 public class ConfigOperations
 {
+    // If we find a config that's broken during reloads, we set this flag and print an error.
+    private static boolean gotConfigError;
+
     // Make a little converter for safely handling possibly null Strings that have an integer value inside.
     private static Integer interpretInteger(String input)
     {
@@ -33,10 +37,20 @@ public class ConfigOperations
     // Do the same for doubles.
     private static Double interpretDouble(String input)
     {
-        if (input != null && input.matches("\\(?\\d+\\.\\d+\\)?"))
-            return Double.parseDouble(input);
-        else
-            return null;
+        if (input != null)
+        {
+            Scanner readDouble = new Scanner(input);
+            if (readDouble.hasNextDouble())
+                return readDouble.nextDouble();
+        }
+
+        // Was the input null, or could we not find a double? Return null and let our commands show an error.
+        return null;
+
+        /*try
+        { return Double.parseDouble(input); }
+        catch (Exception F)
+        { return null; }*/
     }
 
     // Create a config directory if it doesn't exist. Silently swallow an error if it does. I/O is awkward.
@@ -238,7 +252,7 @@ public class ConfigOperations
                 }
                 case 12:
                 {
-                    commandAlias = "pureload"; // Will be omitted, as there's a check for aliases matching base commands.
+                    commandAlias = "pureload"; // Alias gets omitted; there's a check for aliases matching base commands.
                     commandString = "/pureload";
                     break;
                 }
@@ -282,30 +296,44 @@ public class ConfigOperations
 
             if (commandAlias != null)
             {
-                // Format the command.
+                // Format the command's shown text.
                 formattedCommand.append("§2").append(commandString);
 
                 if (commandString.equals("/" + commandAlias))
-                    formattedCommand.append("§a, ");
+                    formattedCommand.append("§a§f, ");
                 else
                 {
                     formattedCommand.append("§a (§2/");
                     formattedCommand.append(commandAlias.toLowerCase());
-                    formattedCommand.append("§a), ");
+                    formattedCommand.append("§a)§f, ");
                 }
-
-                // If we're at the last command, shank the trailing comma and space for a clean end.
-                if (i == 18)
-                    formattedCommand.setLength(formattedCommand.length() - 2);
-
-                // Add the formatted command to the list, and then clear the StringBuilder so we can re-use it.
-                commandList.add(formattedCommand.toString());
-                formattedCommand.setLength(0);
             }
+            else
+            {
+                // Alias loading went very very wrong, do some special red error formatting.
+                formattedCommand.append("§4").append(commandString);
+                formattedCommand.append("§c (§4");
+                formattedCommand.append("ERROR!");
+                formattedCommand.append("§c)§f, ");
+
+                gotConfigError = true;
+            }
+
+            // If we're at the last command, shank the trailing formatting code, comma and space and for a clean end.
+            if (i == 18)
+                formattedCommand.setLength(formattedCommand.length() - 4);
+
+            // Add the formatted command to the list, and then clear the StringBuilder so we can re-use it.
+            commandList.add(formattedCommand.toString());
+            formattedCommand.setLength(0);
         }
 
+        // If we got a config error, warn here.
+        if (gotConfigError)
+            printBasicMessage("--> §eIssues found. Check for stray/missing characters, or recreate configs.");
+
         // Print the formatted commands + aliases.
-        printBasicMessage("--> §aSuccessfully loaded a bunch of commands! See below.");
+        printBasicMessage("--> §aLoaded a bunch of commands, see below.");
 
         int listSize = commandList.size();
         for (int q = 1; q < listSize + 1; q++)
@@ -331,7 +359,8 @@ public class ConfigOperations
             {
                 try
                 {
-                    printBasicMessage("§eNo primary configuration file found, creating...");
+                    // Spaces added so it falls in line with startup/reload message spacing.
+                    printBasicMessage("    §eNo primary configuration file found, creating...");
 
                     Files.copy(ConfigOperations.class.getResourceAsStream("/assets/PixelUpgradeMain.conf"),
                             Paths.get(PixelUpgrade.primaryPath, "PixelUpgrade.conf"));
@@ -348,7 +377,8 @@ public class ConfigOperations
             {
                 try
                 {
-                    printBasicMessage("§eNo §6/" + callSource.toLowerCase() +
+                    // Spaces added so it falls in line with startup/reload message spacing.
+                    printBasicMessage("    §eNo §6/" + callSource.toLowerCase() +
                             "§e configuration file found, creating...");
 
                     Files.copy(ConfigOperations.class.getResourceAsStream("/assets/" + callSource + ".conf"),
@@ -704,12 +734,14 @@ public class ConfigOperations
                             interpretInteger(commandConfig.getNode("legendaryAndShinyCap").getString());
                     UpgradeIVs.legendaryCap =
                             interpretInteger(commandConfig.getNode("legendaryCap").getString());
-                    UpgradeIVs.regularCap =
-                            interpretInteger(commandConfig.getNode("regularCap").getString());
-                    UpgradeIVs.shinyCap =
-                            interpretInteger(commandConfig.getNode("shinyCap").getString());
+                    UpgradeIVs.shinyBabyCap =
+                            interpretInteger(commandConfig.getNode("shinyBabyCap").getString());
                     UpgradeIVs.babyCap =
                             interpretInteger(commandConfig.getNode("babyCap").getString());
+                    UpgradeIVs.shinyCap =
+                            interpretInteger(commandConfig.getNode("shinyCap").getString());
+                    UpgradeIVs.regularCap =
+                            interpretInteger(commandConfig.getNode("regularCap").getString());
                     UpgradeIVs.mathMultiplier =
                             interpretDouble(commandConfig.getNode("mathMultiplier").getString());
                     UpgradeIVs.fixedUpgradeCost =
@@ -718,12 +750,14 @@ public class ConfigOperations
                             interpretDouble(commandConfig.getNode("legendaryAndShinyMult").getString());
                     UpgradeIVs.legendaryMult =
                             interpretDouble(commandConfig.getNode("legendaryMult").getString());
-                    UpgradeIVs.regularMult =
-                            interpretDouble(commandConfig.getNode("regularMult").getString());
-                    UpgradeIVs.shinyMult =
-                            interpretDouble(commandConfig.getNode("shinyMult").getString());
+                    UpgradeIVs.shinyBabyMult =
+                            interpretDouble(commandConfig.getNode("shinyBabyMult").getString());
                     UpgradeIVs.babyMult =
                             interpretDouble(commandConfig.getNode("babyMult").getString());
+                    UpgradeIVs.shinyMult =
+                            interpretDouble(commandConfig.getNode("shinyMult").getString());
+                    UpgradeIVs.regularMult =
+                            interpretDouble(commandConfig.getNode("regularMult").getString());
                     UpgradeIVs.upgradesFreeBelow =
                             interpretInteger(commandConfig.getNode("upgradesFreeBelow").getString());
                     UpgradeIVs.addFlatFee =
@@ -741,9 +775,30 @@ public class ConfigOperations
         }
         catch (Exception F)
         {
-            printBasicMessage("§4" + callSource + "§c had an issue during config loading!");
-            printBasicMessage("§cCheck your configs for stray/missing characters. Stack trace:");
-            F.printStackTrace();
+            // Spaces added so it falls in line with startup/reload message spacing.
+            printBasicMessage("    §cCould not read alias for §4/" + callSource.toLowerCase() + "§c.");
+            gotConfigError = true;
+
+            switch (callSource)
+            {
+                case "CheckEgg": CheckEgg.commandAlias = null; break;
+                case "CheckStats": CheckStats.commandAlias = null; break;
+                case "CheckTypes": CheckTypes.commandAlias = null; break;
+                case "DittoFusion": DittoFusion.commandAlias = null; break;
+                case "FixEVs": FixEVs.commandAlias = null; break;
+                case "FixGender": FixGender.commandAlias = null; break;
+                case "FixLevel": FixLevel.commandAlias = null; break;
+                case "ForceHatch": ForceHatch.commandAlias = null; break;
+                case "ForceStats": ForceStats.commandAlias = null; break;
+                case "PixelUpgradeInfo": PixelUpgradeInfo.commandAlias = null; break;
+                case "PokeCure": PokeCure.commandAlias = null; break;
+                case "ResetCount": ResetCount.commandAlias = null; break;
+                case "ResetEVs": ResetEVs.commandAlias = null; break;
+                case "ShowStats": ShowStats.commandAlias = null; break;
+                case "SpawnDex": SpawnDex.commandAlias = null; break;
+                case "SwitchGender": SwitchGender.commandAlias = null; break;
+                case "UpgradeIVs": UpgradeIVs.commandAlias = null; break;
+            }
         }
 
         return null;

@@ -24,13 +24,13 @@ public class ForceHatch implements CommandExecutor
     public static String commandAlias;
 
     // Set up a console-checking variable for internal use.
-    private boolean runningFromConsole;
+    private boolean calledRemotely;
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     // If we're running from console, we need to swallow everything to avoid cluttering it.
     private void printToLog (int debugNum, String inputString)
     {
-        if (!runningFromConsole)
+        if (!calledRemotely)
             CommonMethods.printDebugMessage("ForceHatch", debugNum, inputString);
     }
 
@@ -38,7 +38,7 @@ public class ForceHatch implements CommandExecutor
     public CommandResult execute(CommandSource src, CommandContext args)
     {
         // Are we running from the console? Let's tell our code that. If "src" is not a Player, this becomes true.
-        runningFromConsole = !(src instanceof Player);
+        calledRemotely = !(src instanceof Player);
 
         if (commandAlias == null)
         {
@@ -48,9 +48,11 @@ public class ForceHatch implements CommandExecutor
         }
         else
         {
-            if (runningFromConsole)
+            if (calledRemotely)
+            {
                 CommonMethods.printDebugMessage("ForceHatch", 1,
                         "Called by console, starting. Omitting debug messages for clarity.");
+            }
             else
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
@@ -68,7 +70,7 @@ public class ForceHatch implements CommandExecutor
                 // Is the first argument numeric, and does it look like a slot?
                 if (targetString.matches("^[1-6]"))
                 {
-                    if (!runningFromConsole)
+                    if (!calledRemotely)
                     {
                         printToLog(2, "Found a slot in argument 1. Continuing to confirmation checks.");
                         slot = Integer.parseInt(targetString);
@@ -86,7 +88,7 @@ public class ForceHatch implements CommandExecutor
                     if (Sponge.getServer().getPlayer(targetString).isPresent())
                     {
                         // If we're not running from console, check if the player targeted themself.
-                        if (runningFromConsole || !src.getName().equalsIgnoreCase(targetString))
+                        if (calledRemotely || !src.getName().equalsIgnoreCase(targetString))
                         {
                             target = Sponge.getServer().getPlayer(targetString).get();
                             printToLog(2, "Found a valid online target! Printed for your convenience: §2" +
@@ -100,14 +102,14 @@ public class ForceHatch implements CommandExecutor
                     }
                     else
                     {
-                        printToLog(1, "Invalid first argument, input has numbers. Throwing generic error. Exit.");
+                        printToLog(1, "Invalid first argument, input is numeric. Showing generic error.");
 
-                        if (runningFromConsole)
+                        if (calledRemotely)
                             src.sendMessage(Text.of("§4Error: §cInvalid target. See below."));
                         else
                             src.sendMessage(Text.of("§4Error: §cInvalid target or slot provided. See below."));
 
-                        printSyntaxHelper(src, runningFromConsole);
+                        printSyntaxHelper(src, calledRemotely);
                     }
                 }
             }
@@ -115,15 +117,15 @@ public class ForceHatch implements CommandExecutor
             {
                 printToLog(1, "No arguments provided. Exit.");
 
-                if (runningFromConsole)
+                if (calledRemotely)
                     src.sendMessage(Text.of("§4Error: §cNo parameters found. See below."));
                 else
                     src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide at least a slot."));
 
-                printSyntaxHelper(src, runningFromConsole);
+                printSyntaxHelper(src, calledRemotely);
             }
 
-            if (!runningFromConsole)
+            if (!calledRemotely)
             {
                 printToLog(2, "We're not running from console, moving on to secondary checks.");
 

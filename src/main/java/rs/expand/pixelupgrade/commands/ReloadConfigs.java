@@ -224,9 +224,17 @@ public class ReloadConfigs implements CommandExecutor
                     printBasicMessage(returnString);
 
                     if (newAlias != null && !newAlias.equals(oldAlias))
-                        printBasicMessage("--> §aDetected a changed alias, re-registering PU commands.");
+                    {
+                        printBasicMessage("--> §aDetected a possible changed alias, re-registering PU commands.");
+                        successfulInit = reloadMappings();
+
+                        if (successfulInit)
+                            printBasicMessage("--> §aLoaded command settings. All done!");
+                    }
                     else if (newAlias != null)
-                        printBasicMessage("--> §aAlias was unchanged, skipping command re-registration.");
+                        printBasicMessage("--> §aAlias was unchanged, skipping command re-registration. Done!");
+                    else
+                        printBasicMessage("--> §eCould not parse config. Check for stray/missing characters.");
                 }
             }
         }

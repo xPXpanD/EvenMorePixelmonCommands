@@ -215,8 +215,8 @@ public class PokeCure implements CommandExecutor
                                                 BigDecimal balanceNeeded = uniqueAccount.getBalance(
                                                         economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
 
-                                                printToLog(1, "Not enough coins! Cost: §3" +
-                                                        costToConfirm + "§b, lacking: §3" + balanceNeeded);
+                                                printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
+                                                        "§b, and we're lacking §3" + balanceNeeded);
                                                 src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
                                             }
                                         }
@@ -232,15 +232,29 @@ public class PokeCure implements CommandExecutor
 
                                         if (healParty)
                                         {
-                                            src.sendMessage(Text.of("§6Warning: §eHealing a Pokémon costs §6" +
-                                                    costToConfirm + "§e coins."));
+                                            // Is cost to confirm exactly one coin?
+                                            if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
+                                                src.sendMessage(Text.of("§6Warning: §eHealing a Pokémon costs §6one §ecoin."));
+                                            else
+                                            {
+                                                src.sendMessage(Text.of("§6Warning: §eHealing a Pokémon costs §6" +
+                                                        costToConfirm + "§e coins."));
+                                            }
+
                                             src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " -c"));
                                         }
                                         else
                                         {
-                                            src.sendMessage(Text.of("§6Warning: §eHealing your team costs §6" +
-                                                    costToConfirm + "§e coins."));
-                                            src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " " + slot + " -c"));
+                                            // Is cost to confirm exactly one coin?
+                                            if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
+                                                src.sendMessage(Text.of("§6Warning: §eHealing your team costs §6one §ecoin."));
+                                            else
+                                            {
+                                                src.sendMessage(Text.of("§6Warning: §eHealing your team costs §6" +
+                                                        costToConfirm + "§e coins."));
+                                            }
+
+                                            src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
                                         }
                                     }
                                 }

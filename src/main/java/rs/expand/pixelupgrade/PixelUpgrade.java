@@ -166,7 +166,7 @@ public class PixelUpgrade
             .executor(new CheckEgg())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("confirmation"))))
+                    GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
             .build();
 
     public static CommandSpec checkstats = CommandSpec.builder()
@@ -174,7 +174,7 @@ public class PixelUpgrade
             .executor(new CheckStats())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("target or slot"))),
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot or confirmation"))),
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("confirmation"))))
             .build();
 
@@ -355,14 +355,15 @@ public class PixelUpgrade
         if (PixelUpgrade.configVersion != null && currentInternalVersion > PixelUpgrade.configVersion)
         {
             printBasicMessage("===========================================================================");
-            printBasicMessage("§4/showstats §clikely has an outdated config due to changes in PU 3.1.");
+            printBasicMessage("§4/showstats §cand §4/upgradeivs §clikely have outdated (§43.0§c) configs.");
             printBasicMessage("");
             printBasicMessage("§6Please follow these steps to fix this:");
-            printBasicMessage("§61. §eDelete §6ShowStats.conf§e, or copy it somewhere safe if you edited it.");
+            printBasicMessage("§61. §eDelete or move §6ShowStats.conf§e and §6UpgradeIVs.conf§e.");
             printBasicMessage("§62. §eOpen §6PixelUpgrade.conf §eand change §6configVersion§e's value to §6310§e.");
-            printBasicMessage("§63. §eUse §6/pureload all§e to create a new config and update the version.");
+            printBasicMessage("§63. §eUse §6/pureload all§e to create new configs and update the version.");
+            printBasicMessage("§64. §eIf necessary, restore old settings one-by-one and §6/pureload §eagain.");
             printBasicMessage("");
-            printBasicMessage("§cThe command will have reduced functionality until this is fixed.");
+            printBasicMessage("§cThese commands will have reduced functionality until this is fixed.");
             printBasicMessage("===========================================================================");
         }
     }

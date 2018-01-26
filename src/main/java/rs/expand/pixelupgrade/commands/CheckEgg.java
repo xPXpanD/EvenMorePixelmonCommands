@@ -2,6 +2,7 @@ package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Optional;
 import com.pixelmonmod.pixelmon.config.PixelmonEntityList;
@@ -204,11 +205,10 @@ public class CheckEgg implements CommandExecutor
                                         else
                                         {
                                             BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                            printToLog(1, "Not enough coins! Cost: §3" + costToConfirm +
-                                                    "§b, lacking: §3" + balanceNeeded);
 
-                                            src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded +
-                                                    "§c more coins to do this."));
+                                            printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
+                                                    "§b, and we're lacking §3" + balanceNeeded);
+                                            src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
                                         }
                                     }
                                     else
@@ -221,8 +221,15 @@ public class CheckEgg implements CommandExecutor
                                 {
                                     printToLog(1, "Showed cost, no confirmation was provided. Exit.");
 
-                                    src.sendMessage(Text.of("§6Warning: §eChecking an egg's status costs §6" +
-                                            costToConfirm + "§e coins."));
+                                    // Is cost to confirm exactly one coin?
+                                    if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
+                                        src.sendMessage(Text.of("§6Warning: §eChecking an egg's status costs §6one §ecoin."));
+                                    else
+                                    {
+                                        src.sendMessage(Text.of("§6Warning: §eChecking an egg's status costs §6" +
+                                                costToConfirm + "§e coins."));
+                                    }
+
                                     src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
                                 }
                             }

@@ -154,8 +154,8 @@ public class SwitchGender implements CommandExecutor
                                         else
                                         {
                                             BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                            printToLog(1, "Not enough coins! Cost: §3" +
-                                                    costToConfirm + "§b, lacking: §3" + balanceNeeded);
+                                            printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
+                                                    "§b, and we're lacking §3" + balanceNeeded);
 
                                             src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded +
                                                     "§c more coins to do this."));
@@ -183,7 +183,7 @@ public class SwitchGender implements CommandExecutor
                                 src.sendMessage(Text.of("§6Warning: §eYou are about to switch this Pokémon's gender!"));
                                 if (commandCost > 0)
                                     src.sendMessage(Text.of("§eSwitching will cost §6" + commandCost + "§e coins!"));
-                                src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " " + slot + " -c"));
+                                src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
                                 src.sendMessage(Text.of("§5-----------------------------------------------------"));
                             }
                         }

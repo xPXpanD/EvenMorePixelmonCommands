@@ -205,7 +205,7 @@ public class FixEVs implements CommandExecutor
                                         {
                                             BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
                                             printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
-                                                        "§b, and we're lacking §3" + balanceNeeded);
+                                                    "§b, and we're lacking §3" + balanceNeeded);
 
                                             src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded +
                                                     "§c more coins to do this."));
@@ -223,9 +223,16 @@ public class FixEVs implements CommandExecutor
                                 {
                                     printToLog(1, "Got cost but no confirmation; end of the line.");
 
-                                    src.sendMessage(Text.of("§6Warning: §eFixing EVs will cost §6" + costToConfirm + "§e coins."));
-                                    src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " " + slot + " -c"));
+                                    // Is cost to confirm exactly one coin?
+                                    if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
+                                        src.sendMessage(Text.of("§6Warning: §eFixing EVs will cost §6one §ecoin."));
+                                    else
+                                    {
+                                        src.sendMessage(Text.of("§6Warning: §eFixing EVs will cost §6" +
+                                                costToConfirm + "§e coins."));
+                                    }
 
+                                    src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
                                     canContinue = false;
                                 }
                             }

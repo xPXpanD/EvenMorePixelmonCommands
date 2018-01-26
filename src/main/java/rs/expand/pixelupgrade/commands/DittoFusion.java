@@ -498,13 +498,30 @@ public class DittoFusion implements CommandExecutor
                                             }
 
                                             src.sendMessage(Text.of(""));
-                                            if (sacrificeFuseCount > 0)
-                                                src.sendMessage(Text.of("§eFusing costs §6" + costToConfirm + "§e coins plus §6"
-                                                    + extraCost + "§e coins from prior upgrades."));
-                                            else
-                                                src.sendMessage(Text.of("§eThis upgrade will cost you §6" + costToConfirm + "§e coins."));
-                                            src.sendMessage(Text.of("§aReady? Use: §2" + commandAlias + " " + slot1 + " " + slot2 + " -c"));
 
+                                            // Is cost to confirm exactly one coin?
+                                            if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
+                                            {
+                                                if (sacrificeFuseCount > 0)
+                                                {
+                                                    src.sendMessage(Text.of("§eFusing costs §6one §e coin plus §6"
+                                                            + extraCost + "§e coins from prior upgrades."));
+                                                }
+                                                else
+                                                    src.sendMessage(Text.of("§eFusing will cost you §6one §ecoin."));
+                                            }
+                                            else
+                                            {
+                                                if (sacrificeFuseCount > 0)
+                                                {
+                                                    src.sendMessage(Text.of("§eFusing costs §6" + costToConfirm + "§e coins plus §6"
+                                                            + extraCost + "§e coins from prior upgrades."));
+                                                }
+                                                else
+                                                    src.sendMessage(Text.of("§eFusing will cost you §6" + costToConfirm + "§e coins."));
+                                            }
+
+                                            src.sendMessage(Text.of("§2Ready? Use: §a/" + commandAlias + " " + slot1 + " " + slot2 + " -c"));
                                             src.sendMessage(Text.of("§4Warning: §cThe Ditto in slot §4" + slot2 + "§c will be §ldeleted§r§c!"));
                                             src.sendMessage(Text.of("§7-----------------------------------------------------"));
                                         }

@@ -163,7 +163,6 @@ public class FixLevel implements CommandExecutor
                                                 printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
                                                         "§b, and we're lacking §3" + balanceNeeded);
 
-
                                                 src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded +
                                                         "§c more coins to do this."));
                                                 canContinue = false;
@@ -199,10 +198,13 @@ public class FixLevel implements CommandExecutor
                                     printToLog(1, "Got cost but no confirmation; end of the line.");
 
                                     src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                                    src.sendMessage(Text.of("§6Warning: §eYou're about to lower this Pokémon's level to §6" + (configLevel - 1) + "§e."));
+                                    src.sendMessage(Text.of("§6Warning: §eYou're about to lower this Pokémon's level to §6" +
+                                            (configLevel - 1) + "§e."));
+
                                     if (commandCost > 0)
                                         src.sendMessage(Text.of("§6Doing this will cost you §c" + commandCost + "§6 coins."));
-                                    src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " " + slot + " -c"));
+
+                                    src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
                                     src.sendMessage(Text.of("§5-----------------------------------------------------"));
                                 }
                             }
