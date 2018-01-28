@@ -1,3 +1,4 @@
+// It's like a berry, but... not a berry!
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
@@ -66,7 +67,7 @@ public class FixEVs implements CommandExecutor
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 Player player = (Player) src;
-                boolean canContinue = true, commandConfirmed = false;
+                boolean canContinue = false, commandConfirmed = false;
                 int slot = 0;
 
                 if (!args.<String>getOne("slot").isPresent())
@@ -79,8 +80,6 @@ public class FixEVs implements CommandExecutor
                     src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
                     printSyntaxHelper(src);
                     CommonMethods.checkAndAddFooter(commandCost, src);
-
-                    canContinue = false;
                 }
                 else
                 {
@@ -90,6 +89,7 @@ public class FixEVs implements CommandExecutor
                     {
                         printToLog(2, "Slot was a valid slot number. Let's move on!");
                         slot = Integer.parseInt(args.<String>getOne("slot").get());
+                        canContinue = true;
                     }
                     else
                     {
@@ -101,8 +101,6 @@ public class FixEVs implements CommandExecutor
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
                         printSyntaxHelper(src);
                         CommonMethods.checkAndAddFooter(commandCost, src);
-
-                        canContinue = false;
                     }
                 }
 
@@ -116,7 +114,7 @@ public class FixEVs implements CommandExecutor
 
                     if (!storage.isPresent())
                     {
-                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. May be a bug?");
+                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
                         src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
                     }
                     else
@@ -126,7 +124,7 @@ public class FixEVs implements CommandExecutor
 
                         if (nbt == null)
                         {
-                            printToLog(1, "No NBT found in slot, probably empty. Exit.");
+                            printToLog(1, "No NBT data found in slot, probably empty. Exit.");
                             src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
                         }
                         else if (nbt.getBoolean("isEgg"))
@@ -146,40 +144,41 @@ public class FixEVs implements CommandExecutor
                             int totalEVs = HPEV + attackEV + defenceEV + spAttackEV + spDefenceEV + speedEV;
                             boolean allEVsGood = false;
 
-                            if (HPEV < 253 && HPEV >= 0 && attackEV < 253 && attackEV >= 0 && defenceEV < 253 &&
-                                    defenceEV >= 0 &&spAttackEV < 253 && spAttackEV >= 0 && spDefenceEV < 253 &&
-                                    spDefenceEV >= 0 && speedEV < 253 && speedEV >= 0)
+                            if (HPEV < 253 && attackEV < 253 && defenceEV < 253 && spAttackEV < 253 && spDefenceEV < 253 && speedEV < 253)
                                 allEVsGood = true;
 
                             if (HPEV == 0 && attackEV == 0 && defenceEV == 0 && spAttackEV == 0 && spDefenceEV == 0 && speedEV == 0)
                             {
                                 printToLog(1, "All EVs were at zero, no upgrades needed to be done. Exit.");
                                 src.sendMessage(Text.of("§dNo EVs were found. Go faint some wild Pokémon!"));
-                                canContinue = false;
                             }
                             else if (HPEV > 255 || attackEV > 255 || defenceEV > 255 || spAttackEV > 255 || spDefenceEV > 255 || speedEV > 255)
                             {
                                 printToLog(1, "Found one or more EVs above 255. Probably set by staff, so exit.");
                                 src.sendMessage(Text.of("§4Error: §cOne or more EVs are above the limit. Contact staff."));
-                                canContinue = false;
                             }
                             else if (HPEV < 0 || attackEV < 0 || defenceEV < 0 || spAttackEV < 0 || spDefenceEV < 0 || speedEV < 0)
                             {
                                 printToLog(1, "Found one or more negative EVs. Let's let staff handle this -- exit.");
                                 src.sendMessage(Text.of("§4Error: §cOne or more EVs are negative. Please contact staff."));
-                                canContinue = false;
                             }
-                            else if (totalEVs < 510 && allEVsGood)
+                            else if (allEVsGood)
                             {
-                                printToLog(1, "No wasted stats were detected. Exit.");
-                                src.sendMessage(Text.of("§dNo issues found! Your Pokémon is coming along nicely."));
-                                canContinue = false;
-                            }
-                            else if (totalEVs == 510 && allEVsGood)
-                            {
-                                printToLog(1, "EV total of 510 hit, but no overleveled EVs found. Exit.");
-                                src.sendMessage(Text.of("§dNo issues found! Not happy? Get some EV-reducing berries!"));
-                                canContinue = false;
+                                if (totalEVs < 510)
+                                {
+                                    printToLog(1, "No wasted stats were detected. Exit.");
+                                    src.sendMessage(Text.of("§dNo issues found! Your Pokémon is coming along nicely."));
+                                }
+                                else if (totalEVs > 510)
+                                {
+                                    printToLog(1, "Found an EV total above the limit. Exit.");
+                                    src.sendMessage(Text.of("§dPokémon is above the limits! Contact staff if this is unintended."));
+                                }
+                                else // EV total is exactly 510.
+                                {
+                                    printToLog(1, "EV total of 510 hit, but no overleveled EVs found. Exit.");
+                                    src.sendMessage(Text.of("§dNo issues found! Not happy? Get some EV-reducing berries!"));
+                                }
                             }
                             else if (commandCost > 0)
                             {
@@ -209,14 +208,12 @@ public class FixEVs implements CommandExecutor
 
                                             src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded +
                                                     "§c more coins to do this."));
-                                            canContinue = false;
                                         }
                                     }
                                     else
                                     {
-                                        printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. May be a bug?");
+                                        printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. Bug?");
                                         src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
-                                        canContinue = false;
                                     }
                                 }
                                 else
@@ -233,21 +230,12 @@ public class FixEVs implements CommandExecutor
                                     }
 
                                     src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
-                                    canContinue = false;
                                 }
                             }
                             else
                             {
                                 printToLog(1, "Fixed EVs for slot §3" + slot + "§b. Config price is §30§b, taking nothing.");
                                 fixPlayerEVs(nbt, src, HPEV, attackEV, defenceEV, spAttackEV, spDefenceEV, speedEV);
-                            }
-
-                            if (canContinue)
-                            {
-                                if (nbt.getString("Nickname").equals(""))
-                                    src.sendMessage(Text.of("§6" + nbt.getString("Name") + "§e has been checked and optimized!"));
-                                else
-                                    src.sendMessage(Text.of("§eYour §6" + nbt.getString("Nickname") + "§e has been checked and optimized!"));
                             }
                         }
                     }
@@ -268,48 +256,52 @@ public class FixEVs implements CommandExecutor
             src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6>"));
     }
 
-	private void fixPlayerEVs(NBTTagCompound nbt, CommandSource src, int HPEV, int attackEV, int defenceEV, int spAttackEV, int spDefenceEV, int speedEV)
+	private void fixPlayerEVs(NBTTagCompound nbt, CommandSource src,
+                              int HPEV, int attackEV, int defenceEV, int spAttackEV, int spDefenceEV, int speedEV)
     {
+        String defenseName = "Defense";
+        if (useBritishSpelling)
+            defenseName = "Defence";
+
         if (HPEV > 252)
         {
-            src.sendMessage(Text.of("§aStat §2HP §ais above 252 and has been fixed!"));
+            src.sendMessage(Text.of("§aThe §2HP §aEV was above 252 and has been fixed!"));
             nbt.setInteger(NbtKeys.EV_HP, 252);
         }
 
         if (attackEV > 252)
         {
-            src.sendMessage(Text.of("§aStat §2Attack §ais above 252 and has been fixed!"));
+            src.sendMessage(Text.of("§aThe §2Attack §aEV was above 252 and has been fixed!"));
             nbt.setInteger(NbtKeys.EV_ATTACK, 252);
         }
 
         if (defenceEV > 252)
         {
-            if (useBritishSpelling)
-                src.sendMessage(Text.of("§aStat §2Defence §ais above 252 and has been fixed!"));
-            else
-                src.sendMessage(Text.of("§aStat §2Defense §ais above 252 and has been fixed!"));
+            src.sendMessage(Text.of("§aThe §2" + defenseName + " §aEV was above 252 and has been fixed!"));
             nbt.setInteger(NbtKeys.EV_DEFENCE, 252);
         }
 
         if (spAttackEV > 252)
         {
-            src.sendMessage(Text.of("§aStat §2Special Attack §ais above 252 and has been fixed!"));
+            src.sendMessage(Text.of("§aThe §2Special Attack §aEV was above 252 and has been fixed!"));
             nbt.setInteger(NbtKeys.EV_SPECIAL_ATTACK, 252);
         }
 
         if (spDefenceEV > 252)
         {
-            if (useBritishSpelling)
-                src.sendMessage(Text.of("§aStat §2Special Defence §ais above 252 and has been fixed!"));
-            else
-                src.sendMessage(Text.of("§aStat §2Special Defense §ais above 252 and has been fixed!"));
+            src.sendMessage(Text.of("§aThe §2Special" + defenseName + " §aEV was above 252 and has been fixed!"));
             nbt.setInteger(NbtKeys.EV_SPECIAL_DEFENCE, 252);
         }
 
         if (speedEV > 252)
         {
-            src.sendMessage(Text.of("§aStat §2Speed §ais above 252 and has been fixed!"));
+            src.sendMessage(Text.of("§aThe §2Speed §aEV was above 252 and has been fixed!"));
             nbt.setInteger(NbtKeys.EV_SPEED, 252);
         }
+
+        if (nbt.getString("Nickname").equals(""))
+            src.sendMessage(Text.of("§6" + nbt.getString("Name") + "§e has been checked and optimized!"));
+        else
+            src.sendMessage(Text.of("§eYour §6" + nbt.getString("Nickname") + "§e has been checked and optimized!"));
     }
 }

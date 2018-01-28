@@ -1,8 +1,8 @@
+// CheckStats' sister command.
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Optional;
 import com.pixelmonmod.pixelmon.config.PixelmonEntityList;
@@ -101,7 +101,7 @@ public class CheckEgg implements CommandExecutor
                     if (commandCost > 0)
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
 
-                    src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
+                    src.sendMessage(Text.of("§4Error: §cNo arguments found. Please provide a slot."));
                     printSyntaxHelper(src);
                     CommonMethods.checkAndAddFooter(commandCost, src);
 
@@ -143,7 +143,7 @@ public class CheckEgg implements CommandExecutor
                     if (!storage.isPresent())
                     {
                         src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
-                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. May be a bug?");
+                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
                     }
                     else
                     {
@@ -213,7 +213,7 @@ public class CheckEgg implements CommandExecutor
                                     }
                                     else
                                     {
-                                        printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. May be a bug?");
+                                        printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. Bug?");
                                         src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
                                     }
                                 }

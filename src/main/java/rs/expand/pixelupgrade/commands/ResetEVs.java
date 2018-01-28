@@ -1,3 +1,4 @@
+// Forget berries!
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
@@ -22,7 +23,6 @@ import org.spongepowered.api.text.Text;
 
 // Local imports.
 import rs.expand.pixelupgrade.utilities.CommonMethods;
-
 import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
 public class ResetEVs implements CommandExecutor
@@ -68,7 +68,7 @@ public class ResetEVs implements CommandExecutor
                     if (commandCost > 0)
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
 
-                    src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
+                    src.sendMessage(Text.of("§4Error: §cNo arguments found. Please provide a slot."));
                     printSyntaxHelper(src);
                     CommonMethods.checkAndAddFooter(commandCost, src);
 
@@ -108,7 +108,7 @@ public class ResetEVs implements CommandExecutor
 
                     if (!storage.isPresent())
                     {
-                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. May be a bug?");
+                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
                         src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
                     }
                     else
@@ -118,7 +118,7 @@ public class ResetEVs implements CommandExecutor
 
                         if (nbt == null)
                         {
-                            printToLog(1, "No NBT found in slot, probably empty. Exit.");
+                            printToLog(1, "No NBT data found in slot, probably empty. Exit.");
                             src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
                         }
                         else if (nbt.getBoolean("isEgg"))
@@ -145,7 +145,7 @@ public class ResetEVs implements CommandExecutor
                                     {
                                         resetPlayerEVs(nbt, src);
                                         printToLog(1, "Reset EVs for slot §3" + slot +
-                                                "§b, and took §3" + costToConfirm + "§b coins.");
+                                                "§b, taking §3" + costToConfirm + "§b coins.");
                                     }
                                     else
                                     {
@@ -158,7 +158,7 @@ public class ResetEVs implements CommandExecutor
                                 }
                                 else
                                 {
-                                    printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. May be a bug?");
+                                    printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. Bug?");
                                     src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
                                 }
                             }

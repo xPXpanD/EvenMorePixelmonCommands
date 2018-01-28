@@ -1,6 +1,8 @@
+// heal pls
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
+import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
 import java.math.BigDecimal;
@@ -23,7 +25,6 @@ import org.spongepowered.api.text.Text;
 
 // Local imports.
 import rs.expand.pixelupgrade.utilities.CommonMethods;
-import static com.pixelmonmod.pixelmon.storage.NbtKeys.*;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
 /*                                                      *\
@@ -84,7 +85,7 @@ public class PokeCure implements CommandExecutor
 
                         if (commandCost > 0)
                             src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                        src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
+                        src.sendMessage(Text.of("§4Error: §cNo arguments found. Please provide a slot."));
                         printSyntaxHelper(src);
                         CommonMethods.checkAndAddFooter(commandCost, src);
 
@@ -124,7 +125,7 @@ public class PokeCure implements CommandExecutor
 
                     if (!storage.isPresent())
                     {
-                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. May be a bug?");
+                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
                         src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
                     }
                     else
@@ -136,7 +137,7 @@ public class PokeCure implements CommandExecutor
                         {
                             if (nbt == null)
                             {
-                                printToLog(1, "No NBT found in slot, probably empty. Exit.");
+                                printToLog(1, "No NBT data found in slot, probably empty. Exit.");
                                 src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
                                 canContinue = false;
                             }
@@ -222,7 +223,7 @@ public class PokeCure implements CommandExecutor
                                         }
                                         else
                                         {
-                                            printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. May be a bug?");
+                                            printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. Bug?");
                                             src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
                                         }
                                     }
@@ -241,7 +242,7 @@ public class PokeCure implements CommandExecutor
                                                         costToConfirm + "§e coins."));
                                             }
 
-                                            src.sendMessage(Text.of("§2Ready? Type: §a" + commandAlias + " -c"));
+                                            src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " -c"));
                                         }
                                         else
                                         {
@@ -308,13 +309,13 @@ public class PokeCure implements CommandExecutor
             printToLog(2, "Party healing is disabled, healing specified slot.");
 
             // Partially nicked from the "heal" method in Pixelmon, as that's private.
-            nbt.setFloat(HEALTH, (float) nbt.getInteger(STATS_HP));
-            nbt.setBoolean(IS_FAINTED, false);
+            nbt.setFloat(NbtKeys.HEALTH, (float) nbt.getInteger(NbtKeys.STATS_HP));
+            nbt.setBoolean(NbtKeys.IS_FAINTED, false);
             nbt.removeTag("Status");
 
-            int numberOfMoves = nbt.getInteger(PIXELMON_NUMBER_MOVES);
+            int numberOfMoves = nbt.getInteger(NbtKeys.PIXELMON_NUMBER_MOVES);
             for (int i = 0; i < numberOfMoves; i++)
-                nbt.setInteger(PIXELMON_MOVE_PP + i, nbt.getInteger(PIXELMON_MOVE_PPBASE + i));
+                nbt.setInteger(NbtKeys.PIXELMON_MOVE_PP + i, nbt.getInteger(NbtKeys.PIXELMON_MOVE_PPBASE + i));
 
             storage.sendUpdatedList();
 

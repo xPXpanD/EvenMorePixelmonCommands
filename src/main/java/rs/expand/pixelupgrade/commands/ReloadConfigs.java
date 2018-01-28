@@ -1,3 +1,4 @@
+// The one and only.
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
@@ -124,6 +125,14 @@ public class ReloadConfigs implements CommandExecutor
                         oldAlias = FixEVs.commandAlias;
                         newAlias = ConfigOperations.loadConfig("FixEVs");
                         returnString = "--> §aLoaded config for command §2/fixevs§a, alias §2/" + FixEVs.commandAlias + "§a.";
+                        break;
+                    }
+                    case "FIXGENDERS":
+                    {
+                        printHeaderAndCheckFolder(src, false);
+                        oldAlias = FixGenders.commandAlias;
+                        newAlias = ConfigOperations.loadConfig("FixGenders");
+                        returnString = "--> §aLoaded config for command §2/fixgenders§a, alias §2/" + FixGenders.commandAlias + "§a.";
                         break;
                     }
                     case "FIXLEVEL":
@@ -254,12 +263,11 @@ public class ReloadConfigs implements CommandExecutor
 
                 src.sendMessage(Text.of("§4Usage: §c/pureload <config>"));
                 src.sendMessage(Text.of(""));
-                src.sendMessage(Text.of("§6Commands: §eCheckEgg, CheckStats, CheckTypes, DittoFusion"));
-                src.sendMessage(Text.of("§6Commands: §eFixEVs, FixLevel, ForceHatch, ForceStats, Info"));
-                src.sendMessage(Text.of("§6Commands: §eResetCount, ResetEVs, ShowStats, SpawnDex"));
+                src.sendMessage(Text.of("§6Commands: §eCheckEgg, CheckStats, CheckTypes, DittoFusion, FixEVs"));
+                src.sendMessage(Text.of("§6Commands: §eFixGenders, FixLevel, ForceHatch, ForceStats, Info"));
+                src.sendMessage(Text.of("§6Commands: §ePokeCure, ResetCount, ResetEVs, ShowStats, SpawnDex"));
                 src.sendMessage(Text.of("§6Commands: §eSwitchGender, UpgradeIVs"));
                 src.sendMessage(Text.of("§6Other: §eAll (reloads ALL configs!), Main (reloads global config)"));
-
                 src.sendMessage(Text.of("§5-----------------------------------------------------"));
             }
             else

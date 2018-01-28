@@ -91,7 +91,7 @@ public class PixelUpgrade
     public static Path checkTypesPath = Paths.get(commandConfigPath, "CheckTypes.conf");
     public static Path dittoFusionPath = Paths.get(commandConfigPath, "DittoFusion.conf");
     public static Path fixEVsPath = Paths.get(commandConfigPath, "FixEVs.conf");
-    public static Path fixGenderPath = Paths.get(commandConfigPath, "FixGender.conf");
+    public static Path fixGendersPath = Paths.get(commandConfigPath, "FixGenders.conf");
     public static Path fixLevelPath = Paths.get(commandConfigPath, "FixLevel.conf");
     public static Path forceHatchPath = Paths.get(commandConfigPath, "ForceHatch.conf");
     public static Path forceStatsPath = Paths.get(commandConfigPath, "ForceStats.conf");
@@ -117,8 +117,8 @@ public class PixelUpgrade
             HoconConfigurationLoader.builder().setPath(dittoFusionPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> fixEVsLoader =
             HoconConfigurationLoader.builder().setPath(fixEVsPath).build();
-    public static ConfigurationLoader<CommentedConfigurationNode> fixGenderLoader =
-            HoconConfigurationLoader.builder().setPath(fixGenderPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> fixGendersLoader =
+            HoconConfigurationLoader.builder().setPath(fixGendersPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> fixLevelLoader =
             HoconConfigurationLoader.builder().setPath(fixLevelPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> forceHatchLoader =
@@ -182,8 +182,8 @@ public class PixelUpgrade
             .permission("pixelupgrade.command.checktypes")
             .executor(new CheckTypes())
             .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("pokemon"))),
-                    GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("Pokémon name/ID"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("optional second word of name"))))
             .build();
 
     public static CommandSpec dittofusion = CommandSpec.builder()
@@ -203,12 +203,12 @@ public class PixelUpgrade
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
             .build();
 
-    public static CommandSpec fixgender = CommandSpec.builder()
-            .permission("pixelupgrade.command.fixgender")
-            .executor(new FixGender())
+    public static CommandSpec fixgenders = CommandSpec.builder()
+            .permission("pixelupgrade.command.fixgenders")
+            .executor(new FixGenders())
             .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target or slot"))),
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))))
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target or confirmation"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("confirmation"))))
             .build();
 
     public static CommandSpec fixlevel = CommandSpec.builder()
@@ -324,6 +324,7 @@ public class PixelUpgrade
     @Listener
     public void onPostInitEvent(GamePostInitializationEvent event)
     {
+        printBasicMessage("");
         printBasicMessage("========================= P I X E L U P G R A D E =========================");
         printBasicMessage("--> §aChecking whether an economy plugin is present...");
 
@@ -346,6 +347,7 @@ public class PixelUpgrade
 
         //printBasicMessage("--> §aAll systems nominal.");
         printBasicMessage("===========================================================================");
+        printBasicMessage("");
     }
 
     @Listener

@@ -1,3 +1,4 @@
+// What have I done?
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
@@ -98,17 +99,13 @@ public class DittoFusion implements CommandExecutor
 
                 Player player = (Player) src;
                 int slot1 = 0, slot2 = 0;
-                boolean commandConfirmed = false, canContinue = true;
+                boolean commandConfirmed = false, canContinue = false;
+                String errorString = "ERROR PLEASE REPORT";
 
                 if (!args.<String>getOne("target slot").isPresent())
                 {
                     printToLog(1, "No arguments provided. Exit.");
-
-                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                    src.sendMessage(Text.of("§4Error: §cNo slots were provided. Please provide two valid slots."));
-                    addHelperAndFooter(src);
-
-                    canContinue = false;
+                    errorString = "§4Error: §cNo slots were provided. Please provide two valid slots.";
                 }
                 else
                 {
@@ -118,69 +115,69 @@ public class DittoFusion implements CommandExecutor
                     {
                         printToLog(2, "Target slot was a valid slot number. Let's move on!");
                         slot1 = Integer.parseInt(args.<String>getOne("target slot").get());
+                        canContinue = true;
                     }
                     else
                     {
                         printToLog(1, "Invalid slot for target Pokémon. Exit.");
-
-                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                        src.sendMessage(Text.of("§4Error: §cInvalid value on target slot. Valid values are 1-6."));
-                        addHelperAndFooter(src);
-
-                        canContinue = false;
+                        errorString = "§4Error: §cInvalid value on target slot. Valid values are 1-6.";
                     }
                 }
 
-                if (!args.<String>getOne("sacrifice slot").isPresent() && canContinue)
+                if (canContinue)
                 {
-                    printToLog(1, "No sacrifice Pokémon slot provided. Exit.");
+                    canContinue = false; // Reset the flag.
 
-                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                    src.sendMessage(Text.of("§4Error: §cNo sacrifice provided. Please provide two valid slots."));
-                    addHelperAndFooter(src);
-
-                    canContinue = false;
-                }
-                else if (canContinue)
-                {
-                    String slotString = args.<String>getOne("sacrifice slot").get();
-
-                    if (slotString.matches("^[1-6]"))
+                    if (!args.<String>getOne("sacrifice slot").isPresent())
                     {
-                        printToLog(2, "Valid slot found on argument 2. Checking against arg1...");
-                        slot2 = Integer.parseInt(args.<String>getOne("sacrifice slot").get());
-
-                        if (slot2 == slot1)
-                        {
-                            printToLog(1, src.getName() +
-                                    " attempted to fuse a Pokémon with itself. Exiting before the universe collapses.");
-                            src.sendMessage(Text.of("§4Error: §cYou can't fuse a Pokémon with itself."));
-                            canContinue = false;
-                        }
+                        printToLog(1, "No sacrifice Pokémon slot provided. Exit.");
+                        errorString = "§4Error: §cNo sacrifice provided. Please provide two valid slots.";
                     }
                     else
                     {
-                        printToLog(1, "Invalid slot for sacrifice Pokémon. Exit.");
+                        String slotString = args.<String>getOne("sacrifice slot").get();
 
-                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                        src.sendMessage(Text.of("§4Error: §cInvalid value on sacrifice slot. Valid values are 1-6."));
-                        addHelperAndFooter(src);
+                        if (slotString.matches("^[1-6]"))
+                        {
+                            printToLog(2, "Valid slot found on arg 2. Checking against arg 1...");
+                            slot2 = Integer.parseInt(args.<String>getOne("sacrifice slot").get());
 
-                        canContinue = false;
+                            if (slot2 == slot1)
+                            {
+                                printToLog(1, "Player tried to fuse a Pokémon with itself. Abort, abort!");
+                                errorString = "§4Error: §cYou can't fuse a Pokémon with itself.";
+                            }
+                            else
+                                canContinue = true;
+                        }
+                        else
+                        {
+                            printToLog(1, "Invalid slot for sacrifice Pokémon. Exit.");
+                            errorString = "§4Error: §cInvalid value on sacrifice slot. Valid values are 1-6.";
+                        }
                     }
                 }
 
                 if (args.hasAny("c"))
                     commandConfirmed = true;
 
-                if (canContinue)
+                if (!canContinue)
+                {
+                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                    src.sendMessage(Text.of(errorString));
+                    src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <target> <sacrifice> {-c to confirm}"));
+                    src.sendMessage(Text.of(""));
+                    src.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're ready to spend money!"));
+                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                }
+                else
                 {
                     printToLog(2, "No errors encountered, input should be valid. Continuing!");
                     Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
                     if (!storage.isPresent())
                     {
-                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. May be a bug?");
+                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
                         src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
                     }
                     else
@@ -191,18 +188,18 @@ public class DittoFusion implements CommandExecutor
 
                         if (nbt1 == null && nbt2 != null)
                         {
-                            printToLog(1, "No NBT found for target Pokémon, slot probably empty. Exit.");
+                            printToLog(1, "No NBT data found for target Pokémon, slot empty? Exit.");
                             src.sendMessage(Text.of("§4Error: §cThe target Pokémon does not seem to exist."));
                         }
                         else if (nbt1 != null && nbt2 == null)
                         {
-                            printToLog(1, "No NBT found for sacrifice Pokémon, slot probably empty. Exit.");
+                            printToLog(1, "No NBT data found for sacrifice Pokémon, slot empty? Exit.");
                             src.sendMessage(Text.of("§4Error: §cThe sacrifice Pokémon does not seem to exist."));
                         }
                         else if (nbt1 == null)
                         {
-                            printToLog(1, "No NBT found for target not sacrifice, slots probably empty. Exit.");
-                            src.sendMessage(Text.of("§4Error: §cBoth the target and sacrifice do not seem to exist."));
+                            printToLog(1, "No NBT data found for target not sacrifice, slots empty? Exit.");
+                            src.sendMessage(Text.of("§4Error: §cNeither the target nor the sacrifice seem to exist."));
                         }
                         else
                         {
@@ -222,7 +219,7 @@ public class DittoFusion implements CommandExecutor
                                 }
                                 else if (!nbt1.getString("Name").equals("Ditto") && !nbt2.getString("Name").equals("Ditto"))
                                 {
-                                    printToLog(1, "No Dittos in provided slots; Let's not create some unholy abomination. Exit.");
+                                    printToLog(1, "No Dittos found. Let's not create some unholy abomination -- abort!");
                                     src.sendMessage(Text.of("§4Error: §cThis command only works on Dittos."));
                                 }
                                 else
@@ -249,7 +246,7 @@ public class DittoFusion implements CommandExecutor
                                     }
                                     else
                                     {
-                                        printToLog(2, "Passed the majority of checks, moving on to actual command logic.");
+                                        printToLog(2, "Passed most of the checks, moving on to execution.");
 
                                         UniqueAccount uniqueAccount = optionalAccount.get();
                                         int HPPlusNum = 0, ATKPlusNum = 0, DEFPlusNum = 0, SPATKPlusNum = 0;
@@ -281,7 +278,7 @@ public class DittoFusion implements CommandExecutor
                                                 case 5: statToCheck = sacrificeSPD; break;
                                             }
 
-                                            if (statToCheck < 6) // my fancy old switched range check didn't work right... how embarassing!
+                                            if (statToCheck < 6) // my fancy old switched range check didn't work right... how embarrassing!
                                                 statToUpgrade = stat0to5;
                                             else if (statToCheck < 11)
                                                 statToUpgrade = stat6to10;
@@ -418,7 +415,7 @@ public class DittoFusion implements CommandExecutor
 
                                                 if (nbt2.getInteger(NbtKeys.IS_SHINY) == 1 && passOnShinyStatus)
                                                 {
-                                                    printToLog(2, "Passing on shinyness is enabled, and sacrifice is shiny. Go go go!");
+                                                    printToLog(2, "Passing on shinyness is enabled, and sacrifice is shiny. Do it!");
 
                                                     // Not sure which one I need, so I set both. Doesn't seem to matter much.
                                                     nbt1.setInteger(NbtKeys.IS_SHINY, 1);
@@ -435,7 +432,7 @@ public class DittoFusion implements CommandExecutor
                                                 //storageCompleted.update(targetPokemon, EnumUpdateType.Status);
 
                                                 printToLog(1, "Transaction successful. Took §3" + costToConfirm +
-                                                        "§b coins and a Ditto, remainder is §3" + uniqueAccount.getBalance(economyService.getDefaultCurrency()));
+                                                        "§b coins (+ §3Ditto§b), remainder is §3" + uniqueAccount.getBalance(economyService.getDefaultCurrency()));
                                             }
                                             else
                                             {
@@ -452,7 +449,7 @@ public class DittoFusion implements CommandExecutor
 
                                             src.sendMessage(Text.of("§7-----------------------------------------------------"));
                                             if (nbt2.getInteger(NbtKeys.IS_SHINY) == 1 && passOnShinyStatus)
-                                                src.sendMessage(Text.of("§eThe Ditto in slot §6" + slot1 + "§e will be upgraded. Transferring shiny status!"));
+                                                src.sendMessage(Text.of("§eThe Ditto in slot §6" + slot1 + "§e will be upgraded. Passing on shiny status!"));
                                             else
                                                 src.sendMessage(Text.of("§eYou are about to upgrade the Ditto in slot §6" + slot1 + "§e."));
 
@@ -499,27 +496,13 @@ public class DittoFusion implements CommandExecutor
 
                                             src.sendMessage(Text.of(""));
 
-                                            // Is cost to confirm exactly one coin?
-                                            if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
+                                            if (sacrificeFuseCount > 0)
                                             {
-                                                if (sacrificeFuseCount > 0)
-                                                {
-                                                    src.sendMessage(Text.of("§eFusing costs §6one §e coin plus §6"
-                                                            + extraCost + "§e coins from prior upgrades."));
-                                                }
-                                                else
-                                                    src.sendMessage(Text.of("§eFusing will cost you §6one §ecoin."));
+                                                src.sendMessage(Text.of("§eFusing costs §6" + costToConfirm + "§e coins plus §6"
+                                                        + extraCost + "§e coins for prior upgrades."));
                                             }
                                             else
-                                            {
-                                                if (sacrificeFuseCount > 0)
-                                                {
-                                                    src.sendMessage(Text.of("§eFusing costs §6" + costToConfirm + "§e coins plus §6"
-                                                            + extraCost + "§e coins from prior upgrades."));
-                                                }
-                                                else
-                                                    src.sendMessage(Text.of("§eFusing will cost you §6" + costToConfirm + "§e coins."));
-                                            }
+                                                src.sendMessage(Text.of("§eFusing will cost you §6" + costToConfirm + "§e coins."));
 
                                             src.sendMessage(Text.of("§2Ready? Use: §a/" + commandAlias + " " + slot1 + " " + slot2 + " -c"));
                                             src.sendMessage(Text.of("§4Warning: §cThe Ditto in slot §4" + slot2 + "§c will be §ldeleted§r§c!"));
@@ -531,7 +514,7 @@ public class DittoFusion implements CommandExecutor
                             else
                             {
                                 src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
-                                printToLog(0, "§4" + src.getName() + "§c does not have an economy account, Exit. May be a bug?");
+                                printToLog(0, "§4" + src.getName() + "§c does not have an economy account, Exit. Bug?");
                             }
                         }
                     }
@@ -542,13 +525,5 @@ public class DittoFusion implements CommandExecutor
             printToLog(0,"This command cannot run from the console or command blocks.");
 
         return CommandResult.success();
-    }
-
-    private void addHelperAndFooter(CommandSource src)
-    {
-        src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <target slot> <sacrifice slot> {-c to confirm}"));
-        src.sendMessage(Text.of(""));
-        src.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're ready to spend money!"));
-        src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
 }

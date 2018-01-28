@@ -1,3 +1,4 @@
+// The command listing. Only shows console-accessible commands if used from there.
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
@@ -22,7 +23,7 @@ import rs.expand.pixelupgrade.utilities.CommonMethods;
 public class PixelUpgradeInfo implements CommandExecutor
 {
     // Initialize some variables. We'll load stuff into these when we call the config loader.
-    // Other config variables are loaded in from their respective classes. Check the imports.
+    // Other config variables are loaded in from their respective classes.
     public static String commandAlias;
     public static Integer numLinesPerPage;
 
@@ -125,12 +126,8 @@ public class PixelUpgradeInfo implements CommandExecutor
 
         if (usedFromConsole || src.hasPermission("pixelupgrade.command.checktypes"))
         {
-            if (CheckTypes.commandCost != null && CheckTypes.commandAlias != null)
+            if (CheckTypes.commandAlias != null)
             {
-                if (CheckTypes.commandCost != 0)
-                    permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
-                            " <Pokémon name/number> {confirm flag}"));
-                else
                     permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
                             " <Pokémon name/number>"));
 
@@ -155,13 +152,9 @@ public class PixelUpgradeInfo implements CommandExecutor
 
         if (src.hasPermission("pixelupgrade.command.fixevs"))
         {
-            if (FixEVs.commandCost != null && FixEVs.commandAlias != null)
+            if (FixEVs.commandAlias != null)
             {
-                if (FixEVs.commandCost != 0)
-                    permissionMessageList.add(Text.of("§6/" + FixEVs.commandAlias + " <slot> {confirm flag}"));
-                else
-                    permissionMessageList.add(Text.of("§6/" + FixEVs.commandAlias + " <slot>"));
-
+                permissionMessageList.add(Text.of("§6/" + FixEVs.commandAlias + " <slot>"));
                 permissionMessageList.add(Text.of("§f --> §eEVs above 252 are wasted. This will fix them!"));
                 hasNoPermission = false;
             }
@@ -170,7 +163,7 @@ public class PixelUpgradeInfo implements CommandExecutor
 
         if (src.hasPermission("pixelupgrade.command.fixlevel"))
         {
-            if (FixLevel.commandCost != null && FixLevel.commandAlias != null)
+            if (FixLevel.commandAlias != null)
             {
                 permissionMessageList.add(Text.of("§6/" + FixLevel.commandAlias + " <slot> {confirm flag}"));
                 permissionMessageList.add(Text.of("§f --> §eWant to lower your level to get more EVs? Try this."));

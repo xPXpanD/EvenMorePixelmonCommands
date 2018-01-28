@@ -91,19 +91,19 @@ public class ConfigOperations
                 Sponge.getCommandManager().register(puContainer, dittofusion, "dittofusion", "fuseditto");
 
             if (FixEVs.commandAlias != null && !FixEVs.commandAlias.equals("fixevs"))
-                Sponge.getCommandManager().register(puContainer, fixevs, "fixevs", "fixev", FixEVs.commandAlias);
+                Sponge.getCommandManager().register(puContainer, fixevs, "fixevs", FixEVs.commandAlias);
             else
-                Sponge.getCommandManager().register(puContainer, fixevs, "fixevs", "fixev");
+                Sponge.getCommandManager().register(puContainer, fixevs, "fixevs");
 
-            if (FixGender.commandAlias != null && !FixGender.commandAlias.equals("fixgender"))
-                Sponge.getCommandManager().register(puContainer, fixgender, "fixgender", FixGender.commandAlias);
+            if (FixGenders.commandAlias != null && !FixGenders.commandAlias.equals("fixgenders"))
+                Sponge.getCommandManager().register(puContainer, fixgenders, "fixgenders", FixGenders.commandAlias);
             else
-                Sponge.getCommandManager().register(puContainer, fixgender, "fixgender");
+                Sponge.getCommandManager().register(puContainer, fixgenders, "fixgenders");
 
             if (FixLevel.commandAlias != null && !FixLevel.commandAlias.equals("fixlevel"))
-                Sponge.getCommandManager().register(puContainer, fixlevel, "fixlevel", "fixlevels", FixLevel.commandAlias);
+                Sponge.getCommandManager().register(puContainer, fixlevel, "fixlevel", FixLevel.commandAlias);
             else
-                Sponge.getCommandManager().register(puContainer, fixlevel, "fixlevel", "fixlevels");
+                Sponge.getCommandManager().register(puContainer, fixlevel, "fixlevel");
 
             if (ForceHatch.commandAlias != null && !ForceHatch.commandAlias.equals("forcehatch"))
                 Sponge.getCommandManager().register(puContainer, forcehatch, "forcehatch", ForceHatch.commandAlias);
@@ -216,8 +216,8 @@ public class ConfigOperations
                 }
                 case 6:
                 {
-                    commandAlias = FixGender.commandAlias;
-                    commandString = "/fixgender";
+                    commandAlias = FixGenders.commandAlias;
+                    commandString = "/fixgenders";
                     break;
                 }
                 case 7:
@@ -406,7 +406,7 @@ public class ConfigOperations
         loadConfig("CheckTypes");
         loadConfig("DittoFusion");
         loadConfig("FixEVs");
-        loadConfig("FixGender");
+        loadConfig("FixGenders");
         loadConfig("FixLevel");
         loadConfig("ForceHatch");
         loadConfig("ForceStats");
@@ -524,8 +524,6 @@ public class ConfigOperations
                             toBooleanObject(commandConfig.getNode("showFormMessage").getString());
                     CheckTypes.showAlolanMessage =
                             toBooleanObject(commandConfig.getNode("showAlolanMessage").getString());
-                    CheckTypes.commandCost =
-                            interpretInteger(commandConfig.getNode("commandCost").getString());
 
                     return CheckTypes.commandAlias;
                 }
@@ -577,15 +575,15 @@ public class ConfigOperations
 
                     return FixEVs.commandAlias;
                 }
-                case "FixGender":
+                case "FixGenders":
                 {
-                    tryCreateConfig("FixGender", fixGenderPath);
-                    CommentedConfigurationNode commandConfig = PixelUpgrade.fixGenderLoader.load();
+                    tryCreateConfig("FixGenders", fixGendersPath);
+                    CommentedConfigurationNode commandConfig = PixelUpgrade.fixGendersLoader.load();
 
-                    FixGender.commandAlias =
+                    FixGenders.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
 
-                    return FixGender.commandAlias;
+                    return FixGenders.commandAlias;
                 }
                 case "FixLevel":
                 {
@@ -594,8 +592,6 @@ public class ConfigOperations
 
                     FixLevel.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
-                    FixLevel.commandCost =
-                            interpretInteger(commandConfig.getNode("commandCost").getString());
 
                     return FixLevel.commandAlias;
                 }
@@ -786,7 +782,7 @@ public class ConfigOperations
                 case "CheckTypes": CheckTypes.commandAlias = null; break;
                 case "DittoFusion": DittoFusion.commandAlias = null; break;
                 case "FixEVs": FixEVs.commandAlias = null; break;
-                case "FixGender": FixGender.commandAlias = null; break;
+                case "FixGenders": FixGenders.commandAlias = null; break;
                 case "FixLevel": FixLevel.commandAlias = null; break;
                 case "ForceHatch": ForceHatch.commandAlias = null; break;
                 case "ForceStats": ForceStats.commandAlias = null; break;

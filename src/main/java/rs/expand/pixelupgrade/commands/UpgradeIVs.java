@@ -1,3 +1,4 @@
+// One of the first PU commands!
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
@@ -128,10 +129,10 @@ public class UpgradeIVs implements CommandExecutor
 
                 if (!args.<String>getOne("slot").isPresent())
                 {
-                    printToLog(1, "No parameters provided. Exit.");
+                    printToLog(1, "No arguments provided. Exit.");
 
                     src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                    src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
+                    src.sendMessage(Text.of("§4Error: §cNo arguments found. Please provide a slot."));
                     addHelperAndFooter(src);
 
                     canContinue = false;
@@ -284,7 +285,7 @@ public class UpgradeIVs implements CommandExecutor
 
                     if (!storage.isPresent())
                     {
-                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. May be a bug?");
+                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
                         src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
                     }
                     else
@@ -294,7 +295,7 @@ public class UpgradeIVs implements CommandExecutor
 
                         if (nbt == null)
                         {
-                            printToLog(1, "No NBT found in slot, probably empty. Exit.");
+                            printToLog(1, "No NBT data found in slot, probably empty. Exit.");
                             src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
                         }
                         else if (nbt.getBoolean("isEgg"))
@@ -618,7 +619,7 @@ public class UpgradeIVs implements CommandExecutor
                                                 src.sendMessage(Text.of("§7-----------------------------------------------------"));
 
                                                 newTotal = uniqueAccount.getBalance(economyService.getDefaultCurrency());
-                                                printToLog(1, "Upgraded one or more IVs, and took §3" +
+                                                printToLog(1, "Upgraded one or more IVs, taking §3" +
                                                         costToConfirm + "§a coins. New total: §3" + newTotal);
                                             }
                                             else
@@ -633,7 +634,7 @@ public class UpgradeIVs implements CommandExecutor
                                         }
                                         else
                                         {
-                                            printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. May be a bug?");
+                                            printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. Bug?");
                                             src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
                                         }
                                     }

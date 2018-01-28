@@ -1,3 +1,4 @@
+// PixelUpgrade's very first command. Originally known as /upgrade stats, then /getstats, and then finally this.
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
@@ -8,7 +9,6 @@ import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Optional;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -164,7 +164,7 @@ public class CheckStats implements CommandExecutor
                 printToLog(2, "External config loading is done. Moving on to argument parsing.");
             }
 
-            boolean canContinue = false, haveTarget = false, haveSlot = false, commandConfirmed = false;
+            boolean canContinue = false, targetIsValid = false, haveSlot = false, commandConfirmed = false;
             boolean hasOtherPerm = src.hasPermission("pixelupgrade.command.other.checkstats");
             Optional<String> arg1Optional = args.getOne("target or slot");
             Optional<String> arg2Optional = args.getOne("slot or confirmation");
@@ -182,7 +182,7 @@ public class CheckStats implements CommandExecutor
                     if (Sponge.getServer().getPlayer(arg1String).isPresent())
                     {
                         target = Sponge.getServer().getPlayer(arg1String).get();
-                        haveTarget = true;
+                        targetIsValid = true;
                         canContinue = true;
                     }
                     else
@@ -222,7 +222,7 @@ public class CheckStats implements CommandExecutor
                 String errorString = "ERROR PLEASE REPORT";
                 boolean canSkip = false;
 
-                // Ugly, but it'll do for now... Doesn't seem like my usual way of getting flags works here.
+                // Ugly, but it'll do for now... Doesn't seem like my usual way of getting flags will work here.
                 Optional<String> arg3Optional = args.getOne("confirmation");
 
                 if (arg2Optional.isPresent() && arg2Optional.get().equalsIgnoreCase("-c"))
@@ -265,7 +265,7 @@ public class CheckStats implements CommandExecutor
                         if (!src.getName().equalsIgnoreCase(arg1String))
                         {
                             printToLog(2, "A valid non-source target was found.");
-                            haveTarget = true;
+                            targetIsValid = true;
                             canContinue = true;
                         }
                         else
@@ -276,7 +276,7 @@ public class CheckStats implements CommandExecutor
                     }
                     else
                     {
-                        printToLog(1, "Invalid target or slot on first argument. Exit.");
+                        printToLog(1, "Invalid slot (or target?) on first argument. Exit.");
 
                         if (hasOtherPerm)
                             errorString = "§4Error: §cInvalid target or slot on first argument. See below.";
@@ -335,13 +335,8 @@ public class CheckStats implements CommandExecutor
 
             if (canContinue)
             {
-                //printToLog(2, "No errors encountered, input should be valid. Continuing!");
-                //printToLog(0, "Src: " + src);
-                //printToLog(0, "Target: " + target);
-                //printToLog(0, "Slot: " + slot);
-
                 Optional<PlayerStorage> storage;
-                if (haveTarget)
+                if (targetIsValid)
                     storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) target));
                 else
                     storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
@@ -349,13 +344,11 @@ public class CheckStats implements CommandExecutor
                 // Running this from the console with targetAcquired false? We'll already have hit an error and exited!
                 if (!storage.isPresent())
                 {
-                    printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. May be a bug?");
+                    printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
                     src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
                 }
                 else
                 {
-                    printToLog(2, "Found a Pixelmon storage, moving on.");
-
                     PlayerStorage storageCompleted = storage.get();
                     NBTTagCompound nbt;
                     if (haveSlot)
@@ -367,9 +360,9 @@ public class CheckStats implements CommandExecutor
                         checkParty(src, target, storageCompleted, calledRemotely);
                     else if (nbt == null)
                     {
-                        if (haveTarget)
+                        if (targetIsValid)
                         {
-                            printToLog(1, "No Pokémon was found in the provided slot on the target. Exit.");
+                            printToLog(1, "No Pokémon was found in the provided target slot. Exit.");
                             src.sendMessage(Text.of("§4Error: §cYour target has no Pokémon in that slot!"));
                         }
                         else
@@ -378,7 +371,7 @@ public class CheckStats implements CommandExecutor
                             src.sendMessage(Text.of("§4Error: §cThere's no Pokémon in that slot!"));
                         }
                     }
-                    else if (!calledRemotely && nbt.getBoolean("isEgg"))
+                    else if (!calledRemotely && nbt.getBoolean("isEgg")) // Allow egg checking for console!
                     {
                         if (enableCheckEggIntegration && !gotCheckEggError)
                         {
@@ -392,7 +385,7 @@ public class CheckStats implements CommandExecutor
                             src.sendMessage(Text.of("§4Error: §cYou can only check hatched Pokémon."));
                         }
                     }
-                    else if (!calledRemotely && commandCost > 0)
+                    else if (!calledRemotely && commandCost > 0) // Don't use the economy for console!
                     {
                         @SuppressWarnings("ConstantConditions") // !calledRemotely already guarantees src is a Player.
                             Player player = (Player) src;
@@ -412,8 +405,8 @@ public class CheckStats implements CommandExecutor
                                 if (transactionResult.getResult() == ResultType.SUCCESS)
                                 {
                                     printToLog(1, "Checked slot §3" + slot +
-                                            "§b, and took §3" + costToConfirm + "§b coins.");
-                                    checkSpecificSlot(src, target, nbt, haveTarget);
+                                            "§b, taking §3" + costToConfirm + "§b coins.");
+                                    checkSpecificSlot(src, target, nbt, targetIsValid);
                                 }
                                 else
                                 {
@@ -426,7 +419,7 @@ public class CheckStats implements CommandExecutor
                             }
                             else
                             {
-                                printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. May be a bug?");
+                                printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. Bug?");
                                 src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
                             }
                         }
@@ -443,7 +436,7 @@ public class CheckStats implements CommandExecutor
                                         costToConfirm + "§e coins."));
                             }
 
-                            if (haveTarget)
+                            if (targetIsValid)
                             {
                                 src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " +
                                         target.getName() + " " + slot + " -c"));
@@ -454,8 +447,9 @@ public class CheckStats implements CommandExecutor
                     }
                     else
                     {
+                        // Debug message gets swallowed if run from console, as usual.
                         printToLog(1, "Checked slot §3" + slot + "§b. Config price is §30§b, taking nothing.");
-                        checkSpecificSlot(src, target, nbt, haveTarget);
+                        checkSpecificSlot(src, target, nbt, targetIsValid);
                     }
                 }
             }
@@ -480,13 +474,14 @@ public class CheckStats implements CommandExecutor
             else if (hasOtherPerm)
                 src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [target?] <slot, 1-6>" + confirmString));
             else
-                src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6>" + confirmString));
+                src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6>" + confirmString + " §7(no perms for target)"));
         }
     }
 
     private void checkParty(CommandSource src, Player target, PlayerStorage storageCompleted, boolean calledRemotely)
     {
         printToLog(1, "No target slot provided, printing team to chat as per config. Exit.");
+
         src.sendMessage(Text.of("§7-----------------------------------------------------"));
         src.sendMessage(Text.of("§eNo slot found, showing the target's whole team."));
         src.sendMessage(Text.of(""));
@@ -537,7 +532,7 @@ public class CheckStats implements CommandExecutor
         src.sendMessage(Text.of("§7-----------------------------------------------------"));
     }
 
-    private void checkSpecificSlot(CommandSource src, Player target, NBTTagCompound nbt, boolean haveTarget)
+    private void checkSpecificSlot(CommandSource src, Player target, NBTTagCompound nbt, boolean targetIsValid)
     {
         // Set up IVs and matching math.
         int HPIV = nbt.getInteger(NbtKeys.IV_HP);
@@ -637,7 +632,7 @@ public class CheckStats implements CommandExecutor
 
         // Format and show the target Pokémon's name.
         String startString, nicknameString = ", also known as §6" + nbt.getString("Nickname");
-        if (haveTarget)
+        if (targetIsValid)
         {
             if (nbt.getBoolean("isEgg") && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
                 startString = "§eStats of §6" + target.getName() + "§e's §lshiny§r §6" + nbt.getString("Name") + " §eegg";
@@ -691,7 +686,7 @@ public class CheckStats implements CommandExecutor
         if (isDitto && showDittoFusionHelper && !gotFusionError || !isDitto && showUpgradeHelper && !gotUpgradeError)
         {
             EntityPlayerMP playerEntity;
-            if (haveTarget)
+            if (targetIsValid)
                 playerEntity = (EntityPlayerMP) target;
             else
                 playerEntity = (EntityPlayerMP) src;
@@ -814,7 +809,7 @@ public class CheckStats implements CommandExecutor
         }
 
         // Show the wasted EVs helper message if, again, it's enabled in the config. Configs are awesome.
-        if (showFixEVsHelper && showEVs && !haveTarget)
+        if (showFixEVsHelper && showEVs && !targetIsValid)
         {
             // Set up a message to print if any IVs are wasted.
             String warnEVs = "§5Warning: §dEVs above §5252 §ddo nothing. Try using §5/fixevs§d.";

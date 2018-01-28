@@ -1,23 +1,35 @@
 3.1.0 for 6.1.0
 Released ???
 
-   * Added /spawndex, which spawns Pokémon from their Pokédex number. Mostly useful for testing.
-   * Added console support for /checkstats, /checktypes and /forcehatch.
+    Config changes:
+   * Removed useless cost option from /checktypes and /fixlevel. Old configs will still work.
+   * Removed per-config versions, as they were useless. Most old configs will still work, see below.
+   * New /showstats features: Super compact mode, and an alternate VIP cooldown. Redo this config.
+   * New /upgradeivs features: Separate settings for shiny babies. Redo this config as well.
+
+    New commands:
+   * /fixgender: Fixes Pokémon affected by the 6.0.x breeding bug or by bad commands. Experimental!
+   * /pokecure: Heals Pokémon (slot or party) on a configurable cooldown, for a configurable cost.
+   * /spawndex: Spawns Pokémon from their Pokédex number. Made for testing, might be useful?
+
+    Other changes:
+   * Fixed /fixevs eating money without fixing things, if re-used on a Pokémon beyond the limits.
+   * Added console support for /checkstats, /checktypes and /forcehatch. More to come?
+   * Fixed "Ho-Oh" not being valid input for /checktypes.
+   * Added an optional second argument to /checktypes, so names like "Tapu Koko" will work.
    * Changed max-IV formatting for stuff like /checkstats to Italic to work around an external bug.
-   * Updated the /pixelupgrade info command to also work from console, showing only console commands.
+   * Updated the command listing to also work from console, where it'll show only console commands.
    * Fixed /checkegg saying egg rechecks were free even with command cost set to 0.
    * Fixed missing spaces in front of the pipes when showing EVs in /checkstats.
    * Fixed /upgradeivs saying legendaries were shiny on debug messages.
    * Fixed /dittofusion mentioning upgrading instead of fusing in some places. Oops.
    * Made the /checkstats messages referring to /checkegg a bit more... professional.
    * Fixed a bunch of miscellaneous debug logger typos and wrong mentions.
-   * Rewrote the internal config loader. Config errors now tell you more, and the mod is much smaller.
+   * Rewrote the internal config loader. Mostly useful for maintenance, but the filesize is smaller, too!
    * Changing command aliases no longer requires a reboot. Experimental.
-   * Removed per-config versions, as they were useless. Most old configs will still work, see below.
-   ** New /showstats features: Super compact mode, and an alternate VIP cooldown. Redo this config.
-   ** New /upgradeivs features: Separate settings for shiny babies. Redo this config as well.
    * Added all babies and baby-based evolutions to /upgradeivs, and edited messages to fit.
    * Added Poipole (ID 803) and up to /checktypes and the new /spawndex.
+   * Fixed a lot of miscellaneous bugs, and possibly introduced a few too. As always, please report!
 
 3.0.0 for 6.0.0
 Released December 28, 2017.

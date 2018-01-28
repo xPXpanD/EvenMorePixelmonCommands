@@ -1,3 +1,4 @@
+// This was a pain. Nice to have, though.
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
@@ -170,7 +171,7 @@ public class ShowStats implements CommandExecutor
 
                     if (commandCost > 0)
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                    src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
+                    src.sendMessage(Text.of("§4Error: §cNo arguments found. Please provide a slot."));
                     printSyntaxHelper(src);
                     CommonMethods.checkAndAddFooter(commandCost, src);
 
@@ -209,7 +210,7 @@ public class ShowStats implements CommandExecutor
 
                     if (!storage.isPresent())
                     {
-                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. May be a bug?");
+                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
                         src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
                     }
                     else
@@ -219,7 +220,7 @@ public class ShowStats implements CommandExecutor
 
                         if (nbt == null)
                         {
-                            printToLog(1, "No NBT found in slot, probably empty. Exit.");
+                            printToLog(1, "No NBT data found in slot, probably empty. Exit.");
                             src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
                         }
                         else if (nbt.getBoolean("isEgg"))
@@ -295,7 +296,7 @@ public class ShowStats implements CommandExecutor
                                         }
                                         else
                                         {
-                                            printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. May be a bug?");
+                                            printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. Bug?");
                                             src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
                                         }
                                     }

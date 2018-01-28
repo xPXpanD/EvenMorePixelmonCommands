@@ -1,3 +1,4 @@
+// Made for testing, but probably useful on a public server too.
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
@@ -22,7 +23,6 @@ import rs.expand.pixelupgrade.utilities.CommonMethods;
 public class ResetCount implements CommandExecutor
 {
     // Initialize a config variable. We'll load stuff into it when we call the config loader.
-    // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
@@ -54,7 +54,7 @@ public class ResetCount implements CommandExecutor
                     printToLog(1, "No arguments provided. Exit.");
 
                     src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                    src.sendMessage(Text.of("§4Error: §cNo parameters found. Please provide a slot."));
+                    src.sendMessage(Text.of("§4Error: §cNo arguments found. Please provide a slot."));
                     addFooter(src);
 
                     canContinue = false;
@@ -119,7 +119,7 @@ public class ResetCount implements CommandExecutor
 
                     if (!storage.isPresent())
                     {
-                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. May be a bug?");
+                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
                         src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
                     }
                     else
@@ -129,7 +129,7 @@ public class ResetCount implements CommandExecutor
 
                         if (nbt == null)
                         {
-                            printToLog(1, "No NBT found in slot, probably empty. Exit.");
+                            printToLog(1, "No NBT data found in slot, probably empty. Exit.");
                             src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
                         }
                         else

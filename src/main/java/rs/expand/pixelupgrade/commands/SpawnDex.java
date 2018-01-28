@@ -1,3 +1,4 @@
+// Originally created for testing things for the Pixelmon Wiki, but might be useful to other people?
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
@@ -26,7 +27,6 @@ import rs.expand.pixelupgrade.utilities.EnumPokemonList;
 public class SpawnDex implements CommandExecutor
 {
     // Initialize a config variable. We'll load stuff into it when we call the config loader.
-    // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
@@ -57,7 +57,7 @@ public class SpawnDex implements CommandExecutor
                     printToLog(1, "No arguments provided. Exit.");
 
                     src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                    src.sendMessage(Text.of("§4Error: §cNo parameters found. Please enter a Pokédex number."));
+                    src.sendMessage(Text.of("§4Error: §cNo arguments found. Please enter a Pokédex number."));
                     addFooter(src);
 
                     canContinue = false;
@@ -118,7 +118,7 @@ public class SpawnDex implements CommandExecutor
                         BlockPos playerPos = playerEntity.getPosition();
                         EntityPixelmon pokemonToSpawn = PokemonSpec.from(pokemonName).create(world);
 
-                        // Configure the Pokémon-to-spawn and then actually spawn it.
+                        // Configure the Pokémon-to-spawn.
                         pokemonToSpawn.setPosition(playerPos.getX(), playerPos.getY(), playerPos.getZ());
                         pokemonToSpawn.setSpawnLocation(pokemonToSpawn.getDefaultSpawnLocation());
 
@@ -134,6 +134,7 @@ public class SpawnDex implements CommandExecutor
                             src.sendMessage(Text.of("§aSpawning a fresh (and shiny) §2" + pokemonName + "§a nearby!"));
                         }
 
+                        // Actually spawn it.
                         world.spawnEntity(pokemonToSpawn);
                     }
                     catch (NullPointerException F)

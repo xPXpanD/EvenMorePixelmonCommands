@@ -1,3 +1,4 @@
+// The second PixelUpgrade command. It's so helpful to have your own NBT editor!
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
@@ -15,8 +16,8 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
+import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.utilities.CommonMethods;
-import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
 /*                                                         *\
     TODO: Add target and console support. This will hurt.
@@ -26,7 +27,7 @@ import static rs.expand.pixelupgrade.PixelUpgrade.*;
 public class ForceStats implements CommandExecutor
 {
     // Initialize a config variable. We'll load stuff into it when we call the config loader.
-    // Other config variables are loaded in from their respective classes. Check the imports.
+    // Other config variables are loaded in from their respective classes.
     public static String commandAlias;
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
@@ -44,7 +45,7 @@ public class ForceStats implements CommandExecutor
                 printToLog(0, "This command's config could not be parsed. Exiting.");
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please check the file."));
             }
-            else if (useBritishSpelling == null)
+            else if (PixelUpgrade.useBritishSpelling == null)
             {
                 printToLog(0, "Could not read remote node \"§4useBritishSpelling§c\".");
                 printToLog(0, "The main config contains invalid variables. Exiting.");
@@ -63,7 +64,7 @@ public class ForceStats implements CommandExecutor
                     printToLog(1, "No arguments provided. Exit.");
 
                     src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                    src.sendMessage(Text.of("§4Error: §cNo parameters found. See below."));
+                    src.sendMessage(Text.of("§4Error: §cNo arguments found. See below."));
                     printSyntaxHelper(src);
                     addFooter(src);
 
@@ -211,7 +212,7 @@ public class ForceStats implements CommandExecutor
 
                     if (!storage.isPresent())
                     {
-                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. May be a bug?");
+                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
                         src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
                     }
                     else
@@ -221,7 +222,7 @@ public class ForceStats implements CommandExecutor
 
                         if (nbt == null)
                         {
-                            printToLog(1, "No NBT found in slot, probably empty. Exit.");
+                            printToLog(1, "No NBT data found in slot, probably empty. Exit.");
                             src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
                         }
                         else if (!forceValue && valueIsInt)
@@ -347,7 +348,7 @@ public class ForceStats implements CommandExecutor
     private void addHelper(CommandSource src)
     {
         src.sendMessage(Text.of(""));
-        if (useBritishSpelling)
+        if (PixelUpgrade.useBritishSpelling)
         {
             src.sendMessage(Text.of("§6IVs: §eIVHP, IVAttack, IVDefence, IVSpAtt, IVSpDef, IVSpeed"));
             src.sendMessage(Text.of("§6EVs: §eEVHP, EVAttack, EVDefence, EVSpAtt, EVSpDef, EVSpeed"));
