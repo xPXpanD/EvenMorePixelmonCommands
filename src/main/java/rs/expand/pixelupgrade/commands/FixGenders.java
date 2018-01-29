@@ -8,6 +8,7 @@ import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
+import java.util.ArrayList;
 import java.util.Optional;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -23,10 +24,12 @@ import org.spongepowered.api.text.Text;
 // Local imports.
 import rs.expand.pixelupgrade.utilities.CommonMethods;
 
+// TODO: Add a -s flag to allow silent messages even if sneakyMode is off?
 public class FixGenders implements CommandExecutor
 {
-    // Initialize a variable. We'll load stuff into these when we call the config loader.
+    // Initialize some variables. We'll load stuff into these when we call the config loader.
     public static String commandAlias;
+    public static Boolean sneakyMode;
 
     // Set up a console-checking variable for internal use.
     private boolean calledRemotely;
@@ -45,17 +48,23 @@ public class FixGenders implements CommandExecutor
         // Are we running from the console? Let's tell our code that. If "src" is not a Player, this becomes true.
         calledRemotely = !(src instanceof Player);
 
+        // Validate the data we get from the command's main config.
+        ArrayList<String> nativeErrorArray = new ArrayList<>();
         if (commandAlias == null)
+            nativeErrorArray.add("commandAlias");
+        if (sneakyMode == null)
+            nativeErrorArray.add("sneakyMode");
+
+        if (!nativeErrorArray.isEmpty())
         {
-            printToLog(0, "Could not read node \"§4commandAlias§c\".");
-            printToLog(0, "This command's config could not be parsed. Exiting.");
-            src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please check the file."));
+            CommonMethods.printCommandNodeError("FixGenders", nativeErrorArray);
+            src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
         }
         else
         {
             if (calledRemotely)
             {
-                CommonMethods.printDebugMessage("CheckStats", 1,
+                CommonMethods.printDebugMessage("FixGenders", 1,
                         "Called by console, starting. Omitting debug messages for clarity.");
             }
             else
@@ -69,7 +78,7 @@ public class FixGenders implements CommandExecutor
 
             if (calledRemotely)
             {
-                canContinue = false; // Done so we don't need to keep repeating changes to the bool later.
+                canContinue = false; // Done so we can avoid some bool-flipping code later, in our "called by player" checks.
 
                 // Do we have an argument in the first slot?
                 if (arg1Optional.isPresent())
@@ -80,6 +89,7 @@ public class FixGenders implements CommandExecutor
                     if (Sponge.getServer().getPlayer(arg1String).isPresent())
                     {
                         target = Sponge.getServer().getPlayer(arg1String).get();
+                        targetIsValid = true;
                         canContinue = true;
                     }
                     else
@@ -95,6 +105,9 @@ public class FixGenders implements CommandExecutor
             {
                 printToLog(2, "Starting argument check for player's input.");
 
+                //noinspection ConstantConditions - safe, we've already guaranteed we're not running from console.
+                target = (Player) src;
+
                 if (arg1Optional.isPresent() && arg1Optional.get().equalsIgnoreCase("-c"))
                 {
                     printToLog(2, "Discovered a confirmation flag in argument slot 2.");
@@ -107,7 +120,7 @@ public class FixGenders implements CommandExecutor
                 }
 
                 // Start checking argument 1 for non-flag contents.
-                if (arg1Optional.isPresent())
+                if (arg1Optional.isPresent() && !arg1Optional.get().equalsIgnoreCase("-c"))
                 {
                     printToLog(2, "There's something in the first argument slot!");
                     String arg1String = arg1Optional.get();
@@ -115,22 +128,18 @@ public class FixGenders implements CommandExecutor
                     // Is our calling player allowed to check other people's Pokémon, and is arg 1 a valid target?
                     if (hasStaffPerm)
                     {
+                        printToLog(2, "Player has the staff permission. Checking for target.");
+
                         if (Sponge.getServer().getPlayer(arg1String).isPresent())
                         {
                             if (src.getName().equalsIgnoreCase(arg1String))
-                            {
                                 printToLog(2, "Player targeted self. Continuing.");
-
-                                ////noinspection ConstantConditions
-                                target = (Player) src;
-                            }
                             else
                             {
-                                printToLog(2, "A valid non-source target was found.");
+                                printToLog(2, "Found a valid target in argument 1.");
                                 targetIsValid = true;
+                                target = Sponge.getServer().getPlayer(arg1String).get();
                             }
-
-                            target = Sponge.getServer().getPlayer(arg1String).get();
                         }
                         else
                         {
@@ -141,36 +150,65 @@ public class FixGenders implements CommandExecutor
                         }
                     }
                 }
+                else
+                    printToLog(2, "No target was found, targeting source player.");
             }
 
             if (canContinue)
             {
-                Optional<PlayerStorage> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) target));
-
-                if (!storage.isPresent())
+                if (calledRemotely || commandConfirmed)
                 {
-                    printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
-                    src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
-                }
-                else
-                {
-                    PlayerStorage storageCompleted = storage.get();
+                    Optional<PlayerStorage> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) target));
 
-                    if (calledRemotely || commandConfirmed)
+                    if (!storage.isPresent())
                     {
-                        printToLog(2, "Starting gender checks, any fixes will be printed.");
-                        fixParty(src, target, storageCompleted, targetIsValid);
+                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
+                        src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
                     }
                     else
                     {
-                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                        src.sendMessage(Text.of("§4Error: §cNo confirmation was found. Please confirm to proceed."));
-                        src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [target?] [-c to confirm]"));
-                        src.sendMessage(Text.of(""));
-                        src.sendMessage(Text.of("§5Please note: §dAny broken genders will be immediately rerolled."));
-                        src.sendMessage(Text.of("§dThis command is experimental. Stuff may break, report any issues!"));
-                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                        if (sneakyMode)
+                        {
+                            printToLog(1, "Silently fixing genders for player §3" + target.getName() +
+                                    "§b as per config.");
+                        }
+                        else
+                        {
+                            printToLog(1, "Checking fixing for player §3" + target.getName() +
+                                    "§b, informing if need be.");
+                        }
+
+                        src.sendMessage(Text.of("§7-----------------------------------------------------"));
+
+                        if (hasStaffPerm)
+                        {
+                            if (targetIsValid)
+                                src.sendMessage(Text.of("§eTarget found, checking their whole team..."));
+                            else
+                                src.sendMessage(Text.of("§eNo target found, checking your whole team..."));
+                        }
+                        else
+                            src.sendMessage(Text.of("§eChecking your whole team..."));
+
+                        fixParty(src, target, storage.get(), targetIsValid);
                     }
+                }
+                else
+                {
+                    printToLog(1, "No confirmation provided, printing warning and aborting.");
+
+                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                    src.sendMessage(Text.of("§4Error: §cNo confirmation was found. Please confirm to proceed."));
+
+                    if (hasStaffPerm)
+                        src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [target?] {-c to confirm}"));
+                    else
+                        src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " {-c to confirm}"));
+
+                    src.sendMessage(Text.of(""));
+                    src.sendMessage(Text.of("§5Please note: §dAny broken genders will be immediately rerolled."));
+                    src.sendMessage(Text.of("§dThis command is experimental. Stuff may break, report issues!"));
+                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
                 }
             }
         }
@@ -180,35 +218,12 @@ public class FixGenders implements CommandExecutor
 
 	private void fixParty(CommandSource src, Player target, PlayerStorage storageCompleted, boolean targetIsValid)
     {
-        src.sendMessage(Text.of("§7-----------------------------------------------------"));
-
-        if (targetIsValid)
-            src.sendMessage(Text.of("§eNo slot found, checking the target's whole team."));
-        else
-            src.sendMessage(Text.of("§eNo slot found, checking your whole team."));
-
-        String genderString = "§3male"; // Adjusted later, if needed.
         EntityPixelmon pokemon;
         int slotTicker = 1, fixCount = 0, pokemonGender, malePercent;
         for (NBTTagCompound loopValue : storageCompleted.partyPokemon)
         {
             if (slotTicker > 6)
-            {
-                if (fixCount == 0)
-                {
-                    src.sendMessage(Text.of("§eEverything looks good, nothing fixable was found."));
-                    printToLog(1, "We're done! Found nothing to fix, exiting.");
-                }
-                else
-                {
-                    src.sendMessage(Text.of(""));
-                    src.sendMessage(Text.of("§aWe're done! Check the messages above for more info."));
-                    printToLog(1, "We're done! Broken Pokémon were found, logged and fixed, exiting.");
-                }
-
-                src.sendMessage(Text.of("§7-----------------------------------------------------"));
                 break;
-            }
 
             if (loopValue != null)
             {
@@ -216,97 +231,92 @@ public class FixGenders implements CommandExecutor
                 pokemonGender = loopValue.getInteger(NbtKeys.GENDER);
                 malePercent = pokemon.baseStats.malePercent;
 
-                if (pokemonGender == 0 && malePercent < 0 || pokemonGender == 1 && malePercent < 0)
+                if (pokemonGender > 1 && pokemon.baseStats.malePercent >= 0)
                 {
-                    if (pokemonGender == 1)
-                        genderString = "§5female";
-
-                    src.sendMessage(Text.of("§aPokémon in slot §2" + slotTicker +
-                            " §ashould not have a gender! Fixing."));
-                    printToLog(1, "§aSlot §2" + slotTicker +
-                            " §ashould be ungendered, currently " + genderString + "§a. Fixing.");
-
                     if (fixCount == 0)
                         src.sendMessage(Text.of(""));
 
-                    if (calledRemotely)
-                        target.sendMessage(Text.of("§eSlot §6" + slotTicker + "§e had its gender wiped remotely!"));
-                    else if (targetIsValid)
-                    {
-                        target.sendMessage(Text.of("§eSlot §6" + slotTicker + "§e had its gender wiped by \"§6" +
-                                src.getName() + "§e\"!"));
-                    }
-                    else
-                        target.sendMessage(Text.of("§eSlot §6" + slotTicker + "§e had its gender wiped!"));
-
-                    loopValue.setInteger(NbtKeys.GENDER, 2);
                     fixCount++;
-                }
-                else if (pokemonGender == 2 && pokemon.baseStats.malePercent >= 0)
-                {
-                    src.sendMessage(Text.of("§aPokémon in slot §2" + slotTicker + " §ashould have a gender! Rolling dice..."));
-                    if (fixCount == 0)
-                        src.sendMessage(Text.of(""));
+
+                    if (fixCount == 1 && !sneakyMode && targetIsValid)
+                    {
+                        target.sendMessage(Text.of("§7-----------------------------------------------------"));
+                        target.sendMessage(Text.of("§6" + src.getName() +
+                                " §eis checking your party for broken genders."));
+                        target.sendMessage(Text.of(""));
+                    }
 
                     if (RandomHelper.rand.nextInt(100) < malePercent)
                     {
-                        printToLog(1, "§aSlot §2" + slotTicker +
-                            " §ashould be gendered. Rerolled, now §3male§a.");
-
-                        if (calledRemotely)
-                        {
-                            target.sendMessage(Text.of("§bSlot §3" + slotTicker +
-                                    " §bwas randomly rerolled to §3male §bthrough the console!"));
-                        }
-                        else if (targetIsValid)
-                        {
-                            target.sendMessage(Text.of("§bSlot §3" + slotTicker +
-                                    "§b was randomly rerolled to §3male §bby \"§3" + src.getName() + "§b\"!"));
-                        }
-                        else
-                            target.sendMessage(Text.of("§bSlot §3" + slotTicker + "§b was randomly rerolled to §3male§b!"));
+                        printToLog(1, "§bSlot §3" + slotTicker +
+                            " §bshould be gendered. Rerolled, now §3male§b.");
 
                         loopValue.setInteger(NbtKeys.GENDER, 0);
-                        src.sendMessage(Text.of("§bThe targeted Pokémon is now §3male§b."));
+
+                        if (!sneakyMode && targetIsValid)
+                        {
+                            if (calledRemotely)
+                            {
+                                target.sendMessage(Text.of("§bSlot §3" + slotTicker +
+                                        " §bwas randomly rerolled to §3male §bthrough the console!"));
+                            }
+                            else
+                            {
+                                target.sendMessage(Text.of("§bSlot §3" + slotTicker +
+                                        " §bwas randomly rerolled to §3male§b!"));
+                            }
+                        }
+
+                        src.sendMessage(Text.of("§bSlot §3" + slotTicker + "§b was randomly rerolled to §3male§b!"));
                     }
                     else
                     {
                         printToLog(1, "§aSlot §2" + slotTicker +
-                            " §ashould be gendered. Rerolled, now §5female§a.");
-
-                        if (calledRemotely)
-                        {
-                            target.sendMessage(Text.of("§dSlot §5" + slotTicker +
-                                    " §dwas randomly rerolled to §5female §dthrough the console!"));
-                        }
-                        else if (targetIsValid)
-                        {
-                            target.sendMessage(Text.of("§bSlot §5" + slotTicker +
-                                    "§d was randomly rerolled to §5female §dby \"§5" + src.getName() + "§d\"!"));
-                        }
-                        else
-                            target.sendMessage(Text.of("§bSlot §5" + slotTicker + "§d was randomly rerolled to §5female§!"));
+                            " §bshould be gendered. Rerolled, now §5female§b.");
 
                         loopValue.setInteger(NbtKeys.GENDER, 1);
-                        src.sendMessage(Text.of("§dPokémon in is now §5female§d!"));
-                    }
 
-                    fixCount++;
+                        if (!sneakyMode && targetIsValid)
+                        {
+                            if (calledRemotely)
+                            {
+                                target.sendMessage(Text.of("§dSlot §5" + slotTicker +
+                                        " §dwas randomly rerolled to §5female §dthrough the console!"));
+                            }
+                            else
+                            {
+                                target.sendMessage(Text.of("§dSlot §5" + slotTicker +
+                                        " §dwas randomly rerolled to §5female§d!"));
+                            }
+                        }
+
+                        src.sendMessage(Text.of("§dSlot §5" + slotTicker + "§d was randomly rerolled to §5female§d!"));
+                    }
                 }
             }
 
             slotTicker++;
         }
 
-        if (fixCount > 0)
+        if (fixCount == 0)
         {
-            printToLog(1, "No slot provided, target team was checked and fixed. Exit.");
-            storageCompleted.sendUpdatedList();
+            src.sendMessage(Text.of("§eEverything looks good, nothing fixable was found."));
+            printToLog(1, "We're done! Found nothing to fix, exiting.");
         }
         else
         {
-            printToLog(1, "No slot provided, could not find anything to fix on team. Exit.");
-            src.sendMessage(Text.of("§eCould not find anything to fix on that player's team."));
+            storageCompleted.sendUpdatedList();
+
+            src.sendMessage(Text.of(""));
+            src.sendMessage(Text.of("§aWe're done! Glad to be of service."));
+            printToLog(1, "We're done! Broken Pokémon were found, logged and fixed, exiting.");
+
+            if (!sneakyMode)
+            {
+                target.sendMessage(Text.of(""));
+                target.sendMessage(Text.of("§eYour party has been checked, and glitched genders fixed."));
+                target.sendMessage(Text.of("§7-----------------------------------------------------"));
+            }
         }
 
         src.sendMessage(Text.of("§7-----------------------------------------------------"));

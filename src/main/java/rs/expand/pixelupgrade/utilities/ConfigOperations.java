@@ -582,6 +582,8 @@ public class ConfigOperations
 
                     FixGenders.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
+                    FixGenders.sneakyMode =
+                            toBooleanObject(commandConfig.getNode("sneakyMode").getString());
 
                     return FixGenders.commandAlias;
                 }
@@ -640,8 +642,8 @@ public class ConfigOperations
                             interpretInteger(commandConfig.getNode("altCooldownInSeconds").getString());
                     PokeCure.healParty  =
                             toBooleanObject(commandConfig.getNode("healParty").getString());
-                    PokeCure.cureAilments =
-                            toBooleanObject(commandConfig.getNode("cureAilments").getString());
+                    PokeCure.sneakyMode  =
+                            toBooleanObject(commandConfig.getNode("sneakyMode").getString());
                     PokeCure.commandCost =
                             interpretInteger(commandConfig.getNode("commandCost").getString());
 

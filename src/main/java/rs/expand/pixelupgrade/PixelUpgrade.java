@@ -223,8 +223,8 @@ public class PixelUpgrade
             .permission("pixelupgrade.command.staff.forcehatch")
             .executor(new ForceHatch())
             .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target or slot"))),
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))))
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target, slot or confirmation"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot or confirmation"))))
             .build();
 
     public static CommandSpec forcestats = CommandSpec.builder()
@@ -301,6 +301,7 @@ public class PixelUpgrade
     {
         // Load up the primary config and the info command config, and figure out the info alias.
         // We start printing stuff, here. If any warnings/errors pop up they'll be shown here.
+        printBasicMessage("");
         printBasicMessage("========================= P I X E L U P G R A D E =========================");
 
         // Create a config directory if it doesn't exist. Silently swallow an error if it does. I/O is awkward.
@@ -319,6 +320,7 @@ public class PixelUpgrade
         if (registrationCompleted)
             printBasicMessage("--> §aPre-init completed.");
         printBasicMessage("===========================================================================");
+        printBasicMessage("");
     }
 
     @Listener
@@ -356,6 +358,7 @@ public class PixelUpgrade
         int currentInternalVersion = 310;
         if (PixelUpgrade.configVersion != null && currentInternalVersion > PixelUpgrade.configVersion)
         {
+            printBasicMessage("");
             printBasicMessage("===========================================================================");
             printBasicMessage("§4/showstats §cand §4/upgradeivs §clikely have outdated (§43.0§c) configs.");
             printBasicMessage("");
@@ -367,6 +370,7 @@ public class PixelUpgrade
             printBasicMessage("");
             printBasicMessage("§cThese commands will have reduced functionality until this is fixed.");
             printBasicMessage("===========================================================================");
+            printBasicMessage("");
         }
     }
 }

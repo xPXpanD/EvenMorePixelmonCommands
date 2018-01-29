@@ -98,7 +98,7 @@ public class PixelUpgradeInfo implements CommandExecutor
             if (CheckStats.commandCost != null && CheckStats.commandAlias != null)
             {
                 if (usedFromConsole)
-                    permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias + " <target>"));
+                    permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias + " <target> [slot]"));
                 else if (CheckStats.commandCost > 0)
                 {
                     if (src.hasPermission("pixelupgrade.command.other.checkstats"))
@@ -128,9 +128,7 @@ public class PixelUpgradeInfo implements CommandExecutor
         {
             if (CheckTypes.commandAlias != null)
             {
-                    permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
-                            " <Pokémon name/number>"));
-
+                permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias + " <Pokémon name/number>"));
                 permissionMessageList.add(Text.of("§f --> §eSee any Pokémon's resistances, weaknesses and more."));
                 hasNoPermission = false;
             }
@@ -143,7 +141,6 @@ public class PixelUpgradeInfo implements CommandExecutor
             {
                 permissionMessageList.add(Text.of("§6/" + DittoFusion.commandAlias +
                         " <target slot> <sacrifice slot> {confirm flag}"));
-
                 permissionMessageList.add(Text.of("§f --> §eSacrifice one Ditto to improve another, for a price..."));
                 hasNoPermission = false;
             }
@@ -152,13 +149,32 @@ public class PixelUpgradeInfo implements CommandExecutor
 
         if (src.hasPermission("pixelupgrade.command.fixevs"))
         {
-            if (FixEVs.commandAlias != null)
+            if (FixEVs.commandCost != null && FixEVs.commandAlias != null)
             {
-                permissionMessageList.add(Text.of("§6/" + FixEVs.commandAlias + " <slot>"));
+                if (FixEVs.commandCost != 0)
+                    permissionMessageList.add(Text.of("§6/" + FixEVs.commandAlias + " <slot> {confirm flag}"));
+                else
+                    permissionMessageList.add(Text.of("§6/" + FixEVs.commandAlias + " <slot>"));
+
                 permissionMessageList.add(Text.of("§f --> §eEVs above 252 are wasted. This will fix them!"));
                 hasNoPermission = false;
             }
             else printToLog(1, "§3/fixevs §bhas a malformed config, hiding from list.");
+        }
+
+        if (src.hasPermission("pixelupgrade.command.fixgenders"))
+        {
+            if (FixGenders.commandAlias != null)
+            {
+                if (src.hasPermission("pixelupgrade.command.staff.fixgenders"))
+                    permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " [optional target] {confirm flag}"));
+                else
+                    permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " {confirm flag}"));
+
+                permissionMessageList.add(Text.of("§f --> §eFixes Pokémon affected by 6.0.x bugs or bad commands."));
+                hasNoPermission = false;
+            }
+            else printToLog(1, "§3/fixgenders §bhas a malformed config, hiding from list.");
         }
 
         if (src.hasPermission("pixelupgrade.command.fixlevel"))

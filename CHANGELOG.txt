@@ -10,7 +10,7 @@ Released ???
     New commands:
    * /fixgender: Fixes Pokémon affected by the 6.0.x breeding bug or by bad commands. Experimental!
    * /pokecure: Heals Pokémon (slot or party) on a configurable cooldown, for a configurable cost.
-   * /spawndex: Spawns Pokémon from their Pokédex number. Made for testing, might be useful?
+   * /spawndex: Spawns Pokémon based on their Pokédex number. Made for testing, might be useful?
 
     Other changes:
    * Fixed /fixevs eating money without fixing things, if re-used on a Pokémon beyond the limits.

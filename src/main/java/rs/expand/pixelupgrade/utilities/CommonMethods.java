@@ -33,19 +33,19 @@ public class CommonMethods
                 case 0:
                 {
                     getConsole().ifPresent(console ->
-                            console.sendMessage(Text.of("§c[§4" + callSource + " §c:: §4ERROR§c] " + inputString)));
+                            console.sendMessage(Text.of("§c[§4" + callSource + " §c// §4ERROR§c] " + inputString)));
                     break;
                 }
                 case 1:
                 {
                     getConsole().ifPresent(console ->
-                            console.sendMessage(Text.of("§b[§3" + callSource + " §b:: §3INFO§b] " + inputString)));
+                            console.sendMessage(Text.of("§b[§3" + callSource + " §b// §3INFO§b] " + inputString)));
                     break;
                 }
                 default:
                 {
                     getConsole().ifPresent(console ->
-                            console.sendMessage(Text.of("§a[§2" + callSource + " §a:: §2DEBUG§a] " + inputString)));
+                            console.sendMessage(Text.of("§a[§2" + callSource + " §a// §2DEBUG§a] " + inputString)));
                     break;
                 }
             }
