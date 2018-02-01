@@ -20,6 +20,7 @@ import java.util.Optional;
 // Local imports.
 import rs.expand.pixelupgrade.utilities.CommonMethods;
 
+// TODO: Add target support.
 public class ResetCount implements CommandExecutor
 {
     // Initialize a config variable. We'll load stuff into it when we call the config loader.
@@ -92,6 +93,9 @@ public class ResetCount implements CommandExecutor
                         case "FUSION": case "FUSIONS":
                             fixedCount = "Fusion";
                             break;
+                        case "ALL": case "BOTH": case "EVERYTHING":
+                            fixedCount = "All";
+                            break;
                         default:
                             printError = true;
                     }
@@ -136,41 +140,70 @@ public class ResetCount implements CommandExecutor
                         {
                             if (commandConfirmed)
                             {
-                                EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
-                                Integer upgradeCount = pokemon.getEntityData().getInteger("upgradeCount");
-                                Integer fuseCount = pokemon.getEntityData().getInteger("fuseCount");
-                                boolean isDitto = nbt.getString("Name").equals("Ditto");
-
                                 printToLog(2, "Command was confirmed, proceeding to execution.");
 
-                                if (fixedCount.matches("Fusion"))
+                                EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
+
+                                switch (fixedCount)
                                 {
-                                    printToLog(1, "Resetting Fusion count on target Pokémon. Old count: §3" + fuseCount);
-                                    src.sendMessage(Text.of("§aThis Pokémon's Fusion count has been reset!"));
-                                    if (!isDitto)
-                                        src.sendMessage(Text.of("§eThis isn't a Ditto -- you may want to wipe Upgrade instead."));
-                                    pokemon.getEntityData().setInteger("fuseCount", 0);
-                                }
-                                else if (fixedCount.matches("Upgrade"))
-                                {
-                                    printToLog(1, "Resetting Upgrade count on target Pokémon. Old count: §3" + upgradeCount);
-                                    src.sendMessage(Text.of("§aThis Pokémon's Upgrade count has been reset!"));
-                                    if (isDitto)
-                                        src.sendMessage(Text.of("§eThis is a Ditto -- you may want to wipe Fusion instead."));
-                                    pokemon.getEntityData().setInteger("upgradeCount", 0);
+                                    case "Fusion":
+                                    {
+                                        int fuseCount = pokemon.getEntityData().getInteger("fuseCount");
+                                        boolean isDitto = nbt.getString("Name").equals("Ditto");
+
+                                        printToLog(1,
+                                                "Resetting Fusion count on target Pokémon. Old count: §3" + fuseCount);
+
+                                        src.sendMessage(Text.of("§aThis Pokémon's Fusion count has been reset!"));
+                                        if (!isDitto)
+                                            src.sendMessage(Text.of("§eThis isn't a Ditto -- you may want to wipe Upgrade instead."));
+
+                                        pokemon.getEntityData().setInteger("fuseCount", 0);
+                                        break;
+                                    }
+                                    case "Upgrade":
+                                    {
+                                        int upgradeCount = pokemon.getEntityData().getInteger("upgradeCount");
+                                        boolean isDitto = nbt.getString("Name").equals("Ditto");
+
+                                        printToLog(1,
+                                                "Resetting Upgrade count on target Pokémon. Old count: §3" + upgradeCount);
+
+                                        src.sendMessage(Text.of("§aThis Pokémon's Upgrade count has been reset!"));
+                                        if (isDitto)
+                                            src.sendMessage(Text.of("§eThis is a Ditto -- you may want to wipe Fusion instead."));
+
+                                        pokemon.getEntityData().setInteger("upgradeCount", 0);
+                                        break;
+                                    }
+                                    default:
+                                    {
+                                        int upgradeCount = pokemon.getEntityData().getInteger("upgradeCount");
+                                        int fuseCount = pokemon.getEntityData().getInteger("fuseCount");
+
+                                        printToLog(1, "Resetting all counts. Old: §3" + upgradeCount +
+                                                "§b upgrades, §3" + fuseCount + "§b fusions.");
+
+                                        src.sendMessage(Text.of("§aThis Pokémon's counts have both been reset!"));
+
+                                        pokemon.getEntityData().setInteger("fuseCount", 0);
+                                        pokemon.getEntityData().setInteger("upgradeCount", 0);
+                                    }
                                 }
 
-                                printToLog(1, "Target counts have been reset!");
+                                printToLog(1, "Successfully reset target count(s)!");
                             }
                             else
                             {
                                 printToLog(1, "No confirmation provided, printing warning and aborting.");
 
                                 src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                                if (fixedCount.matches("all"))
-                                    src.sendMessage(Text.of("§6Warning: §eYou're about to reset all of this Pokémon's improvement counts!"));
+
+                                if (fixedCount.equals("All"))
+                                    src.sendMessage(Text.of("§6Warning: §eYou're about to reset this Pokémon's improvement counts!"));
                                 else
                                     src.sendMessage(Text.of("§6Warning: §eYou are about to reset this Pokémon's §6" + fixedCount + "§e count!"));
+
                                 src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
                                 src.sendMessage(Text.of("§5-----------------------------------------------------"));
                             }

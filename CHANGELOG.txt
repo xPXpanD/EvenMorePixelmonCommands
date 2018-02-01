@@ -1,4 +1,4 @@
-3.1.0 for 6.1.0
+4.0.0 beta for 6.1.0
 Released ???
 
     Config changes:
@@ -13,23 +13,28 @@ Released ???
    * /spawndex: Spawns Pokémon based on their Pokédex number. Made for testing, might be useful?
 
     Other changes:
-   * Fixed /fixevs eating money without fixing things, if re-used on a Pokémon beyond the limits.
-   * Added console support for /checkstats, /checktypes and /forcehatch. More to come?
-   * Fixed "Ho-Oh" not being valid input for /checktypes.
-   * Added an optional second argument to /checktypes, so names like "Tapu Koko" will work.
-   * Changed max-IV formatting for stuff like /checkstats to Italic to work around an external bug.
-   * Updated the command listing to also work from console, where it'll show only console commands.
-   * Fixed /checkegg saying egg rechecks were free even with command cost set to 0.
-   * Fixed missing spaces in front of the pipes when showing EVs in /checkstats.
-   * Fixed /upgradeivs saying legendaries were shiny on debug messages.
-   * Fixed /dittofusion mentioning upgrading instead of fusing in some places. Oops.
-   * Made the /checkstats messages referring to /checkegg a bit more... professional.
-   * Fixed a bunch of miscellaneous debug logger typos and wrong mentions.
-   * Rewrote the internal config loader. Mostly useful for maintenance, but the filesize is smaller, too!
-   * Changing command aliases no longer requires a reboot. Experimental.
-   * Added all babies and baby-based evolutions to /upgradeivs, and edited messages to fit.
    * Added Poipole (ID 803) and up to /checktypes and the new /spawndex.
+   * Added all babies and baby-based evolutions to /upgradeivs, and edited messages to fit.
+   * Added an optional second argument to /checktypes, so names like "Tapu Koko" will work.
+   * Added console support for /checkstats, /checktypes and /forcehatch. More to come?
+   * Changed many command messages to be a bit more professional.
+   * Changed max-IV formatting for commands like /checkstats to italic to work around an external bug.
+   * Changing command aliases no longer requires a reboot. Experimental.
+   * Fixed "Ho-Oh" not being valid input for /checktypes.
+   * Fixed /checkegg saying egg rechecks were free even with command cost set to 0.
+   * Fixed /checkstats not showing the nickname on shiny Pokémon.
+   * Fixed /dittofusion mentioning upgrading instead of fusing in some places. Oops.
+   * Fixed /fixevs eating money without fixing things, if re-used on a Pokémon beyond the limits.
+   * Fixed /resetcount not recognizing "ALL" correctly because I never finished implementing it. Derp.
+   * Fixed /upgradeivs saying legendaries were shiny on debug messages.
+   * Fixed a bunch of miscellaneous debug logger typos and wrong mentions.
    * Fixed a lot of miscellaneous bugs, and possibly introduced a few too. As always, please report!
+   * Fixed missing spaces in front of the pipes when showing EVs in /checkstats.
+   * Hopefully fixed /checkstats's gender/size/nature line rolling over to another line.
+   * Removed a few older default aliases that weren't being shown anywhere.
+   * Rewrote the internal config loader. Mostly useful for maintenance, but the filesize is smaller, too!
+   * Shortened many console messages to fit a standard Command Prompt window. Work in progress.
+   * Updated the command listing to also work from console, where it'll show only console commands.
 
 3.0.0 for 6.0.0
 Released December 28, 2017.
@@ -40,12 +45,12 @@ Released December 28, 2017.
    * Re-enabled numLinesPerPage.
    * Fixed several formatting issues and reworded a few things.
 
-2.0.0 Beta 2 for 5.1.2
+2.0.0 beta 2 for 5.1.2
 Released July 7, 2017.
 
    * Bugfixes. Exact details were lost.
 
-2.0.0 Beta for 5.1.1
+2.0.0 beta for 5.1.1
 Released June 29, 2017.
 
    * Added /switchgender.
@@ -56,7 +61,7 @@ Released June 29, 2017.
    * Fixed /upgradeivs's debug logger showing it as another command.
    * Temporarily disabled the numLinesPerPage setting in the info command due to issues.
 
-2.0.0 Alpha for 5.1.1
+2.0.0 alpha for 5.1.1
 Released June 24, 2017.
 
    * Added /resetcount.

@@ -25,10 +25,10 @@ import static rs.expand.pixelupgrade.utilities.CommonMethods.printBasicMessage;
 
 // New things:
 // TODO: Make a Pokémon transfer command.
-// TODO: Make a token redeeming command for shinies. Maybe make it a starter picker command, even.
+// TODO: Make a token redeeming command for shinies. Maybe make it a starter picker command, even. - Xenoyia
 // TODO: Make a /pokesell, maybe one that sells based on ball worth.
 // TODO: Check public static final String PC_RAVE = "rave";
-// TODO: See if recoloring Pokémon is possible.
+// TODO: Maybe see if a cooldown on trading machines is possible? - FrostEffects
 // TODO: Look into name colors?
 // TODO: Make a Pokéball changing command, get it to write the old ball to the Pokémon for ball sale purposes.
 // TODO: Do something with setPixelmonScale. Maybe a /spawnboss for super big high HP IV bosses with custom loot?
@@ -44,14 +44,15 @@ import static rs.expand.pixelupgrade.utilities.CommonMethods.printBasicMessage;
 (
         id = "pixelupgrade",
         name = "PixelUpgrade",
-        version = "3.1 beta",
+        version = "4.0 beta",
         dependencies = @Dependency(id = "pixelmon"),
-        description = "Adds a whole bunch of utility commands to Pixelmon, with optional economy integration.",
+        //description = "Adds a whole bunch of utility commands to Pixelmon, with optional economy integration.",
+        description = "Adds a whole bunch of utility commands to Pixelmon, some with economy integration.",
         authors = "XpanD"
 
         // Not listed but certainly appreciated:
 
-        // NickImpact (helping me understand NBTs and remove console tags from my messages)
+        // NickImpact (helping me understand NBTs, and a good few useful snippets)
         // Proxying (writing to entities in a copy-persistent manner)
         // Karanum (fancy paginated command lists)
         // Hiroku (tip + snippet for setting up UTF-8 encoding; made § work)
@@ -95,8 +96,8 @@ public class PixelUpgrade
     public static Path fixLevelPath = Paths.get(commandConfigPath, "FixLevel.conf");
     public static Path forceHatchPath = Paths.get(commandConfigPath, "ForceHatch.conf");
     public static Path forceStatsPath = Paths.get(commandConfigPath, "ForceStats.conf");
-    public static Path pokeCurePath = Paths.get(commandConfigPath, "PokeCure.conf");
     public static Path puInfoPath = Paths.get(commandConfigPath, "PixelUpgradeInfo.conf");
+    public static Path pokeCurePath = Paths.get(commandConfigPath, "PokeCure.conf");
     public static Path resetCountPath = Paths.get(commandConfigPath, "ResetCount.conf");
     public static Path resetEVsPath = Paths.get(commandConfigPath, "ResetEVs.conf");
     public static Path showStatsPath = Paths.get(commandConfigPath, "ShowStats.conf");
@@ -173,8 +174,8 @@ public class PixelUpgrade
             .permission("pixelupgrade.command.checkstats")
             .executor(new CheckStats())
             .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target or slot"))),
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot or confirmation"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/slot"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot/confirmation"))),
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("confirmation"))))
             .build();
 
@@ -207,7 +208,7 @@ public class PixelUpgrade
             .permission("pixelupgrade.command.fixgenders")
             .executor(new FixGenders())
             .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target or confirmation"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/confirmation"))),
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("confirmation"))))
             .build();
 
@@ -223,26 +224,28 @@ public class PixelUpgrade
             .permission("pixelupgrade.command.staff.forcehatch")
             .executor(new ForceHatch())
             .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target, slot or confirmation"))),
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot or confirmation"))))
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/slot/confirmation"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot/confirmation"))))
             .build();
 
     public static CommandSpec forcestats = CommandSpec.builder()
             .permission("pixelupgrade.command.staff.forcestats")
             .executor(new ForceStats())
             .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("stat"))),
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("value"))),
-                    GenericArguments.flags().flag("f").buildWith(GenericArguments.none()))
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/slot"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot/stat"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("stat/value"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("value/force flag"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("force flag"))))
             .build();
 
     public static CommandSpec pokecure = CommandSpec.builder()
             .permission("pixelupgrade.command.pokecure")
             .executor(new PokeCure())
             .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
-                    GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/slot/confirmation"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot/confirmation"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("confirmation"))))
             .build();
 
     public static CommandSpec resetcount = CommandSpec.builder()

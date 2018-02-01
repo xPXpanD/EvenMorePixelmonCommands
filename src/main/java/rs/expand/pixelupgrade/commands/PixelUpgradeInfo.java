@@ -98,24 +98,48 @@ public class PixelUpgradeInfo implements CommandExecutor
             if (CheckStats.commandCost != null && CheckStats.commandAlias != null)
             {
                 if (usedFromConsole)
-                    permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias + " <target> [slot]"));
+                    permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias + " <target> [optional slot]"));
                 else if (CheckStats.commandCost > 0)
                 {
                     if (src.hasPermission("pixelupgrade.command.other.checkstats"))
-                        permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
-                                " [optional target] <slot> {confirm flag}"));
+                    {
+                        if (CheckStats.showTeamWhenSlotEmpty)
+                        {
+                            permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
+                                    " [optional target] [optional slot] {confirm flag}"));
+                        }
+                        else
+                        {
+                            permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
+                                    " [optional target] <slot> {confirm flag}"));
+                        }
+                    }
                     else
+                    {
                         permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
                                 " <slot> {confirm flag} §7(no perms for target)"));
+                    }
                 }
                 else
                 {
                     if (src.hasPermission("pixelupgrade.command.other.checkstats"))
-                        permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
-                                " [optional target] <slot>"));
+                    {
+                        if (CheckStats.showTeamWhenSlotEmpty)
+                        {
+                            permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
+                                    " [optional target] [optional slot]"));
+                        }
+                        else
+                        {
+                            permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
+                                    " [optional target] <slot>"));
+                        }
+                    }
                     else
+                    {
                         permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
                                 " <slot> §7(no perms for target)"));
+                    }
                 }
 
                 permissionMessageList.add(Text.of("§f --> §eLists a Pokémon's IVs, nature, size and more."));

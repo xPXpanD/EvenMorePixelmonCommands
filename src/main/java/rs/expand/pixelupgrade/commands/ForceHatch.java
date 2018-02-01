@@ -57,9 +57,9 @@ public class ForceHatch implements CommandExecutor
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
             boolean canContinue = false;
-            Optional<String> arg1Optional = args.getOne("target or slot");
+            Optional<String> arg1Optional = args.getOne("target/slot");
             Optional<String> arg2Optional = args.getOne("slot");
-            String errorString = "ERROR PLEASE REPORT";
+            String errorString = "§4There's an error message missing, please report this!";
             Player target = null;
             int slot = 0;
 
@@ -195,8 +195,12 @@ public class ForceHatch implements CommandExecutor
 
                 if (!storage.isPresent())
                 {
-                    printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
-                    src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
+                    if (target != null)
+                        printToLog(0, "§4" + target.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
+                    else
+                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
+
+                    src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Might be a bug?"));
                 }
                 else
                 {

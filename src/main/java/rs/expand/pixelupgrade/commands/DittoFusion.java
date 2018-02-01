@@ -100,7 +100,7 @@ public class DittoFusion implements CommandExecutor
                 Player player = (Player) src;
                 int slot1 = 0, slot2 = 0;
                 boolean commandConfirmed = false, canContinue = false;
-                String errorString = "ERROR PLEASE REPORT";
+                String errorString = "§4There's an error message missing, please report this!";
 
                 if (!args.<String>getOne("target slot").isPresent())
                 {

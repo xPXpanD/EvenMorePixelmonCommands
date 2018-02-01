@@ -71,7 +71,7 @@ public class CheckTypes implements CommandExecutor
 
             EnumPokemonList returnedPokemon = null;
             boolean canContinue = true, inputIsInteger = false, inputWasEdited = false;
-            String arg1String = null, arg2String = "", errorString = "ERROR PLEASE REPORT";
+            String arg1String = null, arg2String = "", errorString = "§4There's an error message missing, please report this!";
             int inputInteger;
 
             // Do we have an argument in the first slot?

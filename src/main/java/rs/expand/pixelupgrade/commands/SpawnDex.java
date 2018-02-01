@@ -66,7 +66,7 @@ public class SpawnDex implements CommandExecutor
                 {
                     numberString = args.<String>getOne("number").get();
 
-                    if (numberString.matches("\\d+"))
+                    if (numberString.matches("-?[1-9]\\d*|0"))
                     {
                         printToLog(2, "Provided argument is an integer, let's check if it's in range.");
                         pokedexNumber = Integer.parseInt(args.<String>getOne("number").get());

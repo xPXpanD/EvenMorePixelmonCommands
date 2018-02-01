@@ -28,7 +28,7 @@ public class ConfigOperations
     // Make a little converter for safely handling possibly null Strings that have an integer value inside.
     private static Integer interpretInteger(String input)
     {
-        if (input != null && input.matches("^[0-9]\\d*$"))
+        if (input != null && input.matches("-?[1-9]\\d*|0"))
             return Integer.parseInt(input);
         else
             return null;
@@ -86,9 +86,9 @@ public class ConfigOperations
                 Sponge.getCommandManager().register(puContainer, checktypes, "checktypes", "checktype", "weakness");
 
             if (DittoFusion.commandAlias != null && !DittoFusion.commandAlias.equals("dittofusion"))
-                Sponge.getCommandManager().register(puContainer, dittofusion, "dittofusion", "fuseditto", DittoFusion.commandAlias);
+                Sponge.getCommandManager().register(puContainer, dittofusion, "dittofusion", DittoFusion.commandAlias);
             else
-                Sponge.getCommandManager().register(puContainer, dittofusion, "dittofusion", "fuseditto");
+                Sponge.getCommandManager().register(puContainer, dittofusion, "dittofusion");
 
             if (FixEVs.commandAlias != null && !FixEVs.commandAlias.equals("fixevs"))
                 Sponge.getCommandManager().register(puContainer, fixevs, "fixevs", FixEVs.commandAlias);
@@ -133,9 +133,9 @@ public class ConfigOperations
                 Sponge.getCommandManager().register(puContainer, resetcount, "resetcount", "resetcounts");
 
             if (ResetEVs.commandAlias != null && !ResetEVs.commandAlias.equals("resetevs"))
-                Sponge.getCommandManager().register(puContainer, resetevs, "resetevs", "resetev", ResetEVs.commandAlias);
+                Sponge.getCommandManager().register(puContainer, resetevs, "resetevs", ResetEVs.commandAlias);
             else
-                Sponge.getCommandManager().register(puContainer, resetevs, "resetevs", "resetev");
+                Sponge.getCommandManager().register(puContainer, resetevs, "resetevs");
 
             if (ShowStats.commandAlias != null && !ShowStats.commandAlias.equals("showstats"))
                 Sponge.getCommandManager().register(puContainer, showstats, "showstats", ShowStats.commandAlias);
@@ -143,9 +143,9 @@ public class ConfigOperations
                 Sponge.getCommandManager().register(puContainer, showstats, "showstats");
 
             if (SpawnDex.commandAlias != null && !SpawnDex.commandAlias.equals("spawndex"))
-                Sponge.getCommandManager().register(puContainer, spawndex, "spawndex", "spawnid", SpawnDex.commandAlias);
+                Sponge.getCommandManager().register(puContainer, spawndex, "spawndex", SpawnDex.commandAlias);
             else
-                Sponge.getCommandManager().register(puContainer, spawndex, "spawndex", "spawnid");
+                Sponge.getCommandManager().register(puContainer, spawndex, "spawndex");
 
             if (SwitchGender.commandAlias != null && !SwitchGender.commandAlias.equals("switchgender"))
                 Sponge.getCommandManager().register(puContainer, switchgender, "switchgender", SwitchGender.commandAlias);
@@ -174,7 +174,7 @@ public class ConfigOperations
         // Do some initial setup for our formatted messages later on. We'll show three commands per line.
         ArrayList<String> commandList = new ArrayList<>();
         StringBuilder formattedCommand = new StringBuilder(), printableList = new StringBuilder();
-        String commandAlias = "ERROR PLEASE REPORT", commandString = null;
+        String commandAlias = "§4There's an error message missing, please report this!", commandString = null;
 
         // Format our commands and aliases and add them to the lists that we'll print in a bit.
         // TODO: If you add a command, update this list and increment the counters! (currently 17)
@@ -375,10 +375,14 @@ public class ConfigOperations
             }
             else
             {
+                String prettyCallSource = callSource.toLowerCase();
+                if (callSource.equals("pokecure"))
+                    prettyCallSource = "pokécure";
+
                 try
                 {
                     // Spaces added so it falls in line with startup/reload message spacing.
-                    printBasicMessage("    §eNo §6/" + callSource.toLowerCase() +
+                    printBasicMessage("    §eNo §6/" + prettyCallSource +
                             "§e configuration file found, creating...");
 
                     Files.copy(ConfigOperations.class.getResourceAsStream("/assets/" + callSource + ".conf"),
@@ -386,7 +390,7 @@ public class ConfigOperations
                 }
                 catch (IOException F)
                 {
-                    printBasicMessage("§cConfig setup for command \"§4/" + callSource.toLowerCase()
+                    printBasicMessage("§cConfig setup for command \"§4/" + prettyCallSource
                             + "§c\" failed! Please report this.");
                     printBasicMessage("§cAdd any useful info you may have (operating system?). Stack trace:");
                     F.printStackTrace();
@@ -773,8 +777,12 @@ public class ConfigOperations
         }
         catch (Exception F)
         {
+            String prettyCallSource = callSource.toLowerCase();
+            if (callSource.equals("pokecure"))
+                prettyCallSource = "pokécure";
+
             // Spaces added so it falls in line with startup/reload message spacing.
-            printBasicMessage("    §cCould not read alias for §4/" + callSource.toLowerCase() + "§c.");
+            printBasicMessage("    §cCould not read alias for §4/" + prettyCallSource + "§c.");
             gotConfigError = true;
 
             switch (callSource)

@@ -166,8 +166,8 @@ public class CheckStats implements CommandExecutor
 
             boolean canContinue = false, commandConfirmed = false;
             boolean hasOtherPerm = src.hasPermission("pixelupgrade.command.other.checkstats");
-            Optional<String> arg1Optional = args.getOne("target or slot");
-            Optional<String> arg2Optional = args.getOne("slot or confirmation");
+            Optional<String> arg1Optional = args.getOne("target/slot");
+            Optional<String> arg2Optional = args.getOne("slot/confirmation");
             Player target = null;
             int slot = 0;
 
@@ -217,7 +217,7 @@ public class CheckStats implements CommandExecutor
             else
             {
                 printToLog(2, "Starting argument check for player's input.");
-                String errorString = "ERROR PLEASE REPORT";
+                String errorString = "§4There's an error message missing, please report this!";
                 boolean canSkip = false;
 
                 // Ugly, but it'll do for now... Doesn't seem like my usual way of getting flags will work here.
@@ -250,7 +250,7 @@ public class CheckStats implements CommandExecutor
                         // Is the player not allowed to check other people's Pokémon, and is there no cost? Skip ahead!
                         if (!hasOtherPerm && commandCost == 0)
                         {
-                            printToLog(2, "Player is missing \"other\" perm, and cost is 0. Skip to execution!");
+                            printToLog(2, "Player is missing \"other\" perm, cost is 0. Skip to execution!");
                             canSkip = true;
                         }
                     }
@@ -336,10 +336,14 @@ public class CheckStats implements CommandExecutor
                 else
                     storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
-                // Running this from the console with targetAcquired false? We'll already have hit an error and exited!
+                // Running this from the console with no target? We'll already have hit an error and exited!
                 if (!storage.isPresent())
                 {
-                    printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
+                    if (target != null)
+                        printToLog(0, "§4" + target.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
+                    else
+                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
+
                     src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
                 }
                 else
@@ -659,7 +663,7 @@ public class CheckStats implements CommandExecutor
                 startString = "§eStats of your §6" + nbt.getString("Name") + "§e";
         }
 
-        if (!nbt.getString("Nickname").equals("") && nbt.getInteger(NbtKeys.IS_SHINY) != 1)
+        if (!nbt.getString("Nickname").equals(""))
             src.sendMessage(Text.of(startString + nicknameString + "§e:"));
         else
             src.sendMessage(Text.of(startString + "§e:"));

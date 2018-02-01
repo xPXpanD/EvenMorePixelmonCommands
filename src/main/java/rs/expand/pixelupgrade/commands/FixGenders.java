@@ -72,7 +72,7 @@ public class FixGenders implements CommandExecutor
 
             boolean canContinue = true, targetIsValid = false, commandConfirmed = false;
             boolean hasStaffPerm = src.hasPermission("pixelupgrade.command.staff.fixgenders");
-            Optional<String> arg1Optional = args.getOne("target or confirmation");
+            Optional<String> arg1Optional = args.getOne("target/confirmation");
             Optional<String> arg2Optional = args.getOne("confirmation");
             Player target = null;
 

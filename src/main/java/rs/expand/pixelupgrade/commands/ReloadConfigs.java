@@ -168,12 +168,12 @@ public class ReloadConfigs implements CommandExecutor
                                 PixelUpgradeInfo.commandAlias + "§a.";
                         break;
                     }
-                    case "POKECURE":
+                    case "POKECURE": case "POKÉCURE":
                     {
                         printHeaderAndCheckFolder(src, false);
                         oldAlias = PokeCure.commandAlias;
                         newAlias = ConfigOperations.loadConfig("PokeCure");
-                        returnString = "--> §aLoaded config for command §2/pokecure§a, alias §2/" + PokeCure.commandAlias + "§a.";
+                        returnString = "--> §aLoaded config for command §2/pokécure§a, alias §2/" + PokeCure.commandAlias + "§a.";
                         break;
                     }
                     case "RESETCOUNT":

@@ -216,11 +216,9 @@ public class ResetEVs implements CommandExecutor
             src.sendMessage(Text.of("§aYour §2" + nbt.getString("Nickname") + "§a had its EVs wiped!"));
     }
 
+    // Called when it's necessary to figure out the right perm message, or when it's just convenient. Saves typing!
     private void printSyntaxHelper(CommandSource src)
     {
-        if (commandCost != 0)
-            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> {-c to confirm}"));
-        else
-            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6>"));
+        src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> {-c to confirm}"));
     }
 }

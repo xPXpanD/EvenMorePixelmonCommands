@@ -620,7 +620,7 @@ public class UpgradeIVs implements CommandExecutor
 
                                                 newTotal = uniqueAccount.getBalance(economyService.getDefaultCurrency());
                                                 printToLog(1, "Upgraded one or more IVs, taking §3" +
-                                                        costToConfirm + "§a coins. New total: §3" + newTotal);
+                                                        costToConfirm + "§b coins. New total: §3" + newTotal);
                                             }
                                             else
                                             {

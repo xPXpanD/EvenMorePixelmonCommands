@@ -40,8 +40,8 @@ public class GetPokemonInfo
             case 4: return "Huge";
             case 5: return "Giant";
             case 6: return "Enormous";
-            case 7: return "§cGinormous"; // Now with fancy red color!
-            case 8: return "§aMicroscopic"; // Now with fancy green color!
+            case 7: return "§nGinormous§r"; // NOW with fancy underlining!
+            case 8: return "§oMicroscopic§r"; // NOW with fancy italicization!
             default: return "?";
         }
     }

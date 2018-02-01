@@ -28,24 +28,31 @@ public class CommonMethods
     {
         if (debugNum <= PixelUpgrade.debugVerbosityMode)
         {
+            // Fancy things up a bit.
+            final String prettyCallSource;
+            if (callSource.equals("PokeCure"))
+                prettyCallSource = "PokéCure";
+            else
+                prettyCallSource = callSource;
+
             switch (debugNum)
             {
                 case 0:
                 {
                     getConsole().ifPresent(console ->
-                            console.sendMessage(Text.of("§c[§4" + callSource + " §c// §4ERROR§c] " + inputString)));
+                            console.sendMessage(Text.of("§4" + prettyCallSource + " error §f// §c" + inputString)));
                     break;
                 }
                 case 1:
                 {
                     getConsole().ifPresent(console ->
-                            console.sendMessage(Text.of("§b[§3" + callSource + " §b// §3INFO§b] " + inputString)));
+                            console.sendMessage(Text.of("§3" + prettyCallSource + " info §f// §b" + inputString)));
                     break;
                 }
                 default:
                 {
                     getConsole().ifPresent(console ->
-                            console.sendMessage(Text.of("§a[§2" + callSource + " §a// §2DEBUG§a] " + inputString)));
+                            console.sendMessage(Text.of("§2" + prettyCallSource + " debug §f// §a" + inputString)));
                     break;
                 }
             }
