@@ -472,16 +472,21 @@ public class CheckStats implements CommandExecutor
             src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <target> [slot? 1-6]"));
         else
         {
-            String confirmString = "";
+            String confirmString;
             if (commandCost != 0)
                 confirmString = " {-c to confirm}";
+            else
+                confirmString = "";
 
             if (hasOtherPerm && showTeamWhenSlotEmpty)
                 src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [target?] [slot? 1-6]" + confirmString));
             else if (hasOtherPerm)
                 src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [target?] <slot, 1-6>" + confirmString));
             else
-                src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6>" + confirmString + " §7(no perms for target)"));
+            {
+                src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6>" + confirmString +
+                        " §7(no perms for target)"));
+            }
         }
     }
 
@@ -524,8 +529,8 @@ public class CheckStats implements CommandExecutor
 
         if (!calledRemotely && commandCost > 0)
         {
-            src.sendMessage(Text.of("§eWant to know more? §6/" + commandAlias + " " + target.getName() +
-                    " <slot> {-c to confirm}"));
+            src.sendMessage(Text.of("§eWant more info? §6/" + commandAlias + " " + target.getName() +
+                    " <slot, 1-6> {-c to confirm}"));
 
             if (commandCost == 1)
                 src.sendMessage(Text.of("§5Warning: §dThis will cost you §5one §dcoin."));

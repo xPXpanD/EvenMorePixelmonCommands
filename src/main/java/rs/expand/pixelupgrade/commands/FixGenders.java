@@ -80,6 +80,12 @@ public class FixGenders implements CommandExecutor
             {
                 canContinue = false; // Done so we can avoid some bool-flipping code later, in our "called by player" checks.
 
+                if (arg2Optional.isPresent() && arg2Optional.get().equalsIgnoreCase("-c"))
+                {
+                    printToLog(2, "Discovered a confirmation flag in argument slot 2.");
+                    commandConfirmed = true;
+                }
+
                 // Do we have an argument in the first slot?
                 if (arg1Optional.isPresent())
                 {
@@ -110,12 +116,12 @@ public class FixGenders implements CommandExecutor
 
                 if (arg1Optional.isPresent() && arg1Optional.get().equalsIgnoreCase("-c"))
                 {
-                    printToLog(2, "Discovered a confirmation flag in argument slot 2.");
+                    printToLog(2, "Discovered a confirmation flag in argument slot 1.");
                     commandConfirmed = true;
                 }
                 else if (arg2Optional.isPresent() && arg2Optional.get().equalsIgnoreCase("-c"))
                 {
-                    printToLog(2, "Discovered a confirmation flag in argument slot 3.");
+                    printToLog(2, "Discovered a confirmation flag in argument slot 2.");
                     commandConfirmed = true;
                 }
 
@@ -156,13 +162,13 @@ public class FixGenders implements CommandExecutor
 
             if (canContinue)
             {
-                if (calledRemotely || commandConfirmed)
+                if (commandConfirmed)
                 {
                     Optional<PlayerStorage> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) target));
 
                     if (!storage.isPresent())
                     {
-                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
+                        printToLog(0, "§4" + target.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
                         src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
                     }
                     else
@@ -200,7 +206,9 @@ public class FixGenders implements CommandExecutor
                     src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo confirmation was found. Please confirm to proceed."));
 
-                    if (hasStaffPerm)
+                    if (calledRemotely)
+                        src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <target> {-c to confirm}"));
+                    else if (hasStaffPerm)
                         src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [target?] {-c to confirm}"));
                     else
                         src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " {-c to confirm}"));

@@ -1,4 +1,4 @@
-4.0.0 beta for 6.1.0
+3.1.0 beta for 6.1.0
 Released ???
 
     Config changes:
@@ -16,25 +16,24 @@ Released ???
    * Added Poipole (ID 803) and up to /checktypes and the new /spawndex.
    * Added all babies and baby-based evolutions to /upgradeivs, and edited messages to fit.
    * Added an optional second argument to /checktypes, so names like "Tapu Koko" will work.
-   * Added console support for /checkstats, /checktypes and /forcehatch. More to come?
+   * Added console support for: /checkstats, /checktypes, /fixgenders, /forcehatch, /forcestats, /pokecure
    * Changed many command messages to be a bit more professional.
    * Changed max-IV formatting for commands like /checkstats to italic to work around an external bug.
    * Changing command aliases no longer requires a reboot. Experimental.
    * Fixed "Ho-Oh" not being valid input for /checktypes.
-   * Fixed /checkegg saying egg rechecks were free even with command cost set to 0.
+   * Fixed /checkegg saying rechecks are free with no price set, instead of just proceeding silently.
    * Fixed /checkstats not showing the nickname on shiny Pokémon.
    * Fixed /dittofusion mentioning upgrading instead of fusing in some places. Oops.
    * Fixed /fixevs eating money without fixing things, if re-used on a Pokémon beyond the limits.
-   * Fixed /resetcount not recognizing "ALL" correctly because I never finished implementing it. Derp.
+   * Fixed /resetcount not recognizing "ALL" correctly because I forgot I never fully finished it. Derp.
    * Fixed /upgradeivs saying legendaries were shiny on debug messages.
-   * Fixed a bunch of miscellaneous debug logger typos and wrong mentions.
-   * Fixed a lot of miscellaneous bugs, and possibly introduced a few too. As always, please report!
+   * Fixed a bunch of bugs that were too small to mention, mostly formatting issues.
    * Fixed missing spaces in front of the pipes when showing EVs in /checkstats.
    * Hopefully fixed /checkstats's gender/size/nature line rolling over to another line.
-   * Removed a few older default aliases that weren't being shown anywhere.
-   * Rewrote the internal config loader. Mostly useful for maintenance, but the filesize is smaller, too!
+   * Removed a few older default aliases that weren't being shown anywhere anyways.
+   * Rewrote the internal config loader. Mostly helps maintainability, but filesize also benefited.
    * Shortened many console messages to fit a standard Command Prompt window. Work in progress.
-   * Updated the command listing to also work from console, where it'll show only console commands.
+   * Updated /pixelupgrade to also work from console, where it'll show only console-accessible commands.
 
 3.0.0 for 6.0.0
 Released December 28, 2017.

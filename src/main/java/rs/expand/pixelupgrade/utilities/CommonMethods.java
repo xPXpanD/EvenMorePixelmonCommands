@@ -49,6 +49,12 @@ public class CommonMethods
                             console.sendMessage(Text.of("§3" + prettyCallSource + " info §f// §b" + inputString)));
                     break;
                 }
+                case 1337: // Only used for testing stuff. Should go unused in actual releases.
+                {
+                    getConsole().ifPresent(console ->
+                            console.sendMessage(Text.of("§6" + prettyCallSource + " TEST §f// §e" + inputString)));
+                    break;
+                }
                 default:
                 {
                     getConsole().ifPresent(console ->

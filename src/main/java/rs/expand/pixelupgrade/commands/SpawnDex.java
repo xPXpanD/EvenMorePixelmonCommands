@@ -122,16 +122,17 @@ public class SpawnDex implements CommandExecutor
                         pokemonToSpawn.setPosition(playerPos.getX(), playerPos.getY(), playerPos.getZ());
                         pokemonToSpawn.setSpawnLocation(pokemonToSpawn.getDefaultSpawnLocation());
 
-                        if (!makeShiny)
-                        {
-                            printToLog(1, "Now spawning a §2" + pokemonName + "§a, and exiting.");
-                            src.sendMessage(Text.of("§aSpawning a fresh §2" + pokemonName + "§a nearby!"));
-                        }
-                        else
+                        if (makeShiny)
                         {
                             pokemonToSpawn.setIsShiny(true);
                             printToLog(1, "Now spawning a shiny §2" + pokemonName + "§a, and exiting.");
                             src.sendMessage(Text.of("§aSpawning a fresh (and shiny) §2" + pokemonName + "§a nearby!"));
+                        }
+                        else
+                        {
+                            printToLog(1, "Now spawning a §2" + pokemonName + "§a, and exiting.");
+                            src.sendMessage(Text.of("§aSpawning a fresh §2" + pokemonName + "§a nearby!"));
+
                         }
 
                         // Actually spawn it.

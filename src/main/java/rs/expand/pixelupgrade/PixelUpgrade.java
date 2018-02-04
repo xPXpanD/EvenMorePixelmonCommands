@@ -44,7 +44,7 @@ import static rs.expand.pixelupgrade.utilities.CommonMethods.printBasicMessage;
 (
         id = "pixelupgrade",
         name = "PixelUpgrade",
-        version = "4.0 beta",
+        version = "3.1.0 beta",
         dependencies = @Dependency(id = "pixelmon"),
         //description = "Adds a whole bunch of utility commands to Pixelmon, with optional economy integration.",
         description = "Adds a whole bunch of utility commands to Pixelmon, some with economy integration.",
@@ -68,6 +68,7 @@ public class PixelUpgrade
 {
     // Some basic setup.
     public static EconomyService economyService;
+    public static boolean economyEnabled;
 
     // Load up a ton of variables for use by other commands. We'll fill these in during pre-init.
     public static Integer configVersion;
@@ -344,7 +345,7 @@ public class PixelUpgrade
         {
             printBasicMessage("--> §aAn economy plugin was detected.");
             //printBasicMessage("--> §aAn economy plugin was detected. Enabling integration!");
-            //economyEnabled = true;
+            economyEnabled = true;
             economyService = potentialEconomyService.get();
 
             printBasicMessage("--> §aAll systems nominal.");

@@ -249,6 +249,6 @@ public class ForceHatch implements CommandExecutor
         if (calledRemotely)
             src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <target> <slot, 1-6>"));
         else
-            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [target] <slot, 1-6>"));
+            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [target?] <slot, 1-6>"));
     }
 }

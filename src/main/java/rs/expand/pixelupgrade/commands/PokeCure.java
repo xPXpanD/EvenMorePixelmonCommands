@@ -37,7 +37,6 @@ public class PokeCure implements CommandExecutor
     public static Boolean healParty, sneakyMode;
 
     // Set up some more variables for internal use.
-    private HashMap<UUID, Long> cooldownMap = new HashMap<>();
     private boolean calledRemotely;
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
@@ -90,6 +89,7 @@ public class PokeCure implements CommandExecutor
             Optional<String> arg1Optional = args.getOne("target/slot/confirmation");
             Optional<String> arg2Optional = args.getOne("slot/confirmation");
             String errorString = "§4There's an error message missing, please report this!";
+            HashMap<UUID, Long> cooldownMap = new HashMap<>();
             UUID playerUUID = null;
             Player target = null;
 
@@ -509,24 +509,26 @@ public class PokeCure implements CommandExecutor
     private void printSyntaxHelper(CommandSource src, boolean hasOtherPerm)
     {
         if (calledRemotely)
-            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <target> [slot, 1-6]"));
+            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <target> [slot? 1-6]"));
         else
         {
-            String confirmString = "";
+            String confirmString;
             if (commandCost != 0)
                 confirmString = " {-c to confirm}";
+            else
+                confirmString = "";
 
             if (healParty)
             {
                 if (hasOtherPerm)
-                    src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [target]" + confirmString));
+                    src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [target?]" + confirmString));
                 else
                     src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " " + confirmString));
             }
             else
             {
                 if (hasOtherPerm)
-                    src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [target] <slot, 1-6>" + confirmString));
+                    src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [target?] <slot, 1-6>" + confirmString));
                 else
                     src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6>" + confirmString));
             }

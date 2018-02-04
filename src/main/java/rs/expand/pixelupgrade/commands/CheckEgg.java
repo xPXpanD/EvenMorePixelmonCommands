@@ -247,9 +247,9 @@ public class CheckEgg implements CommandExecutor
     private void printSyntaxHelper(CommandSource src)
     {
         if (commandCost != 0)
-            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot> {-c to confirm}"));
+            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> {-c to confirm}"));
         else
-            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot>"));
+            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6>"));
     }
 
     private void printEggResults(NBTTagCompound nbt, EntityPixelmon pokemon, boolean wasEggChecked, CommandSource src)

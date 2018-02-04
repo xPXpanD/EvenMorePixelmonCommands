@@ -4,7 +4,11 @@ package rs.expand.pixelupgrade.commands;
 // Remote imports.
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
+
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
+
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import org.spongepowered.api.Sponge;
@@ -26,14 +30,40 @@ public class ForceStats implements CommandExecutor
     public static String commandAlias;
 
     // Set up some more variables for internal use.
-    private boolean statWasFixed = true, foundValidStat = true, isIVorEV = false, foundUpgradeStyleStat = false;
     private boolean calledRemotely;
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
     {
-        //if (!calledRemotely)
+        if (!calledRemotely)
             CommonMethods.printDebugMessage("ForceStats", debugNum, inputString);
+    }
+
+    // Create a few sets of Strings that we query during input checking.
+    // This one is for valid IVs and EVs, so we can correctly apply limits.
+    private final Set<String> validIVsEVs = new HashSet<>();
+    {
+        validIVsEVs.add("IVHP");
+        validIVsEVs.add("IVAttack");
+        validIVsEVs.add("IVDefence");
+        validIVsEVs.add("IVSpAtt");
+        validIVsEVs.add("IVSpDef");
+        validIVsEVs.add("IVSpeed");
+        validIVsEVs.add("EVHP");
+        validIVsEVs.add("EVAttack");
+        validIVsEVs.add("EVDefence");
+        validIVsEVs.add("EVSpecialAttack");
+        validIVsEVs.add("EVSpecialDefence");
+        validIVsEVs.add("EVSpeed");
+    }
+
+    // This one is for other valid stats. Suggestions for more are welcome.
+    private final Set<String> validOtherStats = new HashSet<>();
+    {
+        validOtherStats.add("Gender");
+        validOtherStats.add("Growth");
+        validOtherStats.add("IsShiny");
+        validOtherStats.add("Nature");
     }
 
     @SuppressWarnings("NullableProblems")
@@ -64,12 +94,7 @@ public class ForceStats implements CommandExecutor
             else
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
-            // Reset our class-wide variables.
-            statWasFixed = true;
-            foundValidStat = true;
-            isIVorEV = false;
-            foundUpgradeStyleStat = false;
-
+            boolean statWasFixed = false, foundValidStat = false, isIVorEV = false, foundUpgradeStyleStat = false;
             boolean canContinue = true, forceValue = false, valueIsInt = false;
             Optional<String> arg1Optional = args.getOne("target/slot");
             Optional<String> arg2Optional = args.getOne("slot/stat");
@@ -167,18 +192,49 @@ public class ForceStats implements CommandExecutor
                     }
                     else
                     {
-                        stat = checkStat(arg2String);
-
-                        if (!foundValidStat && !statWasFixed)
+                        if (validIVsEVs.contains(arg2String) || validOtherStats.contains(arg2String))
                         {
-                            if (!forceValue)
+                            if (validIVsEVs.contains(arg2String))
                             {
-                                printToLog(1, "Invalid and unfixable stat on arg 2, not in force mode. Exit.");
-                                printError(src, "§4Error: §cInvalid stat on second argument. See below.");
-                                canContinue = false;
+                                isIVorEV = true;
+                                printToLog(1337, "Contained in validIVsEVs.");
                             }
                             else
-                                printToLog(2, "No valid stat found, but force mode is on... Doing this.");
+                                printToLog(1337, "Contained in validOtherStats.");
+
+                            stat = arg2String;
+                            foundValidStat = true;
+                        }
+                        else
+                        {
+                            stat = checkForUpgradeStats(arg2String);
+
+                            if (!stat.equals(arg2String))
+                            {
+                                foundUpgradeStyleStat = true;
+                                statWasFixed = true;
+                            }
+                            else
+                            {
+                                stat = checkForOtherStats(arg2String);
+
+                                if (!stat.equals(arg2String))
+                                    statWasFixed = true;
+                            }
+
+                            if (!statWasFixed)
+                            {
+                                if (!forceValue)
+                                {
+                                    printToLog(1, "Invalid and unfixable stat on arg 2, not in force mode. Exit.");
+                                    printError(src, "§4Error: §cInvalid stat on second argument. See below.");
+                                    canContinue = false;
+                                }
+                                else
+                                    printToLog(2, "No valid stat found, but force mode is on. Proceeding...");
+                            }
+                            else
+                                printToLog(2, "Valid stat found, let's continue.");
                         }
                     }
                 }
@@ -207,18 +263,49 @@ public class ForceStats implements CommandExecutor
 
                     if (target != null)
                     {
-                        stat = checkStat(arg3String);
-
-                        if (!foundValidStat && !statWasFixed)
+                        if (validIVsEVs.contains(arg3String) || validOtherStats.contains(arg3String))
                         {
-                            if (!forceValue)
+                            if (validIVsEVs.contains(arg3String))
                             {
-                                printToLog(1, "Invalid and unfixable stat on arg 3, not in force mode. Exit.");
-                                printError(src, "§4Error: §cInvalid stat on third argument. See below.");
-                                canContinue = false;
+                                isIVorEV = true;
+                                printToLog(1337, "Contained in validIVsEVs.");
                             }
                             else
-                                printToLog(2, "No valid stat found, but force mode is on... Doing this.");
+                                printToLog(1337, "Contained in validOtherStats.");
+
+                            stat = arg3String;
+                            foundValidStat = true;
+                        }
+                        else
+                        {
+                            stat = checkForUpgradeStats(arg3String);
+
+                            if (!stat.equals(arg3String))
+                            {
+                                foundUpgradeStyleStat = true;
+                                statWasFixed = true;
+                            }
+                            else
+                            {
+                                stat = checkForOtherStats(arg3String);
+
+                                if (!stat.equals(arg3String))
+                                    statWasFixed = true;
+                            }
+
+                            if (!statWasFixed)
+                            {
+                                if (!forceValue)
+                                {
+                                    printToLog(1, "Invalid and unfixable stat on arg 3, not in force mode. Exit.");
+                                    printError(src, "§4Error: §cInvalid stat on second argument. See below.");
+                                    canContinue = false;
+                                }
+                                else
+                                    printToLog(2, "No valid stat found, but force mode is on. Proceeding...");
+                            }
+                            else
+                                printToLog(2, "Valid stat found, let's continue.");
                         }
                     }
                     else
@@ -427,157 +514,68 @@ public class ForceStats implements CommandExecutor
         return CommandResult.success();
 	}
 
-	private String checkStat(String stat)
+	private String checkForUpgradeStats(String stat)
     {
-        printToLog(0, "1 foundValidStat == " + foundValidStat);
-        printToLog(0, "1 statWasFixed == " + statWasFixed);
-
-        // foundValidStat is true by default, and only flagged false if our input is not immediately valid.
-        switch (stat)
+        switch (stat.toUpperCase())
         {
-            // Immediately-valid IVs and EVs.
-            case "IVHP": case "IVAttack": case "IVDefence": case "IVSpAtt": case "IVSpDef": case "IVSpeed":
-            case "EVHP": case "EVAttack": case "EVDefence": case "EVSpecialAttack": case "EVSpecialDefence":
-            case "EVSpeed":
-                isIVorEV = true;
-                break;
+            case "HP":
+                return "IVHP";
+            case "ATTACK":
+                return "IVAttack";
+            case "DEFENSE": case "DEFENCE":
+                return "IVDefence";
+            case "SPATT":
+                return "IVSpAtt";
+            case "SPDEF":
+                return "IVSpDef";
+            case "SPEED":
+                return "IVSpeed";
 
-            // Non-IV/EV stats.
-            case "Gender": case "Growth": case "IsShiny": case "Nature":
-                break;
-
-            // No immediately-valid stat found.
-            default:
-                foundValidStat = false;
+            default: // Unchanged, return it as-is so we know our odd stat was not an Upgrade-style stat.
+                return stat;
         }
+    }
 
-        printToLog(0, "2 foundValidStat == " + foundValidStat);
-        printToLog(0, "2 statWasFixed == " + statWasFixed);
-
-        // Did we not find an immediately valid stat? Do some more intensive checks to try and salvage the input.
-        if (!foundValidStat)
+	private String checkForOtherStats(String stat)
+    {
+        switch (stat.toUpperCase()) // Keep in mind: we toUpperCase() our stat, stuff like ivHP or EvhP will get fixed.
         {
-            printToLog(0, "Entered !foundValidStat");
+            case "IVHP": case "HITPOINTS": case "HEALTH":
+                return "IVHP";
+            case "IVATTACK": case "ATK": case "ATT":
+                return "IVAttack";
+            case "IVDEFENCE": case "IVDEFENSE": case "DEF":
+                return "IVDefence";
+            case "IVSPATT": case "SPECIALATTACK": case "SPATK": case "SPATTACK":
+                return "IVSpAtt";
+            case "IVSPDEF": case "SPECIALDEFENSE": case "SPECIALDEFENCE": case "SPDEFENSE": case "SPDEFENCE":
+                return "IVSpDef";
+            case "IVSPEED": case "SPD":
+                return "IVSpeed";
+            case "EVHP":
+                return "EVHP";
+            case "EVATTACK":
+                return "EVAttack";
+            case "EVDEFENCE": case "EVDEFENSE":
+                return "EVDefence";
+            case "EVSPECIALATTACK": case "EVSPATT": case "EVSPATK":
+                return "EVSpecialAttack";
+            case "EVSPECIALDEFENCE": case "EVSPDEF":
+                return "EVSpecialDefence";
+            case "EVSPEED":
+                return "EVSpeed";
+            case "GENDER": case "SEX":
+                return "Gender";
+            case "GROWTH": case "SIZE":
+                return "Growth";
+            case "ISSHINY": case "IS_SHINY": case "SHINY":
+                return "IsShiny";
+            case "NATURE":
+                return "Nature";
 
-            switch (stat.toUpperCase())
-            {
-                // Straight stats, wrong capitalization. Put these first, likely to hit them.
-                case "IVHP": // Keep in mind: we toUpperCase() our stat String.
-                    isIVorEV = true;
-                    return "IVHP";
-                case "IVATTACK":
-                    isIVorEV = true;
-                    return "IVAttack";
-                case "IVDEFENCE":
-                    isIVorEV = true;
-                    return "IVDefence";
-                case "IVSPATT":
-                    isIVorEV = true;
-                    return "IVSpAtt";
-                case "IVSPDEF":
-                    isIVorEV = true;
-                    return "IVSpDef";
-                case "IVSPEED":
-                    isIVorEV = true;
-                    return "IVSpeed";
-                case "EVHP": // Keep in mind: we toUpperCase() our stat String.
-                    isIVorEV = true;
-                    return "EVHP";
-                case "EVATTACK":
-                    isIVorEV = true;
-                    return "EVAttack";
-                case "EVDEFENCE":
-                    isIVorEV = true;
-                    return "EVDefence";
-                case "EVSPECIALATTACK":
-                    isIVorEV = true;
-                    return "EVSpecialAttack";
-                case "EVSPECIALDEFENCE":
-                    isIVorEV = true;
-                    return "EVSpecialDefence";
-                case "EVSPEED":
-                    isIVorEV = true;
-                    return "EVSpeed";
-                case "GENDER":
-                    return "Gender";
-                case "GROWTH":
-                    return "Growth";
-                case "ISSHINY":
-                    return "IsShiny";
-                case "NATURE":
-                    return "Nature";
-
-                // Fixable stats that people might enter, thinking they're the right ones.
-                case "HITPOINTS": case "HEALTH": case "IV_HP":
-                    isIVorEV = true;
-                    return "IVHP";
-                case "HP":
-                    isIVorEV = true;
-                    foundUpgradeStyleStat = true;
-                    return "IVHP";
-                case "ATK": case "ATT": case "IV_ATTACK":
-                    isIVorEV = true;
-                    return "IVAttack";
-                case "ATTACK":
-                    isIVorEV = true;
-                    foundUpgradeStyleStat = true;
-                    return "IVAttack";
-                case "DEF": case "IV_DEFENCE": case "IVDEFENSE": case "IV_DEFENSE":
-                    isIVorEV = true;
-                    return "IVDefence";
-                case "DEFENCE": case "DEFENSE":
-                    isIVorEV = true;
-                    foundUpgradeStyleStat = true;
-                    return "IVDefence";
-                case "SPECIALATTACK": case "SPATK": case "SPATTACK": case "IV_SP_ATT": case "IV_SP_ATK": case "IV_SPATK":
-                    isIVorEV = true;
-                    return "IVSpAtt";
-                case "SPATT":
-                    isIVorEV = true;
-                    foundUpgradeStyleStat = true;
-                    return "IVSpAtt";
-                case "SPECIALDEFENSE": case "SPECIALDEFENCE": case "SPDEFENCE": case "SPDEFENSE": case "IV_SP_DEF":
-                    isIVorEV = true;
-                    return "IVSpDef";
-                case "SPDEF":
-                    isIVorEV = true;
-                    foundUpgradeStyleStat = true;
-                    return "IVSpDef";
-                case "SPD": case "IV_SPEED":
-                    isIVorEV = true;
-                    return "IVSpeed";
-                case "SPEED":
-                    isIVorEV = true;
-                    foundUpgradeStyleStat = true;
-                    return "IVSpeed";
-                case "EVDEFENSE":
-                    isIVorEV = true;
-                    return "EVDefence";
-                case "EVSPATT": case "EVSPATK":
-                    isIVorEV = true;
-                    return "EVSpecialAttack";
-                case "EVSPDEF":
-                    isIVorEV = true;
-                    return "EVSpecialDefence";
-                case "SEX":
-                    return "Gender";
-                case "SIZE":
-                    return "Growth";
-                case "IS_SHINY": case "SHINY":
-                    return "IsShiny";
-
-                // Let's flag for exit... If -f was passed, we'll (mostly) ignore this.
-                default:
-                    statWasFixed = false;
-
-                printToLog(0, "Exiting !foundValidStat");
-            }
-
-            printToLog(0, "3 foundValidStat == " + foundValidStat);
-            printToLog(0, "3 statWasFixed == " + statWasFixed);
+            default: // Unchanged, return it as-is so we know our odd stat could not be fixed.
+                return stat;
         }
-
-        return stat; // Done if we have nothing else to return.
     }
 
 	private void printError(CommandSource src, String errorString)
@@ -588,7 +586,7 @@ public class ForceStats implements CommandExecutor
         if (calledRemotely)
             src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <target> <slot> <stat> <value> {-f to force}"));
         else
-            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [target] <slot> <stat> <value> {-f to force}"));
+            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [target?] <slot> <stat> <value> {-f to force}"));
 
         src.sendMessage(Text.of(""));
         src.sendMessage(Text.of("§6IVs: §eIVHP, IVAttack, IVDefence, IVSpAtt, IVSpDef, IVSpeed"));

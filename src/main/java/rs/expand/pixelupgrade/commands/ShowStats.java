@@ -44,7 +44,6 @@ public class ShowStats implements CommandExecutor
 
     // Set up some more variables for internal use.
     private boolean gotExternalConfigError = false, outdatedCompactMode = false, outdatedAltCooldownInSeconds = false;
-    private HashMap<UUID, Long> cooldownMap = new HashMap<>();
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
@@ -162,6 +161,7 @@ public class ShowStats implements CommandExecutor
                     }
                 }
 
+                HashMap<UUID, Long> cooldownMap = new HashMap<>();
                 boolean commandConfirmed = false;
                 int slot = 0;
 
