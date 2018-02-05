@@ -23,6 +23,7 @@ import org.spongepowered.api.text.Text;
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.utilities.CommonMethods;
 
+// TODO: Fix Pokémon not changing if certain stats get changed while they're sent out.
 public class ForceStats implements CommandExecutor
 {
     // Initialize a config variable. We'll load stuff into it when we call the config loader.
@@ -234,7 +235,7 @@ public class ForceStats implements CommandExecutor
                                     printToLog(2, "No valid stat found, but force mode is on. Proceeding...");
                             }
                             else
-                                printToLog(2, "Valid stat found, let's continue.");
+                                printToLog(2, "Invalid stat found, but we managed to fix it. Let's continue.");
                         }
                     }
                 }
@@ -305,7 +306,7 @@ public class ForceStats implements CommandExecutor
                                     printToLog(2, "No valid stat found, but force mode is on. Proceeding...");
                             }
                             else
-                                printToLog(2, "Valid stat found, let's continue.");
+                                printToLog(2, "Invalid stat found, but we managed to fix it. Let's continue.");
                         }
                     }
                     else

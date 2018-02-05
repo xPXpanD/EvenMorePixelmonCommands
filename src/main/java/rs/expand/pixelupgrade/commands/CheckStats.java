@@ -29,6 +29,8 @@ import rs.expand.pixelupgrade.utilities.CommonMethods;
 import rs.expand.pixelupgrade.utilities.GetPokemonInfo;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
+// TODO: Add a new allowCheckingEggs option?
+// TODO: Add a Mew clone count check.
 public class CheckStats implements CommandExecutor
 {
     // Initialize some variables. We'll load stuff into these when we call the config loader.
@@ -96,7 +98,7 @@ public class CheckStats implements CommandExecutor
         }
         else if (!mainConfigErrorArray.isEmpty())
         {
-            CommonMethods.printMainNodeError("PixelUpgrade", mainConfigErrorArray);
+            CommonMethods.printMainNodeError("CheckStats", mainConfigErrorArray);
             src.sendMessage(Text.of("§4Error: §cCould not parse main config. Please report to staff."));
         }
         else

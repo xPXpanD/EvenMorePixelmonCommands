@@ -94,7 +94,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                             " <slot, 1-6> §7(no perms for target)"));
                 }
 
-                permissionMessageList.add(Text.of("§f --> §eCheck an egg to see what's inside."));
+                permissionMessageList.add(Text.of("§f --> §eChecks an egg to see what's inside."));
             }
             else printToLog(1, "§3/checkegg §bhas a malformed config, hiding from list.");
         }
@@ -114,11 +114,20 @@ public class PixelUpgradeInfo implements CommandExecutor
                         flagString = "";
 
                     if (src.hasPermission("pixelupgrade.command.other.checkstats") && CheckStats.showTeamWhenSlotEmpty)
-                        src.sendMessage(Text.of("§6/" + commandAlias + " [target?] [slot? 1-6]" + flagString));
+                    {
+                        permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
+                                " [target?] [slot? 1-6]" + flagString));
+                    }
                     else if (src.hasPermission("pixelupgrade.command.other.checkstats"))
-                        src.sendMessage(Text.of("§6/" + commandAlias + " [target?] <slot, 1-6>" + flagString));
+                    {
+                        permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
+                                " [target?] <slot, 1-6>" + flagString));
+                    }
                     else
-                        src.sendMessage(Text.of("§6/" + commandAlias + " <slot, 1-6>" + flagString + " §7(no perms for target)"));
+                    {
+                        permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
+                                " <slot, 1-6>" + flagString + " §7(no perms for target)"));
+                    }
                 }
 
                 permissionMessageList.add(Text.of("§f --> §eLists a Pokémon's IVs, nature, size and more."));
@@ -131,7 +140,7 @@ public class PixelUpgradeInfo implements CommandExecutor
             if (CheckTypes.commandAlias != null)
             {
                 permissionMessageList.add(Text.of("§6/" + CheckTypes.commandAlias + " <Pokémon name/number>"));
-                permissionMessageList.add(Text.of("§f --> §eSee any Pokémon's resistances, weaknesses and more."));
+                permissionMessageList.add(Text.of("§f --> §eShows a Pokémon's resistances, weaknesses and more."));
             }
             else printToLog(1, "§3/checktypes §bhas a malformed config, hiding from list.");
         }
@@ -142,7 +151,7 @@ public class PixelUpgradeInfo implements CommandExecutor
             {
                 permissionMessageList.add(Text.of("§6/" + DittoFusion.commandAlias +
                         " <target slot> <sacrifice slot> {confirm flag}"));
-                permissionMessageList.add(Text.of("§f --> §eSacrifice one Ditto to improve another, for a price..."));
+                permissionMessageList.add(Text.of("§f --> §eSacrifices one Ditto to improve another, for a price..."));
             }
             else printToLog(1, "§3/dittofusion §bhas a malformed config, hiding from list.");
         }
@@ -156,7 +165,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                 else
                     permissionMessageList.add(Text.of("§6/" + FixEVs.commandAlias + " <slot, 1-6>"));
 
-                permissionMessageList.add(Text.of("§f --> §eEVs above 252 are wasted. This will fix them!"));
+                permissionMessageList.add(Text.of("§f --> §eFixes wasted EVs that exceed the soft limit of 252."));
             }
             else printToLog(1, "§3/fixevs §bhas a malformed config, hiding from list.");
         }
@@ -175,19 +184,9 @@ public class PixelUpgradeInfo implements CommandExecutor
                         permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " {confirm flag}"));
                 }
 
-                permissionMessageList.add(Text.of("§f --> §eFixes Pokémon affected by 6.0.x bugs or bad commands."));
+                permissionMessageList.add(Text.of("§f --> §eRerolls broken genders from 6.0.x or bad commands."));
             }
             else printToLog(1, "§3/fixgenders §bhas a malformed config, hiding from list.");
-        }
-
-        if (src.hasPermission("pixelupgrade.command.fixlevel"))
-        {
-            if (FixLevel.commandAlias != null)
-            {
-                permissionMessageList.add(Text.of("§6/" + FixLevel.commandAlias + " <slot, 1-6> {confirm flag}"));
-                permissionMessageList.add(Text.of("§f --> §eWant to lower your level to get more EVs? Try this."));
-            }
-            else printToLog(1, "§3/fixlevel §bhas a malformed config, hiding from list.");
         }
 
         if (calledRemotely || src.hasPermission("pixelupgrade.command.staff.forcehatch"))
@@ -199,7 +198,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                 else
                     permissionMessageList.add(Text.of("§6/" + ForceHatch.commandAlias + " [target?] <slot, 1-6>"));
 
-                permissionMessageList.add(Text.of("§f --> §eHatch any eggs instantly. Supports remote players!"));
+                permissionMessageList.add(Text.of("§f --> §eHatches any eggs instantly."));
             }
             else printToLog(1, "§3/forcehatch §bhas a malformed config, hiding from list.");
         }
@@ -213,7 +212,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                 else
                     permissionMessageList.add(Text.of("§6/" + ForceStats.commandAlias + " [target?] <slot> <stat> <value> {force flag}"));
 
-                permissionMessageList.add(Text.of("§f --> §eChange supported stats, or pass -f and go crazy."));
+                permissionMessageList.add(Text.of("§f --> §eChanges stats freely, with an optional safety bypass."));
             }
             else printToLog(1, "§3/forcestats §bhas a malformed config, hiding from list.");
         }
@@ -235,18 +234,17 @@ public class PixelUpgradeInfo implements CommandExecutor
                     if (PokeCure.healParty)
                     {
                         if (src.hasPermission("pixelupgrade.command.other.pokecure"))
-                            src.sendMessage(Text.of("§6/" + commandAlias + " [target?]" + flagString));
+                            permissionMessageList.add(Text.of("§6/" + PokeCure.commandAlias + " [target?]" + flagString));
                         else
-                            src.sendMessage(Text.of("§6/" + commandAlias + " " + flagString));
+                            permissionMessageList.add(Text.of("§6/" + PokeCure.commandAlias + " " + flagString));
                     }
                     else
                     {
                         if (src.hasPermission("pixelupgrade.command.other.pokecure"))
-                            src.sendMessage(Text.of("§6/" + commandAlias + " [target?] <slot, 1-6>" + flagString));
+                            permissionMessageList.add(Text.of("§6/" + PokeCure.commandAlias + " [target?] <slot, 1-6>" + flagString));
                         else
-                            src.sendMessage(Text.of("§6/" + commandAlias + " <slot, 1-6>" + flagString));
+                            permissionMessageList.add(Text.of("§6/" + PokeCure.commandAlias + " <slot, 1-6>" + flagString));
                     }
-
                 }
 
                 if (PokeCure.healParty)
@@ -269,7 +267,7 @@ public class PixelUpgradeInfo implements CommandExecutor
             if (ResetCount.commandAlias != null)
             {
                 permissionMessageList.add(Text.of("§6/" + ResetCount.commandAlias + " <slot, 1-6> <count> {confirm flag}"));
-                permissionMessageList.add(Text.of("§f --> §eWant to upgrade further? Reset counters with this."));
+                permissionMessageList.add(Text.of("§f --> §eResets fusion/upgrade counts on maxed-out Pokémon."));
             }
             else printToLog(1, "§3/resetcount §bhas a malformed config, hiding from list.");
         }
@@ -279,7 +277,7 @@ public class PixelUpgradeInfo implements CommandExecutor
             if (ResetEVs.commandCost != null && ResetEVs.commandAlias != null)
             {
                 permissionMessageList.add(Text.of("§6/" + ResetEVs.commandAlias + " <slot, 1-6> {confirm flag}"));
-                permissionMessageList.add(Text.of("§f --> §eNot happy with your EV spread? This wipes all EVs."));
+                permissionMessageList.add(Text.of("§f --> §eWipes all EVs. Use if you're unhappy with your spread."));
             }
             else printToLog(1, "§3/resetevs §bhas a malformed config, hiding from list.");
         }
@@ -293,7 +291,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                 else
                     permissionMessageList.add(Text.of("§6/" + ShowStats.commandAlias + " <slot, 1-6>"));
 
-                permissionMessageList.add(Text.of("§f --> §eCaught something special? Show it off!"));
+                permissionMessageList.add(Text.of("§f --> §eShows off your chosen Pokémon to the server."));
             }
             else printToLog(1, "§3/showstats §bhas a malformed config, hiding from list.");
         }
@@ -313,7 +311,7 @@ public class PixelUpgradeInfo implements CommandExecutor
             if (SwitchGender.commandCost != null && SwitchGender.commandAlias != null)
             {
                 permissionMessageList.add(Text.of("§6/" + SwitchGender.commandAlias + " <slot, 1-6> {confirm flag}"));
-                permissionMessageList.add(Text.of("§f --> §eWant to change a Pokémon's gender? Try this."));
+                permissionMessageList.add(Text.of("§f --> §eTurns a Pokémon into the other gender, if possible."));
             }
             else printToLog(1, "§3/switchgender §bhas a malformed config, hiding from list.");
         }
@@ -323,7 +321,7 @@ public class PixelUpgradeInfo implements CommandExecutor
             if (UpgradeIVs.commandAlias != null)
             {
                 permissionMessageList.add(Text.of("§6/" + UpgradeIVs.commandAlias + " <slot> <IV type> [amount?] {confirm flag}"));
-                permissionMessageList.add(Text.of("§f --> §eBuy upgrades for your Pokémon's IVs."));
+                permissionMessageList.add(Text.of("§f --> §eUpgrades a Pokémon's IVs for economy money."));
             }
             else printToLog(1, "§3/upgradeivs §bhas a malformed config, hiding from list.");
         }

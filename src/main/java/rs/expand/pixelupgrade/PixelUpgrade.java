@@ -37,14 +37,14 @@ import static rs.expand.pixelupgrade.utilities.CommonMethods.printBasicMessage;
 
 // Improvements to existing things:
 // TODO: Tab completion on player names.
-// TODO: Add a Mew clone count check to /checkstats and /showstats.
-// TODO: Actually add an economy safe mode to things.
+// TODO: Maybe add some nice "====" borders to config node errors.
+// TODO: Actually add an economy safe mode to things. Baby steps are done, time to take the leap.
 
 @Plugin
 (
         id = "pixelupgrade",
         name = "PixelUpgrade",
-        version = "3.1.0 beta",
+        version = "4.0.0 beta",
         dependencies = @Dependency(id = "pixelmon"),
         //description = "Adds a whole bunch of utility commands to Pixelmon, with optional economy integration.",
         description = "Adds a whole bunch of utility commands to Pixelmon, some with economy integration.",
@@ -94,7 +94,6 @@ public class PixelUpgrade
     public static Path dittoFusionPath = Paths.get(commandConfigPath, "DittoFusion.conf");
     public static Path fixEVsPath = Paths.get(commandConfigPath, "FixEVs.conf");
     public static Path fixGendersPath = Paths.get(commandConfigPath, "FixGenders.conf");
-    public static Path fixLevelPath = Paths.get(commandConfigPath, "FixLevel.conf");
     public static Path forceHatchPath = Paths.get(commandConfigPath, "ForceHatch.conf");
     public static Path forceStatsPath = Paths.get(commandConfigPath, "ForceStats.conf");
     public static Path puInfoPath = Paths.get(commandConfigPath, "PixelUpgradeInfo.conf");
@@ -121,8 +120,6 @@ public class PixelUpgrade
             HoconConfigurationLoader.builder().setPath(fixEVsPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> fixGendersLoader =
             HoconConfigurationLoader.builder().setPath(fixGendersPath).build();
-    public static ConfigurationLoader<CommentedConfigurationNode> fixLevelLoader =
-            HoconConfigurationLoader.builder().setPath(fixLevelPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> forceHatchLoader =
             HoconConfigurationLoader.builder().setPath(forceHatchPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> forceStatsLoader =
@@ -211,14 +208,6 @@ public class PixelUpgrade
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/confirmation"))),
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("confirmation"))))
-            .build();
-
-    public static CommandSpec fixlevel = CommandSpec.builder()
-            .permission("pixelupgrade.command.fixlevel")
-            .executor(new FixLevel())
-            .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
-                    GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
             .build();
 
     public static CommandSpec forcehatch = CommandSpec.builder()

@@ -100,11 +100,6 @@ public class ConfigOperations
             else
                 Sponge.getCommandManager().register(puContainer, fixgenders, "fixgenders");
 
-            if (FixLevel.commandAlias != null && !FixLevel.commandAlias.equals("fixlevel"))
-                Sponge.getCommandManager().register(puContainer, fixlevel, "fixlevel", FixLevel.commandAlias);
-            else
-                Sponge.getCommandManager().register(puContainer, fixlevel, "fixlevel");
-
             if (ForceHatch.commandAlias != null && !ForceHatch.commandAlias.equals("forcehatch"))
                 Sponge.getCommandManager().register(puContainer, forcehatch, "forcehatch", ForceHatch.commandAlias);
             else
@@ -178,7 +173,8 @@ public class ConfigOperations
 
         // Format our commands and aliases and add them to the lists that we'll print in a bit.
         // TODO: If you add a command, update this list and increment the counters! (currently 17)
-        for (int i = 1; i <= 18; i++)
+        // TODO: Move stuff to an external method so we don't have to update all these numbers manually.
+        for (int i = 1; i <= 17; i++)
         {
             switch (i)
             {
@@ -222,71 +218,65 @@ public class ConfigOperations
                 }
                 case 7:
                 {
-                    commandAlias = FixLevel.commandAlias;
-                    commandString = "/fixlevel";
-                    break;
-                }
-                case 8:
-                {
                     commandAlias = ForceHatch.commandAlias;
                     commandString = "/forcehatch";
                     break;
                 }
-                case 9:
+                case 8:
                 {
                     commandAlias = ForceStats.commandAlias;
                     commandString = "/forcestats";
                     break;
                 }
-                case 10:
+                case 9:
                 {
                     commandAlias = PixelUpgradeInfo.commandAlias;
                     commandString = "/pixelupgrade";
                     break;
                 }
-                case 11:
+                case 10:
                 {
                     commandAlias = PokeCure.commandAlias;
                     commandString = "/pokecure";
                     break;
                 }
-                case 12:
+                case 11:
                 {
                     commandAlias = "pureload"; // Alias gets omitted; there's a check for aliases matching base commands.
                     commandString = "/pureload";
                     break;
                 }
-                case 13:
+                case 12:
                 {
                     commandAlias = ResetCount.commandAlias;
                     commandString = "/resetcount";
                     break;
                 }
-                case 14:
+                case 13:
                 {
                     commandAlias = ResetEVs.commandAlias;
                     commandString = "/resetevs";
                     break;
                 }
-                case 15:
+                case 14:
                 {
                     commandAlias = ShowStats.commandAlias;
                     commandString = "/showstats";
                     break;
                 }
-                case 16:
+                case 15:
                 {
                     commandAlias = SpawnDex.commandAlias;
                     commandString = "/spawndex";
                     break;
                 }
-                case 17:
+                case 16:
                 {
                     commandAlias = SwitchGender.commandAlias;
                     commandString = "/switchgender";
                     break;
                 }
-                case 18:
+                case 17:
                 {
                     commandAlias = UpgradeIVs.commandAlias;
                     commandString = "/upgradeivs";
@@ -320,7 +310,7 @@ public class ConfigOperations
             }
 
             // If we're at the last command, shank the trailing formatting code, comma and space and for a clean end.
-            if (i == 18)
+            if (i == 17)
                 formattedCommand.setLength(formattedCommand.length() - 4);
 
             // Add the formatted command to the list, and then clear the StringBuilder so we can re-use it.
@@ -411,7 +401,6 @@ public class ConfigOperations
         loadConfig("DittoFusion");
         loadConfig("FixEVs");
         loadConfig("FixGenders");
-        loadConfig("FixLevel");
         loadConfig("ForceHatch");
         loadConfig("ForceStats");
         loadConfig("PixelUpgradeInfo");
@@ -462,7 +451,7 @@ public class ConfigOperations
                         printBasicMessage("§cCheck your config. We'll enable high verbosity (mode 2) for now.");
                         debugVerbosityMode = 2;
                     }
-                    else if (debugVerbosityMode < 0 || debugVerbosityMode > 2)
+                    else if (debugVerbosityMode < 0 || debugVerbosityMode > 2 && debugVerbosityMode != 1337) // debug
                     {
                         printBasicMessage("§cValue of §4debugVerbosityMode§c is out of bounds.");
                         printBasicMessage("§cCheck your config. We'll enable high verbosity (mode 2) for now.");
@@ -590,16 +579,6 @@ public class ConfigOperations
                             toBooleanObject(commandConfig.getNode("sneakyMode").getString());
 
                     return FixGenders.commandAlias;
-                }
-                case "FixLevel":
-                {
-                    tryCreateConfig("FixLevel", fixLevelPath);
-                    CommentedConfigurationNode commandConfig = PixelUpgrade.fixLevelLoader.load();
-
-                    FixLevel.commandAlias =
-                            commandConfig.getNode("commandAlias").getString();
-
-                    return FixLevel.commandAlias;
                 }
                 case "ForceHatch":
                 {
@@ -793,7 +772,6 @@ public class ConfigOperations
                 case "DittoFusion": DittoFusion.commandAlias = null; break;
                 case "FixEVs": FixEVs.commandAlias = null; break;
                 case "FixGenders": FixGenders.commandAlias = null; break;
-                case "FixLevel": FixLevel.commandAlias = null; break;
                 case "ForceHatch": ForceHatch.commandAlias = null; break;
                 case "ForceStats": ForceStats.commandAlias = null; break;
                 case "PixelUpgradeInfo": PixelUpgradeInfo.commandAlias = null; break;

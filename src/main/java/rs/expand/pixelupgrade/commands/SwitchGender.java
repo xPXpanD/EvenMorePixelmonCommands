@@ -25,6 +25,7 @@ import org.spongepowered.api.text.Text;
 import rs.expand.pixelupgrade.utilities.CommonMethods;
 import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
+// TODO: Update the economy setup to be in line with most other economy-using commands.
 public class SwitchGender implements CommandExecutor
 {
     // Initialize some variables. We'll load stuff into these when we call the config loader.

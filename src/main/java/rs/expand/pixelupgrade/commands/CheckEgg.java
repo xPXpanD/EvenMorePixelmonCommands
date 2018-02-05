@@ -83,7 +83,7 @@ public class CheckEgg implements CommandExecutor
             }
             else if (!mainConfigErrorArray.isEmpty())
             {
-                CommonMethods.printMainNodeError("PixelUpgrade", mainConfigErrorArray);
+                CommonMethods.printMainNodeError("CheckEgg", mainConfigErrorArray);
                 src.sendMessage(Text.of("§4Error: §cCould not parse main config. Please report to staff."));
             }
             else

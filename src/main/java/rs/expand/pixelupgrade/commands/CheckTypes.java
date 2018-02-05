@@ -140,6 +140,13 @@ public class CheckTypes implements CommandExecutor
 
                         switch (arg2String.toUpperCase())
                         {
+                            case "OH":
+                            {
+                                if (arg1String.toUpperCase().equals("HO"))
+                                    updatedString = "HoOh";
+
+                                break;
+                            }
                             case "O":
                             {
                                 switch (arg1String.toUpperCase())

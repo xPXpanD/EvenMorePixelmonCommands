@@ -1,55 +1,62 @@
-3.1.0 beta for 6.1.0
+4.0.0 beta for 6.1.0+
 Released ???
 
-    Config changes:
-   * Removed useless cost option from /checktypes and /fixlevel. Old configs will still work.
-   * Removed per-config versions, as they were useless. Most old configs will still work, see below.
-   * New /showstats features: Super compact mode, and an alternate VIP cooldown. Redo this config.
-   * New /upgradeivs features: Separate settings for shiny babies. Redo this config as well.
+    Minor (non-breaking) config changes:
+   * Changed a bunch of helper text to hopefully explain things a bit better.
+   * Changed the default numLinesPerPage for /pixelupgrade from 20 to 10 to accomodate smaller chats.
+   * Removed commandCost from /checktypes as this info is easily Googled.
+   * Removed per-config versions, as they turned out to be useless.
+
+    Major (breaking) config changes:
+   * New /showstats features: Super compact mode, and an alternate VIP cooldown. Regenerate this config.
+   * New /upgradeivs features: Separate settings for shiny babies. Regenerate this config as well.
 
     New commands:
    * /fixgender: Fixes Pokémon affected by the 6.0.x breeding bug or by bad commands. Experimental!
    * /pokecure: Heals Pokémon (slot or party) on a configurable cooldown, for a configurable cost.
    * /spawndex: Spawns Pokémon based on their Pokédex number. Made for testing, might be useful?
 
+    Removed commands:
+   * /fixlevel: The bug it was made to fix (EVs not increasing when at the level cap) no longer exists!
+
     Other changes:
    * Added Poipole (ID 803) and up to /checktypes and the new /spawndex.
+   * Added an optional second argument to /checktypes, so names like "Tapu Koko" will work. Also fixed "Ho-Oh".
    * Added all babies and baby-based evolutions to /upgradeivs, and edited messages to fit.
-   * Added an optional second argument to /checktypes, so names like "Tapu Koko" will work.
-   * Added console support for: /checkstats, /checktypes, /fixgenders, /forcehatch, /forcestats, /pokecure
+   * Added console support for: /checkstats, /checktypes, /fixgenders, /forcehatch, /forcestats, /pixelupgrade, /pokecure
    * Changed many command messages to be a bit more professional.
    * Changed max-IV formatting for commands like /checkstats to italic to work around an external bug.
    * Changing command aliases no longer requires a reboot. Experimental.
-   * Fixed "Ho-Oh" not being valid input for /checktypes.
-   * Fixed /checkegg saying rechecks are free with no price set, instead of just proceeding silently.
+   * Fixed /checkegg mentioning free rechecks when no price is set. It'll now continue silently.
    * Fixed /checkstats not showing the nickname on shiny Pokémon.
+   * Fixed /checkstats's gender/size/nature line occasionally splitting into two? Hopefully THIS works.
    * Fixed /dittofusion mentioning upgrading instead of fusing in some places. Oops.
    * Fixed /fixevs eating money without fixing things, if re-used on a Pokémon beyond the limits.
    * Fixed /resetcount not recognizing "ALL" correctly because I forgot I never fully finished it. Derp.
    * Fixed /upgradeivs saying legendaries were shiny on debug messages.
-   * Fixed a bunch of bugs that were too small to mention, mostly formatting issues.
    * Fixed missing spaces in front of the pipes when showing EVs in /checkstats.
-   * Hopefully fixed /checkstats's gender/size/nature line rolling over to another line.
+   * Fixed a bunch of other bugs that were too small to mention, mostly formatting issues.
    * Removed a few older default aliases that weren't being shown anywhere anyways.
-   * Rewrote the internal config loader. Mostly helps maintainability, but filesize also benefited.
-   * Shortened many console messages to fit a standard Command Prompt window. Work in progress.
-   * Updated /pixelupgrade to also work from console, where it'll show only console-accessible commands.
+   * Rewrote the internal config loader. Mostly helps maintainability, but filesize also benefits.
+   * Shortened many console messages to fit a standard Windows Command Prompt window. Work in progress.
+   * Switched to a #.#.# versioning system (major/minor/patch) and started keeping proper changelogs!
 
-3.0.0 for 6.0.0
+3.0 for 6.0.0+
 Released December 28, 2017.
 
    * Added /showstats.
    * Added version info to all the command configs, showing when the config was made.
-   * Moved debug logger to the main config, simplified it a little.
-   * Re-enabled numLinesPerPage.
    * Fixed several formatting issues and reworded a few things.
+   * Moved debug logger to the main config, simplified it a little.
+   * Ported everything over to Reforged, our new home.
+   * Re-enabled numLinesPerPage.
 
-2.0.0 beta 2 for 5.1.2
+2.0 beta 2 for 5.1.2
 Released July 7, 2017.
 
    * Bugfixes. Exact details were lost.
 
-2.0.0 beta for 5.1.1
+2.0 beta for 5.1.1+
 Released June 29, 2017.
 
    * Added /switchgender.
@@ -60,21 +67,21 @@ Released June 29, 2017.
    * Fixed /upgradeivs's debug logger showing it as another command.
    * Temporarily disabled the numLinesPerPage setting in the info command due to issues.
 
-2.0.0 alpha for 5.1.1
+2.0 alpha for 5.1.1+
 Released June 24, 2017.
 
    * Added /resetcount.
    * Added /checktypes.
    * Completely reworked config file format.
 
-1.3 for 5.0.4
+1.3 for 5.0.4+
 Released May 22, 2017.
 
    * Added /checkegg.
    * Added /dittofusion.
    * Made the plugin public.
 
-1.0 for 5.0.4
+1.0 for 5.0.4+
 Released May 20, 2017.
 
    * Added /forcehatch, /checkstats, /upgradeivs and much more.

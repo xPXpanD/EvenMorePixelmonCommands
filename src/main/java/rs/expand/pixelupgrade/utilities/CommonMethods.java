@@ -76,7 +76,7 @@ public class CommonMethods
     public static void printMainNodeError(String callSource, ArrayList<String> nodes)
     {
         for (String node : nodes)
-        { printDebugMessage(callSource, 0, "Could not read node \"§4" + node + "§c\"."); }
+        { printDebugMessage(callSource, 0, "Could not read remote node \"§4" + node + "§c\"."); }
 
         printDebugMessage(callSource, 0, "The main config contains invalid variables. Exiting.");
         printDebugMessage(callSource, 0, "Check the related config, and when fixed use §4/pureload§c.");
