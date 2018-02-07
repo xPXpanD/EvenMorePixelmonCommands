@@ -38,6 +38,7 @@ public class PokeCure implements CommandExecutor
 
     // Set up some more variables for internal use.
     private boolean calledRemotely;
+    private HashMap<UUID, Long> cooldownMap = new HashMap<>();
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
@@ -89,7 +90,6 @@ public class PokeCure implements CommandExecutor
             Optional<String> arg1Optional = args.getOne("target/slot/confirmation");
             Optional<String> arg2Optional = args.getOne("slot/confirmation");
             String errorString = "§4There's an error message missing, please report this!";
-            HashMap<UUID, Long> cooldownMap = new HashMap<>();
             UUID playerUUID = null;
             Player target = null;
 
@@ -424,18 +424,29 @@ public class PokeCure implements CommandExecutor
                                 if (healParty)
                                 {
                                     // Is cost to confirm exactly one coin?
-                                    if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
-                                        src.sendMessage(Text.of("§6Warning: §eHealing your team costs §6one §ecoin."));
-                                    else
-                                    {
-                                        src.sendMessage(Text.of("§6Warning: §eHealing your team costs §6" +
-                                                costToConfirm + "§e coins."));
-                                    }
-
                                     if (target == null)
+                                    {
+                                        if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
+                                            src.sendMessage(Text.of("§6Warning: §eHealing your team costs §6one §ecoin."));
+                                        else
+                                        {
+                                            src.sendMessage(Text.of("§6Warning: §eHealing your team costs §6" +
+                                                    costToConfirm + "§e coins."));
+                                        }
+
                                         src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " -c"));
+                                    }
                                     else
                                     {
+                                        if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
+                                            src.sendMessage(Text.of("§6Warning: §eHealing §6" + target.getName() +
+                                                    "§e's team costs §6one §ecoin."));
+                                        else
+                                        {
+                                            src.sendMessage(Text.of("§6Warning: §e§eHealing §6" + target.getName() +
+                                                    "§e's team costs §6" + costToConfirm + "§e coins."));
+                                        }
+
                                         src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " +
                                                 target.getName() + " -c"));
                                     }
@@ -444,10 +455,10 @@ public class PokeCure implements CommandExecutor
                                 {
                                     // Is cost to confirm exactly one coin?
                                     if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
-                                        src.sendMessage(Text.of("§6Warning: §eHealing a Pokémon costs §6one §ecoin."));
+                                        src.sendMessage(Text.of("§6Warning: §eHealing this Pokémon costs §6one §ecoin."));
                                     else
                                     {
-                                        src.sendMessage(Text.of("§6Warning: §eHealing a Pokémon costs §6" +
+                                        src.sendMessage(Text.of("§6Warning: §eHealing this Pokémon costs §6" +
                                                 costToConfirm + "§e coins."));
                                     }
 

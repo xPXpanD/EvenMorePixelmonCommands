@@ -36,7 +36,7 @@ public class CheckStats implements CommandExecutor
     // Initialize some variables. We'll load stuff into these when we call the config loader.
     // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
-    public static Boolean showTeamWhenSlotEmpty, showEVs, showFixEVsHelper, showUpgradeHelper, showDittoFusionHelper;
+    public static Boolean showTeamWhenSlotEmpty, showEVs, showUpgradeHelper, showDittoFusionHelper;
     public static Boolean enableCheckEggIntegration;
     public static Integer commandCost;
 
@@ -65,8 +65,6 @@ public class CheckStats implements CommandExecutor
             nativeErrorArray.add("showTeamWhenSlotEmpty");
         if (showEVs == null)
             nativeErrorArray.add("showEVs");
-        if (showFixEVsHelper == null)
-            nativeErrorArray.add("showFixEVsHelper");
         if (showUpgradeHelper == null)
             nativeErrorArray.add("showUpgradeHelper");
         if (showDittoFusionHelper == null)
@@ -357,7 +355,7 @@ public class CheckStats implements CommandExecutor
                     else
                         nbt = null;
 
-                    if (showTeamWhenSlotEmpty && slot == 0)
+                    if (slot == 0 && (showTeamWhenSlotEmpty || calledRemotely))
                         checkParty(src, target, storageCompleted, calledRemotely);
                     else if (nbt == null)
                     {
@@ -541,7 +539,7 @@ public class CheckStats implements CommandExecutor
                     commandCost + " §dcoins."));
         }
         else
-            src.sendMessage(Text.of("§eWant to know more? §6/" + commandAlias + " " + target.getName()));
+            src.sendMessage(Text.of("§eWant to know more? §6/" + commandAlias + " " + target.getName() + " <slot, 1-6>"));
 
         src.sendMessage(Text.of("§7-----------------------------------------------------"));
     }
@@ -579,62 +577,39 @@ public class CheckStats implements CommandExecutor
         if (speedIV > 30)
             ivs6 = String.valueOf("§o") + ivs6;
 
-        // Do the same for EVs.
+        // Rinse and repeat for EVs.
         int HPEV = nbt.getInteger(NbtKeys.EV_HP);
         int attackEV = nbt.getInteger(NbtKeys.EV_ATTACK);
-        int defenceEV = nbt.getInteger(NbtKeys.EV_DEFENCE);
+        int defenseEV = nbt.getInteger(NbtKeys.EV_DEFENCE);
         int spAttEV = nbt.getInteger(NbtKeys.EV_SPECIAL_ATTACK);
         int spDefEV = nbt.getInteger(NbtKeys.EV_SPECIAL_DEFENCE);
         int speedEV = nbt.getInteger(NbtKeys.EV_SPEED);
-        BigDecimal totalEVs = BigDecimal.valueOf(HPEV + attackEV + defenceEV + spAttEV + spDefEV + speedEV);
+        BigDecimal totalEVs = BigDecimal.valueOf(HPEV + attackEV + defenseEV + spAttEV + spDefEV + speedEV);
         BigDecimal percentEVs = totalEVs.multiply(new BigDecimal("100")).divide(new BigDecimal("510"), 2, BigDecimal.ROUND_HALF_UP);
-        String evs1, evs2, evs3, evs4, evs5, evs6;
 
-        // Figure out what to print on the EV end, too.
-        if (HPEV > 255 || HPEV == 252)
-            evs1 = String.valueOf("§o" + HPEV + " §2" + shortenedHP + " §r|§a ");
-        else if (HPEV > 252 && showFixEVsHelper)
-            evs1 = String.valueOf("§c" + HPEV + " §4" + shortenedHP + " §r|§a ");
-        else
-            evs1 = String.valueOf(HPEV + " §2" + shortenedHP + " §r|§a ");
+        // Also format the strings for EVs.
+        String evs1 = String.valueOf(HPEV + " §2" + shortenedHP + " §r|§a ");
+        String evs2 = String.valueOf(attackEV + " §2" + shortenedAttack + " §r|§a ");
+        String evs3 = String.valueOf(defenseEV + " §2" + shortenedDefense + " §r|§a ");
+        String evs4 = String.valueOf(spAttEV + " §2" + shortenedSpecialAttack + " §r|§a ");
+        String evs5 = String.valueOf(spDefEV + " §2" + shortenedSpecialDefense + " §r|§a ");
+        String evs6 = String.valueOf(speedEV + " §2" + shortenedSpeed);
 
-        if (attackEV > 255 || attackEV == 252)
-            evs2 = String.valueOf("§o" + attackEV + " §2" + shortenedAttack + " §r|§a ");
-        else if (attackEV > 252 && showFixEVsHelper)
-            evs2 = String.valueOf("§c" + attackEV + " §4" + shortenedAttack + " §r|§a ");
-        else
-            evs2 = String.valueOf(attackEV + " §2" + shortenedAttack + " §r|§a ");
-
-        if (defenceEV > 255 || defenceEV == 252)
-            evs3 = String.valueOf("§o" + defenceEV + " §2" + shortenedDefense + " §r|§a ");
-        else if (defenceEV > 252 && showFixEVsHelper)
-            evs3 = String.valueOf("§c" + defenceEV + " §4" + shortenedDefense + " §r|§a ");
-        else
-            evs3 = String.valueOf(defenceEV + " §2" + shortenedDefense + " §r|§a ");
-
-        if (spAttEV > 255 || spAttEV == 252)
-            evs4 = String.valueOf("§o" + spAttEV + " §2" + shortenedSpecialAttack + " §r|§a ");
-        else if (spAttEV > 252 && showFixEVsHelper)
-            evs4 = String.valueOf("§c" + spAttEV + " §4" + shortenedSpecialAttack + " §r|§a ");
-        else
-            evs4 = String.valueOf(spAttEV + " §2" + shortenedSpecialAttack + " §r|§a ");
-
-        if (spDefEV > 255 || spDefEV == 252)
-            evs5 = String.valueOf("§o" + spDefEV + " §2" + shortenedSpecialDefense + " §r|§a ");
-        else if (spDefEV > 252 && showFixEVsHelper)
-            evs5 = String.valueOf("§c" + spDefEV + " §4" + shortenedSpecialDefense + " §r|§a ");
-        else
-            evs5 = String.valueOf(spDefEV + " §2" + shortenedSpecialDefense + " §r|§a ");
-
-        if (speedEV > 255 || speedEV == 252)
-            evs6 = String.valueOf("§o" + speedEV + " §2" + shortenedSpeed);
-        else if (speedEV > 252 && showFixEVsHelper)
-            evs6 = String.valueOf("§c" + speedEV + " §4" + shortenedSpeed);
-        else
-            evs6 = String.valueOf(speedEV + " §2" + shortenedSpeed);
+        if (HPEV > 251)
+            evs1 = String.valueOf("§o") + evs1;
+        if (attackEV > 251)
+            evs2 = String.valueOf("§o") + evs2;
+        if (defenseEV > 251)
+            evs3 = String.valueOf("§o") + evs3;
+        if (spAttEV > 251)
+            evs4 = String.valueOf("§o") + evs4;
+        if (spDefEV > 251)
+            evs5 = String.valueOf("§o") + evs5;
+        if (speedEV > 251)
+            evs6 = String.valueOf("§o") + evs6;
 
         // Get a bunch of data from our GetPokemonInfo utility class. Used for messages, later on.
-        // TODO: Fix gender printing on console. On Windows and possibly other OSes, the character becomes a "?".
+        // FIXME: Fix gender printing on console. On Windows and possibly other OSes, the character becomes a "?".
         ArrayList<String> natureArray = GetPokemonInfo.getNatureStrings(nbt.getInteger(NbtKeys.NATURE));
         String natureName = natureArray.get(0);
         String plusVal = natureArray.get(1);
@@ -695,7 +670,6 @@ public class CheckStats implements CommandExecutor
         src.sendMessage(Text.of(extraInfo1 + extraInfo2));
 
         // Check and show whether the Pokémon can be upgraded/fused further, if enabled in config.
-        boolean showedCapMessage = false;
         boolean isDitto = nbt.getString("Name").equals("Ditto");
         if (isDitto && showDittoFusionHelper && !gotFusionError || !isDitto && showUpgradeHelper && !gotUpgradeError)
         {
@@ -817,30 +791,6 @@ public class CheckStats implements CommandExecutor
                     src.sendMessage(Text.of(startString + "can be upgraded §6" + upgradeCap + "§e more times."));
                 else
                     src.sendMessage(Text.of(startString + "has been fully upgraded!"));
-            }
-
-            showedCapMessage = true;
-        }
-
-        // Show the wasted EVs helper message if, again, it's enabled in the config. Configs are awesome.
-        if (showFixEVsHelper && showEVs && !haveTarget)
-        {
-            // Set up a message to print if any IVs are wasted.
-            String warnEVs = "§5Warning: §dEVs above §5252 §ddo nothing. Try using §5/fixevs§d.";
-            boolean needToWarn = false;
-
-            if (HPEV < 256 && HPEV > 252 || attackEV < 256 && attackEV > 252 || defenceEV < 256 && defenceEV > 252)
-                needToWarn = true;
-            else if (spAttEV < 256 && spAttEV > 252 || spDefEV < 256 && spDefEV > 252 || speedEV < 256 && speedEV > 252)
-                needToWarn = true;
-
-            // Add a new line if we don't already have an upgrade/fusion message. Keep them together otherwise.
-            if (needToWarn)
-            {
-                if (!showedCapMessage)
-                    src.sendMessage(Text.of(""));
-
-                src.sendMessage(Text.of(warnEVs));
             }
         }
 

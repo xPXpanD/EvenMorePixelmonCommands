@@ -19,11 +19,9 @@ import org.spongepowered.api.text.Text;
 import rs.expand.pixelupgrade.utilities.CommonMethods;
 import rs.expand.pixelupgrade.utilities.EnumPokemonList;
 
-/*                                                      *\
-    TODO: Maybe add target and console usage support?
-    Spawning stuff near online players could be cool.
-\*                                                      */
-
+// TODO: Add target and console support.
+// TODO: Add support for names.
+// TODO: Add more flags, like scale/special texture/IVs. Needs testing.
 public class SpawnDex implements CommandExecutor
 {
     // Initialize a config variable. We'll load stuff into it when we call the config loader.
@@ -48,17 +46,14 @@ public class SpawnDex implements CommandExecutor
             {
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
-                boolean canContinue = true, makeShiny = false;
+                boolean canContinue = true, makeShiny = false, makeOutlined = false, makePureBlack = false;
                 String numberString;
                 int pokedexNumber = 0;
 
                 if (!args.<String>getOne("number").isPresent())
                 {
                     printToLog(1, "No arguments provided. Exit.");
-
-                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                    src.sendMessage(Text.of("§4Error: §cNo arguments found. Please enter a Pokédex number."));
-                    addFooter(src);
+                    printError(src, "§4Error: §cNo arguments found. Please enter a Pokédex number.");
 
                     canContinue = false;
                 }
@@ -73,24 +68,24 @@ public class SpawnDex implements CommandExecutor
                         
                         if (pokedexNumber > 807 || pokedexNumber < 1)
                         {
-                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                            src.sendMessage(Text.of("§4Error: §cInvalid Pokédex number! Valid range is 1-807."));
-                            addFooter(src);
-
+                            printError(src, "§4Error: §cInvalid Pokédex number! Valid range is 1-807.");
                             canContinue = false;
                         }
                     }
                     else
                     {
                         printToLog(1, "Invalid value provided for Pokédex number. Exit.");
-
-                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                        src.sendMessage(Text.of("§4Error: §cInput was not a number. Valid range is 1-807."));
-                        addFooter(src);
+                        printError(src, "§4Error: §cInput was not a number. Valid range is 1-807.");
 
                         canContinue = false;
                     }
                 }
+
+                if (args.hasAny("b"))
+                    makePureBlack = true;
+
+                if (args.hasAny("o"))
+                    makeOutlined = true;
 
                 if (args.hasAny("s"))
                     makeShiny = true;
@@ -99,18 +94,20 @@ public class SpawnDex implements CommandExecutor
                 {
                     printToLog(2, "No errors encountered, input should be valid. Continuing!");
 
-                    /*                                                                    *\
-                        TODO: Get the player's facing angle, and spawn in front of them.
-                        Currently it spawns one nearby, one block away, on a fixed axis.
-                    \*                                                                    */
+                    /*                                                                            *\
+                        FIXME: Get the player's facing angle and spawn Pokémon in front of them.
+                        Currently it spawns stuff at a one-block distance, in a fixed direction.
+                    \*                                                                            */
 
                     try
                     {
                         printToLog(2, "Attempting to grab a name for the given Pokédex number, §2" +
                                 pokedexNumber + "§a.");
 
-                        // Try to grab a Pokémon name for the given Pokédex number.
+                        // Try to grab a Pokémon name for the given Pokédex number. Fix it if it's a known bad name.
                         String pokemonName = Objects.requireNonNull(EnumPokemonList.getPokemonFromID(pokedexNumber)).name();
+                        if (pokemonName.equals("HoOh"))
+                            pokemonName = "Ho-Oh";
 
                         // Set up variables for spawning. Nabbed some code here from Pixelmon.
                         EntityPlayerMP playerEntity = (EntityPlayerMP) src;
@@ -122,21 +119,71 @@ public class SpawnDex implements CommandExecutor
                         pokemonToSpawn.setPosition(playerPos.getX(), playerPos.getY(), playerPos.getZ());
                         pokemonToSpawn.setSpawnLocation(pokemonToSpawn.getDefaultSpawnLocation());
 
+                        // If we have an odd internal name, fix it up before showing it to our user. Re-use the old String.
+                        switch (pokemonName)
+                        {
+                            // Stuff that's currently in.
+                            case "NidoranFemale":
+                                pokemonName = "Nidoran♀"; break;
+                            case "NidoranMale":
+                                pokemonName = "Nidoran♂"; break;
+                            case "Farfetchd":
+                                pokemonName = "Farfetch'd"; break;
+                            case "MrMime":
+                                pokemonName = "Mr. Mime"; break;
+                            case "HoOh":
+                                pokemonName = "Ho-Oh"; break;
+                            case "MimeJr":
+                                pokemonName = "Mime Jr."; break;
+                            case "Flabebe":
+                                pokemonName = "Flabébé"; break;
+
+                            // Stuff that's not in, yet. Added so we're ready for future updates. Probably needs work.
+                            case "TypeNull":
+                                pokemonName = "Type: Null"; break;
+                            case "JangmoO":
+                                pokemonName = "Jangmo-O"; break;
+                            case "HakamoO":
+                                pokemonName = "Hakamo-O"; break;
+                            case "KommoO":
+                                pokemonName = "Kommo-O"; break;
+                            case "TapuKoko":
+                                pokemonName = "Tapu Koko"; break;
+                            case "TapuLele":
+                                pokemonName = "Tapu Lele"; break;
+                            case "TapuBulu":
+                                pokemonName = "Tapu Bulu"; break;
+                            case "TapuFini":
+                                pokemonName = "Tapu Fini"; break;
+                        }
+
+                        // Do fancy stuff to the spawned Pokémon (if a flag is passed), and show some fitting messages.
+                        printToLog(1, "Now spawning a §2" + pokemonName + "§a, and exiting.");
+                        src.sendMessage(Text.of("§7-----------------------------------------------------"));
+                        src.sendMessage(Text.of("§aSetting up a fresh §2" + pokemonName + "§a..."));
+
                         if (makeShiny)
                         {
+                            src.sendMessage(Text.of("§eMaking the Pokémon §lshiny§r§e..."));
                             pokemonToSpawn.setIsShiny(true);
-                            printToLog(1, "Now spawning a shiny §2" + pokemonName + "§a, and exiting.");
-                            src.sendMessage(Text.of("§aSpawning a fresh (and shiny) §2" + pokemonName + "§a nearby!"));
                         }
-                        else
+                        if (makeOutlined)
                         {
-                            printToLog(1, "Now spawning a §2" + pokemonName + "§a, and exiting.");
-                            src.sendMessage(Text.of("§aSpawning a fresh §2" + pokemonName + "§a nearby!"));
-
+                            src.sendMessage(Text.of("§eGiving the Pokémon §lan outline§r§e..."));
+                            pokemonToSpawn.setGlowing(true); // Yeah, weird name. Works, though.
+                        }
+                        if (makePureBlack)
+                        {
+                            src.sendMessage(Text.of("§eTurning the Pokémon §lpure black§r§e..."));
+                            pokemonToSpawn.setIsRed(true); // Yeah, weird name. Works, though.
                         }
 
                         // Actually spawn it.
                         world.spawnEntity(pokemonToSpawn);
+
+                        // Notify the player and wrap up.
+                        src.sendMessage(Text.of("§aThe chosen Pokémon has been spawned!"));
+                        src.sendMessage(Text.of("§7-----------------------------------------------------"));
                     }
                     catch (NullPointerException F)
                     {
@@ -152,9 +199,19 @@ public class SpawnDex implements CommandExecutor
         return CommandResult.success();
     }
 
-    private void addFooter(CommandSource src)
+    private void printError(CommandSource src, String errorString)
     {
-        src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <Pokédex number> {-s to make shiny}"));
+        src.sendMessage(Text.of("§5-----------------------------------------------------"));
+        src.sendMessage(Text.of(errorString));
+        src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <Pokédex number> {one or more flags}"));
+        src.sendMessage(Text.of(""));
+        src.sendMessage(Text.of("§6Valid flags:"));
+        src.sendMessage(Text.of("§f--> §6-b §f- §eTurns spawns entirely black. Reverts when caught."));
+        src.sendMessage(Text.of("§f--> §6-o §f- §eGives spawns an outline that shows through walls."));
+        src.sendMessage(Text.of("§f--> §6-s §f- §eMakes spawns shiny."));
+        src.sendMessage(Text.of(""));
+        src.sendMessage(Text.of("§5Please note: §dOutlined Pokémon stay outlined if caught."));
+        src.sendMessage(Text.of("§dThe effect persists even through trades and evolutions!"));
         src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
 }

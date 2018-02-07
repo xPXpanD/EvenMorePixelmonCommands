@@ -3,10 +3,9 @@ package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
 import com.pixelmonmod.pixelmon.enums.EnumType;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Optional;
+
+import java.util.*;
+
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -19,7 +18,7 @@ import org.spongepowered.api.text.Text;
 import rs.expand.pixelupgrade.utilities.CommonMethods;
 import rs.expand.pixelupgrade.utilities.EnumPokemonList;
 
-// TODO: Some super long lists like /checktypes 599 cause minor visual issues. Fixing that would be nice polish.
+// FIXME: Some super long lists like /checktypes 599 cause minor visual issues. Fixing that would be nice polish.
 // TODO: Maybe look into paginated lists that you can move through. Lots of work, but would be real neat for evolutions.
 
 public class CheckTypes implements CommandExecutor
@@ -30,6 +29,30 @@ public class CheckTypes implements CommandExecutor
 
     // Set up a console-checking variable for internal use.
     private boolean calledRemotely;
+
+    /* TODO: Maybe move over to this later. Might be good practice?
+    private static final Map<String, String> formattedTypeMap = new HashMap<>();
+    {
+        formattedTypeMap.put("Normal", "§fNormal");
+        formattedTypeMap.put("Fighting", "§4Fighting");
+        formattedTypeMap.put("Flying", "§9Flying");
+        formattedTypeMap.put("Poison", "§5Poison");
+        formattedTypeMap.put("Ground", "§6Ground");
+        formattedTypeMap.put("Rock", "§7Rock");
+        formattedTypeMap.put("Bug", "§2Bug");
+        formattedTypeMap.put("Ghost", "§5Ghost");
+        formattedTypeMap.put("Steel", "§7Steel");
+        formattedTypeMap.put("Fire", "§cFire");
+        formattedTypeMap.put("Water", "§3Water");
+        formattedTypeMap.put("Grass", "§aGrass");
+        formattedTypeMap.put("Electric", "§eElectric");
+        formattedTypeMap.put("Psychic", "§dPsychic");
+        formattedTypeMap.put("Ice", "§bIce");
+        formattedTypeMap.put("Dragon", "§9Dragon");
+        formattedTypeMap.put("Dark", "§8Dark");
+        formattedTypeMap.put("Fairy", "§dFairy");
+    }
+    */
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     // If we're running from console, we need to swallow everything to avoid cluttering it.
@@ -462,15 +485,15 @@ public class CheckTypes implements CommandExecutor
 
             // Pokémon with weird internal names due to technical issues.
             case "NidoranFemale":
-                nameMessage = "§1(§9#29§1) §6Nidoran ♀"; break;
+                nameMessage = "§1(§9#29§1) §6Nidoran♀"; break;
             case "NidoranMale":
-                nameMessage = "§1(§9#32§1) §6Nidoran ♂"; break;
+                nameMessage = "§1(§9#32§1) §6Nidoran♂"; break;
             case "Farfetchd":
                 nameMessage = "§1(§9#83§1) §6Farfetch'd"; break;
             case "MrMime":
                 nameMessage = "§1(§9#122§1) §6Mr. Mime"; break;
             case "HoOh":
-                nameMessage = "§1(§9#122§1) §6Ho-Oh"; break;
+                nameMessage = "§1(§9#250§1) §6Ho-Oh"; break;
             case "MimeJr":
                 nameMessage = "§1(§9#439§1) §6Mime Jr."; break;
             case "Flabebe":
@@ -487,9 +510,9 @@ public class CheckTypes implements CommandExecutor
                 nameMessage = "§1(§9#784§1) §6Tapu Koko"; break;
             case "TapuLele":
                 nameMessage = "§1(§9#784§1) §6Tapu Lele"; break;
-            case "Tapu Bulu":
+            case "TapuBulu":
                 nameMessage = "§1(§9#784§1) §6Tapu Bulu"; break;
-            case "Tapu Fini":
+            case "TapuFini":
                 nameMessage = "§1(§9#784§1) §6Tapu Fini"; break;
 
             // Pokémon is not special, print defaults.

@@ -119,14 +119,6 @@ public class ReloadConfigs implements CommandExecutor
                         returnString = "--> §aLoaded config for command §2/dittofusion§a, alias §2/" + DittoFusion.commandAlias + "§a.";
                         break;
                     }
-                    case "FIXEVS":
-                    {
-                        printHeaderAndCheckFolder(src, false);
-                        oldAlias = FixEVs.commandAlias;
-                        newAlias = ConfigOperations.loadConfig("FixEVs");
-                        returnString = "--> §aLoaded config for command §2/fixevs§a, alias §2/" + FixEVs.commandAlias + "§a.";
-                        break;
-                    }
                     case "FIXGENDERS":
                     {
                         printHeaderAndCheckFolder(src, false);
@@ -224,7 +216,9 @@ public class ReloadConfigs implements CommandExecutor
                 {
                     printBasicMessage(returnString);
 
-                    if (newAlias != null && !newAlias.equals(oldAlias))
+                    if (cappedConfigString.toUpperCase().matches("MAIN|MAINCONFIG"))
+                        printBasicMessage("--> §aMain config does not have an alias to check. We're done!");
+                    else if (newAlias != null && !newAlias.equals(oldAlias))
                     {
                         printBasicMessage("--> §aDetected a possible changed alias, re-registering PU commands.");
                         successfulInit = reloadMappings();
@@ -255,10 +249,10 @@ public class ReloadConfigs implements CommandExecutor
 
                 src.sendMessage(Text.of("§4Usage: §c/pureload <config>"));
                 src.sendMessage(Text.of(""));
-                src.sendMessage(Text.of("§6Commands: §eCheckEgg, CheckStats, CheckTypes, DittoFusion, FixEVs"));
-                src.sendMessage(Text.of("§6Commands: §eFixGenders, ForceHatch, ForceStats, Info, PokeCure"));
-                src.sendMessage(Text.of("§6Commands: §eResetCount, ResetEVs, ShowStats, SpawnDex, SwitchGender"));
-                src.sendMessage(Text.of("§6Commands: §eUpgradeIVs"));
+                src.sendMessage(Text.of("§6Commands: §eCheckEgg, CheckStats, CheckTypes, DittoFusion"));
+                src.sendMessage(Text.of("§6Commands: §eFixGenders, ForceHatch, ForceStats, Info"));
+                src.sendMessage(Text.of("§6Commands: §ePokeCure, ResetCount, ResetEVs, ShowStats"));
+                src.sendMessage(Text.of("§6Commands: §eSpawnDex, SwitchGender, UpgradeIVs"));
                 src.sendMessage(Text.of("§6Other: §eAll (reloads ALL configs!), Main (reloads global config)"));
                 src.sendMessage(Text.of("§5-----------------------------------------------------"));
             }
@@ -273,10 +267,10 @@ public class ReloadConfigs implements CommandExecutor
 
                 src.sendMessage(Text.of("§4Usage: §c/pureload <config>"));
                 src.sendMessage(Text.of(""));
-                src.sendMessage(Text.of("§6Commands: §eCheckEgg, CheckStats, CheckTypes, DittoFusion, FixEVs"));
-                src.sendMessage(Text.of("§6Commands: §eFixGenders, ForceHatch, ForceStats, Info, PokeCure"));
-                src.sendMessage(Text.of("§6Commands: §eResetCount, ResetEVs, ShowStats, SpawnDex, SwitchGender"));
-                src.sendMessage(Text.of("§6Commands: §eUpgradeIVs"));
+                src.sendMessage(Text.of("§6Commands: §eCheckEgg, CheckStats, CheckTypes, DittoFusion"));
+                src.sendMessage(Text.of("§6Commands: §eFixGenders, ForceHatch, ForceStats, Info"));
+                src.sendMessage(Text.of("§6Commands: §ePokeCure, ResetCount, ResetEVs, ShowStats"));
+                src.sendMessage(Text.of("§6Commands: §eSpawnDex, SwitchGender, UpgradeIVs"));
                 src.sendMessage(Text.of("§6Other: §eAll (reloads ALL configs), Main (reloads global config)"));
 
                 printBasicMessage("===========================================================================");

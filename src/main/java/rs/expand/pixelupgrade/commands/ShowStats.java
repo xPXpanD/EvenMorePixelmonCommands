@@ -41,10 +41,11 @@ public class ShowStats implements CommandExecutor
     // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
     public static Integer cooldownInSeconds, altCooldownInSeconds, commandCost;
-    public static Boolean compactMode, showCounts, showNicknames, clampBadNicknames, notifyBadNicknames, showExtraInfo;
+    public static Boolean hoverMode, showEVs, showCounts, showExtraInfo, showNicknames, clampBadNicknames, notifyBadNicknames;
 
     // Set up some more variables for internal use.
-    private boolean gotExternalConfigError = false, outdatedCompactMode = false, outdatedAltCooldownInSeconds = false;
+    private boolean gotExternalConfigError = false, outdatedhoverMode = false, outdatedAltCooldownInSeconds = false;
+    private HashMap<UUID, Long> cooldownMap = new HashMap<>();
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
@@ -61,16 +62,18 @@ public class ShowStats implements CommandExecutor
                 nativeErrorArray.add("commandAlias");
             if (cooldownInSeconds == null)
                 nativeErrorArray.add("cooldownInSeconds");
+            if (showEVs == null)
+                nativeErrorArray.add("showEVs");
             if (showCounts == null)
                 nativeErrorArray.add("showCounts");
+            if (showExtraInfo == null)
+                nativeErrorArray.add("showExtraInfo");
             if (showNicknames == null)
                 nativeErrorArray.add("showNicknames");
             if (clampBadNicknames == null)
                 nativeErrorArray.add("clampBadNicknames");
             if (notifyBadNicknames == null)
                 nativeErrorArray.add("notifyBadNicknames");
-            if (showExtraInfo == null)
-                nativeErrorArray.add("showExtraInfo");
             if (commandCost == null)
                 nativeErrorArray.add("commandCost");
 
@@ -96,11 +99,11 @@ public class ShowStats implements CommandExecutor
                 CommonMethods.printCommandNodeError("ShowStats", nativeErrorArray);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
-            else if (compactMode == null && configVersion >= 310 || altCooldownInSeconds == null && configVersion >= 310)
+            else if (hoverMode == null && configVersion >= 310 || altCooldownInSeconds == null && configVersion >= 310)
             {
                 // These are new 3.1 features. Run a separate check, so we can fail gracefully if need be.
-                if (compactMode == null)
-                    nativeErrorArray.add("compactMode");
+                if (hoverMode == null)
+                    nativeErrorArray.add("hoverMode");
                 if (altCooldownInSeconds == null)
                     nativeErrorArray.add("altCooldownInSeconds");
 
@@ -117,10 +120,10 @@ public class ShowStats implements CommandExecutor
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
                 boolean canContinue = true;
 
-                if (compactMode == null || altCooldownInSeconds == null)
+                if (hoverMode == null || altCooldownInSeconds == null)
                 {
-                    if (compactMode == null)
-                        outdatedCompactMode = true;
+                    if (hoverMode == null)
+                        outdatedhoverMode = true;
                     if (altCooldownInSeconds == null)
                         outdatedAltCooldownInSeconds = true;
 
@@ -128,7 +131,7 @@ public class ShowStats implements CommandExecutor
                     printToLog(0, "Running in safe mode. Stuff will work the way it did in 3.0.");
                 }
 
-                if (outdatedCompactMode && showCounts || !outdatedCompactMode && !compactMode && showCounts)
+                if (outdatedhoverMode && showCounts || !outdatedhoverMode && !hoverMode && showCounts)
                 {
                     ArrayList<String> upgradeErrorArray = new ArrayList<>(), fusionErrorArray = new ArrayList<>();
 
@@ -162,7 +165,6 @@ public class ShowStats implements CommandExecutor
                     }
                 }
 
-                HashMap<UUID, Long> cooldownMap = new HashMap<>();
                 boolean commandConfirmed = false;
                 int slot = 0;
 
@@ -356,6 +358,27 @@ public class ShowStats implements CommandExecutor
         BigDecimal percentIVs =
                 totalIVs.multiply(new BigDecimal("100")).divide(new BigDecimal("186"), 2, BigDecimal.ROUND_HALF_UP);
 
+        // Format the IVs for use later, so we can print them.
+        String ivs1 = String.valueOf(HPIV + " §2" + shortenedHP + " §r|§a ");
+        String ivs2 = String.valueOf(attackIV + " §2" + shortenedAttack + " §r|§a ");
+        String ivs3 = String.valueOf(defenseIV + " §2" + shortenedDefense + " §r|§a ");
+        String ivs4 = String.valueOf(spAttIV + " §2" + shortenedSpecialAttack + " §r|§a ");
+        String ivs5 = String.valueOf(spDefIV + " §2" + shortenedSpecialDefense + " §r|§a ");
+        String ivs6 = String.valueOf(speedIV + " §2" + shortenedSpeed);
+
+        if (HPIV > 30)
+            ivs1 = String.valueOf("§o") + ivs1;
+        if (attackIV > 30)
+            ivs2 = String.valueOf("§o") + ivs2;
+        if (defenseIV > 30)
+            ivs3 = String.valueOf("§o") + ivs3;
+        if (spAttIV > 30)
+            ivs4 = String.valueOf("§o") + ivs4;
+        if (spDefIV > 30)
+            ivs5 = String.valueOf("§o") + ivs5;
+        if (speedIV > 30)
+            ivs6 = String.valueOf("§o") + ivs6;
+
         // Set up for our anti-cheat notifier.
         boolean nicknameTooLong = false;
 
@@ -371,10 +394,8 @@ public class ShowStats implements CommandExecutor
         String startString = "§6" + player.getName() + "§e is showing off their ";
         String name = "§6" + nbt.getString("Name");
         String nickname = nbt.getString("Nickname");
-        if (nickname.length() > 11 && notifyBadNicknames)
-            nicknameTooLong = true;
 
-        if (!outdatedCompactMode && compactMode)
+        if (!outdatedhoverMode && hoverMode)
         {
             // Grab a gender string from GetPokemonInfo. Returns a blank ("") string if the Pokémon is ungendered.
             String gender = GetPokemonInfo.getGender(nbt.getInteger(NbtKeys.GENDER));
@@ -391,7 +412,7 @@ public class ShowStats implements CommandExecutor
             else
                 ivHelper = "§aThis Pokémon has §2" + totalIVs + "§a IVs, hover over for more info.";
 
-            String HPString = "§2Health IVs§f: §a";
+            /*String HPString = "§2Health IVs§f: §a";
             String attackString = "§2Attack IVs§f: §a";
             String defenseString = "§2Defense IVs§f: §a";
             String spAttString = "§2Special Attack IVs§f: §a";
@@ -409,11 +430,10 @@ public class ShowStats implements CommandExecutor
             if (spDefIV > 30)
                 spDefString = spDefString + String.valueOf("§o");
             if (speedIV > 30)
-                speedString = speedString + String.valueOf("§o");
+                speedString = speedString + String.valueOf("§o");*/
 
             ArrayList<String> hovers = new ArrayList<>();
-            hovers.add(HPString + HPIV + "\n" + attackString + attackIV + "\n" + defenseString + defenseIV +
-                    "\n" + spAttString + spAttIV + "\n" + spDefString + spDefIV + "\n" + speedString + speedIV);
+            hovers.add("§bIVs§f: §a" + ivs1 + ivs2 + ivs3 + ivs4 + ivs5 + ivs6);
 
             Text ivBuilder = Text.builder(ivHelper)
                     .onHover(TextActions.showText(Text.of(hovers.get(0))))
@@ -426,7 +446,7 @@ public class ShowStats implements CommandExecutor
             // Format the last few bits and print!
             MessageChannel.TO_PLAYERS.send(Text.of("§7-----------------------------------------------------"));
 
-            if (nicknameTooLong && clampBadNicknames)
+            if (nickname.length() > 11 && notifyBadNicknames && clampBadNicknames)
                 nickname = nickname.substring(0, 11);
             String nicknameString = "§e, \"§6" + nickname + "§e\"!";
 
@@ -442,27 +462,6 @@ public class ShowStats implements CommandExecutor
             else
                 MessageChannel.TO_PLAYERS.send(Text.of(startString + name + "§f (§e" +
                         genderCharacter + "§r)"));
-
-            // Format the IVs for use later, so we can print them.
-            String ivs1 = String.valueOf(HPIV + " §2" + shortenedHP + " §r|§a ");
-            String ivs2 = String.valueOf(attackIV + " §2" + shortenedAttack + " §r|§a ");
-            String ivs3 = String.valueOf(defenseIV + " §2" + shortenedDefense + " §r|§a ");
-            String ivs4 = String.valueOf(spAttIV + " §2" + shortenedSpecialAttack + " §r|§a ");
-            String ivs5 = String.valueOf(spDefIV + " §2" + shortenedSpecialDefense + " §r|§a ");
-            String ivs6 = String.valueOf(speedIV + " §2" + shortenedSpeed);
-
-            if (HPIV > 30)
-                ivs1 = String.valueOf("§o") + ivs1;
-            if (attackIV > 30)
-                ivs2 = String.valueOf("§o") + ivs2;
-            if (defenseIV > 30)
-                ivs3 = String.valueOf("§o") + ivs3;
-            if (spAttIV > 30)
-                ivs4 = String.valueOf("§o") + ivs4;
-            if (spDefIV > 30)
-                ivs5 = String.valueOf("§o") + ivs5;
-            if (speedIV > 30)
-                ivs6 = String.valueOf("§o") + ivs6;
 
             MessageChannel.TO_PLAYERS.send(Text.of(""));
             MessageChannel.TO_PLAYERS.send(Text.of("§bIVs§f: §a" + ivs1 + ivs2 + ivs3 + ivs4 + ivs5 + ivs6));
@@ -570,7 +569,7 @@ public class ShowStats implements CommandExecutor
                     "§4(only those with the staff permission can see this warning)"));
         }
 
-        if (!outdatedCompactMode && compactMode)
+        if (!outdatedhoverMode && hoverMode)
             MessageChannel.TO_PLAYERS.send(Text.of("§7-----------------------------------------------------"));
     }
 }

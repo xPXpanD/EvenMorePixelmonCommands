@@ -532,7 +532,7 @@ public class UpgradeIVs implements CommandExecutor
                                 if (commandConfirmed)
                                 {
                                     String name = nbt.getString("Name");
-                                    String upgradeString = "§eYou upgraded your §6" + name + "§e's §6" + cleanStat;
+                                    String upgradeString = "§eYou upgraded §6" + name + "§e's §6" + cleanStat;
 
                                     if (isShiny && isLegendary)
                                         upgradeCount = legendaryAndShinyCap - remainder;

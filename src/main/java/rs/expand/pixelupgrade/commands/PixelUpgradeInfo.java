@@ -156,20 +156,6 @@ public class PixelUpgradeInfo implements CommandExecutor
             else printToLog(1, "§3/dittofusion §bhas a malformed config, hiding from list.");
         }
 
-        if (src.hasPermission("pixelupgrade.command.fixevs"))
-        {
-            if (FixEVs.commandCost != null && FixEVs.commandAlias != null)
-            {
-                if (FixEVs.commandCost != 0)
-                    permissionMessageList.add(Text.of("§6/" + FixEVs.commandAlias + " <slot, 1-6> {confirm flag}"));
-                else
-                    permissionMessageList.add(Text.of("§6/" + FixEVs.commandAlias + " <slot, 1-6>"));
-
-                permissionMessageList.add(Text.of("§f --> §eFixes wasted EVs that exceed the soft limit of 252."));
-            }
-            else printToLog(1, "§3/fixevs §bhas a malformed config, hiding from list.");
-        }
-
         if (calledRemotely || src.hasPermission("pixelupgrade.command.fixgenders"))
         {
             if (FixGenders.commandAlias != null)
@@ -300,8 +286,8 @@ public class PixelUpgradeInfo implements CommandExecutor
         {
             if (SpawnDex.commandAlias != null)
             {
-                permissionMessageList.add(Text.of("§6/" + SpawnDex.commandAlias + " <Pokédex number> {shiny flag}"));
-                permissionMessageList.add(Text.of("§f --> §eSpawns a Pokémon from a given Pokédex number."));
+                permissionMessageList.add(Text.of("§6/" + SpawnDex.commandAlias + " <Pokédex number> {one or more flags}"));
+                permissionMessageList.add(Text.of("§f --> §eSpawns a (custom?) Pokémon from the given dex ID."));
             }
             else printToLog(1, "§3/spawndex §bhas a malformed config, hiding from list.");
         }

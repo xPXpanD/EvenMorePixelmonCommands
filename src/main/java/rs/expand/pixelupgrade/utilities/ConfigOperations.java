@@ -90,11 +90,6 @@ public class ConfigOperations
             else
                 Sponge.getCommandManager().register(puContainer, dittofusion, "dittofusion");
 
-            if (FixEVs.commandAlias != null && !FixEVs.commandAlias.equals("fixevs"))
-                Sponge.getCommandManager().register(puContainer, fixevs, "fixevs", FixEVs.commandAlias);
-            else
-                Sponge.getCommandManager().register(puContainer, fixevs, "fixevs");
-
             if (FixGenders.commandAlias != null && !FixGenders.commandAlias.equals("fixgenders"))
                 Sponge.getCommandManager().register(puContainer, fixgenders, "fixgenders", FixGenders.commandAlias);
             else
@@ -172,9 +167,9 @@ public class ConfigOperations
         String commandAlias = "§4There's an error message missing, please report this!", commandString = null;
 
         // Format our commands and aliases and add them to the lists that we'll print in a bit.
-        // TODO: If you add a command, update this list and increment the counters! (currently 17)
-        // TODO: Move stuff to an external method so we don't have to update all these numbers manually.
-        for (int i = 1; i <= 17; i++)
+        // TODO: If you add a command, update this list and increment the counters! (currently 16)
+        // FIXME: Move stuff to an external method so we don't have to update all these numbers manually.
+        for (int i = 1; i <= 16; i++)
         {
             switch (i)
             {
@@ -206,77 +201,71 @@ public class ConfigOperations
                 }
                 case 5:
                 {
-                    commandAlias = FixEVs.commandAlias;
-                    commandString = "/fixevs";
-                    break;
-                }
-                case 6:
-                {
                     commandAlias = FixGenders.commandAlias;
                     commandString = "/fixgenders";
                     break;
                 }
-                case 7:
+                case 6:
                 {
                     commandAlias = ForceHatch.commandAlias;
                     commandString = "/forcehatch";
                     break;
                 }
-                case 8:
+                case 7:
                 {
                     commandAlias = ForceStats.commandAlias;
                     commandString = "/forcestats";
                     break;
                 }
-                case 9:
+                case 8:
                 {
                     commandAlias = PixelUpgradeInfo.commandAlias;
                     commandString = "/pixelupgrade";
                     break;
                 }
-                case 10:
+                case 9:
                 {
                     commandAlias = PokeCure.commandAlias;
                     commandString = "/pokecure";
                     break;
                 }
-                case 11:
+                case 10:
                 {
                     commandAlias = "pureload"; // Alias gets omitted; there's a check for aliases matching base commands.
                     commandString = "/pureload";
                     break;
                 }
-                case 12:
+                case 11:
                 {
                     commandAlias = ResetCount.commandAlias;
                     commandString = "/resetcount";
                     break;
                 }
-                case 13:
+                case 12:
                 {
                     commandAlias = ResetEVs.commandAlias;
                     commandString = "/resetevs";
                     break;
                 }
-                case 14:
+                case 13:
                 {
                     commandAlias = ShowStats.commandAlias;
                     commandString = "/showstats";
                     break;
                 }
-                case 15:
+                case 14:
                 {
                     commandAlias = SpawnDex.commandAlias;
                     commandString = "/spawndex";
                     break;
                 }
-                case 16:
+                case 15:
                 {
                     commandAlias = SwitchGender.commandAlias;
                     commandString = "/switchgender";
                     break;
                 }
-                case 17:
+                case 16:
                 {
                     commandAlias = UpgradeIVs.commandAlias;
                     commandString = "/upgradeivs";
@@ -310,7 +299,7 @@ public class ConfigOperations
             }
 
             // If we're at the last command, shank the trailing formatting code, comma and space and for a clean end.
-            if (i == 17)
+            if (i == 16)
                 formattedCommand.setLength(formattedCommand.length() - 4);
 
             // Add the formatted command to the list, and then clear the StringBuilder so we can re-use it.
@@ -399,7 +388,6 @@ public class ConfigOperations
         loadConfig("CheckStats");
         loadConfig("CheckTypes");
         loadConfig("DittoFusion");
-        loadConfig("FixEVs");
         loadConfig("FixGenders");
         loadConfig("ForceHatch");
         loadConfig("ForceStats");
@@ -493,8 +481,6 @@ public class ConfigOperations
                             toBooleanObject(commandConfig.getNode("showTeamWhenSlotEmpty").getString());
                     CheckStats.showEVs =
                             toBooleanObject(commandConfig.getNode("showEVs").getString());
-                    CheckStats.showFixEVsHelper =
-                            toBooleanObject(commandConfig.getNode("showFixEVsHelper").getString());
                     CheckStats.showUpgradeHelper =
                             toBooleanObject(commandConfig.getNode("showUpgradeHelper").getString());
                     CheckStats.showDittoFusionHelper =
@@ -555,18 +541,6 @@ public class ConfigOperations
                             interpretInteger(commandConfig.getNode("addFlatFee").getString());
 
                     return DittoFusion.commandAlias;
-                }
-                case "FixEVs":
-                {
-                    tryCreateConfig("FixEVs", fixEVsPath);
-                    CommentedConfigurationNode commandConfig = PixelUpgrade.fixEVsLoader.load();
-
-                    FixEVs.commandAlias =
-                            commandConfig.getNode("commandAlias").getString();
-                    FixEVs.commandCost =
-                            interpretInteger(commandConfig.getNode("commandCost").getString());
-
-                    return FixEVs.commandAlias;
                 }
                 case "FixGenders":
                 {
@@ -665,18 +639,20 @@ public class ConfigOperations
                             interpretInteger(commandConfig.getNode("cooldownInSeconds").getString());
                     ShowStats.altCooldownInSeconds =
                             interpretInteger(commandConfig.getNode("altCooldownInSeconds").getString());
-                    ShowStats.compactMode =
-                            toBooleanObject(commandConfig.getNode("compactMode").getString());
+                    ShowStats.hoverMode =
+                            toBooleanObject(commandConfig.getNode("hoverMode").getString());
+                    ShowStats.showEVs =
+                            toBooleanObject(commandConfig.getNode("showEVs").getString());
                     ShowStats.showCounts =
                             toBooleanObject(commandConfig.getNode("showCounts").getString());
+                    ShowStats.showExtraInfo =
+                            toBooleanObject(commandConfig.getNode("showExtraInfo").getString());
                     ShowStats.showNicknames =
                             toBooleanObject(commandConfig.getNode("showNicknames").getString());
                     ShowStats.clampBadNicknames =
                             toBooleanObject(commandConfig.getNode("clampBadNicknames").getString());
                     ShowStats.notifyBadNicknames =
                             toBooleanObject(commandConfig.getNode("notifyBadNicknames").getString());
-                    ShowStats.showExtraInfo =
-                            toBooleanObject(commandConfig.getNode("showExtraInfo").getString());
                     ShowStats.commandCost =
                             interpretInteger(commandConfig.getNode("commandCost").getString());
 
@@ -770,7 +746,6 @@ public class ConfigOperations
                 case "CheckStats": CheckStats.commandAlias = null; break;
                 case "CheckTypes": CheckTypes.commandAlias = null; break;
                 case "DittoFusion": DittoFusion.commandAlias = null; break;
-                case "FixEVs": FixEVs.commandAlias = null; break;
                 case "FixGenders": FixGenders.commandAlias = null; break;
                 case "ForceHatch": ForceHatch.commandAlias = null; break;
                 case "ForceStats": ForceStats.commandAlias = null; break;

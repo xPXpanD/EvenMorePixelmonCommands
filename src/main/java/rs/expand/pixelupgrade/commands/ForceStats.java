@@ -23,7 +23,7 @@ import org.spongepowered.api.text.Text;
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.utilities.CommonMethods;
 
-// TODO: Fix Pokémon not changing if certain stats get changed while they're sent out.
+// FIXME: Fix Pokémon not changing if certain stats get changed while they're sent out.
 public class ForceStats implements CommandExecutor
 {
     // Initialize a config variable. We'll load stuff into it when we call the config loader.

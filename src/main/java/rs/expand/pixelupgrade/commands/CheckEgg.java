@@ -340,18 +340,12 @@ public class CheckEgg implements CommandExecutor
         {
             printToLog(2, "Explicit reveal disabled, printing vague status.");
 
-            int sanitizedBabyHintPercentage = babyHintPercentage;
-            if (babyHintPercentage > 100)
-                sanitizedBabyHintPercentage = 100;
-            //else if (babyHintPercentage < 0)
-            //sanitizedBabyHintPercentage = 0;
-
             // Figure out whether the baby is anything special. Uses a config-set percentage for stat checks.
-            if (percentIVs >= sanitizedBabyHintPercentage && nbt.getInteger(NbtKeys.IS_SHINY) != 1)
+            if (percentIVs >= babyHintPercentage && nbt.getInteger(NbtKeys.IS_SHINY) != 1)
                 src.sendMessage(Text.of("§6What's this? §eThis baby seems to be bursting with energy!"));
-            else if (!(percentIVs >= sanitizedBabyHintPercentage) && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
+            else if (!(percentIVs >= babyHintPercentage) && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
                 src.sendMessage(Text.of("§6What's this? §eThis baby seems to have an odd sheen to it!"));
-            else if (percentIVs >= sanitizedBabyHintPercentage && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
+            else if (percentIVs >= babyHintPercentage && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
                 src.sendMessage(Text.of("§6What's this? §eSomething about this baby seems real special!"));
             else
                 src.sendMessage(Text.of("§eThis baby seems to be fairly ordinary..."));
@@ -363,11 +357,11 @@ public class CheckEgg implements CommandExecutor
             {
                 if (!isShiny || !explicitReveal)
                     src.sendMessage(Text.of(""));
-                src.sendMessage(Text.of("§dThis egg has been checked before, so this check was free!"));
+                src.sendMessage(Text.of("§dThis egg was checked before, so this check was free!"));
             }
             else
             {
-                printToLog(2, "First-time check, recheckIsFree enabled. Flagging egg for free rechecks.");
+                printToLog(2, "First-time check, recheckIsFree enabled. Flagging for free rechecks.");
                 pokemon.getEntityData().setBoolean("hadEggChecked", true);
             }
         }

@@ -24,21 +24,21 @@ import rs.expand.pixelupgrade.utilities.ConfigOperations;
 import static rs.expand.pixelupgrade.utilities.CommonMethods.printBasicMessage;
 
 // New things:
-// TODO: Make a Pokémon transfer command.
 // TODO: Make a token redeeming command for shinies. Maybe make it a starter picker command, even. - Xenoyia
 // TODO: Make a /pokesell, maybe one that sells based on ball worth.
-// TODO: Check public static final String PC_RAVE = "rave";
 // TODO: Maybe see if a cooldown on trading machines is possible? - FrostEffects
+// TODO: Maybe use setIsRed on an EntityPixelmon to emulate "Who's that Pokémon"? Could use statues. - DaeM0nS
 // TODO: Look into name colors?
 // TODO: Make a Pokéball changing command, get it to write the old ball to the Pokémon for ball sale purposes.
 // TODO: Do something with setPixelmonScale. Maybe a /spawnboss for super big high HP IV bosses with custom loot?
-// TODO: Make a /devolve, or something along those lines.
 // TODO: Make a legendary spawner that mimics the vanilla Pixelmon spawning message.
+// TODO: Add a /pokehatch if that's not done yet. Something with two cooldowns, /pokecure-style.
 
 // Improvements to existing things:
 // TODO: Tab completion on player names.
 // TODO: Maybe add some nice "====" borders to config node errors.
 // TODO: Actually add an economy safe mode to things. Baby steps are done, time to take the leap.
+// TODO: Make just about every command with a target show said target a message when stuff is being used on them.
 
 @Plugin
 (
@@ -92,7 +92,6 @@ public class PixelUpgrade
     public static Path checkStatsPath = Paths.get(commandConfigPath, "CheckStats.conf");
     public static Path checkTypesPath = Paths.get(commandConfigPath, "CheckTypes.conf");
     public static Path dittoFusionPath = Paths.get(commandConfigPath, "DittoFusion.conf");
-    public static Path fixEVsPath = Paths.get(commandConfigPath, "FixEVs.conf");
     public static Path fixGendersPath = Paths.get(commandConfigPath, "FixGenders.conf");
     public static Path forceHatchPath = Paths.get(commandConfigPath, "ForceHatch.conf");
     public static Path forceStatsPath = Paths.get(commandConfigPath, "ForceStats.conf");
@@ -116,8 +115,6 @@ public class PixelUpgrade
             HoconConfigurationLoader.builder().setPath(checkTypesPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> dittoFusionLoader =
             HoconConfigurationLoader.builder().setPath(dittoFusionPath).build();
-    public static ConfigurationLoader<CommentedConfigurationNode> fixEVsLoader =
-            HoconConfigurationLoader.builder().setPath(fixEVsPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> fixGendersLoader =
             HoconConfigurationLoader.builder().setPath(fixGendersPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> forceHatchLoader =
@@ -194,14 +191,6 @@ public class PixelUpgrade
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
             .build();
 
-    public static CommandSpec fixevs = CommandSpec.builder()
-            .permission("pixelupgrade.command.fixevs")
-            .executor(new FixEVs())
-            .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
-                    GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
-            .build();
-
     public static CommandSpec fixgenders = CommandSpec.builder()
             .permission("pixelupgrade.command.fixgenders")
             .executor(new FixGenders())
@@ -268,7 +257,7 @@ public class PixelUpgrade
             .executor(new SpawnDex())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("number"))),
-                    GenericArguments.flags().flag("s").buildWith(GenericArguments.none()))
+                    GenericArguments.flags().flag("b").flag("o").flag("s").buildWith(GenericArguments.none()))
             .build();
 
     public static CommandSpec switchgender = CommandSpec.builder()
@@ -357,7 +346,7 @@ public class PixelUpgrade
             printBasicMessage("");
             printBasicMessage("§6Please follow these steps to fix this:");
             printBasicMessage("§61. §eDelete or move §6ShowStats.conf§e and §6UpgradeIVs.conf§e.");
-            printBasicMessage("§62. §eOpen §6PixelUpgrade.conf §eand change §6configVersion§e's value to §6310§e.");
+            printBasicMessage("§62. §eOpen §6PixelUpgrade.conf §eand change §6configVersion§e's value to §6400§e.");
             printBasicMessage("§63. §eUse §6/pureload all§e to create new configs and update the version.");
             printBasicMessage("§64. §eIf necessary, restore old settings one-by-one and §6/pureload §eagain.");
             printBasicMessage("");
@@ -366,4 +355,25 @@ public class PixelUpgrade
             printBasicMessage("");
         }
     }
+
+    // Don't mind this, just me messing around.
+    // This won't make it to release, that'd be awful. Might use it for another feature's core, though!
+    /*
+    @Listener
+    public void spawnTest(SpawnEntityEvent event)
+    {
+        event.getEntities().forEach(entity ->
+        {
+            if (entity instanceof EntityPixelmon)
+            {
+                printBasicMessage("We've got a Pixelmon entity!");
+                EntityPixelmon targetEntity = (EntityPixelmon) entity;
+                targetEntity.setHealth(5000);
+                targetEntity.setIsRed(true); // Could use this for a "Who's that Pokémon?" kind of deal? :O
+                //targetEntity.setFire(60);
+                //targetEntity.setPixelmonScale(5);
+            }
+        });
+    }
+    */
 }
