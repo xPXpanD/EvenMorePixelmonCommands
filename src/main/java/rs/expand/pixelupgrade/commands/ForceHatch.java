@@ -2,6 +2,7 @@
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
+import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
 import java.util.Optional;
@@ -212,7 +213,7 @@ public class ForceHatch implements CommandExecutor
                         printToLog(1, "No Pokémon was found in the provided slot. Abort, abort!");
                         src.sendMessage(Text.of("§4Error: §cThere's nothing in that slot!"));
                     }
-                    else if (!nbt.getBoolean("isEgg"))
+                    else if (!nbt.getBoolean(NbtKeys.IS_EGG))
                     {
                         printToLog(1, "Tried to hatch an actual Pokémon. That's too brutal; let's exit.");
                         src.sendMessage(Text.of("§4Error: §cThat's not an egg. Don't hatch actual Pokémon, kids!"));
@@ -221,7 +222,7 @@ public class ForceHatch implements CommandExecutor
                     {
                         printToLog(1, "Passed all checks, hatching us an egg!");
 
-                        nbt.setBoolean("isEgg", false);
+                        nbt.setBoolean(NbtKeys.IS_EGG, false);
                         storageCompleted.changePokemonAndAssignID(slot - 1, nbt);
 
                         if (calledRemotely)

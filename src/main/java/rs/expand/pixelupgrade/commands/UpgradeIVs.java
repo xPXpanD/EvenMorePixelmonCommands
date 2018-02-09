@@ -35,13 +35,10 @@ public class UpgradeIVs implements CommandExecutor
     // Initialize some variables. We'll load stuff into these when we call the config loader.
     // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
-    public static Integer legendaryAndShinyCap, legendaryCap, shinyBabyCap, babyCap, shinyCap, regularCap;
-    public static Integer fixedUpgradeCost, upgradesFreeBelow, addFlatFee;
+    public static Integer legendaryAndShinyCap, legendaryCap, shinyCap, regularCap, fixedUpgradeCost;
+    public static Integer upgradesFreeBelow, addFlatFee;
     public static Double mathMultiplier;
-    public static Double legendaryAndShinyMult, legendaryMult, shinyBabyMult, babyMult, shinyMult, regularMult;
-
-    // Set up some more variables for internal use.
-    private boolean outdatedShinyBabyCap = false, outdatedShinyBabyMult = false;
+    public static Double legendaryAndShinyMult, legendaryMult, shinyMult, regularMult;
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (int debugNum, String inputString)
@@ -60,8 +57,6 @@ public class UpgradeIVs implements CommandExecutor
                 nativeErrorArray.add("legendaryAndShinyCap");
             if (legendaryCap == null)
                 nativeErrorArray.add("legendaryCap");
-            if (babyCap == null)
-                nativeErrorArray.add("babyCap");
             if (shinyCap == null)
                 nativeErrorArray.add("shinyCap");
             if (regularCap == null)
@@ -78,8 +73,6 @@ public class UpgradeIVs implements CommandExecutor
                 nativeErrorArray.add("regularMult");
             if (shinyMult == null)
                 nativeErrorArray.add("shinyMult");
-            if (babyMult == null)
-                nativeErrorArray.add("babyMult");
             if (upgradesFreeBelow == null)
                 nativeErrorArray.add("upgradesFreeBelow");
             if (addFlatFee == null)
@@ -87,17 +80,6 @@ public class UpgradeIVs implements CommandExecutor
 
             if (!nativeErrorArray.isEmpty())
             {
-                CommonMethods.printCommandNodeError("UpgradeIVs", nativeErrorArray);
-                src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
-            }
-            else if (shinyBabyCap == null && configVersion >= 310 || shinyBabyMult == null && configVersion >= 310)
-            {
-                // These are new 3.1 features. Run a separate check, so we can fail gracefully if need be.
-                if (shinyBabyCap == null)
-                    nativeErrorArray.add("shinyBabyCap");
-                if (shinyBabyMult == null)
-                    nativeErrorArray.add("shinyBabyMult");
-
                 CommonMethods.printCommandNodeError("UpgradeIVs", nativeErrorArray);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
@@ -110,17 +92,6 @@ public class UpgradeIVs implements CommandExecutor
             else
             {
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
-
-                if (shinyBabyCap == null || shinyBabyMult == null)
-                {
-                    if (shinyBabyCap == null)
-                        outdatedShinyBabyCap = true;
-                    if (shinyBabyMult == null)
-                        outdatedShinyBabyMult = true;
-
-                    printToLog(0, "Outdated §4/upgradeivs§c config! Check §4latest.log§c startup for help.");
-                    printToLog(0, "Running in safe mode. Stuff will work the way it did in 3.0.");
-                }
 
                 Player player = (Player) src;
                 String stat = null, fixedStat = null, cleanStat = "Error, please report!";
@@ -298,12 +269,12 @@ public class UpgradeIVs implements CommandExecutor
                             printToLog(1, "No NBT data found in slot, probably empty. Exit.");
                             src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
                         }
-                        else if (nbt.getBoolean("isEgg"))
+                        else if (nbt.getBoolean(NbtKeys.IS_EGG))
                         {
                             printToLog(1, "Tried to upgrade an egg. Let's not. Exit.");
                             src.sendMessage(Text.of("§4Error: §cThat's an egg! Go hatch it, first."));
                         }
-                        else if (nbt.getString("Name").equals("Ditto"))
+                        else if (nbt.getString(NbtKeys.NAME).equals("Ditto"))
                         {
                             printToLog(1, "Tried to upgrade a Ditto. Print witty message and exit.");
                             src.sendMessage(Text.of("§4Error: §cI'm sorry, §4" + src.getName() + "§c, but I'm afraid I can't do that."));
@@ -320,12 +291,9 @@ public class UpgradeIVs implements CommandExecutor
                             int totalIVs = IVHP + IVATK + IVDEF + IVSPATK + IVSPDEF + IVSPD;
 
                             EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
-                            int upgradeTicker = 0, upgradeCount = pokemon.getEntityData().getInteger("upgradeCount");
-                            boolean isShiny = false, isLegendary = false, isBaby = false, isEvolvedBaby = false;
-
-                            int sanitizedShinyBabyCap = shinyCap;
-                            if (!outdatedShinyBabyCap)
-                                sanitizedShinyBabyCap = shinyBabyCap;
+                            int upgradeCount = pokemon.getEntityData().getInteger("upgradeCount");
+                            int upgradeTicker = 0;
+                            boolean isShiny = false, isLegendary = false;
 
                             // Let's go through the big ol' wall of checks.
                             // Flag canContinue as false, so we don't have to repeat it like 20 times.
@@ -355,7 +323,7 @@ public class UpgradeIVs implements CommandExecutor
                                     isLegendary = true;
                                 }
 
-                                // Run through the baby check, too. Babies spawn with 3*31 guaranteed IVs.
+                                /* NOTE: Outdated, no longer needed as 6.2 put in gen 6 changes. Keeping it just in case.
                                 switch (nbt.getString("Name"))
                                 {
                                     case "Pichu": case "Cleffa": case "Igglybuff": case "Togepi": case "Tyrogue":
@@ -379,58 +347,30 @@ public class UpgradeIVs implements CommandExecutor
                                         isEvolvedBaby = true;
                                         break;
                                     }
-                                }
+                                }*/
 
-                                if (isShiny)
-                                {
-                                    if (isLegendary && upgradeCount >= legendaryAndShinyCap)
+                                    if (isShiny && isLegendary && upgradeCount >= legendaryAndShinyCap)
                                     {
                                         printToLog(1, "Hit cap on shiny legendary Pokémon. Exit.");
                                         src.sendMessage(Text.of("§4Error: §cThis shiny legendary's upgrade cap has been reached!"));
                                     }
-                                    else if (isEvolvedBaby && upgradeCount >= sanitizedShinyBabyCap)
-                                    {
-                                        printToLog(1, "Hit cap on shiny evolved baby Pokémon. Exit.");
-                                        src.sendMessage(Text.of("§4Error: §cThis shiny baby evo's upgrade cap has been reached!"));
-                                    }
-                                    else if (isBaby && upgradeCount >= sanitizedShinyBabyCap)
-                                    {
-                                        printToLog(1, "Hit cap on shiny baby Pokémon. Exit.");
-                                        src.sendMessage(Text.of("§4Error: §cThis shiny baby's upgrade cap has been reached!"));
-                                    }
-                                    else if (upgradeCount >= shinyCap)
-                                    {
-                                        printToLog(1, "Hit cap on shiny-but-otherwise-regular Pokémon. Exit.");
-                                        src.sendMessage(Text.of("§4Error: §cThis shiny's upgrade cap has been reached!"));
-                                    }
-                                    else
-                                        canContinue = true;
-                                }
-                                else
-                                {
-                                    if (isLegendary && upgradeCount >= legendaryCap)
+                                    else if (isLegendary && upgradeCount >= legendaryCap)
                                     {
                                         printToLog(1, "Hit cap on legendary Pokémon. Exit.");
                                         src.sendMessage(Text.of("§4Error: §cThis legendary's upgrade cap has been reached!"));
                                     }
-                                    else if (isEvolvedBaby && upgradeCount >= babyCap)
+                                    else if (isShiny && upgradeCount >= shinyCap)
                                     {
-                                        printToLog(1, "Hit cap on evolved baby Pokémon. Exit.");
-                                        src.sendMessage(Text.of("§4Error: §cThis baby evolution's upgrade cap has been reached!"));
+                                        printToLog(1, "Hit cap on shiny-but-otherwise-regular Pokémon. Exit.");
+                                        src.sendMessage(Text.of("§4Error: §cThis shiny's upgrade cap has been reached!"));
                                     }
-                                    else if (isBaby && upgradeCount >= babyCap)
-                                    {
-                                        printToLog(1, "Hit cap on baby Pokémon. Exit.");
-                                        src.sendMessage(Text.of("§4Error: §cThis baby's upgrade cap has been reached!"));
-                                    }
-                                    else if (!isLegendary && !isBaby && upgradeCount >= regularCap)
+                                    else if (!isLegendary && upgradeCount >= regularCap)
                                     {
                                         printToLog(1, "Hit cap on regular Pokémon. Exit.");
                                         src.sendMessage(Text.of("§4Error: §cThis Pokémon's upgrade cap has been reached!"));
                                     }
                                     else
                                         canContinue = true;
-                                }
                             }
 
                             if (canContinue)
@@ -442,45 +382,25 @@ public class UpgradeIVs implements CommandExecutor
                                 double priceMultiplier, iteratedValue = 0.0;
                                 int remainder, initialRemainder;
 
-                                double sanitizedShinyBabyMult = shinyMult;
-                                if (!outdatedShinyBabyMult)
-                                    sanitizedShinyBabyMult = shinyBabyMult;
-
-                                if (isShiny)
+                                if (isShiny && isLegendary)
                                 {
-                                    if (isLegendary)
-                                    {
-                                        remainder = legendaryAndShinyCap - upgradeCount;
-                                        priceMultiplier = legendaryAndShinyMult;
-                                    }
-                                    else if (isBaby || isEvolvedBaby)
-                                    {
-                                        remainder = sanitizedShinyBabyCap - upgradeCount;
-                                        priceMultiplier = sanitizedShinyBabyMult;
-                                    }
-                                    else
-                                    {
-                                        remainder = shinyCap - upgradeCount;
-                                        priceMultiplier = shinyMult;
-                                    }
+                                    remainder = legendaryAndShinyCap - upgradeCount;
+                                    priceMultiplier = legendaryAndShinyMult;
+                                }
+                                else if (isLegendary)
+                                {
+                                    remainder = legendaryCap - upgradeCount;
+                                    priceMultiplier = legendaryMult;
+                                }
+                                else if (isShiny)
+                                {
+                                    remainder = shinyCap - upgradeCount;
+                                    priceMultiplier = shinyMult;
                                 }
                                 else
                                 {
-                                    if (isLegendary)
-                                    {
-                                        remainder = legendaryCap - upgradeCount;
-                                        priceMultiplier = legendaryMult;
-                                    }
-                                    else if (isBaby || isEvolvedBaby)
-                                    {
-                                        remainder = babyCap - upgradeCount;
-                                        priceMultiplier = babyMult;
-                                    }
-                                    else
-                                    {
-                                        remainder = regularCap - upgradeCount;
-                                        priceMultiplier = regularMult;
-                                    }
+                                    remainder = regularCap - upgradeCount;
+                                    priceMultiplier = regularMult;
                                 }
 
                                 printToLog(2, "Calculated remainder from previous upgrade count + config: §2" + remainder);
@@ -536,21 +456,17 @@ public class UpgradeIVs implements CommandExecutor
 
                                     if (isShiny && isLegendary)
                                         upgradeCount = legendaryAndShinyCap - remainder;
-                                    else if (isShiny && isBaby || isShiny && isEvolvedBaby)
-                                        upgradeCount = sanitizedShinyBabyCap - remainder;
                                     else if (isShiny)
                                         upgradeCount = shinyCap - remainder;
                                     else if (isLegendary)
                                         upgradeCount = legendaryCap - remainder;
-                                    else if (isBaby || isEvolvedBaby)
-                                        upgradeCount = babyCap - remainder;
                                     else
                                         upgradeCount = regularCap - remainder;
 
                                     // A bit confusing, but an output of 0 on the below statement means we're at 0 cost. 1 is above, -1 is below.
                                     if (costToConfirm.signum() == 0)
                                     {
-                                        printToLog(1, "Executing final stage, got confirmation. No cost due to low stats or config.");
+                                        printToLog(1, "Command confirmed, upgrading! No cost due to low stats or config.");
 
                                         nbt.setInteger(fixedStat, nbt.getInteger(fixedStat) + upgradeTicker);
                                         pokemon.getEntityData().setInteger("upgradeCount", upgradeCount);
@@ -645,7 +561,7 @@ public class UpgradeIVs implements CommandExecutor
 
                                     src.sendMessage(Text.of("§7-----------------------------------------------------"));
                                     String helperString = "§eThe §6" + cleanStat + "§e stat will be upgraded by §6";
-                                    String quantityString = "§2Ready? Use: §a/" + commandAlias + " " + slot + " " + stat;
+                                    String syntaxString = "§2Ready? Use: §a/" + commandAlias + " " + slot + " " + stat;
 
                                     if (quantity == 1)
                                         src.sendMessage(Text.of(helperString + "one §epoint!"));
@@ -710,9 +626,9 @@ public class UpgradeIVs implements CommandExecutor
                                         src.sendMessage(Text.of("§5Warning: §dYou can't undo upgrades! Make sure you want this."));
 
                                     if (quantity == 1)
-                                        src.sendMessage(Text.of(quantityString + " -c"));
+                                        src.sendMessage(Text.of(syntaxString + " -c"));
                                     else
-                                        src.sendMessage(Text.of(quantityString + " " + upgradeTicker + " -c"));
+                                        src.sendMessage(Text.of(syntaxString + " " + upgradeTicker + " -c"));
                                     src.sendMessage(Text.of("§7-----------------------------------------------------"));
                                 }
                             }

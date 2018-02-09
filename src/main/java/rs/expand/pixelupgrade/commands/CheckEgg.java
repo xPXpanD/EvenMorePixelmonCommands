@@ -152,7 +152,7 @@ public class CheckEgg implements CommandExecutor
                         PlayerStorage storageCompleted = storage.get();
                         NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
 
-                        if (nbt == null || !nbt.getBoolean("isEgg"))
+                        if (nbt == null || !nbt.getBoolean(NbtKeys.IS_EGG))
                         {
                             printToLog(1, "Provided slot was not an egg, or a proper Pokémon. Exit.");
                             src.sendMessage(Text.of("§4Error: §cCould not find an egg in the provided slot."));

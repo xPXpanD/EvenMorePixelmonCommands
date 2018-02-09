@@ -122,7 +122,7 @@ public class ResetEVs implements CommandExecutor
                             printToLog(1, "No NBT data found in slot, probably empty. Exit.");
                             src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
                         }
-                        else if (nbt.getBoolean("isEgg"))
+                        else if (nbt.getBoolean(NbtKeys.IS_EGG))
                         {
                             printToLog(1, "Tried to reset EVs on an egg. Exit.");
                             src.sendMessage(Text.of("§4Error: §cThat's an egg! Go hatch it, first."));

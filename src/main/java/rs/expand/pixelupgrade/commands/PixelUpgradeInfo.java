@@ -203,43 +203,43 @@ public class PixelUpgradeInfo implements CommandExecutor
             else printToLog(1, "§3/forcestats §bhas a malformed config, hiding from list.");
         }
 
-        if (calledRemotely || src.hasPermission("pixelupgrade.command.pokecure"))
+        if (calledRemotely || src.hasPermission("pixelupgrade.command.timedheal"))
         {
-            if (PokeCure.commandCost != null && PokeCure.commandAlias != null && PokeCure.healParty != null)
+            if (TimedHeal.commandCost != null && TimedHeal.commandAlias != null && TimedHeal.healParty != null)
             {
                 if (calledRemotely)
-                    permissionMessageList.add(Text.of("§6/" + PokeCure.commandAlias + " <target> [slot? 1-6]"));
+                    permissionMessageList.add(Text.of("§6/" + TimedHeal.commandAlias + " <target> [slot? 1-6]"));
                 else
                 {
                     String flagString;
-                    if (PokeCure.commandCost != 0)
+                    if (TimedHeal.commandCost != 0)
                         flagString = " {confirm flag}";
                     else
                         flagString = "";
 
-                    if (PokeCure.healParty)
+                    if (TimedHeal.healParty)
                     {
-                        if (src.hasPermission("pixelupgrade.command.other.pokecure"))
-                            permissionMessageList.add(Text.of("§6/" + PokeCure.commandAlias + " [target?]" + flagString));
+                        if (src.hasPermission("pixelupgrade.command.other.timedheal"))
+                            permissionMessageList.add(Text.of("§6/" + TimedHeal.commandAlias + " [target?]" + flagString));
                         else
-                            permissionMessageList.add(Text.of("§6/" + PokeCure.commandAlias + " " + flagString));
+                            permissionMessageList.add(Text.of("§6/" + TimedHeal.commandAlias + " " + flagString));
                     }
                     else
                     {
-                        if (src.hasPermission("pixelupgrade.command.other.pokecure"))
-                            permissionMessageList.add(Text.of("§6/" + PokeCure.commandAlias + " [target?] <slot, 1-6>" + flagString));
+                        if (src.hasPermission("pixelupgrade.command.other.timedheal"))
+                            permissionMessageList.add(Text.of("§6/" + TimedHeal.commandAlias + " [target?] <slot, 1-6>" + flagString));
                         else
-                            permissionMessageList.add(Text.of("§6/" + PokeCure.commandAlias + " <slot, 1-6>" + flagString));
+                            permissionMessageList.add(Text.of("§6/" + TimedHeal.commandAlias + " <slot, 1-6>" + flagString));
                     }
                 }
 
-                if (PokeCure.healParty)
+                if (TimedHeal.healParty)
                     permissionMessageList.add(Text.of("§f --> §eHeals all your Pokémon, and cures status ailments."));
                 else
                     permissionMessageList.add(Text.of("§f --> §eHeals a Pokémon, also curing status ailments."));
 
             }
-            else printToLog(1, "§3/pokecure §bhas a malformed config, hiding from list.");
+            else printToLog(1, "§3/timedheal §bhas a malformed config, hiding from list.");
         }
 
         if (calledRemotely || src.hasPermission("pixelupgrade.command.staff.reload"))

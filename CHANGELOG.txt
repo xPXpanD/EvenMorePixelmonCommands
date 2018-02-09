@@ -4,31 +4,35 @@ Released ???
     Minor (non-breaking) config changes:
    * Changed a bunch of helper text to hopefully explain things a bit better.
    * Changed the default numLinesPerPage for /pixelupgrade from 20 to 10 to accomodate smaller chats.
+   * Removed a few of the less useful config-set aliases. You can still set them manually.
    * Removed commandCost from /checktypes as this info is easily Googled.
    * Removed showFixEVsHelper from /checkstats as /fixevs was removed. See "Removed commands" for more info.
    * Removed per-config versions, as they turned out to be useless.
 
     Major (breaking) config changes:
-   * New /showstats features: Super compact mode, and an alternate VIP cooldown. Regenerate this config.
-   * New /upgradeivs features: Separate settings for shiny babies. Regenerate this config as well.
+   * New /upgradeivs features: Separate settings for shiny babies. Regenerate this config.
+   * Completely reworked /showstats and its config; it now uses hovers for its info. Regenerate this, too.
 
     New commands:
    * /fixgender: Fixes Pokémon affected by the 6.0.x breeding bug or by bad commands. Experimental!
-   * /pokecure: Heals Pokémon (slot or party) on a configurable cooldown, for a configurable cost.
    * /spawndex: Spawns Pokémon based on their Pokédex number. Can add neat effects, like an outline.
+   * /timedhatch: Hatches eggs (slot or party) on a configurable cooldown, for a configurable cost.
+   * /timedheal: Heals Pokémon (slot or party) on a configurable cooldown, for a configurable cost.
 
     Removed commands:
    * /fixevs: As of Reforged 6.2, EVs cap at 252 (gen 6+ cap) instead of 255, making this command obsolete.
    * /fixlevel: The bug it was made to fix (EVs not increasing when at the level cap) no longer exists!
 
     Other changes:
+   * Added a fancy Unicode arrow ("➡") to /checktypes and the new /showstats hover mode.
+   * Added a Mew clone count check to /checkstats and /showstats.
    * Added Poipole (ID 803) and up to /checktypes and the new /spawndex.
    * Added an optional second argument to /checktypes, so names like "Tapu Koko" will work. Also fixed "Ho-Oh".
    * Added all babies and baby-based evolutions to /upgradeivs, and edited messages to fit.
    * Changed many command messages to be a bit more professional.
    * Changed max-IV formatting for commands like /checkstats to italic to work around an external bug.
    * Changing command aliases no longer requires a reboot. Experimental.
-   * Experimental console support for: /checkstats, /checktypes, /fixgenders, /forcehatch, /forcestats, /pixelupgrade, /pokecure
+   * Experimental console support for: /checkstats, /checktypes, /fixgenders, /forcehatch, /forcestats, /pixelupgrade, /timedheal
    * Fixed /checkegg mentioning free rechecks when no price is set. It'll now continue silently.
    * Fixed /checkstats not showing the nickname on shiny Pokémon.
    * Fixed /checkstats's gender/size/nature line occasionally splitting into two? Hopefully THIS works.
@@ -38,7 +42,10 @@ Released ???
    * Fixed main config not loading correctly if command configs were missing but a main config DID exist.
    * Fixed missing spaces in front of the pipes when showing EVs in /checkstats.
    * Fixed a bunch of other bugs that were too small to mention, mostly formatting issues.
+   * Made /checkstats on eggs only refer to /checkegg if the player has its permissions. Still configurable.
    * Removed a few older default aliases that weren't being shown anywhere anyways.
+   * Removed baby IV checks from several commands, as Reforged updated to the gen6+ way of doing things.
+   * Removed the chat printing option from /showstats, moved to a far cleaner setup using hovers.
    * Rewrote the internal config loader. Mostly helps maintainability, but filesize also benefits.
    * Shortened many console messages to fit a standard Windows Command Prompt window. Work in progress.
    * Switched to a #.#.# versioning system (major/minor/patch) and started keeping proper changelogs!

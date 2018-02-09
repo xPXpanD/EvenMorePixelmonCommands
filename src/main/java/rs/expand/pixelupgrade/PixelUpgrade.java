@@ -23,6 +23,11 @@ import rs.expand.pixelupgrade.commands.*;
 import rs.expand.pixelupgrade.utilities.ConfigOperations;
 import static rs.expand.pixelupgrade.utilities.CommonMethods.printBasicMessage;
 
+/*                                                              *\
+       THE WHO-KNOWS-WHEN LIST OF POTENTIALLY AWESOME IDEAS
+    TODO: Add new TODOs here. Cross off TODOs if they're done.
+\*                                                              */
+
 // New things:
 // TODO: Make a token redeeming command for shinies. Maybe make it a starter picker command, even. - Xenoyia
 // TODO: Make a /pokesell, maybe one that sells based on ball worth.
@@ -32,7 +37,8 @@ import static rs.expand.pixelupgrade.utilities.CommonMethods.printBasicMessage;
 // TODO: Make a Pokéball changing command, get it to write the old ball to the Pokémon for ball sale purposes.
 // TODO: Do something with setPixelmonScale. Maybe a /spawnboss for super big high HP IV bosses with custom loot?
 // TODO: Make a legendary spawner that mimics the vanilla Pixelmon spawning message.
-// TODO: Add a /pokehatch if that's not done yet. Something with two cooldowns, /pokecure-style.
+// TODO: Make a random legendary spawner.
+// TODO: Add a /pokehatch if that's not done yet. Something with two cooldowns, /timedheal-style.
 
 // Improvements to existing things:
 // TODO: Tab completion on player names.
@@ -96,12 +102,13 @@ public class PixelUpgrade
     public static Path forceHatchPath = Paths.get(commandConfigPath, "ForceHatch.conf");
     public static Path forceStatsPath = Paths.get(commandConfigPath, "ForceStats.conf");
     public static Path puInfoPath = Paths.get(commandConfigPath, "PixelUpgradeInfo.conf");
-    public static Path pokeCurePath = Paths.get(commandConfigPath, "PokeCure.conf");
     public static Path resetCountPath = Paths.get(commandConfigPath, "ResetCount.conf");
     public static Path resetEVsPath = Paths.get(commandConfigPath, "ResetEVs.conf");
     public static Path showStatsPath = Paths.get(commandConfigPath, "ShowStats.conf");
     public static Path spawnDexPath = Paths.get(commandConfigPath, "SpawnDex.conf");
     public static Path switchGenderPath = Paths.get(commandConfigPath, "SwitchGender.conf");
+    public static Path timedHatchPath = Paths.get(commandConfigPath, "TimedHatch.conf");
+    public static Path timedHealPath = Paths.get(commandConfigPath, "TimedHeal.conf");
     public static Path upgradeIVsPath = Paths.get(commandConfigPath, "UpgradeIVs.conf");
 
     // Set up said paths.
@@ -121,8 +128,6 @@ public class PixelUpgrade
             HoconConfigurationLoader.builder().setPath(forceHatchPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> forceStatsLoader =
             HoconConfigurationLoader.builder().setPath(forceStatsPath).build();
-    public static ConfigurationLoader<CommentedConfigurationNode> pokeCureLoader =
-            HoconConfigurationLoader.builder().setPath(pokeCurePath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> puInfoLoader =
             HoconConfigurationLoader.builder().setPath(puInfoPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> resetCountLoader =
@@ -135,6 +140,10 @@ public class PixelUpgrade
             HoconConfigurationLoader.builder().setPath(spawnDexPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> switchGenderLoader =
             HoconConfigurationLoader.builder().setPath(switchGenderPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> timedHatchLoader =
+            HoconConfigurationLoader.builder().setPath(timedHatchPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> timedHealLoader =
+            HoconConfigurationLoader.builder().setPath(timedHealPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> upgradeIVsLoader =
             HoconConfigurationLoader.builder().setPath(upgradeIVsPath).build();
 
@@ -218,15 +227,6 @@ public class PixelUpgrade
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("force flag"))))
             .build();
 
-    public static CommandSpec pokecure = CommandSpec.builder()
-            .permission("pixelupgrade.command.pokecure")
-            .executor(new PokeCure())
-            .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/slot/confirmation"))),
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot/confirmation"))),
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("confirmation"))))
-            .build();
-
     public static CommandSpec resetcount = CommandSpec.builder()
             .permission("pixelupgrade.command.staff.resetcount")
             .executor(new ResetCount())
@@ -266,6 +266,24 @@ public class PixelUpgrade
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
+            .build();
+
+    public static CommandSpec timedhatch = CommandSpec.builder()
+            .permission("pixelupgrade.command.timedhatch")
+            .executor(new TimedHatch())
+            .arguments(
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/slot/confirmation"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot/confirmation"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("confirmation"))))
+            .build();
+
+    public static CommandSpec timedheal = CommandSpec.builder()
+            .permission("pixelupgrade.command.timedheal")
+            .executor(new TimedHeal())
+            .arguments(
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/slot/confirmation"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot/confirmation"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("confirmation"))))
             .build();
 
     public static CommandSpec upgradeivs = CommandSpec.builder()
@@ -337,27 +355,27 @@ public class PixelUpgrade
     @Listener
     public void onServerStartedEvent(GameStartedServerEvent event)
     {
-        int currentInternalVersion = 310;
+        int currentInternalVersion = 400;
         if (PixelUpgrade.configVersion != null && currentInternalVersion > PixelUpgrade.configVersion)
         {
             printBasicMessage("");
             printBasicMessage("===========================================================================");
-            printBasicMessage("§4/showstats §cand §4/upgradeivs §clikely have outdated (§43.0§c) configs.");
+            printBasicMessage("§4/showstats §clikely has an outdated (§43.0§c or earlier) config.");
             printBasicMessage("");
             printBasicMessage("§6Please follow these steps to fix this:");
-            printBasicMessage("§61. §eDelete or move §6ShowStats.conf§e and §6UpgradeIVs.conf§e.");
+            printBasicMessage("§61. §eDelete §6ShowStats.conf§e, or move it somewhere safe.");
             printBasicMessage("§62. §eOpen §6PixelUpgrade.conf §eand change §6configVersion§e's value to §6400§e.");
-            printBasicMessage("§63. §eUse §6/pureload all§e to create new configs and update the version.");
-            printBasicMessage("§64. §eIf necessary, restore old settings one-by-one and §6/pureload §eagain.");
+            printBasicMessage("§63. §eUse §6/pureload all§e to create a new config and update the version.");
+            printBasicMessage("§64. §eIf so desired, manually recover old settings and §6/pureload §eagain.");
             printBasicMessage("");
-            printBasicMessage("§cThese commands will have reduced functionality until this is fixed.");
+            printBasicMessage("§cThis command will have reduced functionality until this is fixed.");
             printBasicMessage("===========================================================================");
             printBasicMessage("");
         }
     }
 
     // Don't mind this, just me messing around.
-    // This won't make it to release, that'd be awful. Might use it for another feature's core, though!
+    // This won't make it to release, that'd be awful. Might use it for another future feature's core, though!
     /*
     @Listener
     public void spawnTest(SpawnEntityEvent event)

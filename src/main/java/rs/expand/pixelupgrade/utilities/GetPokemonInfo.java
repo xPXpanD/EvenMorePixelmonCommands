@@ -19,16 +19,6 @@ public class GetPokemonInfo
         }
     }
 
-    public static String getGender(int genderNum)
-    {
-        switch (genderNum)
-        {
-            case 0: return "male ";
-            case 1: return "female ";
-            default: return "";
-        }
-    }
-
     public static String getGrowthName(int growthNum)
     {
         switch (growthNum)
@@ -54,128 +44,128 @@ public class GetPokemonInfo
         {
             case 0:
                 natureName = "Hardy";
-                plusVal = "+None";
-                minusVal = "-None";
+                plusVal = "None";
+                minusVal = "None";
                 break;
             case 1:
                 natureName = "Serious";
-                plusVal = "+None";
-                minusVal = "-None";
+                plusVal = "None";
+                minusVal = "None";
                 break;
             case 2:
                 natureName = "Docile";
-                plusVal = "+None";
-                minusVal = "-None";
+                plusVal = "None";
+                minusVal = "None";
                 break;
             case 3:
                 natureName = "Bashful";
-                plusVal = "+None";
-                minusVal = "-None";
+                plusVal = "None";
+                minusVal = "None";
                 break;
             case 4:
                 natureName = "Quirky";
-                plusVal = "+None";
-                minusVal = "-None";
+                plusVal = "None";
+                minusVal = "None";
                 break;
             case 5:
                 natureName = "Lonely";
-                plusVal = "+Atk";
-                minusVal = "-Def";
+                plusVal = "Atk";
+                minusVal = "Def";
                 break;
             case 6:
                 natureName = "Brave";
-                plusVal = "+Atk";
-                minusVal = "-" + shortenedSpeed;
+                plusVal = "Atk";
+                minusVal = shortenedSpeed;
                 break;
             case 7:
                 natureName = "Adamant";
-                plusVal = "+Atk";
-                minusVal = "-" + shortenedSpecialAttack;
+                plusVal = "Atk";
+                minusVal = shortenedSpecialAttack;
                 break;
             case 8:
                 natureName = "Naughty";
-                plusVal = "+Atk";
-                minusVal = "-" + shortenedSpecialDefense;
+                plusVal = "Atk";
+                minusVal = shortenedSpecialDefense;
                 break;
             case 9:
                 natureName = "Bold";
-                plusVal = "+Def";
-                minusVal = "-Atk";
+                plusVal = "Def";
+                minusVal = "Atk";
                 break;
             case 10:
                 natureName = "Relaxed";
-                plusVal = "+Def";
-                minusVal = "-" + shortenedSpeed;
+                plusVal = "Def";
+                minusVal = shortenedSpeed;
                 break;
             case 11:
                 natureName = "Impish";
-                plusVal = "+Def";
-                minusVal = "-" + shortenedSpecialAttack;
+                plusVal = "Def";
+                minusVal = shortenedSpecialAttack;
                 break;
             case 12:
                 natureName = "Lax";
-                plusVal = "+Def";
-                minusVal = "-" + shortenedSpecialDefense;
+                plusVal = "Def";
+                minusVal = shortenedSpecialDefense;
                 break;
             case 13:
                 natureName = "Timid";
-                plusVal = "+" + shortenedSpeed;
-                minusVal = "-Atk";
+                plusVal = shortenedSpeed;
+                minusVal = "Atk";
                 break;
             case 14:
                 natureName = "Hasty";
-                plusVal = "+" + shortenedSpeed;
-                minusVal = "-Def";
+                plusVal = shortenedSpeed;
+                minusVal = "Def";
                 break;
             case 15:
                 natureName = "Jolly";
-                plusVal = "+" + shortenedSpeed;
-                minusVal = "-" + shortenedSpecialAttack;
+                plusVal = shortenedSpeed;
+                minusVal = shortenedSpecialAttack;
                 break;
             case 16:
                 natureName = "Naive";
-                plusVal = "+" + shortenedSpeed;
-                minusVal = "-" + shortenedSpecialDefense;
+                plusVal = shortenedSpeed;
+                minusVal = shortenedSpecialDefense;
                 break;
             case 17:
                 natureName = "Modest";
-                plusVal = "+" + shortenedSpecialAttack;
-                minusVal = "-Atk";
+                plusVal = shortenedSpecialAttack;
+                minusVal = "Atk";
                 break;
             case 18:
                 natureName = "Mild";
-                plusVal = "+" + shortenedSpecialAttack;
-                minusVal = "-Def";
+                plusVal = shortenedSpecialAttack;
+                minusVal = "Def";
                 break;
             case 19:
                 natureName = "Quiet";
-                plusVal = "+" + shortenedSpecialAttack;
-                minusVal = "-" + shortenedSpeed;
+                plusVal = shortenedSpecialAttack;
+                minusVal = shortenedSpeed;
                 break;
             case 20:
                 natureName = "Rash";
-                plusVal = "+" + shortenedSpecialAttack;
-                minusVal = "-" + shortenedSpecialDefense;
+                plusVal = shortenedSpecialAttack;
+                minusVal = shortenedSpecialDefense;
                 break;
             case 21:
                 natureName = "Calm";
-                plusVal = "+" + shortenedSpecialDefense;
-                minusVal = "-Atk";
+                plusVal = shortenedSpecialDefense;
+                minusVal = "Atk";
                 break;
             case 22:
                 natureName = "Gentle";
-                plusVal = "+" + shortenedSpecialDefense;
-                minusVal = "-Def";
+                plusVal = shortenedSpecialDefense;
+                minusVal = "Def";
                 break;
             case 23:
                 natureName = "Sassy";
-                plusVal = "+" + shortenedSpecialDefense;
-                minusVal = "-" + shortenedSpeed;
+                plusVal = shortenedSpecialDefense;
+                minusVal = shortenedSpeed;
                 break;
             case 24:
                 natureName = "Careful";
-                plusVal = "+" + shortenedSpecialDefense;
-                minusVal = "-" + shortenedSpecialAttack;
+                plusVal = shortenedSpecialDefense;
+                minusVal = shortenedSpecialAttack;
                 break;
         }
 

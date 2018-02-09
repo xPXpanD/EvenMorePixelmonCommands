@@ -152,14 +152,6 @@ public class ReloadConfigs implements CommandExecutor
                                 PixelUpgradeInfo.commandAlias + "§a.";
                         break;
                     }
-                    case "POKECURE": case "POKÉCURE":
-                    {
-                        printHeaderAndCheckFolder(src, false);
-                        oldAlias = PokeCure.commandAlias;
-                        newAlias = ConfigOperations.loadConfig("PokeCure");
-                        returnString = "--> §aLoaded config for command §2/pokécure§a, alias §2/" + PokeCure.commandAlias + "§a.";
-                        break;
-                    }
                     case "RESETCOUNT":
                     {
                         printHeaderAndCheckFolder(src, false);
@@ -198,6 +190,22 @@ public class ReloadConfigs implements CommandExecutor
                         oldAlias = SwitchGender.commandAlias;
                         newAlias = ConfigOperations.loadConfig("SwitchGender");
                         returnString = "--> §aLoaded config for command §2/switchgender§a, alias §2/" + SwitchGender.commandAlias + "§a.";
+                        break;
+                    }
+                    case "TIMEDHATCH": case "TIMERHATCH":
+                    {
+                        printHeaderAndCheckFolder(src, false);
+                        oldAlias = TimedHatch.commandAlias;
+                        newAlias = ConfigOperations.loadConfig("TimedHatch");
+                        returnString = "--> §aLoaded config for command §2/timedhatch§a, alias §2/" + TimedHatch.commandAlias + "§a.";
+                        break;
+                    }
+                    case "TIMEDHEAL": case "TIMERHEAL":
+                    {
+                        printHeaderAndCheckFolder(src, false);
+                        oldAlias = TimedHeal.commandAlias;
+                        newAlias = ConfigOperations.loadConfig("TimedHeal");
+                        returnString = "--> §aLoaded config for command §2/timedheal§a, alias §2/" + TimedHeal.commandAlias + "§a.";
                         break;
                     }
                     case "UPGRADEIVS":
@@ -239,42 +247,27 @@ public class ReloadConfigs implements CommandExecutor
         if (gotConfigError)
         {
             if (src instanceof Player)
-            {
                 src.sendMessage(Text.of("§5-----------------------------------------------------"));
-
-                if (args.<String>getOne("config").isPresent())
-                    src.sendMessage(Text.of("§4Error: §cInvalid config provided. See below for valid configs."));
-                else
-                    src.sendMessage(Text.of("§4Error: §cNo config provided. See below for valid configs."));
-
-                src.sendMessage(Text.of("§4Usage: §c/pureload <config>"));
-                src.sendMessage(Text.of(""));
-                src.sendMessage(Text.of("§6Commands: §eCheckEgg, CheckStats, CheckTypes, DittoFusion"));
-                src.sendMessage(Text.of("§6Commands: §eFixGenders, ForceHatch, ForceStats, Info"));
-                src.sendMessage(Text.of("§6Commands: §ePokeCure, ResetCount, ResetEVs, ShowStats"));
-                src.sendMessage(Text.of("§6Commands: §eSpawnDex, SwitchGender, UpgradeIVs"));
-                src.sendMessage(Text.of("§6Other: §eAll (reloads ALL configs!), Main (reloads global config)"));
-                src.sendMessage(Text.of("§5-----------------------------------------------------"));
-            }
             else
-            {
                 printBasicMessage("===========================================================================");
 
-                if (args.<String>getOne("config").isPresent())
-                    src.sendMessage(Text.of("§cInvalid config provided. See below for valid configs."));
-                else
-                    src.sendMessage(Text.of("§cNo config provided. See below for valid configs."));
+            if (args.<String>getOne("config").isPresent())
+                src.sendMessage(Text.of("§4Error: §cInvalid config provided. See below for valid configs."));
+            else
+                src.sendMessage(Text.of("§4Error: §cNo config provided. See below for valid configs."));
 
-                src.sendMessage(Text.of("§4Usage: §c/pureload <config>"));
-                src.sendMessage(Text.of(""));
-                src.sendMessage(Text.of("§6Commands: §eCheckEgg, CheckStats, CheckTypes, DittoFusion"));
-                src.sendMessage(Text.of("§6Commands: §eFixGenders, ForceHatch, ForceStats, Info"));
-                src.sendMessage(Text.of("§6Commands: §ePokeCure, ResetCount, ResetEVs, ShowStats"));
-                src.sendMessage(Text.of("§6Commands: §eSpawnDex, SwitchGender, UpgradeIVs"));
-                src.sendMessage(Text.of("§6Other: §eAll (reloads ALL configs), Main (reloads global config)"));
+            src.sendMessage(Text.of("§4Usage: §c/pureload <config>"));
+            src.sendMessage(Text.of(""));
+            src.sendMessage(Text.of("§6Commands: §eCheckEgg, CheckStats, CheckTypes, DittoFusion"));
+            src.sendMessage(Text.of("§6Commands: §eFixGenders, ForceHatch, ForceStats, Info"));
+            src.sendMessage(Text.of("§6Commands: §eResetCount, ResetEVs, ShowStats, SpawnDex"));
+            src.sendMessage(Text.of("§6Commands: §eSwitchGender, TimedHatch, TimedHeal, UpgradeIVs"));
+            src.sendMessage(Text.of("§6Other: §eAll (reloads ALL configs!), Main (reloads global config)"));
 
+            if (src instanceof Player)
+                src.sendMessage(Text.of("§5-----------------------------------------------------"));
+            else
                 printBasicMessage("===========================================================================");
-            }
         }
         else
         {

@@ -3,9 +3,7 @@ package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
 import com.pixelmonmod.pixelmon.enums.EnumType;
-
 import java.util.*;
-
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -531,38 +529,38 @@ public class CheckTypes implements CommandExecutor
         \*                                                                */
         if (weaknessBuilder2x.length() != 0 || weaknessBuilder4x.length() != 0)
         {
-            src.sendMessage(Text.of("§cWeaknesses§6:"));
+            src.sendMessage(Text.of("§cWeaknesses§f:"));
             if (weaknessBuilder4x.length() != 0)
             {
                 weaknessBuilder4x.setLength(weaknessBuilder4x.length() - 2); // Cut off the last comma.
-                src.sendMessage(Text.of("\\- §c400%§f: " + weaknessBuilder4x));
+                src.sendMessage(Text.of("➡ §c400%§f: " + weaknessBuilder4x));
             }
             if (weaknessBuilder2x.length() != 0)
             {
                 weaknessBuilder2x.setLength(weaknessBuilder2x.length() - 2); // Cut off the last comma.
-                src.sendMessage(Text.of("\\- §c200%§f: " + weaknessBuilder2x));
+                src.sendMessage(Text.of("➡ §c200%§f: " + weaknessBuilder2x));
             }
         }
 
         if (strengthBuilder50p.length() != 0 || strengthBuilder25p.length() != 0)
         {
-            src.sendMessage(Text.of("§aResistances§6:"));
+            src.sendMessage(Text.of("§aResistances§f:"));
             if (strengthBuilder50p.length() != 0)
             {
                 strengthBuilder50p.setLength(strengthBuilder50p.length() - 2); // Cut off the last comma.
-                src.sendMessage(Text.of("\\- §a50%§f: " + strengthBuilder50p));
+                src.sendMessage(Text.of("➡ §a50%§f: " + strengthBuilder50p));
             }
             if (strengthBuilder25p.length() != 0)
             {
                 strengthBuilder25p.setLength(strengthBuilder25p.length() - 2); // Cut off the last comma.
-                src.sendMessage(Text.of("\\- §a25%§f: " + strengthBuilder25p));
+                src.sendMessage(Text.of("➡ §a25%§f: " + strengthBuilder25p));
             }
         }
 
         /*                                                          *\
              Find and format a Pokémon's type-relevant abilities.
         \*                                                          */
-        src.sendMessage(Text.of("§bImmunities§6:"));
+        src.sendMessage(Text.of("§bImmunities§f:"));
         printToLog(2, "Grabbing immunities and turning them into a fancy list.");
 
         // Make a bunch of lists for different type-nullifying abilities.
@@ -626,7 +624,7 @@ public class CheckTypes implements CommandExecutor
         else
             immunityBuilder.setLength(immunityBuilder.length() - 2); // Shank any trailing commas.
 
-        Text immunityStart = Text.of("\\- §b0%§f: " + immunityBuilder + "§7 (may have ");
+        Text immunityStart = Text.of("➡ §b0%§f: " + immunityBuilder + "§7 (may have ");
 
         // Check if Pokémon are on certain lists. Create nice Strings to print to chat and add as hovers.
         if (motorDrive.contains(pName))
@@ -725,7 +723,7 @@ public class CheckTypes implements CommandExecutor
         {
             abilities.add("§f§l§nWonder Guard");
             hovers.add("§7§lWonder Guard §7disables all §nnon-super effective§r§7 damage.");
-            immunityStart = Text.of("\\- §b0%§f: " + immunityBuilder + "§7 (has "); // Less awkward.
+            immunityStart = Text.of("➡ §b0%§f: " + immunityBuilder + "§7 (has "); // Less awkward.
         }
 
         /*                                                          *\
@@ -761,10 +759,10 @@ public class CheckTypes implements CommandExecutor
             {
                 // Overwrite this here so we can squeeze in more info.
                 // Not ideal, but not rolling over to double lines is nice.
-                immunityStart = Text.of("\\- §b0%§f: " + immunityBuilder + "§7 (may have type abilities, see below)");
+                immunityStart = Text.of("➡ §b0%§f: " + immunityBuilder + "§7 (may have type abilities, see below)");
 
                 Text orMessage = Text.of("§r§7 or §f§l§n");
-                Text newLineFormat = Text.of("\\- §b=>§f: ");
+                Text newLineFormat = Text.of("➡ §b=>§f: ");
                 immunityPair = Text.builder(abilities.get(0))
                         .onHover(TextActions.showText(Text.of(hovers.get(0))))
                         .build();
@@ -780,7 +778,7 @@ public class CheckTypes implements CommandExecutor
                 break;
             }
             default:
-                src.sendMessage(Text.of("\\- §b0%§f: " + immunityBuilder));
+                src.sendMessage(Text.of("➡ §b0%§f: " + immunityBuilder));
         }
 
         /*                                                                              *\

@@ -195,14 +195,6 @@ public class ForceStats implements CommandExecutor
                     {
                         if (validIVsEVs.contains(arg2String) || validOtherStats.contains(arg2String))
                         {
-                            if (validIVsEVs.contains(arg2String))
-                            {
-                                isIVorEV = true;
-                                printToLog(1337, "Contained in validIVsEVs.");
-                            }
-                            else
-                                printToLog(1337, "Contained in validOtherStats.");
-
                             stat = arg2String;
                             foundValidStat = true;
                         }
@@ -267,12 +259,7 @@ public class ForceStats implements CommandExecutor
                         if (validIVsEVs.contains(arg3String) || validOtherStats.contains(arg3String))
                         {
                             if (validIVsEVs.contains(arg3String))
-                            {
                                 isIVorEV = true;
-                                printToLog(1337, "Contained in validIVsEVs.");
-                            }
-                            else
-                                printToLog(1337, "Contained in validOtherStats.");
 
                             stat = arg3String;
                             foundValidStat = true;

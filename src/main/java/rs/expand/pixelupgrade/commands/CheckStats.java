@@ -1,4 +1,4 @@
-// PixelUpgrade's very first command. Originally known as /upgrade stats, then /getstats, and then finally this.
+// PixelUpgrade's very first command. Originally /upgrade stats, then /getstats, and then finally this.
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
@@ -30,7 +30,6 @@ import rs.expand.pixelupgrade.utilities.GetPokemonInfo;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
 // TODO: Add a new allowCheckingEggs option?
-// TODO: Add a Mew clone count check.
 public class CheckStats implements CommandExecutor
 {
     // Initialize some variables. We'll load stuff into these when we call the config loader.
@@ -132,10 +131,6 @@ public class CheckStats implements CommandExecutor
                         upgradeErrorArray.add("legendaryAndShinyCap");
                     if (UpgradeIVs.legendaryCap == null)
                         upgradeErrorArray.add("legendaryCap");
-                    if (UpgradeIVs.shinyBabyCap == null)
-                        upgradeErrorArray.add("shinyBabyCap");
-                    if (UpgradeIVs.babyCap == null)
-                        upgradeErrorArray.add("babyCap");
                     if (UpgradeIVs.shinyCap == null)
                         upgradeErrorArray.add("shinyCap");
                     if (UpgradeIVs.regularCap == null)
@@ -370,9 +365,11 @@ public class CheckStats implements CommandExecutor
                             src.sendMessage(Text.of("§4Error: §cThere's no Pokémon in that slot!"));
                         }
                     }
-                    else if (!calledRemotely && nbt.getBoolean("isEgg")) // Allow egg checking for console!
+                    else if (!calledRemotely && nbt.getBoolean(NbtKeys.IS_EGG)) // Allow egg checking for console!
                     {
-                        if (enableCheckEggIntegration && !gotCheckEggError)
+                        boolean hasEggPerm = src.hasPermission("pixelupgrade.command.checkegg");
+
+                        if (enableCheckEggIntegration && hasEggPerm && !gotCheckEggError)
                         {
                             printToLog(1, "Found an egg, recommended CheckEgg alias as per config. Exit.");
                             src.sendMessage(Text.of("§4Error: §cThis command only checks hatched Pokémon. Try: §4/" +
@@ -380,7 +377,11 @@ public class CheckStats implements CommandExecutor
                         }
                         else
                         {
-                            printToLog(1, "Found an egg. Printing error instead of recommending CheckEgg, as per config.");
+                            if (hasEggPerm)
+                                printToLog(1, "Found an egg, but player has no /checkegg perm. Exit.");
+                            else
+                                printToLog(1, "Found an egg. Erroring instead of recommending CheckEgg, as per config.");
+
                             src.sendMessage(Text.of("§4Error: §cYou can only check hatched Pokémon."));
                         }
                     }
@@ -515,7 +516,7 @@ public class CheckStats implements CommandExecutor
 
                 if (!loopValue.getString("Nickname").equals(""))
                 {
-                    String nickname = "§a, also known as §2" + loopValue.getString("Nickname");
+                    String nickname = "§a, nicknamed §2" + loopValue.getString("Nickname");
                     src.sendMessage(Text.of(start + "§aA level " + name + nickname + "§a."));
                 }
                 else
@@ -612,40 +613,48 @@ public class CheckStats implements CommandExecutor
         // FIXME: Fix gender printing on console. On Windows and possibly other OSes, the character becomes a "?".
         ArrayList<String> natureArray = GetPokemonInfo.getNatureStrings(nbt.getInteger(NbtKeys.NATURE));
         String natureName = natureArray.get(0);
-        String plusVal = natureArray.get(1);
-        String minusVal = natureArray.get(2);
+        String plusVal = "+" + natureArray.get(1);
+        String minusVal = "-" + natureArray.get(2);
         String growthName = GetPokemonInfo.getGrowthName(nbt.getInteger(NbtKeys.GROWTH));
         String genderCharacter = GetPokemonInfo.getGenderCharacter(nbt.getInteger(NbtKeys.GENDER));
 
+        // Let's start printing some stuff! Mark the start of our output text box.
         src.sendMessage(Text.of("§7-----------------------------------------------------"));
 
-        // Format and show the target Pokémon's name.
-        String startString, nicknameString = ", also known as §6" + nbt.getString("Nickname");
+        // Make some easy Strings for the Pokémon's name and nickname, and make a few formatted Strings too.
+        String name = nbt.getString("Name");
+        String nickname = nbt.getString("Nickname");
+        String nicknameString = ", nicknamed §6" + nickname;
+
+        // Set up some more Strings, that we keep either uninitialized or blank unless we need them.
+        String startString;
+
+        // Format the target Pokémon's name.
         if (haveTarget)
         {
-            if (nbt.getBoolean("isEgg") && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
-                startString = "§eStats of §6" + target.getName() + "§e's §lshiny§r §6" + nbt.getString("Name") + " §eegg";
-            else if (nbt.getBoolean("isEgg"))
-                startString = "§eStats of §6" + target.getName() + "§e's §6" + nbt.getString("Name") + " §eegg";
+            if (nbt.getBoolean(NbtKeys.IS_EGG) && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
+                startString = "§eStats of §6" + target.getName() + "§e's §6§lshiny §r§6" + name + " §eegg";
+            else if (nbt.getBoolean(NbtKeys.IS_EGG))
+                startString = "§eStats of §6" + target.getName() + "§e's §6" + name + " §eegg";
             else if (nbt.getInteger(NbtKeys.IS_SHINY) == 1)
-                startString = "§eStats of §6" + target.getName() + "§e's §lshiny§r §6" + nbt.getString("Name") + "§e";
+                startString = "§eStats of §6" + target.getName() + "§e's §6§lshiny §r§6" + name + "§e";
             else
-                startString = "§eStats of §6" + target.getName() + "§e's §6" + nbt.getString("Name") + "§e";
+                startString = "§eStats of §6" + target.getName() + "§e's §6" + name + "§e";
         }
         else
         {
             // Some future-proofing, here. Probably won't hit the egg ones anytime soon.
-            if (nbt.getBoolean("isEgg") && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
-                startString = "§eStats of your §lshiny§r §6" + nbt.getString("Name") + " §eegg";
-            else if (nbt.getBoolean("isEgg"))
-                startString = "§eStats of your §6" + nbt.getString("Name") + " §eegg";
+            if (nbt.getBoolean(NbtKeys.IS_EGG) && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
+                startString = "§eStats of your §6§lshiny §r§6" + name + " §eegg";
+            else if (nbt.getBoolean(NbtKeys.IS_EGG))
+                startString = "§eStats of your §6" + name + " §eegg";
             else if (nbt.getInteger(NbtKeys.IS_SHINY) == 1)
-                startString = "§eStats of your §lshiny§r §6" + nbt.getString("Name") + "§e";
+                startString = "§eStats of your §6§lshiny §r§6" + name + "§e";
             else
-                startString = "§eStats of your §6" + nbt.getString("Name") + "§e";
+                startString = "§eStats of your §6" + name + "§e";
         }
 
-        if (!nbt.getString("Nickname").equals(""))
+        if (!nickname.equals("") && !nickname.equals(name))
             src.sendMessage(Text.of(startString + nicknameString + "§e:"));
         else
             src.sendMessage(Text.of(startString + "§e:"));
@@ -670,17 +679,21 @@ public class CheckStats implements CommandExecutor
         src.sendMessage(Text.of(extraInfo1 + extraInfo2));
 
         // Check and show whether the Pokémon can be upgraded/fused further, if enabled in config.
-        boolean isDitto = nbt.getString("Name").equals("Ditto");
+        boolean isDitto = name.equals("Ditto");
         if (isDitto && showDittoFusionHelper && !gotFusionError || !isDitto && showUpgradeHelper && !gotUpgradeError)
         {
+            // See which player we're running the command on.
             EntityPlayerMP playerEntity;
             if (haveTarget)
                 playerEntity = (EntityPlayerMP) target;
             else
                 playerEntity = (EntityPlayerMP) src;
 
+            // Create an entity so we can modify it? This stuff is confusing, still. Also, quick shinyness identifier.
             EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, playerEntity.getServerWorld());
             boolean isShiny = nbt.getInteger(NbtKeys.IS_SHINY) == 1;
+
+            // Let's not forget to do this. Moves the count helper message to its own line, right at the bottom.
             src.sendMessage(Text.of(""));
 
             // Let's re-use the startString String. It's still relevant.
@@ -690,7 +703,7 @@ public class CheckStats implements CommandExecutor
 
                 if (isShiny)
                 {
-                    startString = "§eThis §6shiny Ditto §e";
+                    startString = "§eThis §6§lshiny §r§6Ditto §e";
                     fusionCap = DittoFusion.shinyCap; // Shiny cap.
                 }
                 else
@@ -709,84 +722,34 @@ public class CheckStats implements CommandExecutor
             else
             {
                 int upgradeCount = pokemon.getEntityData().getInteger("upgradeCount"), upgradeCap;
-                boolean isLegendary = EnumPokemon.legendaries.contains(nbt.getString("Name"));
-                boolean isBaby = false, isEvolvedBaby = false;
+                boolean isLegendary = EnumPokemon.legendaries.contains(name);
 
-                // Check babies. Babies spawn with 3*31 guaranteed IVs. Nicked from /upgradeivs.
-                switch (nbt.getString("Name"))
+                if (isShiny && isLegendary)
                 {
-                    case "Pichu": case "Cleffa": case "Igglybuff": case "Togepi": case "Tyrogue":
-                    case "Smoochum": case "Elekid": case "Magby": case "Azurill": case "Wynaut":
-                    case "Budew": case "Chingling": case "Bonsly": case "Mime Jr.": case "Happiny":
-                    case "Munchlax": case "Riolu": case "Mantyke":
-                    {
-                        printToLog(2, "Provided Pokémon is a known 3*31 IV baby.");
-                        isBaby = true;
-                        break;
-                    }
-
-                    case "Pickachu": case "Raichu": case "Clefairy": case "Clefable": case "Jigglypuff":
-                    case "Wigglytuff": case "Togetic": case "Togekiss": case "Hitmonlee": case "Hitmonchan":
-                    case "Hitmontop": case "Jynx": case "Electabuzz": case "Electivire": case "Magmar":
-                    case "Magmortar": case "Marill": case "Azumarill": case "Wobbuffet":case "Roselia":
-                    case "Roserade": case "Chimecho": case "Sudowoodo": case "Mr. Mime": case "Chansey":
-                    case "Blissey": case "Snorlax": case "Lucario": case "Mantine":
-                    {
-                        printToLog(2, "Provided Pokémon is a known 3*31 IV baby evolution.");
-                        isEvolvedBaby = true;
-                        break;
-                    }
+                    startString = "§eThis §6§lshiny legendary §r§e";
+                    upgradeCap = UpgradeIVs.legendaryAndShinyCap; // Legendary + shiny cap.
                 }
-
-                if (isShiny)
+                else if (isLegendary)
                 {
-                    if (isLegendary)
-                    {
-                        startString = "§eThis §l§oshiny legendary §r§e";
-                        upgradeCap = UpgradeIVs.legendaryAndShinyCap; // Legendary + shiny cap.
-                    }
-                    else if (isEvolvedBaby)
-                    {
-                        startString = "§eThis §l§oshiny evolved baby §r§e";
-                        upgradeCap = UpgradeIVs.shinyBabyCap; // Shiny cap.
-                    }
-                    else if (isBaby)
-                    {
-                        startString = "§eThis §l§oshiny baby §r§e";
-                        upgradeCap = UpgradeIVs.shinyBabyCap; // Shiny cap.
-                    }
-                    else
-                    {
-                        startString = "§eThis §lshiny §r§ePokémon ";
-                        upgradeCap = UpgradeIVs.shinyCap; // Shiny cap.
-                    }
+                    startString = "§eThis §6§llegendary §r§ePokémon ";
+                    upgradeCap = UpgradeIVs.legendaryCap; // Legendary cap.
+                }
+                else if (isShiny)
+                {
+                    startString = "§eThis §6§lshiny §r§ePokémon ";
+                    upgradeCap = UpgradeIVs.shinyCap; // Shiny cap.
                 }
                 else
                 {
-                    if (isLegendary)
-                    {
-                        startString = "§eThis §olegendary §r§ePokémon ";
-                        upgradeCap = UpgradeIVs.legendaryCap; // Legendary cap.
-                    }
-                    else if (isEvolvedBaby)
-                    {
-                        startString = "§eThis §oevolved baby §r§e";
-                        upgradeCap = UpgradeIVs.babyCap; // Baby cap.
-                    }
-                    else if (isBaby)
-                    {
-                        startString = "§eThis §obaby §r§e";
-                        upgradeCap = UpgradeIVs.babyCap; // Baby cap.
-                    }
-                    else
-                    {
-                        startString = "§eThis Pokémon ";
-                        upgradeCap = UpgradeIVs.regularCap; // Regular cap.
-                    }
+                    startString = "§eThis Pokémon ";
+                    upgradeCap = UpgradeIVs.regularCap; // Regular cap.
                 }
 
                 if (upgradeCount != 0 && upgradeCount < upgradeCap)
-                    src.sendMessage(Text.of(startString + "has been upgraded §6" + upgradeCount + "§e/§6" + upgradeCap + " §etimes."));
+                {
+                    src.sendMessage(Text.of(startString + "has been upgraded §6" + upgradeCount + "§e/§6" +
+                            upgradeCap + " §etimes."));
+                }
                 else if (upgradeCount == 0 && upgradeCount < upgradeCap)
                     src.sendMessage(Text.of(startString + "can be upgraded §6" + upgradeCap + "§e more times."));
                 else
@@ -794,6 +757,22 @@ public class CheckStats implements CommandExecutor
             }
         }
 
+        // Mew-specific check for cloning counts. A bit cheap, but it'll work down here.
+        if (name.equals("Mew"))
+        {
+            // If we haven't broken into a new paragraph yet, do it now.
+            if (isDitto && !showDittoFusionHelper || !isDitto && !showUpgradeHelper)
+                src.sendMessage(Text.of(""));
+
+            int cloneCount = nbt.getInteger(NbtKeys.STATS_NUM_CLONED);
+
+            if (cloneCount == 0)
+                src.sendMessage(Text.of("§eCloning has not yet been attempted."));
+            else
+                src.sendMessage(Text.of("§eCloning has been attempted §6" + cloneCount + "§f/§63 §etimes."));
+        }
+
+        // Finish up the output text box. Done!
         src.sendMessage(Text.of("§7-----------------------------------------------------"));
     }
 }

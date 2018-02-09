@@ -68,81 +68,87 @@ public class ConfigOperations
     {
         PluginContainer puContainer = Sponge.getPluginManager().getPlugin("pixelupgrade").orElse(null);
 
+        // Contains base commands and common (?) mistakes, as well as interchangeable alternatives.
         if (puContainer != null)
         {
             if (CheckEgg.commandAlias != null && !CheckEgg.commandAlias.equals("checkegg"))
-                Sponge.getCommandManager().register(puContainer, checkegg, "checkegg", "eggcheck", CheckEgg.commandAlias);
+                Sponge.getCommandManager().register(puContainer, checkegg, "checkegg", CheckEgg.commandAlias);
             else
-                Sponge.getCommandManager().register(puContainer, checkegg, "checkegg", "eggcheck");
+                Sponge.getCommandManager().register(puContainer, checkegg, "checkegg");
 
-            if (CheckStats.commandAlias != null && !CheckStats.commandAlias.equals("checkstats"))
+            if (CheckStats.commandAlias != null && !CheckStats.commandAlias.matches("checkstats|getstats"))
                 Sponge.getCommandManager().register(puContainer, checkstats, "checkstats", "getstats", CheckStats.commandAlias);
             else
                 Sponge.getCommandManager().register(puContainer, checkstats, "checkstats", "getstats");
 
-            if (CheckTypes.commandAlias != null && !CheckTypes.commandAlias.equals("checktypes"))
-                Sponge.getCommandManager().register(puContainer, checktypes, "checktypes", "checktype", "weakness", CheckTypes.commandAlias);
+            if (CheckTypes.commandAlias != null && !CheckTypes.commandAlias.matches("checktypes|checktype"))
+                Sponge.getCommandManager().register(puContainer, checktypes, "checktypes", "checktype", CheckTypes.commandAlias);
             else
-                Sponge.getCommandManager().register(puContainer, checktypes, "checktypes", "checktype", "weakness");
+                Sponge.getCommandManager().register(puContainer, checktypes, "checktypes", "checktype");
 
             if (DittoFusion.commandAlias != null && !DittoFusion.commandAlias.equals("dittofusion"))
                 Sponge.getCommandManager().register(puContainer, dittofusion, "dittofusion", DittoFusion.commandAlias);
             else
                 Sponge.getCommandManager().register(puContainer, dittofusion, "dittofusion");
 
-            if (FixGenders.commandAlias != null && !FixGenders.commandAlias.equals("fixgenders"))
-                Sponge.getCommandManager().register(puContainer, fixgenders, "fixgenders", FixGenders.commandAlias);
+            if (FixGenders.commandAlias != null && !FixGenders.commandAlias.matches("fixgenders|fixgender"))
+                Sponge.getCommandManager().register(puContainer, fixgenders, "fixgenders", "fixgender", FixGenders.commandAlias);
             else
-                Sponge.getCommandManager().register(puContainer, fixgenders, "fixgenders");
+                Sponge.getCommandManager().register(puContainer, fixgenders, "fixgenders", "fixgender");
 
             if (ForceHatch.commandAlias != null && !ForceHatch.commandAlias.equals("forcehatch"))
                 Sponge.getCommandManager().register(puContainer, forcehatch, "forcehatch", ForceHatch.commandAlias);
             else
                 Sponge.getCommandManager().register(puContainer, forcehatch, "forcehatch");
 
-            if (ForceStats.commandAlias != null && !ForceStats.commandAlias.equals("forcestats"))
+            if (ForceStats.commandAlias != null && !ForceStats.commandAlias.matches("forcestats|forcestat"))
                 Sponge.getCommandManager().register(puContainer, forcestats, "forcestats", "forcestat", ForceStats.commandAlias);
             else
                 Sponge.getCommandManager().register(puContainer, forcestats, "forcestats", "forcestat");
 
-            if (PixelUpgradeInfo.commandAlias != null && !PixelUpgradeInfo.commandAlias.equals("pixelupgrade"))
+            if (PixelUpgradeInfo.commandAlias != null && !PixelUpgradeInfo.commandAlias.matches("pixelupgrade|pixelupgradeinfo"))
                 Sponge.getCommandManager().register(puContainer, pixelupgradeinfo, "pixelupgrade", "pixelupgradeinfo", PixelUpgradeInfo.commandAlias);
             else
                 Sponge.getCommandManager().register(puContainer, pixelupgradeinfo, "pixelupgrade", "pixelupgradeinfo");
 
-            if (PokeCure.commandAlias != null && !PokeCure.commandAlias.equals("pokecure"))
-                Sponge.getCommandManager().register(puContainer, pokecure, "pokecure", "pokécure", PokeCure.commandAlias);
-            else
-                Sponge.getCommandManager().register(puContainer, pokecure, "pokecure", "pokécure");
-
             Sponge.getCommandManager().register(puContainer, reloadconfigs, "pureload", "pixelupgradereload");
 
-            if (ResetCount.commandAlias != null && !ResetCount.commandAlias.equals("resetcount"))
+            if (ResetCount.commandAlias != null && !ResetCount.commandAlias.matches("resetcount|resetcounts"))
                 Sponge.getCommandManager().register(puContainer, resetcount, "resetcount", "resetcounts", ResetCount.commandAlias);
             else
                 Sponge.getCommandManager().register(puContainer, resetcount, "resetcount", "resetcounts");
 
-            if (ResetEVs.commandAlias != null && !ResetEVs.commandAlias.equals("resetevs"))
-                Sponge.getCommandManager().register(puContainer, resetevs, "resetevs", ResetEVs.commandAlias);
+            if (ResetEVs.commandAlias != null && !ResetEVs.commandAlias.matches("resetevs|resetev"))
+                Sponge.getCommandManager().register(puContainer, resetevs, "resetevs", "resetev", ResetEVs.commandAlias);
             else
-                Sponge.getCommandManager().register(puContainer, resetevs, "resetevs");
+                Sponge.getCommandManager().register(puContainer, resetevs, "resetevs", "resetev");
 
-            if (ShowStats.commandAlias != null && !ShowStats.commandAlias.equals("showstats"))
-                Sponge.getCommandManager().register(puContainer, showstats, "showstats", ShowStats.commandAlias);
+            if (ShowStats.commandAlias != null && !ShowStats.commandAlias.matches("showstats|showstat"))
+                Sponge.getCommandManager().register(puContainer, showstats, "showstats", "showstat", ShowStats.commandAlias);
             else
-                Sponge.getCommandManager().register(puContainer, showstats, "showstats");
+                Sponge.getCommandManager().register(puContainer, showstats, "showstats", "showstat");
 
             if (SpawnDex.commandAlias != null && !SpawnDex.commandAlias.equals("spawndex"))
                 Sponge.getCommandManager().register(puContainer, spawndex, "spawndex", SpawnDex.commandAlias);
             else
                 Sponge.getCommandManager().register(puContainer, spawndex, "spawndex");
 
-            if (SwitchGender.commandAlias != null && !SwitchGender.commandAlias.equals("switchgender"))
-                Sponge.getCommandManager().register(puContainer, switchgender, "switchgender", SwitchGender.commandAlias);
+            if (SwitchGender.commandAlias != null && !SwitchGender.commandAlias.matches("switchgender|switchgenders"))
+                Sponge.getCommandManager().register(puContainer, switchgender, "switchgender", "switchgenders", SwitchGender.commandAlias);
             else
-                Sponge.getCommandManager().register(puContainer, switchgender, "switchgender");
+                Sponge.getCommandManager().register(puContainer, switchgender, "switchgender", "switchgenders");
 
-            if (UpgradeIVs.commandAlias != null && !UpgradeIVs.commandAlias.equals("upgradeivs"))
+            if (TimedHatch.commandAlias != null && !TimedHatch.commandAlias.matches("timedhatch|timerhatch"))
+                Sponge.getCommandManager().register(puContainer, timedhatch, "timedhatch", "timerhatch", TimedHatch.commandAlias);
+            else
+                Sponge.getCommandManager().register(puContainer, timedhatch, "timedhatch", "timerhatch");
+
+            if (TimedHeal.commandAlias != null && !TimedHeal.commandAlias.matches("timedheal|timerheal"))
+                Sponge.getCommandManager().register(puContainer, timedheal, "timedheal", "timerheal", TimedHeal.commandAlias);
+            else
+                Sponge.getCommandManager().register(puContainer, timedheal, "timedheal", "timerheal");
+
+            if (UpgradeIVs.commandAlias != null && !UpgradeIVs.commandAlias.matches("upgradeivs|upgradeiv"))
                 Sponge.getCommandManager().register(puContainer, upgradeivs, "upgradeivs", "upgradeiv", UpgradeIVs.commandAlias);
             else
                 Sponge.getCommandManager().register(puContainer, upgradeivs, "upgradeivs", "upgradeiv");
@@ -167,9 +173,9 @@ public class ConfigOperations
         String commandAlias = "§4There's an error message missing, please report this!", commandString = null;
 
         // Format our commands and aliases and add them to the lists that we'll print in a bit.
-        // TODO: If you add a command, update this list and increment the counters! (currently 16)
+        // TODO: If you add a command, update this list and increment the counters! (currently 17)
         // FIXME: Move stuff to an external method so we don't have to update all these numbers manually.
-        for (int i = 1; i <= 16; i++)
+        for (int i = 1; i <= 17; i++)
         {
             switch (i)
             {
@@ -225,47 +231,53 @@ public class ConfigOperations
                 }
                 case 9:
                 {
-                    commandAlias = PokeCure.commandAlias;
-                    commandString = "/pokecure";
-                    break;
-                }
-                case 10:
-                {
                     commandAlias = "pureload"; // Alias gets omitted; there's a check for aliases matching base commands.
                     commandString = "/pureload";
                     break;
                 }
-                case 11:
+                case 10:
                 {
                     commandAlias = ResetCount.commandAlias;
                     commandString = "/resetcount";
                     break;
                 }
-                case 12:
+                case 11:
                 {
                     commandAlias = ResetEVs.commandAlias;
                     commandString = "/resetevs";
                     break;
                 }
-                case 13:
+                case 12:
                 {
                     commandAlias = ShowStats.commandAlias;
                     commandString = "/showstats";
                     break;
                 }
-                case 14:
+                case 13:
                 {
                     commandAlias = SpawnDex.commandAlias;
                     commandString = "/spawndex";
                     break;
                 }
-                case 15:
+                case 14:
                 {
                     commandAlias = SwitchGender.commandAlias;
                     commandString = "/switchgender";
                     break;
                 }
+                case 15:
+                {
+                    commandAlias = TimedHatch.commandAlias;
+                    commandString = "/timedhatch";
+                    break;
+                }
                 case 16:
+                {
+                    commandAlias = TimedHeal.commandAlias;
+                    commandString = "/timedheal";
+                    break;
+                }
+                case 17:
                 {
                     commandAlias = UpgradeIVs.commandAlias;
                     commandString = "/upgradeivs";
@@ -299,7 +311,7 @@ public class ConfigOperations
             }
 
             // If we're at the last command, shank the trailing formatting code, comma and space and for a clean end.
-            if (i == 16)
+            if (i == 17)
                 formattedCommand.setLength(formattedCommand.length() - 4);
 
             // Add the formatted command to the list, and then clear the StringBuilder so we can re-use it.
@@ -354,14 +366,10 @@ public class ConfigOperations
             }
             else
             {
-                String prettyCallSource = callSource.toLowerCase();
-                if (callSource.equals("pokecure"))
-                    prettyCallSource = "pokécure";
-
                 try
                 {
                     // Spaces added so it falls in line with startup/reload message spacing.
-                    printBasicMessage("    §eNo §6/" + prettyCallSource +
+                    printBasicMessage("    §eNo §6/" + callSource.toLowerCase() +
                             "§e configuration file found, creating...");
 
                     Files.copy(ConfigOperations.class.getResourceAsStream("/assets/" + callSource + ".conf"),
@@ -369,7 +377,7 @@ public class ConfigOperations
                 }
                 catch (IOException F)
                 {
-                    printBasicMessage("§cConfig setup for command \"§4/" + prettyCallSource
+                    printBasicMessage("§cConfig setup for command \"§4/" + callSource.toLowerCase()
                             + "§c\" failed! Please report this.");
                     printBasicMessage("§cAdd any useful info you may have (operating system?). Stack trace:");
                     F.printStackTrace();
@@ -392,12 +400,13 @@ public class ConfigOperations
         loadConfig("ForceHatch");
         loadConfig("ForceStats");
         loadConfig("PixelUpgradeInfo");
-        loadConfig("PokeCure");
         loadConfig("ResetCount");
         loadConfig("ResetEVs");
         loadConfig("ShowStats");
         loadConfig("SpawnDex");
         loadConfig("SwitchGender");
+        loadConfig("TimedHatch");
+        loadConfig("TimedHeal");
         loadConfig("UpgradeIVs");
     }
 
@@ -586,26 +595,6 @@ public class ConfigOperations
 
                     return PixelUpgradeInfo.commandAlias;
                 }
-                case "PokeCure":
-                {
-                    tryCreateConfig("PokeCure", pokeCurePath);
-                    CommentedConfigurationNode commandConfig = PixelUpgrade.pokeCureLoader.load();
-
-                    PokeCure.commandAlias =
-                            commandConfig.getNode("commandAlias").getString();
-                    PokeCure.cooldownInSeconds =
-                            interpretInteger(commandConfig.getNode("cooldownInSeconds").getString());
-                    PokeCure.altCooldownInSeconds =
-                            interpretInteger(commandConfig.getNode("altCooldownInSeconds").getString());
-                    PokeCure.healParty  =
-                            toBooleanObject(commandConfig.getNode("healParty").getString());
-                    PokeCure.sneakyMode  =
-                            toBooleanObject(commandConfig.getNode("sneakyMode").getString());
-                    PokeCure.commandCost =
-                            interpretInteger(commandConfig.getNode("commandCost").getString());
-
-                    return PokeCure.commandAlias;
-                }
                 case "ResetCount":
                 {
                     tryCreateConfig("ResetCount", resetCountPath);
@@ -639,16 +628,14 @@ public class ConfigOperations
                             interpretInteger(commandConfig.getNode("cooldownInSeconds").getString());
                     ShowStats.altCooldownInSeconds =
                             interpretInteger(commandConfig.getNode("altCooldownInSeconds").getString());
-                    ShowStats.hoverMode =
-                            toBooleanObject(commandConfig.getNode("hoverMode").getString());
-                    ShowStats.showEVs =
-                            toBooleanObject(commandConfig.getNode("showEVs").getString());
-                    ShowStats.showCounts =
-                            toBooleanObject(commandConfig.getNode("showCounts").getString());
-                    ShowStats.showExtraInfo =
-                            toBooleanObject(commandConfig.getNode("showExtraInfo").getString());
                     ShowStats.showNicknames =
                             toBooleanObject(commandConfig.getNode("showNicknames").getString());
+                    ShowStats.showEVs =
+                            toBooleanObject(commandConfig.getNode("showEVs").getString());
+                    ShowStats.showExtraInfo =
+                            toBooleanObject(commandConfig.getNode("showExtraInfo").getString());
+                    ShowStats.showCounts =
+                            toBooleanObject(commandConfig.getNode("showCounts").getString());
                     ShowStats.clampBadNicknames =
                             toBooleanObject(commandConfig.getNode("clampBadNicknames").getString());
                     ShowStats.notifyBadNicknames =
@@ -680,6 +667,46 @@ public class ConfigOperations
 
                     return SwitchGender.commandAlias;
                 }
+                case "TimedHatch":
+                {
+                    tryCreateConfig("TimedHatch", timedHatchPath);
+                    CommentedConfigurationNode commandConfig = PixelUpgrade.timedHatchLoader.load();
+
+                    TimedHatch.commandAlias =
+                            commandConfig.getNode("commandAlias").getString();
+                    TimedHatch.cooldownInSeconds =
+                            interpretInteger(commandConfig.getNode("cooldownInSeconds").getString());
+                    TimedHatch.altCooldownInSeconds =
+                            interpretInteger(commandConfig.getNode("altCooldownInSeconds").getString());
+                    TimedHatch.hatchParty  =
+                            toBooleanObject(commandConfig.getNode("hatchParty").getString());
+                    TimedHatch.sneakyMode  =
+                            toBooleanObject(commandConfig.getNode("sneakyMode").getString());
+                    TimedHatch.commandCost =
+                            interpretInteger(commandConfig.getNode("commandCost").getString());
+
+                    return TimedHatch.commandAlias;
+                }
+                case "TimedHeal":
+                {
+                    tryCreateConfig("TimedHeal", timedHealPath);
+                    CommentedConfigurationNode commandConfig = PixelUpgrade.timedHealLoader.load();
+
+                    TimedHeal.commandAlias =
+                            commandConfig.getNode("commandAlias").getString();
+                    TimedHeal.cooldownInSeconds =
+                            interpretInteger(commandConfig.getNode("cooldownInSeconds").getString());
+                    TimedHeal.altCooldownInSeconds =
+                            interpretInteger(commandConfig.getNode("altCooldownInSeconds").getString());
+                    TimedHeal.healParty  =
+                            toBooleanObject(commandConfig.getNode("healParty").getString());
+                    TimedHeal.sneakyMode  =
+                            toBooleanObject(commandConfig.getNode("sneakyMode").getString());
+                    TimedHeal.commandCost =
+                            interpretInteger(commandConfig.getNode("commandCost").getString());
+
+                    return TimedHeal.commandAlias;
+                }
                 case "UpgradeIVs":
                 {
                     tryCreateConfig("UpgradeIVs", upgradeIVsPath);
@@ -691,10 +718,6 @@ public class ConfigOperations
                             interpretInteger(commandConfig.getNode("legendaryAndShinyCap").getString());
                     UpgradeIVs.legendaryCap =
                             interpretInteger(commandConfig.getNode("legendaryCap").getString());
-                    UpgradeIVs.shinyBabyCap =
-                            interpretInteger(commandConfig.getNode("shinyBabyCap").getString());
-                    UpgradeIVs.babyCap =
-                            interpretInteger(commandConfig.getNode("babyCap").getString());
                     UpgradeIVs.shinyCap =
                             interpretInteger(commandConfig.getNode("shinyCap").getString());
                     UpgradeIVs.regularCap =
@@ -707,10 +730,6 @@ public class ConfigOperations
                             interpretDouble(commandConfig.getNode("legendaryAndShinyMult").getString());
                     UpgradeIVs.legendaryMult =
                             interpretDouble(commandConfig.getNode("legendaryMult").getString());
-                    UpgradeIVs.shinyBabyMult =
-                            interpretDouble(commandConfig.getNode("shinyBabyMult").getString());
-                    UpgradeIVs.babyMult =
-                            interpretDouble(commandConfig.getNode("babyMult").getString());
                     UpgradeIVs.shinyMult =
                             interpretDouble(commandConfig.getNode("shinyMult").getString());
                     UpgradeIVs.regularMult =
@@ -732,12 +751,8 @@ public class ConfigOperations
         }
         catch (Exception F)
         {
-            String prettyCallSource = callSource.toLowerCase();
-            if (callSource.equals("pokecure"))
-                prettyCallSource = "pokécure";
-
             // Spaces added so it falls in line with startup/reload message spacing.
-            printBasicMessage("    §cCould not read alias for §4/" + prettyCallSource + "§c.");
+            printBasicMessage("    §cCould not read alias for §4/" + callSource + "§c.");
             gotConfigError = true;
 
             switch (callSource)
@@ -750,12 +765,13 @@ public class ConfigOperations
                 case "ForceHatch": ForceHatch.commandAlias = null; break;
                 case "ForceStats": ForceStats.commandAlias = null; break;
                 case "PixelUpgradeInfo": PixelUpgradeInfo.commandAlias = null; break;
-                case "PokeCure": PokeCure.commandAlias = null; break;
                 case "ResetCount": ResetCount.commandAlias = null; break;
                 case "ResetEVs": ResetEVs.commandAlias = null; break;
                 case "ShowStats": ShowStats.commandAlias = null; break;
                 case "SpawnDex": SpawnDex.commandAlias = null; break;
                 case "SwitchGender": SwitchGender.commandAlias = null; break;
+                case "TimedHatch": TimedHatch.commandAlias = null; break;
+                case "TimedHeal": TimedHeal.commandAlias = null; break;
                 case "UpgradeIVs": UpgradeIVs.commandAlias = null; break;
             }
         }

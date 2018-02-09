@@ -1,4 +1,4 @@
-// heal pls
+// Seemed like a good thing to have, and now it exists! A bit fancier than the PE version, but also heavier.
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
@@ -27,14 +27,13 @@ import org.spongepowered.api.text.Text;
 import rs.expand.pixelupgrade.utilities.CommonMethods;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
-// Note: printBasicMessage is a static import for a function from CommonMethods, for convenience.
-public class PokeCure implements CommandExecutor
+public class TimedHatch implements CommandExecutor
 {
     // Initialize some variables. We'll load stuff into these when we call the config loader.
     // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
     public static Integer cooldownInSeconds, altCooldownInSeconds, commandCost;
-    public static Boolean healParty, sneakyMode;
+    public static Boolean hatchParty, sneakyMode;
 
     // Set up some more variables for internal use.
     private boolean calledRemotely;
@@ -44,7 +43,7 @@ public class PokeCure implements CommandExecutor
     private void printToLog (int debugNum, String inputString)
     {
         if (!calledRemotely)
-            CommonMethods.printDebugMessage("PokeCure", debugNum, inputString);
+            CommonMethods.printDebugMessage("TimedHatch", debugNum, inputString);
     }
 
     @SuppressWarnings("NullableProblems")
@@ -61,8 +60,8 @@ public class PokeCure implements CommandExecutor
             nativeErrorArray.add("cooldownInSeconds");
         if (altCooldownInSeconds == null)
             nativeErrorArray.add("altCooldownInSeconds");
-        if (healParty == null)
-            nativeErrorArray.add("healParty");
+        if (hatchParty == null)
+            nativeErrorArray.add("hatchParty");
         if (sneakyMode == null)
             nativeErrorArray.add("sneakyMode");
         if (commandCost == null)
@@ -70,14 +69,14 @@ public class PokeCure implements CommandExecutor
 
         if (!nativeErrorArray.isEmpty())
         {
-            CommonMethods.printCommandNodeError("PokeCure", nativeErrorArray);
+            CommonMethods.printCommandNodeError("TimedHatch", nativeErrorArray);
             src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
         }
         else
         {
             if (calledRemotely)
             {
-                CommonMethods.printDebugMessage("PokeCure", 1,
+                CommonMethods.printDebugMessage("TimedHatch", 1,
                         "Called by console, starting. Omitting debug messages for clarity.");
             }
             else
@@ -86,7 +85,7 @@ public class PokeCure implements CommandExecutor
             int slot = 0;
             long currentTime = System.currentTimeMillis() / 1000; // Grab seconds.
             boolean canContinue = true, commandConfirmed = false, hitCooldown = false;
-            boolean hasOtherPerm = src.hasPermission("pixelupgrade.command.other.pokecure");
+            boolean hasOtherPerm = src.hasPermission("pixelupgrade.command.other.timedhatch");
             Optional<String> arg1Optional = args.getOne("target/slot/confirmation");
             Optional<String> arg2Optional = args.getOne("slot/confirmation");
             String errorString = "§4There's an error message missing, please report this!";
@@ -137,9 +136,9 @@ public class PokeCure implements CommandExecutor
                 //noinspection ConstantConditions - safe to do, we've already verified we're not console/a command block.
                 playerUUID = ((Player) src).getUniqueId(); // why is the "d" in "Id" lowercase :(
 
-                if (!src.hasPermission("pixelupgrade.command.bypass.pokecure") && cooldownMap.containsKey(playerUUID))
+                if (!src.hasPermission("pixelupgrade.command.bypass.timedhatch") && cooldownMap.containsKey(playerUUID))
                 {
-                    boolean hasAltPerm = src.hasPermission("pixelupgrade.command.altcooldown.pokecure");
+                    boolean hasAltPerm = src.hasPermission("pixelupgrade.command.altcooldown.timedhatch");
                     long timeDifference = currentTime - cooldownMap.get(playerUUID);
                     long timeRemaining;
 
@@ -166,14 +165,18 @@ public class PokeCure implements CommandExecutor
                         {
                             printToLog(1, "§3" + src.getName() + "§b has to wait another §3" +
                                     timeRemaining + "§b seconds. Exit.");
-                            errorString = "§4Error: §cYou must wait another §4" + timeRemaining + "§c seconds.";
+
+                            if (timeRemaining > 60)
+                                errorString = "§4Error: §cYou must wait another §4" + ((timeRemaining / 60) + 1) + "§c minutes.";
+                            else
+                                errorString = "§4Error: §cYou must wait another §4" + timeRemaining + "§c seconds.";
                         }
 
                         hitCooldown = true;
                         canContinue = false;
                     }
                 }
-                else if (src.hasPermission("pixelupgrade.command.bypass.pokecure"))
+                else if (src.hasPermission("pixelupgrade.command.bypass.timedhatch"))
                     printToLog(2, "Player has the bypass permission. Moving on.");
 
                 if (canContinue)
@@ -199,12 +202,12 @@ public class PokeCure implements CommandExecutor
                         commandConfirmed = true;
                     }
 
-                    if (healParty)
+                    if (hatchParty)
                     {
                         if (hasOtherPerm)
-                            printToLog(2, "Party healing is on. Checking if we have a target and the perm.");
+                            printToLog(2, "Party hatching is on. Checking if we have a target and the perm.");
                         else
-                            printToLog(2, "Party healing is on. No other perm, so let's skip.");
+                            printToLog(2, "Party hatching is on. No other perm, so let's skip.");
 
                         if (arg1Optional.isPresent() && !arg1Optional.get().equalsIgnoreCase("-c"))
                         {
@@ -332,7 +335,7 @@ public class PokeCure implements CommandExecutor
                     else
                         nbt = null;
 
-                    if (!calledRemotely && !healParty)
+                    if (!calledRemotely && !hatchParty || calledRemotely && slot != 0)
                     {
                         if (nbt == null)
                         {
@@ -345,10 +348,11 @@ public class PokeCure implements CommandExecutor
 
                             canContinue = false;
                         }
-                        else if (nbt.getBoolean("isEgg"))
+                        else if (!nbt.getBoolean(NbtKeys.IS_EGG))
                         {
-                            printToLog(1, "Tried to show off an egg. Exit.");
-                            src.sendMessage(Text.of("§4Error: §cThat's an egg! You won't need to heal that."));
+                            printToLog(1, "Tried to hatch an actual Pokémon. That's too brutal; let's exit.");
+                            src.sendMessage(Text.of("§4Error: §cThat's not an egg. Don't hatch actual Pokémon, kids!"));
+
                             canContinue = false;
                         }
                     }
@@ -373,33 +377,33 @@ public class PokeCure implements CommandExecutor
                                     {
                                         if (target == null)
                                         {
-                                            if (healParty)
+                                            if (hatchParty)
                                             {
-                                                printToLog(1, "Healing player's party, and taking §3" +
+                                                printToLog(1, "Hatching player's party, and taking §3" +
                                                         costToConfirm + "§b coins.");
                                             }
                                             else
                                             {
-                                                printToLog(1, "Healing player slot §3" + slot +
+                                                printToLog(1, "Hatching player slot §3" + slot +
                                                         "§b, and taking §3" + costToConfirm + "§b coins.");
                                             }
                                         }
                                         else
                                         {
-                                            if (healParty)
+                                            if (hatchParty)
                                             {
-                                                printToLog(1, "Healing §3" + target.getName() +
+                                                printToLog(1, "Hatching §3" + target.getName() +
                                                         "§b's party, and taking §3" + costToConfirm + "§b coins.");
                                             }
                                             else
                                             {
-                                                printToLog(1, "Healing slot §3" + slot + "§b for §3" +
+                                                printToLog(1, "Hatching slot §3" + slot + "§b for §3" +
                                                         target.getName() + "§b. Taking §3" + costToConfirm + "§b coins.");
                                             }
                                         }
 
                                         cooldownMap.put(playerUUID, currentTime);
-                                        doHeal(src, target, slot, storageCompleted, nbt);
+                                        doHatch(src, target, slot, storageCompleted, nbt);
                                     }
                                     else
                                     {
@@ -421,16 +425,16 @@ public class PokeCure implements CommandExecutor
                             {
                                 printToLog(1, "Got cost but no confirmation; end of the line.");
 
-                                if (healParty)
+                                if (hatchParty)
                                 {
                                     // Is cost to confirm exactly one coin?
                                     if (target == null)
                                     {
                                         if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
-                                            src.sendMessage(Text.of("§6Warning: §eHealing your team costs §6one §ecoin."));
+                                            src.sendMessage(Text.of("§6Warning: §eHatching your team costs §6one §ecoin."));
                                         else
                                         {
-                                            src.sendMessage(Text.of("§6Warning: §eHealing your team costs §6" +
+                                            src.sendMessage(Text.of("§6Warning: §eHatching your team costs §6" +
                                                     costToConfirm + "§e coins."));
                                         }
 
@@ -439,11 +443,11 @@ public class PokeCure implements CommandExecutor
                                     else
                                     {
                                         if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
-                                            src.sendMessage(Text.of("§6Warning: §eHealing §6" + target.getName() +
+                                            src.sendMessage(Text.of("§6Warning: §eHatching §6" + target.getName() +
                                                     "§e's team costs §6one §ecoin."));
                                         else
                                         {
-                                            src.sendMessage(Text.of("§6Warning: §e§eHealing §6" + target.getName() +
+                                            src.sendMessage(Text.of("§6Warning: §eHatching §6" + target.getName() +
                                                     "§e's team costs §6" + costToConfirm + "§e coins."));
                                         }
 
@@ -455,10 +459,10 @@ public class PokeCure implements CommandExecutor
                                 {
                                     // Is cost to confirm exactly one coin?
                                     if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
-                                        src.sendMessage(Text.of("§6Warning: §eHealing this Pokémon costs §6one §ecoin."));
+                                        src.sendMessage(Text.of("§6Warning: §eHatching this egg costs §6one §ecoin."));
                                     else
                                     {
-                                        src.sendMessage(Text.of("§6Warning: §eHealing this Pokémon costs §6" +
+                                        src.sendMessage(Text.of("§6Warning: §eHatching this egg costs §6" +
                                                 costToConfirm + "§e coins."));
                                     }
 
@@ -481,32 +485,32 @@ public class PokeCure implements CommandExecutor
                             {
                                 if (target == null)
                                 {
-                                    if (healParty)
-                                        printToLog(1, "Healing player's party. Config price is §30§b, taking nothing.");
+                                    if (hatchParty)
+                                        printToLog(1, "Hatching player's party. Config price is §30§b, taking nothing.");
                                     else
                                     {
-                                        printToLog(1, "Healing slot §3" + slot +
+                                        printToLog(1, "Hatching slot §3" + slot +
                                                 "§b. Config price is §30§b, taking nothing.");
                                     }
                                 }
                                 else
                                 {
-                                    if (healParty)
+                                    if (hatchParty)
                                     {
-                                        printToLog(1, "Healing §3" + target.getName() +
+                                        printToLog(1, "Hatching §3" + target.getName() +
                                                 "§b's party. Config price is §30§b, taking nothing.");
                                     }
                                     else
                                     {
-                                        printToLog(1, "Healing slot §3" + slot + "§b for §3" +
-                                                        target.getName() + "§b. Config price is §30§b.");
+                                        printToLog(1, "Hatching slot §3" + slot + "§b for §3" +
+                                                target.getName() + "§b. Config price is §30§b.");
                                     }
                                 }
 
                                 cooldownMap.put(playerUUID, currentTime);
                             }
 
-                            doHeal(src, target, slot, storageCompleted, nbt);
+                            doHatch(src, target, slot, storageCompleted, nbt);
                         }
                     }
                 }
@@ -529,7 +533,7 @@ public class PokeCure implements CommandExecutor
             else
                 confirmString = "";
 
-            if (healParty)
+            if (hatchParty)
             {
                 if (hasOtherPerm)
                     src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [target?]" + confirmString));
@@ -546,57 +550,64 @@ public class PokeCure implements CommandExecutor
         }
     }
 
-    private void doHeal(CommandSource src, Player target, int slot, PlayerStorage storage, NBTTagCompound nbt)
+    private void doHatch(CommandSource src, Player target, int slot, PlayerStorage storage, NBTTagCompound nbt)
     {
-        if (healParty && target == null)
+        if (hatchParty && target == null)
         {
-            EntityPlayerMP playerEntity = (EntityPlayerMP) src;
-            storage.healAllPokemon(playerEntity.getServerWorld());
+            // Re-use our slot int, won't need it anyways.
+            for (slot = 0; slot < 6; slot++)
+            {
+                // Re-use our NBTTagCompound as well. Same story, no specific slot so hey.
+                nbt = storage.partyPokemon[slot];
 
-            src.sendMessage(Text.of("§aYour party has been healed!"));
+                if (nbt != null && nbt.getBoolean(NbtKeys.IS_EGG))
+                    storage.changePokemonAndAssignID(slot, nbt);
+            }
+
+            src.sendMessage(Text.of("§aYour party's eggs have been hatched!"));
         }
-        else if (calledRemotely && slot == 0 || !calledRemotely && healParty)
+        else if (calledRemotely && slot == 0 || !calledRemotely && hatchParty)
         {
-            EntityPlayerMP playerEntity = (EntityPlayerMP) target;
-            storage.healAllPokemon(playerEntity.getServerWorld());
+            // Re-use our slot int, won't need it anyways.
+            for (slot = 0; slot < 6; slot++)
+            {
+                // Re-use our NBTTagCompound as well. Same story, no specific slot so hey.
+                nbt = storage.partyPokemon[slot];
+
+                if (nbt != null && nbt.getBoolean(NbtKeys.IS_EGG))
+                    storage.changePokemonAndAssignID(slot, nbt);
+            }
 
             if (calledRemotely && sneakyMode)
-                src.sendMessage(Text.of("§aThe target's party has been silently healed!"));
+                src.sendMessage(Text.of("§aThe target's party's eggs have been silently hatched!"));
             else
-                src.sendMessage(Text.of("§aThe target's party has been healed!"));
+                src.sendMessage(Text.of("§aThe target's party's eggs have been hatched!"));
 
             if (calledRemotely && !sneakyMode)
-                target.sendMessage(Text.of("§aYour party was healed from the console!"));
+                target.sendMessage(Text.of("§aYour party's eggs were hatched from the console!"));
             else if (!calledRemotely)
-                target.sendMessage(Text.of("§aYour party was healed by §2" + src.getName() + "§a!"));
+                target.sendMessage(Text.of("§aYour party's eggs were hatched by §2" + src.getName() + "§a!"));
         }
         else
         {
-            // Partially nicked from the "heal" method in Pixelmon, as that's private.
-            nbt.setFloat(NbtKeys.HEALTH, (float) nbt.getInteger(NbtKeys.STATS_HP));
-            nbt.setBoolean(NbtKeys.IS_FAINTED, false);
-            nbt.removeTag("Status");
-
-            int numberOfMoves = nbt.getInteger(NbtKeys.PIXELMON_NUMBER_MOVES);
-            for (int i = 0; i < numberOfMoves; i++)
-                nbt.setInteger(NbtKeys.PIXELMON_MOVE_PP + i, nbt.getInteger(NbtKeys.PIXELMON_MOVE_PPBASE + i));
-
-            storage.sendUpdatedList();
+            // Hatch us an egg, and then update our target's team.
+            nbt.setBoolean(NbtKeys.IS_EGG, false);
+            storage.changePokemonAndAssignID(slot - 1, nbt);
 
             if (target != null)
             {
                 if (calledRemotely && sneakyMode)
-                    src.sendMessage(Text.of("§aThe target's slot §2" + slot + " §aPokémon has been silently healed!"));
+                    src.sendMessage(Text.of("§aThe target's slot §2" + slot + " §aegg has been silently hatched!"));
                 else
-                    src.sendMessage(Text.of("§aThe target's slot §2" + slot + " §aPokémon has been healed!"));
+                    src.sendMessage(Text.of("§aThe target's slot §2" + slot + " §aegg has been hatched!"));
 
                 if (calledRemotely && !sneakyMode)
-                    target.sendMessage(Text.of("§aThe Pokémon in slot §2" + slot + "§a was healed from the console!"));
+                    target.sendMessage(Text.of("§aThe egg in slot §2" + slot + "§a was hatched from the console!"));
                 else if (!calledRemotely)
-                    target.sendMessage(Text.of("§aThe Pokémon in slot §2" + slot + "§a was healed by §2" + src.getName() + "§a!"));
+                    target.sendMessage(Text.of("§aThe egg in slot §2" + slot + "§a was hatched by §2" + src.getName() + "§a!"));
             }
             else
-                src.sendMessage(Text.of("§aThe Pokémon in slot §2" + slot + " §ahas been healed!"));
+                src.sendMessage(Text.of("§aThe egg in slot §2" + slot + " §ahas been hatched!"));
         }
     }
 }
