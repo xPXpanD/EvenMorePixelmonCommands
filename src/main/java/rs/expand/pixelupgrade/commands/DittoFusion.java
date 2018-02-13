@@ -2,6 +2,7 @@
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
+import com.pixelmonmod.pixelmon.battles.BattleRegistry;
 import com.pixelmonmod.pixelmon.config.PixelmonEntityList;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import com.pixelmonmod.pixelmon.storage.NbtKeys;
@@ -25,14 +26,10 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.CommonMethods;
+import rs.expand.pixelupgrade.utilities.PrintingMethods;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
-/*                                                                           *\
-    TODO: Turn /dittofusion into a generic /fuse that works on everything?
-    Would need a Ditto-only config setting. May be a nice feature for 4.0?
-\*                                                                           */
-
+// TODO: Turn /dittofusion into a generic /fuse that works on everything?
 public class DittoFusion implements CommandExecutor
 {
     // Initialize some variables. We'll load stuff into these when we call the config loader.
@@ -43,16 +40,16 @@ public class DittoFusion implements CommandExecutor
     public static Boolean passOnShinyStatus;
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
-    private void printToLog (int debugNum, String inputString)
-    { CommonMethods.printDebugMessage("DittoFusion", debugNum, inputString); }
+    private void printToLog (final int debugNum, final String inputString)
+    { PrintingMethods.printDebugMessage("DittoFusion", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
-    public CommandResult execute(CommandSource src, CommandContext args)
+    public CommandResult execute(final CommandSource src, final CommandContext args)
     {
         if (src instanceof Player)
         {
             // Validate the data we get from the command's main config.
-            ArrayList<String> nativeErrorArray = new ArrayList<>();
+            final ArrayList<String> nativeErrorArray = new ArrayList<>();
             if (commandAlias == null)
                 nativeErrorArray.add("commandAlias");
             if (stat0to5 == null)
@@ -84,7 +81,7 @@ public class DittoFusion implements CommandExecutor
 
             if (!nativeErrorArray.isEmpty())
             {
-                CommonMethods.printCommandNodeError("DittoFusion", nativeErrorArray);
+                PrintingMethods.printCommandNodeError("DittoFusion", nativeErrorArray);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else if (useBritishSpelling == null)
@@ -93,28 +90,33 @@ public class DittoFusion implements CommandExecutor
                 printToLog(0, "The main config contains invalid variables. Exiting.");
                 src.sendMessage(Text.of("§4Error: §cCould not parse main config. Please report to staff."));
             }
+            else if (BattleRegistry.getBattle((EntityPlayerMP) src) != null)
+            {
+                printToLog(0, "Called by player §4" + src.getName() + "§c, but in a battle. Exit.");
+                src.sendMessage(Text.of("§4Error: §cYou can't use this command while in a battle!"));
+            }
             else
             {
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
-                Player player = (Player) src;
+                final Player player = (Player) src;
                 int slot1 = 0, slot2 = 0;
                 boolean commandConfirmed = false, canContinue = false;
                 String errorString = "§4There's an error message missing, please report this!";
 
-                if (!args.<String>getOne("target slot").isPresent())
+                if (!args.<String>getOne("main slot").isPresent())
                 {
                     printToLog(1, "No arguments provided. Exit.");
                     errorString = "§4Error: §cNo slots were provided. Please provide two valid slots.";
                 }
                 else
                 {
-                    String slotString = args.<String>getOne("target slot").get();
+                    final String slotString = args.<String>getOne("main slot").get();
 
                     if (slotString.matches("^[1-6]"))
                     {
                         printToLog(2, "Target slot was a valid slot number. Let's move on!");
-                        slot1 = Integer.parseInt(args.<String>getOne("target slot").get());
+                        slot1 = Integer.parseInt(args.<String>getOne("main slot").get());
                         canContinue = true;
                     }
                     else
@@ -135,7 +137,7 @@ public class DittoFusion implements CommandExecutor
                     }
                     else
                     {
-                        String slotString = args.<String>getOne("sacrifice slot").get();
+                        final String slotString = args.<String>getOne("sacrifice slot").get();
 
                         if (slotString.matches("^[1-6]"))
                         {
@@ -172,8 +174,7 @@ public class DittoFusion implements CommandExecutor
                 }
                 else
                 {
-                    printToLog(2, "No errors encountered, input should be valid. Continuing!");
-                    Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
+                    final Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
                     if (!storage.isPresent())
                     {
@@ -182,9 +183,9 @@ public class DittoFusion implements CommandExecutor
                     }
                     else
                     {
-                        PlayerStorage storageCompleted = (PlayerStorage) storage.get();
-                        NBTTagCompound nbt1 = storageCompleted.partyPokemon[slot1 - 1];
-                        NBTTagCompound nbt2 = storageCompleted.partyPokemon[slot2 - 1];
+                        final PlayerStorage storageCompleted = (PlayerStorage) storage.get();
+                        final NBTTagCompound nbt1 = storageCompleted.partyPokemon[slot1 - 1];
+                        final NBTTagCompound nbt2 = storageCompleted.partyPokemon[slot2 - 1];
 
                         if (nbt1 == null && nbt2 != null)
                         {
@@ -203,7 +204,7 @@ public class DittoFusion implements CommandExecutor
                         }
                         else
                         {
-                            Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
+                            final Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
 
                             if (optionalAccount.isPresent())
                             {
@@ -224,11 +225,11 @@ public class DittoFusion implements CommandExecutor
                                 }
                                 else
                                 {
-                                    World currentWorld = (World) player.getWorld();
-                                    EntityPixelmon targetPokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt1, currentWorld);
-                                    EntityPixelmon sacrificePokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt2, currentWorld);
-                                    int targetFuseCount = targetPokemon.getEntityData().getInteger("fuseCount");
-                                    int sacrificeFuseCount = sacrificePokemon.getEntityData().getInteger("fuseCount");
+                                    final World currentWorld = (World) player.getWorld();
+                                    final EntityPixelmon targetPokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt1, currentWorld);
+                                    final EntityPixelmon sacrificePokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt2, currentWorld);
+                                    final int targetFuseCount = targetPokemon.getEntityData().getInteger("fuseCount");
+                                    final int sacrificeFuseCount = sacrificePokemon.getEntityData().getInteger("fuseCount");
 
                                     if (targetFuseCount >= shinyCap && nbt1.getInteger(NbtKeys.IS_SHINY) == 1)
                                     {
@@ -248,23 +249,23 @@ public class DittoFusion implements CommandExecutor
                                     {
                                         printToLog(2, "Passed most of the checks, moving on to execution.");
 
-                                        UniqueAccount uniqueAccount = optionalAccount.get();
+                                        final UniqueAccount uniqueAccount = optionalAccount.get();
                                         int HPPlusNum = 0, ATKPlusNum = 0, DEFPlusNum = 0, SPATKPlusNum = 0;
                                         int SPDEFPlusNum = 0, SPDPlusNum = 0, statToCheck = 0, statToUpgrade;
 
-                                        int targetHP = nbt1.getInteger(NbtKeys.IV_HP);
-                                        int targetATK = nbt1.getInteger(NbtKeys.IV_ATTACK);
-                                        int targetDEF = nbt1.getInteger(NbtKeys.IV_DEFENCE);
-                                        int targetSPATK = nbt1.getInteger(NbtKeys.IV_SP_ATT);
-                                        int targetSPDEF = nbt1.getInteger(NbtKeys.IV_SP_DEF);
-                                        int targetSPD = nbt1.getInteger(NbtKeys.IV_SPEED);
+                                        final int targetHP = nbt1.getInteger(NbtKeys.IV_HP);
+                                        final int targetATK = nbt1.getInteger(NbtKeys.IV_ATTACK);
+                                        final int targetDEF = nbt1.getInteger(NbtKeys.IV_DEFENCE);
+                                        final int targetSPATK = nbt1.getInteger(NbtKeys.IV_SP_ATT);
+                                        final int targetSPDEF = nbt1.getInteger(NbtKeys.IV_SP_DEF);
+                                        final int targetSPD = nbt1.getInteger(NbtKeys.IV_SPEED);
 
-                                        int sacrificeHP = nbt2.getInteger(NbtKeys.IV_HP);
-                                        int sacrificeATK = nbt2.getInteger(NbtKeys.IV_ATTACK);
-                                        int sacrificeDEF = nbt2.getInteger(NbtKeys.IV_DEFENCE);
-                                        int sacrificeSPATK = nbt2.getInteger(NbtKeys.IV_SP_ATT);
-                                        int sacrificeSPDEF = nbt2.getInteger(NbtKeys.IV_SP_DEF);
-                                        int sacrificeSPD = nbt2.getInteger(NbtKeys.IV_SPEED);
+                                        final int sacrificeHP = nbt2.getInteger(NbtKeys.IV_HP);
+                                        final int sacrificeATK = nbt2.getInteger(NbtKeys.IV_ATTACK);
+                                        final int sacrificeDEF = nbt2.getInteger(NbtKeys.IV_DEFENCE);
+                                        final int sacrificeSPATK = nbt2.getInteger(NbtKeys.IV_SP_ATT);
+                                        final int sacrificeSPDEF = nbt2.getInteger(NbtKeys.IV_SP_DEF);
+                                        final int sacrificeSPD = nbt2.getInteger(NbtKeys.IV_SPEED);
 
                                         for (int i = 0; i <= 5; i++)
                                         {
@@ -337,7 +338,8 @@ public class DittoFusion implements CommandExecutor
                                         int totalUpgradeCount = HPPlusNum + ATKPlusNum + DEFPlusNum + SPATKPlusNum;
                                         totalUpgradeCount = totalUpgradeCount + SPDEFPlusNum + SPDPlusNum;
                                         BigDecimal costToConfirm = BigDecimal.valueOf((totalUpgradeCount * pointMultiplierForCost) + addFlatFee);
-                                        BigDecimal nonMultipliedCost = costToConfirm, extraCost = new BigDecimal(0);
+                                        final BigDecimal nonMultipliedCost = costToConfirm;
+                                        BigDecimal extraCost = new BigDecimal(0);
 
                                         if (sacrificeFuseCount > 0)
                                         {
@@ -352,7 +354,7 @@ public class DittoFusion implements CommandExecutor
                                         }
                                         else if (commandConfirmed)
                                         {
-                                            TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
+                                            final TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
                                                 costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
 
                                             if (transactionResult.getResult() == ResultType.SUCCESS)
@@ -436,7 +438,7 @@ public class DittoFusion implements CommandExecutor
                                             }
                                             else
                                             {
-                                                BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
+                                                final BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
                                                 printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
                                                         "§b, and we're lacking §3" + balanceNeeded);
 

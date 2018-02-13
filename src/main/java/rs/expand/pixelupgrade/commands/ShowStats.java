@@ -30,8 +30,8 @@ import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.channel.MessageChannel;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.CommonMethods;
-import rs.expand.pixelupgrade.utilities.GetPokemonInfo;
+import rs.expand.pixelupgrade.utilities.PrintingMethods;
+import rs.expand.pixelupgrade.utilities.PokemonMethods;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
 public class ShowStats implements CommandExecutor
@@ -47,16 +47,16 @@ public class ShowStats implements CommandExecutor
     private HashMap<UUID, Long> cooldownMap = new HashMap<>();
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
-    private void printToLog (int debugNum, String inputString)
-    { CommonMethods.printDebugMessage("ShowStats", debugNum, inputString); }
+    private void printToLog (final int debugNum, final String inputString)
+    { PrintingMethods.printDebugMessage("ShowStats", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
-    public CommandResult execute(CommandSource src, CommandContext args)
+    public CommandResult execute(final CommandSource src, final CommandContext args)
     {
         if (src instanceof Player)
         {
             // Validate the data we get from the command's main config.
-            ArrayList<String> nativeErrorArray = new ArrayList<>();
+            final ArrayList<String> nativeErrorArray = new ArrayList<>();
             if (commandAlias == null)
                 nativeErrorArray.add("commandAlias");
             if (cooldownInSeconds == null)
@@ -79,7 +79,7 @@ public class ShowStats implements CommandExecutor
                 nativeErrorArray.add("commandCost");
 
             // Also get some stuff from PixelUpgrade.conf.
-            ArrayList<String> mainConfigErrorArray = new ArrayList<>();
+            final ArrayList<String> mainConfigErrorArray = new ArrayList<>();
             if (configVersion == null)
                 mainConfigErrorArray.add("configVersion");
             if (shortenedHP == null)
@@ -97,12 +97,12 @@ public class ShowStats implements CommandExecutor
 
             if (!nativeErrorArray.isEmpty())
             {
-                CommonMethods.printCommandNodeError("ShowStats", nativeErrorArray);
+                PrintingMethods.printCommandNodeError("ShowStats", nativeErrorArray);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else if (!mainConfigErrorArray.isEmpty())
             {
-                CommonMethods.printMainNodeError("ShowStats", mainConfigErrorArray);
+                PrintingMethods.printMainNodeError("ShowStats", mainConfigErrorArray);
                 src.sendMessage(Text.of("§4Error: §cCould not parse main config. Please report to staff."));
             }
             else
@@ -120,7 +120,8 @@ public class ShowStats implements CommandExecutor
 
                 if (showCounts)
                 {
-                    ArrayList<String> upgradeErrorArray = new ArrayList<>(), fusionErrorArray = new ArrayList<>();
+                    final ArrayList<String> upgradeErrorArray = new ArrayList<>();
+                    final ArrayList<String> fusionErrorArray = new ArrayList<>();
 
                     printToLog(2, "Entering external config validation. Errors will be logged.");
 
@@ -128,7 +129,7 @@ public class ShowStats implements CommandExecutor
                         fusionErrorArray.add("regularCap");
                     if (DittoFusion.shinyCap == null)
                         fusionErrorArray.add("shinyCap");
-                    CommonMethods.printPartialNodeError("ShowStats", "DittoFusion", fusionErrorArray);
+                    PrintingMethods.printPartialNodeError("ShowStats", "DittoFusion", fusionErrorArray);
 
                     if (UpgradeIVs.legendaryAndShinyCap == null)
                         upgradeErrorArray.add("legendaryAndShinyCap");
@@ -138,7 +139,7 @@ public class ShowStats implements CommandExecutor
                         upgradeErrorArray.add("regularCap");
                     if (UpgradeIVs.shinyCap == null)
                         upgradeErrorArray.add("shinyCap");
-                    CommonMethods.printPartialNodeError("ShowStats", "UpgradeIVs", upgradeErrorArray);
+                    PrintingMethods.printPartialNodeError("ShowStats", "UpgradeIVs", upgradeErrorArray);
 
                     if (!fusionErrorArray.isEmpty() || !upgradeErrorArray.isEmpty())
                     {
@@ -148,10 +149,13 @@ public class ShowStats implements CommandExecutor
                         if (!fusionErrorArray.isEmpty() || !upgradeErrorArray.isEmpty())
                             gotExternalConfigError = true;
                     }
+                    else
+                        printToLog(2, "External config loading is done. Moving on to argument parsing.");
                 }
 
                 boolean commandConfirmed = false;
                 int slot = 0;
+                final long currentTime = System.currentTimeMillis() / 1000; // Grab seconds.
 
                 if (!args.<String>getOne("slot").isPresent())
                 {
@@ -161,13 +165,13 @@ public class ShowStats implements CommandExecutor
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo arguments found. Please provide a slot."));
                     printSyntaxHelper(src);
-                    CommonMethods.checkAndAddFooter(commandCost, src);
+                    PrintingMethods.checkAndAddFooter(commandCost, src);
 
                     canContinue = false;
                 }
                 else
                 {
-                    String slotString = args.<String>getOne("slot").get();
+                    final String slotString = args.<String>getOne("slot").get();
 
                     if (slotString.matches("^[1-6]"))
                     {
@@ -182,7 +186,7 @@ public class ShowStats implements CommandExecutor
                             src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
                         printSyntaxHelper(src);
-                        CommonMethods.checkAndAddFooter(commandCost, src);
+                        PrintingMethods.checkAndAddFooter(commandCost, src);
 
                         canContinue = false;
                     }
@@ -193,8 +197,7 @@ public class ShowStats implements CommandExecutor
 
                 if (canContinue)
                 {
-                    printToLog(2, "No errors encountered, input should be valid. Continuing!");
-                    Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
+                    final Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
                     if (!storage.isPresent())
                     {
@@ -203,8 +206,8 @@ public class ShowStats implements CommandExecutor
                     }
                     else
                     {
-                        PlayerStorage storageCompleted = (PlayerStorage) storage.get();
-                        NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
+                        final PlayerStorage storageCompleted = (PlayerStorage) storage.get();
+                        final NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
 
                         if (nbt == null)
                         {
@@ -218,20 +221,30 @@ public class ShowStats implements CommandExecutor
                         }
                         else
                         {
-                            UUID playerUUID = ((Player) src).getUniqueId(); // why is the "d" in "Id" lowercase :(
-                            long currentTime = System.currentTimeMillis();
+                            // TODO: Pull this whole thing's position in-line with /timedheal and /timedhatch?
+                            printToLog(2, "Checking if player is (still?) on a cooldown.");
+
+                            final UUID playerUUID = ((Player) src).getUniqueId(); // why is the "d" in "Id" lowercase :(
 
                             if (!src.hasPermission("pixelupgrade.command.bypass.showstats") && cooldownMap.containsKey(playerUUID))
                             {
-                                long cooldownInMillis = cooldownInSeconds * 1000;
-                                long timeDifference = currentTime - cooldownMap.get(playerUUID), timeRemaining;
+                                final boolean hasAltPerm = src.hasPermission("pixelupgrade.command.altcooldown.showstats");
+                                final long timeDifference = currentTime - cooldownMap.get(playerUUID);
+                                final long timeRemaining;
 
-                                if (!outdatedAltCooldownInSeconds && src.hasPermission("pixelupgrade.command.altcooldown.showstats"))
-                                    timeRemaining = altCooldownInSeconds - timeDifference / 1000;
+                                if (!outdatedAltCooldownInSeconds && hasAltPerm)
+                                {
+                                    printToLog(2, "Player has the alternate cooldown permission.");
+                                    timeRemaining = altCooldownInSeconds - timeDifference;
+                                }
                                 else
-                                    timeRemaining = cooldownInSeconds - timeDifference / 1000;
+                                {
+                                    printToLog(2, "Player has the normal cooldown permission.");
+                                    timeRemaining = cooldownInSeconds - timeDifference;
+                                }
 
-                                if (cooldownMap.get(playerUUID) > currentTime - cooldownInMillis)
+                                if (!outdatedAltCooldownInSeconds && hasAltPerm && cooldownMap.get(playerUUID) > currentTime - altCooldownInSeconds ||
+                                        !hasAltPerm && cooldownMap.get(playerUUID) > currentTime - cooldownInSeconds)
                                 {
                                     if (timeRemaining == 1)
                                     {
@@ -242,8 +255,17 @@ public class ShowStats implements CommandExecutor
                                     {
                                         printToLog(1, "§3" + src.getName() + "§b has to wait another §3" +
                                                 timeRemaining + "§b seconds. Exit.");
-                                        src.sendMessage(Text.of("§4Error: §cYou must wait another §4" +
-                                                timeRemaining + "§c seconds."));
+
+                                        if (timeRemaining > 60)
+                                        {
+                                            src.sendMessage(Text.of("§4Error: §cYou must wait another §4" +
+                                                    ((timeRemaining / 60) + 1) + "§c minutes."));
+                                        }
+                                        else
+                                        {
+                                            src.sendMessage(Text.of("§4Error: §cYou must wait another §4" +
+                                                    timeRemaining + "§c seconds."));
+                                        }
                                     }
 
                                     canContinue = false;
@@ -254,32 +276,35 @@ public class ShowStats implements CommandExecutor
                             {
                                 if (commandCost > 0)
                                 {
-                                    BigDecimal costToConfirm = new BigDecimal(commandCost);
+                                    final BigDecimal costToConfirm = new BigDecimal(commandCost);
 
                                     if (commandConfirmed)
                                     {
-                                        Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(playerUUID);
+                                        final Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(playerUUID);
 
                                         if (optionalAccount.isPresent())
                                         {
-                                            UniqueAccount uniqueAccount = optionalAccount.get();
-                                            TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
+                                            final UniqueAccount uniqueAccount = optionalAccount.get();
+                                            final TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
                                                         costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
 
                                             if (transactionResult.getResult() == ResultType.SUCCESS)
                                             {
                                                 printToLog(1, "Showing off slot §3" + slot +
                                                         "§b, and taking §3" + costToConfirm + "§b coins.");
+
                                                 cooldownMap.put(playerUUID, currentTime);
                                                 checkAndShowStats(nbt, (Player) src);
                                             }
                                             else
                                             {
-                                                BigDecimal balanceNeeded = uniqueAccount.getBalance(
+                                                final BigDecimal balanceNeeded = uniqueAccount.getBalance(
                                                         economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
+
                                                 printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
                                                         "§b, and we're lacking §3" + balanceNeeded);
-                                                src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
+                                                src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded +
+                                                        "§c more coins to do this."));
                                             }
                                         }
                                         else
@@ -322,7 +347,7 @@ public class ShowStats implements CommandExecutor
         return CommandResult.success();
     }
 
-    private void printSyntaxHelper(CommandSource src)
+    private void printSyntaxHelper(final CommandSource src)
     {
         if (commandCost != 0)
             src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> {-c to confirm}"));
@@ -330,17 +355,18 @@ public class ShowStats implements CommandExecutor
             src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6>"));
     }
 
-    private void checkAndShowStats(NBTTagCompound nbt, Player player)
+    private void checkAndShowStats(final NBTTagCompound nbt, final Player player)
     {
         // Set up IVs and matching math.
-        int HPIV = nbt.getInteger(NbtKeys.IV_HP);
-        int attackIV = nbt.getInteger(NbtKeys.IV_ATTACK);
-        int defenseIV = nbt.getInteger(NbtKeys.IV_DEFENCE);
-        int spAttIV = nbt.getInteger(NbtKeys.IV_SP_ATT);
-        int spDefIV = nbt.getInteger(NbtKeys.IV_SP_DEF);
-        int speedIV = nbt.getInteger(NbtKeys.IV_SPEED);
-        BigDecimal totalIVs = BigDecimal.valueOf(HPIV + attackIV + defenseIV + spAttIV + spDefIV + speedIV);
-        BigDecimal percentIVs = totalIVs.multiply(new BigDecimal("100")).divide(new BigDecimal("186"), 2, BigDecimal.ROUND_HALF_UP);
+        final int HPIV = nbt.getInteger(NbtKeys.IV_HP);
+        final int attackIV = nbt.getInteger(NbtKeys.IV_ATTACK);
+        final int defenseIV = nbt.getInteger(NbtKeys.IV_DEFENCE);
+        final int spAttIV = nbt.getInteger(NbtKeys.IV_SP_ATT);
+        final int spDefIV = nbt.getInteger(NbtKeys.IV_SP_DEF);
+        final int speedIV = nbt.getInteger(NbtKeys.IV_SPEED);
+        final BigDecimal totalIVs = BigDecimal.valueOf(HPIV + attackIV + defenseIV + spAttIV + spDefIV + speedIV);
+        final BigDecimal percentIVs = totalIVs.multiply(new BigDecimal("100")).divide(new BigDecimal("186"),
+                2, BigDecimal.ROUND_HALF_UP);
 
         // Format the IVs for use later, so we can print them.
         String ivs1 = String.valueOf(HPIV + " §2" + shortenedHP + " §r|§a ");
@@ -364,14 +390,15 @@ public class ShowStats implements CommandExecutor
             ivs6 = String.valueOf("§o") + ivs6;
 
         // Rinse and repeat for EVs.
-        int HPEV = nbt.getInteger(NbtKeys.EV_HP);
-        int attackEV = nbt.getInteger(NbtKeys.EV_ATTACK);
-        int defenseEV = nbt.getInteger(NbtKeys.EV_DEFENCE);
-        int spAttEV = nbt.getInteger(NbtKeys.EV_SPECIAL_ATTACK);
-        int spDefEV = nbt.getInteger(NbtKeys.EV_SPECIAL_DEFENCE);
-        int speedEV = nbt.getInteger(NbtKeys.EV_SPEED);
-        BigDecimal totalEVs = BigDecimal.valueOf(HPEV + attackEV + defenseEV + spAttEV + spDefEV + speedEV);
-        BigDecimal percentEVs = totalEVs.multiply(new BigDecimal("100")).divide(new BigDecimal("510"), 2, BigDecimal.ROUND_HALF_UP);
+        final int HPEV = nbt.getInteger(NbtKeys.EV_HP);
+        final int attackEV = nbt.getInteger(NbtKeys.EV_ATTACK);
+        final int defenseEV = nbt.getInteger(NbtKeys.EV_DEFENCE);
+        final int spAttEV = nbt.getInteger(NbtKeys.EV_SPECIAL_ATTACK);
+        final int spDefEV = nbt.getInteger(NbtKeys.EV_SPECIAL_DEFENCE);
+        final int speedEV = nbt.getInteger(NbtKeys.EV_SPEED);
+        final BigDecimal totalEVs = BigDecimal.valueOf(HPEV + attackEV + defenseEV + spAttEV + spDefEV + speedEV);
+        final BigDecimal percentEVs = totalEVs.multiply(new BigDecimal("100")).divide(new BigDecimal("510"),
+                2, BigDecimal.ROUND_HALF_UP);
 
         // Also format the strings for EVs.
         String evs1 = String.valueOf(HPEV + " §2" + shortenedHP + " §r|§a ");
@@ -397,23 +424,18 @@ public class ShowStats implements CommandExecutor
         // Set up for our anti-cheat notifier.
         boolean nicknameTooLong = false;
 
-        // Get a bunch of data from our GetPokemonInfo utility class. Used for messages, later on.
-        // FIXME: Fix gender printing on console. On Windows and possibly other OSes, the character becomes a "?".
-        ArrayList<String> natureArray = GetPokemonInfo.getNatureStrings(nbt.getInteger(NbtKeys.NATURE));
-        String natureName = natureArray.get(0).toLowerCase();
-        String plusVal;
-        String minusVal;
+        // Get a bunch of data from our PokemonMethods utility class. Used for messages, later on.
+        final ArrayList<String> natureArray = PokemonMethods.getNatureStrings(nbt.getInteger(NbtKeys.NATURE));
+        final String natureName = natureArray.get(0).toLowerCase();
+        final String plusVal = natureArray.get(1);
+        final String minusVal = natureArray.get(2);
 
         // Some of this logic could be in a more limited scope, but it's more convenient to do it now.
-        String name = nbt.getString("Name");
-        String formattedName = "§6" + name;
-
-        // Format our nature Strings.
-        plusVal = natureArray.get(1);
-        minusVal = natureArray.get(2);
+        final String name = nbt.getString("Name");
+        final String formattedName = "§6" + name;
 
         // Grab a gender string.
-        String genderString;
+        final String genderString;
         switch (nbt.getInteger(NbtKeys.GENDER))
         {
             case 0:
@@ -425,7 +447,7 @@ public class ShowStats implements CommandExecutor
         }
 
         // Grab a growth string.
-        String sizeString;
+        final String sizeString;
         switch (nbt.getInteger(NbtKeys.GROWTH))
         {
             case 0:
@@ -453,19 +475,29 @@ public class ShowStats implements CommandExecutor
         // These always get added to printing, but are filled in only when necessary.
         String shinyString = "", nameAdditionString = "";
 
+        // Set up nickname stuff.
+        String nickname = nbt.getString(NbtKeys.NICKNAME);
+        if (nickname.length() > 11)
+        {
+            printToLog(1, "Found a nickname over the 11-char limit. Player may be cheating?");
+
+            if (clampBadNicknames)
+                nickname = nickname.substring(0, 11);
+
+            nicknameTooLong = true;
+        }
+
         // Alter our earlier strings if necessary.
         if (nbt.getInteger(NbtKeys.IS_SHINY) == 1)
             shinyString = "§6§lshiny §r";
         if (showNicknames)
         {
-            String nickname = nbt.getString(NbtKeys.NICKNAME);
-
             if (nickname != null && !nickname.isEmpty())
                 nameAdditionString = "§e, nicknamed §6" + nickname + "§e:";
         }
 
         // Do the setup for our nature String separately, as it's a bit more involved.
-        String natureString;
+        final String natureString;
         if (nbt.getInteger(NbtKeys.NATURE) >= 0 && nbt.getInteger(NbtKeys.NATURE) <= 4)
             natureString = "is §2" + natureName + "§a, with well-balanced stats.";
         else if (nbt.getInteger(NbtKeys.NATURE) < 0 || nbt.getInteger(NbtKeys.NATURE) > 24)
@@ -497,7 +529,7 @@ public class ShowStats implements CommandExecutor
 
             if (name.equals("Mew"))
             {
-                int cloneCount = nbt.getInteger(NbtKeys.STATS_NUM_CLONED);
+                final int cloneCount = nbt.getInteger(NbtKeys.STATS_NUM_CLONED);
 
                 if (cloneCount == 0)
                     hovers.add("➡ §aCloning has not yet been attempted.");
@@ -510,12 +542,12 @@ public class ShowStats implements CommandExecutor
         {
             hovers.add("");
 
-            String introString;
-            EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
+            final String introString;
+            final EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
 
             if (name.equals("Ditto"))
             {
-                int fuseCount = pokemon.getEntityData().getInteger("fuseCount"), fusionCap;
+                final int fuseCount = pokemon.getEntityData().getInteger("fuseCount"), fusionCap;
 
                 if (nbt.getInteger(NbtKeys.IS_SHINY) == 1)
                     fusionCap = DittoFusion.shinyCap;
@@ -533,8 +565,8 @@ public class ShowStats implements CommandExecutor
             }
             else
             {
-                int upgradeCount = pokemon.getEntityData().getInteger("upgradeCount"), upgradeCap;
-                boolean isLegendary = EnumPokemon.legendaries.contains(nbt.getString("Name"));
+                final int upgradeCount = pokemon.getEntityData().getInteger("upgradeCount"), upgradeCap;
+                final boolean isLegendary = EnumPokemon.legendaries.contains(nbt.getString("Name"));
 
                 if (nbt.getInteger(NbtKeys.IS_SHINY) == 1 && isLegendary)
                     upgradeCap = UpgradeIVs.legendaryAndShinyCap;
@@ -560,15 +592,15 @@ public class ShowStats implements CommandExecutor
         }
 
         // Put every String in our ArrayList on its own line, and reset formatting.
-        Text toPrint = Text.of(String.join("\n§r", hovers));
+        final Text toPrint = Text.of(String.join("\n§r", hovers));
 
         // FIXME: This message can be too long with long player names and shiny Pokémon. Not a big deal, but nice polish?
         // Format our chat messages.
-        String ivHelper = "§6" + player.getName() + "§e is showing off a " +
+        final String ivHelper = "§6" + player.getName() + "§e is showing off a " +
                 shinyString + formattedName + "§e, hover for info.";
 
         // Set up our hover.
-        Text ivBuilder = Text.builder(ivHelper)
+        final Text ivBuilder = Text.builder(ivHelper)
                 .onHover(TextActions.showText(toPrint))
                 .build();
 
@@ -576,17 +608,18 @@ public class ShowStats implements CommandExecutor
         MessageChannel.TO_PLAYERS.send(ivBuilder);
 
         // If our anti-cheat caught something, notify people with the correct permissions here.
-        if (nicknameTooLong)
+        if (notifyBadNicknames && nicknameTooLong)
         {
+            // Add a space to avoid clutter.
             MessageChannel.permission("pixelupgrade.notify.staff.showstats").send(Text.of(""));
+
+            // Print our warnings.
             MessageChannel.permission("pixelupgrade.notify.staff.showstats").send(Text.of(
-                    "§cThis Pokémon's nickname is longer than the 11 character limit."));
+                    "§4Staff only: §cPokémon's nickname exceeds the 11 character limit."));
             MessageChannel.permission("pixelupgrade.notify.staff.showstats").send(Text.of(
                     "§cSome Pixelmon cheat mods enable longer names, often silently."));
             MessageChannel.permission("pixelupgrade.notify.staff.showstats").send(Text.of(
-                    "§cIf sidemods aren't responsible, the player may be cheating!"));
-            MessageChannel.permission("pixelupgrade.notify.staff.showstats").send(Text.of(
-                    "§4(only those with the staff permission can see this warning)"));
+                    "§cIf sidemods aren't responsible, this player may be cheating!"));
         }
 
         MessageChannel.TO_PLAYERS.send(Text.of("§7-----------------------------------------------------"));

@@ -2,6 +2,7 @@
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
+import com.pixelmonmod.pixelmon.battles.BattleRegistry;
 import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
@@ -22,7 +23,7 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.CommonMethods;
+import rs.expand.pixelupgrade.utilities.PrintingMethods;
 import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
 // TODO: Update the economy setup to be in line with most other economy-using commands.
@@ -34,16 +35,16 @@ public class SwitchGender implements CommandExecutor
     public static Integer commandCost;
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
-    private void printToLog (int debugNum, String inputString)
-    { CommonMethods.printDebugMessage("SwitchGender", debugNum, inputString); }
+    private void printToLog (final int debugNum, final String inputString)
+    { PrintingMethods.printDebugMessage("SwitchGender", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
-    public CommandResult execute(CommandSource src, CommandContext args)
+    public CommandResult execute(final CommandSource src, final CommandContext args)
     {
         if (src instanceof Player)
         {
             // Validate the data we get from the command's main config.
-            ArrayList<String> nativeErrorArray = new ArrayList<>();
+            final ArrayList<String> nativeErrorArray = new ArrayList<>();
             if (commandAlias == null)
                 nativeErrorArray.add("commandAlias");
             if (commandCost == null)
@@ -51,14 +52,19 @@ public class SwitchGender implements CommandExecutor
 
             if (!nativeErrorArray.isEmpty())
             {
-                CommonMethods.printCommandNodeError("SwitchGender", nativeErrorArray);
+                PrintingMethods.printCommandNodeError("SwitchGender", nativeErrorArray);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
+            }
+            else if (BattleRegistry.getBattle((EntityPlayerMP) src) != null)
+            {
+                printToLog(0, "Called by player §4" + src.getName() + "§c, but in a battle. Exit.");
+                src.sendMessage(Text.of("§4Error: §cYou can't use this command while in a battle!"));
             }
             else
             {
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
-                Player player = (Player) src;
+                final Player player = (Player) src;
                 boolean canContinue = true, commandConfirmed = false;
                 int slot = 0;
 
@@ -74,7 +80,7 @@ public class SwitchGender implements CommandExecutor
                 }
                 else
                 {
-                    String slotString = args.<String>getOne("slot").get();
+                    final String slotString = args.<String>getOne("slot").get();
 
                     if (slotString.matches("^[1-6]"))
                     {
@@ -98,8 +104,7 @@ public class SwitchGender implements CommandExecutor
 
                 if (canContinue)
                 {
-                    printToLog(2, "No errors encountered, input should be valid. Continuing!");
-                    Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
+                    final Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
                     if (!storage.isPresent())
                     {
@@ -108,8 +113,8 @@ public class SwitchGender implements CommandExecutor
                     }
                     else
                     {
-                        PlayerStorage storageCompleted = (PlayerStorage) storage.get();
-                        NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
+                        final PlayerStorage storageCompleted = (PlayerStorage) storage.get();
+                        final NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
 
                         if (nbt == null)
                         {
@@ -131,17 +136,17 @@ public class SwitchGender implements CommandExecutor
                             if (commandConfirmed)
                             {
                                 printToLog(2, "Command was confirmed, checking balances.");
-                                int gender = nbt.getInteger(NbtKeys.GENDER);
+                                final int gender = nbt.getInteger(NbtKeys.GENDER);
 
                                 if (commandCost > 0)
                                 {
-                                    BigDecimal costToConfirm = new BigDecimal(commandCost);
-                                    Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
+                                    final BigDecimal costToConfirm = new BigDecimal(commandCost);
+                                    final Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
 
                                     if (optionalAccount.isPresent())
                                     {
-                                        UniqueAccount uniqueAccount = optionalAccount.get();
-                                        TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
+                                        final UniqueAccount uniqueAccount = optionalAccount.get();
+                                        final TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
                                                     costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
 
                                         if (transactionResult.getResult() == ResultType.SUCCESS)
@@ -153,7 +158,7 @@ public class SwitchGender implements CommandExecutor
                                         }
                                         else
                                         {
-                                            BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
+                                            final BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
                                             printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
                                                     "§b, and we're lacking §3" + balanceNeeded);
 
@@ -197,9 +202,10 @@ public class SwitchGender implements CommandExecutor
         return CommandResult.success();
     }
 
-    private void switchGenders(NBTTagCompound nbt, CommandSource src, int genderNum)
+    private void switchGenders(final NBTTagCompound nbt, final CommandSource src, final int genderNum)
     {
-        String pokemonName, genderName;
+        final String pokemonName;
+        final String genderName;
         if (nbt.getString("Nickname").equals(""))
             pokemonName = nbt.getString("Name");
         else
@@ -218,7 +224,7 @@ public class SwitchGender implements CommandExecutor
         src.sendMessage(Text.of("§aMagic! Your §2" + pokemonName + "§a just turned into a " + genderName + "!"));
     }
 
-    private void addHelperAndFooter(CommandSource src)
+    private void addHelperAndFooter(final CommandSource src)
     {
         src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> {-c to confirm}"));
         src.sendMessage(Text.of(""));

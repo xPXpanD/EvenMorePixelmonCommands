@@ -25,8 +25,8 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.CommonMethods;
-import rs.expand.pixelupgrade.utilities.GetPokemonInfo;
+import rs.expand.pixelupgrade.utilities.PrintingMethods;
+import rs.expand.pixelupgrade.utilities.PokemonMethods;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
 public class CheckEgg implements CommandExecutor
@@ -38,16 +38,16 @@ public class CheckEgg implements CommandExecutor
     public static Integer babyHintPercentage, commandCost;
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
-    private void printToLog (int debugNum, String inputString)
-    { CommonMethods.printDebugMessage("CheckEgg", debugNum, inputString); }
+    private void printToLog (final int debugNum, final String inputString)
+    { PrintingMethods.printDebugMessage("CheckEgg", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
-    public CommandResult execute(CommandSource src, CommandContext args)
+    public CommandResult execute(final CommandSource src, final CommandContext args)
     {
         if (src instanceof Player)
         {
             // Validate the data we get from the command's main config.
-            ArrayList<String> nativeErrorArray = new ArrayList<>();
+            final ArrayList<String> nativeErrorArray = new ArrayList<>();
             if (commandAlias == null)
                 nativeErrorArray.add("commandAlias");
             if (showName == null)
@@ -62,7 +62,7 @@ public class CheckEgg implements CommandExecutor
                 nativeErrorArray.add("recheckIsFree");
 
             // Also get some stuff from PixelUpgrade.conf.
-            ArrayList<String> mainConfigErrorArray = new ArrayList<>();
+            final ArrayList<String> mainConfigErrorArray = new ArrayList<>();
             if (shortenedHP == null)
                 mainConfigErrorArray.add("shortenedHP");
             if (shortenedAttack == null)
@@ -78,12 +78,12 @@ public class CheckEgg implements CommandExecutor
 
             if (!nativeErrorArray.isEmpty())
             {
-                CommonMethods.printCommandNodeError("CheckEgg", nativeErrorArray);
+                PrintingMethods.printCommandNodeError("CheckEgg", nativeErrorArray);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else if (!mainConfigErrorArray.isEmpty())
             {
-                CommonMethods.printMainNodeError("CheckEgg", mainConfigErrorArray);
+                PrintingMethods.printMainNodeError("CheckEgg", mainConfigErrorArray);
                 src.sendMessage(Text.of("§4Error: §cCould not parse main config. Please report to staff."));
             }
             else
@@ -92,7 +92,7 @@ public class CheckEgg implements CommandExecutor
 
                 int slot = 0;
                 boolean commandConfirmed = false, canContinue = true;
-                Player player = (Player) src;
+                final Player player = (Player) src;
 
                 if (!args.<String>getOne("slot").isPresent())
                 {
@@ -103,13 +103,13 @@ public class CheckEgg implements CommandExecutor
 
                     src.sendMessage(Text.of("§4Error: §cNo arguments found. Please provide a slot."));
                     printSyntaxHelper(src);
-                    CommonMethods.checkAndAddFooter(commandCost, src);
+                    PrintingMethods.checkAndAddFooter(commandCost, src);
 
                     canContinue = false;
                 }
                 else
                 {
-                    String slotString = args.<String>getOne("slot").get();
+                    final String slotString = args.<String>getOne("slot").get();
 
                     if (slotString.matches("^[1-6]"))
                     {
@@ -125,7 +125,7 @@ public class CheckEgg implements CommandExecutor
 
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
                         printSyntaxHelper(src);
-                        CommonMethods.checkAndAddFooter(commandCost, src);
+                        PrintingMethods.checkAndAddFooter(commandCost, src);
 
                         canContinue = false;
                     }
@@ -136,9 +136,7 @@ public class CheckEgg implements CommandExecutor
 
                 if (canContinue)
                 {
-                    printToLog(2, "No errors encountered, input should be valid. Continuing!");
-
-                    Optional<PlayerStorage> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
+                    final Optional<PlayerStorage> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
                     if (!storage.isPresent())
                     {
@@ -149,8 +147,8 @@ public class CheckEgg implements CommandExecutor
                     {
                         printToLog(2, "Found a Pixelmon storage, moving on.");
 
-                        PlayerStorage storageCompleted = storage.get();
-                        NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
+                        final PlayerStorage storageCompleted = storage.get();
+                        final NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
 
                         if (nbt == null || !nbt.getBoolean(NbtKeys.IS_EGG))
                         {
@@ -161,8 +159,8 @@ public class CheckEgg implements CommandExecutor
                         {
                             printToLog(2, "Egg found. Let's do this!");
 
-                            EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
-                            boolean wasEggChecked = pokemon.getEntityData().getBoolean("hadEggChecked");
+                            final EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
+                            final boolean wasEggChecked = pokemon.getEntityData().getBoolean("hadEggChecked");
 
                             if (commandCost == 0 || wasEggChecked && recheckIsFree)
                             {
@@ -182,16 +180,16 @@ public class CheckEgg implements CommandExecutor
                             }
                             else
                             {
-                                BigDecimal costToConfirm = new BigDecimal(commandCost);
+                                final BigDecimal costToConfirm = new BigDecimal(commandCost);
 
                                 if (commandConfirmed)
                                 {
-                                    Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
+                                    final Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
 
                                     if (optionalAccount.isPresent())
                                     {
-                                        UniqueAccount uniqueAccount = optionalAccount.get();
-                                        TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
+                                        final UniqueAccount uniqueAccount = optionalAccount.get();
+                                        final TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
                                                 costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
 
                                         if (transactionResult.getResult() == ResultType.SUCCESS)
@@ -204,7 +202,7 @@ public class CheckEgg implements CommandExecutor
                                         }
                                         else
                                         {
-                                            BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
+                                            final BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
 
                                             printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
                                                     "§b, and we're lacking §3" + balanceNeeded);
@@ -244,7 +242,7 @@ public class CheckEgg implements CommandExecutor
         return CommandResult.success();
     }
 
-    private void printSyntaxHelper(CommandSource src)
+    private void printSyntaxHelper(final CommandSource src)
     {
         if (commandCost != 0)
             src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> {-c to confirm}"));
@@ -252,20 +250,20 @@ public class CheckEgg implements CommandExecutor
             src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6>"));
     }
 
-    private void printEggResults(NBTTagCompound nbt, EntityPixelmon pokemon, boolean wasEggChecked, CommandSource src)
+    private void printEggResults(final NBTTagCompound nbt, final EntityPixelmon pokemon, final boolean wasEggChecked, final CommandSource src)
     {
         printToLog(2, "We have entered the executing method. Checking stats now!");
 
         // Set up IVs and matching math.
-        int HPIV = nbt.getInteger(NbtKeys.IV_HP);
-        int attackIV = nbt.getInteger(NbtKeys.IV_ATTACK);
-        int defenseIV = nbt.getInteger(NbtKeys.IV_DEFENCE);
-        int spAttIV = nbt.getInteger(NbtKeys.IV_SP_ATT);
-        int spDefIV = nbt.getInteger(NbtKeys.IV_SP_DEF);
-        int speedIV = nbt.getInteger(NbtKeys.IV_SPEED);
-        int totalIVs = HPIV + attackIV + defenseIV + spAttIV + spDefIV + speedIV;
-        int percentIVs = totalIVs * 100 / 186;
-        boolean isShiny = nbt.getInteger(NbtKeys.IS_SHINY) == 1;
+        final int HPIV = nbt.getInteger(NbtKeys.IV_HP);
+        final int attackIV = nbt.getInteger(NbtKeys.IV_ATTACK);
+        final int defenseIV = nbt.getInteger(NbtKeys.IV_DEFENCE);
+        final int spAttIV = nbt.getInteger(NbtKeys.IV_SP_ATT);
+        final int spDefIV = nbt.getInteger(NbtKeys.IV_SP_DEF);
+        final int speedIV = nbt.getInteger(NbtKeys.IV_SPEED);
+        final int totalIVs = HPIV + attackIV + defenseIV + spAttIV + spDefIV + speedIV;
+        final int percentIVs = totalIVs * 100 / 186;
+        final boolean isShiny = nbt.getInteger(NbtKeys.IS_SHINY) == 1;
 
         src.sendMessage(Text.of("§7-----------------------------------------------------"));
         if (showName)
@@ -280,7 +278,12 @@ public class CheckEgg implements CommandExecutor
             printToLog(2, "Explicit reveal enabled. Printing full IVs, shiny-ness and other info.");
 
             // Format the IVs for use later, so we can print them.
-            String ivs1, ivs2, ivs3, ivs4, ivs5, ivs6;
+            final String ivs1;
+            final String ivs2;
+            final String ivs3;
+            final String ivs4;
+            final String ivs5;
+            final String ivs6;
             if (HPIV < 31)
                 ivs1 = String.valueOf(HPIV + " §2" + shortenedHP + " §f|§a ");
             else
@@ -314,18 +317,20 @@ public class CheckEgg implements CommandExecutor
             src.sendMessage(Text.of("§bTotal IVs§f: §a" + totalIVs + "§f/§a186§f (§a" + percentIVs + "%§f)"));
             src.sendMessage(Text.of("§bIVs§f: §a" + ivs1 + "" + ivs2 + "" + ivs3 + "" + ivs4 + "" + ivs5 + "" + ivs6));
 
-            // Get a bunch of data from our GetPokemonInfo utility class.
-            ArrayList<String> natureArray = GetPokemonInfo.getNatureStrings(nbt.getInteger(NbtKeys.NATURE));
-            String natureName = natureArray.get(0);
-            String plusVal = natureArray.get(1);
-            String minusVal = natureArray.get(2);
-            String growthName = GetPokemonInfo.getGrowthName(nbt.getInteger(NbtKeys.GROWTH));
-            String genderCharacter = GetPokemonInfo.getGenderCharacter(nbt.getInteger(NbtKeys.GENDER));
+            // Get a bunch of data from our PokemonMethods utility class.
+            final ArrayList<String> natureArray = PokemonMethods.getNatureStrings(nbt.getInteger(NbtKeys.NATURE));
+            final String natureName = natureArray.get(0);
+            final String plusVal = natureArray.get(1);
+            final String minusVal = natureArray.get(2);
+            final String growthName = PokemonMethods.getGrowthName(nbt.getInteger(NbtKeys.GROWTH));
+
+            // Set up a gender character. Console doesn't like Unicode genders, so if src is not a Player we'll use M/F/-.
+            final char genderChar = PokemonMethods.getGenderCharacter(src, nbt.getInteger(NbtKeys.GENDER));
 
             // Show said data.
-            String extraInfo1 = String.valueOf("§bGender§f: " + genderCharacter +
+            final String extraInfo1 = String.valueOf("§bGender§f: " + genderChar +
                     "§f | §bSize§f: " + growthName + "§f | ");
-            String extraInfo2 = String.valueOf("§bNature§f: " + natureName +
+            final String extraInfo2 = String.valueOf("§bNature§f: " + natureName +
                     "§f (§a" + plusVal + "§f/§c" + minusVal + "§f)");
             src.sendMessage(Text.of(extraInfo1 + extraInfo2));
 

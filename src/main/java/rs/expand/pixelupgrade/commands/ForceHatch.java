@@ -2,12 +2,14 @@
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
+import com.pixelmonmod.pixelmon.battles.BattleRegistry;
 import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
 import java.util.Optional;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
+import org.spongepowered.api.block.tileentity.CommandBlock;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -17,49 +19,66 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.CommonMethods;
+import rs.expand.pixelupgrade.utilities.PrintingMethods;
 
 public class ForceHatch implements CommandExecutor
 {
     // Initialize a config variable. We'll load stuff into it when we call the config loader.
     public static String commandAlias;
 
-    // Set up a console-checking variable for internal use.
+    // Are we running from console or command blocks? We'll flag this true, and proceed accordingly.
     private boolean calledRemotely;
 
+    // Allows us to redirect printed messages away from command blocks, and into the console if need be.
+    private void sendCheckedMessage(final CommandSource src, final String input)
+    {
+        if (src instanceof CommandBlock) // Redirect to console, respecting existing formatting.
+            PrintingMethods.printBasicMessage(input);
+        else // Print normally.
+            src.sendMessage(Text.of(input));
+    }
+
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
-    // If we're running from console, we need to swallow everything to avoid cluttering it.
-    private void printToLog (int debugNum, String inputString)
+    // If we're running from console or blocks, we need to swallow everything to avoid cluttering.
+    private void printToLog (final int debugNum, final String inputString)
     {
         if (!calledRemotely)
-            CommonMethods.printDebugMessage("ForceHatch", debugNum, inputString);
+            PrintingMethods.printDebugMessage("ForceHatch", debugNum, inputString);
     }
 
     @SuppressWarnings("NullableProblems")
-    public CommandResult execute(CommandSource src, CommandContext args)
+    public CommandResult execute(final CommandSource src, final CommandContext args)
     {
-        // Are we running from the console? Let's tell our code that. If "src" is not a Player, this becomes true.
+        // Running from console or blocks? Let's tell our code that. If "src" is not a Player, this becomes true.
         calledRemotely = !(src instanceof Player);
 
         if (commandAlias == null)
         {
             printToLog(0, "Could not read node \"§4commandAlias§c\".");
             printToLog(0, "This command's config could not be parsed. Exiting.");
-            src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please check the file."));
+            sendCheckedMessage(src, "§4Error: §cThis command's config is invalid! Please check the file.");
         }
         else
         {
             if (calledRemotely)
             {
-                CommonMethods.printDebugMessage("ForceHatch", 1,
-                        "Called by console, starting. Omitting debug messages for clarity.");
+                if (src instanceof CommandBlock)
+                {
+                    PrintingMethods.printDebugMessage("ForceHatch", 1,
+                            "Called by command block, starting. Silencing logger messages.");
+                }
+                else
+                {
+                    PrintingMethods.printDebugMessage("ForceHatch", 1,
+                            "Called by console, starting. Silencing further log messages.");
+                }
             }
             else
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
             boolean canContinue = false;
-            Optional<String> arg1Optional = args.getOne("target/slot");
-            Optional<String> arg2Optional = args.getOne("slot");
+            final Optional<String> arg1Optional = args.getOne("target/slot");
+            final Optional<String> arg2Optional = args.getOne("slot");
             String errorString = "§4There's an error message missing, please report this!";
             Player target = null;
             int slot = 0;
@@ -69,7 +88,7 @@ public class ForceHatch implements CommandExecutor
                 // Do we have an argument in the first slot?
                 if (arg1Optional.isPresent())
                 {
-                    String arg1String = arg1Optional.get();
+                    final String arg1String = arg1Optional.get();
 
                     // Do we have a valid online player?
                     if (Sponge.getServer().getPlayer(arg1String).isPresent())
@@ -90,7 +109,7 @@ public class ForceHatch implements CommandExecutor
                     // Is argument 2 present?
                     if (arg2Optional.isPresent())
                     {
-                        String arg2String = arg2Optional.get();
+                        final String arg2String = arg2Optional.get();
 
                         // Do we have a slot?
                         if (arg2String.matches("^[1-6]"))
@@ -116,7 +135,7 @@ public class ForceHatch implements CommandExecutor
                 if (arg1Optional.isPresent())
                 {
                     printToLog(2, "There's something in the first argument slot!");
-                    String arg1String = arg1Optional.get();
+                    final String arg1String = arg1Optional.get();
 
                     // Do we have a slot?
                     if (arg1String.matches("^[1-6]"))
@@ -157,7 +176,7 @@ public class ForceHatch implements CommandExecutor
                     if (arg2Optional.isPresent())
                     {
                         printToLog(2, "There's something in the second argument slot!");
-                        String arg2String = arg2Optional.get();
+                        final String arg2String = arg2Optional.get();
 
                         // Do we have a slot, and was the slot not set yet?
                         if (arg2String.matches("^[1-6]"))
@@ -183,12 +202,23 @@ public class ForceHatch implements CommandExecutor
 
             if (!canContinue)
             {
-                src.sendMessage(Text.of(errorString));
+                sendCheckedMessage(src, errorString);
                 printSyntaxHelper(src);
+            }
+            // Only hittable if we got called by an actual Player.
+            else if (target == null && BattleRegistry.getBattle((EntityPlayerMP) src) != null)
+            {
+                printToLog(0, "Player tried to hatch own Pokémon while in a battle. Exit.");
+                sendCheckedMessage(src, "§4Error: §cYou can't use this command while in a battle!");
+            }
+            else if (target != null && BattleRegistry.getBattle((EntityPlayerMP) target) != null)
+            {
+                printToLog(0, "Target was in a battle, cannot proceed. Exit."); // Swallowed if console.
+                sendCheckedMessage(src, "§4Error: §cTarget is battling, changes wouldn't stick. Exiting.");
             }
             else
             {
-                Optional<PlayerStorage> storage;
+                final Optional<PlayerStorage> storage;
                 if (target != null)
                     storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) target));
                 else
@@ -201,22 +231,22 @@ public class ForceHatch implements CommandExecutor
                     else
                         printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
 
-                    src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Might be a bug?"));
+                    sendCheckedMessage(src, "§4Error: §cNo Pixelmon storage found. Might be a bug?");
                 }
                 else
                 {
-                    PlayerStorage storageCompleted = storage.get();
-                    NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
+                    final PlayerStorage storageCompleted = storage.get();
+                    final NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
 
                     if (nbt == null)
                     {
                         printToLog(1, "No Pokémon was found in the provided slot. Abort, abort!");
-                        src.sendMessage(Text.of("§4Error: §cThere's nothing in that slot!"));
+                        sendCheckedMessage(src, "§4Error: §cThere's nothing in that slot!");
                     }
                     else if (!nbt.getBoolean(NbtKeys.IS_EGG))
                     {
                         printToLog(1, "Tried to hatch an actual Pokémon. That's too brutal; let's exit.");
-                        src.sendMessage(Text.of("§4Error: §cThat's not an egg. Don't hatch actual Pokémon, kids!"));
+                        sendCheckedMessage(src, "§4Error: §cThat's not an egg. Don't hatch actual Pokémon, kids!");
                     }
                     else
                     {
@@ -228,13 +258,13 @@ public class ForceHatch implements CommandExecutor
                         if (calledRemotely)
                         {
                             // http://i0.kym-cdn.com/photos/images/original/000/625/834/a48.png
-                            src.sendMessage(Text.of("§aCracked open a healthy §2" +
-                                    nbt.getString("Name") + "§a."));
+                            sendCheckedMessage(src, "§aCracked open a healthy §2" +
+                                    nbt.getString("Name") + "§a.");
                         }
                         else
                         {
-                            src.sendMessage(Text.of("§aCongratulations, it's a healthy baby §2" +
-                                    nbt.getString("Name") + "§a!"));
+                            sendCheckedMessage(src, "§aCongratulations, it's a healthy baby §2" +
+                                    nbt.getString("Name") + "§a!");
                         }
                     }
                 }
@@ -245,11 +275,11 @@ public class ForceHatch implements CommandExecutor
     }
 
     // Called when it's necessary to figure out the right perm message, or when it's just convenient. Saves typing!
-    private void printSyntaxHelper(CommandSource src)
+    private void printSyntaxHelper(final CommandSource src)
     {
         if (calledRemotely)
-            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <target> <slot, 1-6>"));
+            sendCheckedMessage(src, "§4Usage: §c/" + commandAlias + " <target> <slot, 1-6>");
         else
-            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [target?] <slot, 1-6>"));
+            sendCheckedMessage(src, "§4Usage: §c/" + commandAlias + " [target?] <slot, 1-6>");
     }
 }

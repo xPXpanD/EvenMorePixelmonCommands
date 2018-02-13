@@ -1,4 +1,4 @@
-// The one and only.
+// The one and only. Accept no imitations.
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
@@ -13,20 +13,20 @@ import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.ConfigOperations;
-import static rs.expand.pixelupgrade.utilities.CommonMethods.printBasicMessage;
+import rs.expand.pixelupgrade.utilities.ConfigMethods;
+import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicMessage;
 
-// Note: printBasicMessage is a static import for a function from CommonMethods, for convenience.
+// Note: printBasicMessage is a static import for a function from PrintingMethods, for convenience.
 public class ReloadConfigs implements CommandExecutor
 {
     // Formats the first of the messages shown to the player, and loads a config while at it.
-    private void printHeaderAndCheckFolder(CommandSource src, boolean loadingEverything)
+    private void printHeaderAndCheckFolder(final CommandSource src, final boolean loadingEverything)
     {
         printBasicMessage("===========================================================================");
         if (src instanceof Player)
             printBasicMessage("--> §aPixelUpgrade config reload called by player §2" + src.getName() + "§a.");
 
-        ConfigOperations.checkConfigDir();
+        ConfigMethods.checkConfigDir();
 
         if (loadingEverything)
             printBasicMessage("--> §aStarting a (re-)load of all configuration files...");
@@ -36,35 +36,35 @@ public class ReloadConfigs implements CommandExecutor
 
     private boolean reloadMappings()
     {
-        Game game = Sponge.getGame();
-        PluginContainer puContainer = Sponge.getPluginManager().getPlugin("pixelupgrade").orElse(null);
+        final Game game = Sponge.getGame();
+        final PluginContainer puContainer = Sponge.getPluginManager().getPlugin("pixelupgrade").orElse(null);
 
         if (puContainer != null)
         {
             game.getCommandManager().getOwnedBy(puContainer).forEach(game.getCommandManager()::removeMapping);
-            return ConfigOperations.registerCommands();
+            return ConfigMethods.registerCommands();
         }
         else return false;
     }
 
     @SuppressWarnings("NullableProblems")
-    public CommandResult execute(CommandSource src, CommandContext args)
+    public CommandResult execute(final CommandSource src, final CommandContext args)
     {
         boolean gotConfigError = false, successfulInit = true;
 
         if (args.<String>getOne("config").isPresent())
         {
-            String configString = args.<String>getOne("config").get();
-            String cappedConfigString = configString.toUpperCase();
+            final String configString = args.<String>getOne("config").get();
+            final String cappedConfigString = configString.toUpperCase();
 
             if (cappedConfigString.equals("ALL"))
             {
                 printHeaderAndCheckFolder(src, true);
 
-                ConfigOperations.checkConfigDir();
-                ConfigOperations.loadConfig("PixelUpgrade");
-                ConfigOperations.loadAllCommandConfigs();
-                ConfigOperations.printCommandsAndAliases();
+                ConfigMethods.checkConfigDir();
+                ConfigMethods.loadConfig("PixelUpgrade");
+                ConfigMethods.loadAllCommandConfigs();
+                ConfigMethods.printCommandsAndAliases();
                 printBasicMessage("--> §aRe-registering commands and known aliases with Sponge...");
                 successfulInit = reloadMappings();
 
@@ -81,7 +81,7 @@ public class ReloadConfigs implements CommandExecutor
                     case "MAINCONFIG": case "MAIN":
                     {
                         printHeaderAndCheckFolder(src, false);
-                        ConfigOperations.loadConfig("PixelUpgrade");
+                        ConfigMethods.loadConfig("PixelUpgrade");
                         returnString = "--> §aLoaded global config.";
                         break;
                     }
@@ -91,7 +91,7 @@ public class ReloadConfigs implements CommandExecutor
                     {
                         printHeaderAndCheckFolder(src, false);
                         oldAlias = CheckEgg.commandAlias;
-                        newAlias = ConfigOperations.loadConfig("CheckEgg");
+                        newAlias = ConfigMethods.loadConfig("CheckEgg");
                         returnString = "--> §aLoaded config for command §2/checkegg§a, alias §2/" + CheckEgg.commandAlias + "§a.";
                         break;
                     }
@@ -99,7 +99,7 @@ public class ReloadConfigs implements CommandExecutor
                     {
                         printHeaderAndCheckFolder(src, false);
                         oldAlias = CheckStats.commandAlias;
-                        newAlias = ConfigOperations.loadConfig("CheckStats");
+                        newAlias = ConfigMethods.loadConfig("CheckStats");
                         returnString = "--> §aLoaded config for command §2/checkstats§a, alias §2/" + CheckStats.commandAlias + "§a.";
                         break;
                     }
@@ -107,7 +107,7 @@ public class ReloadConfigs implements CommandExecutor
                     {
                         printHeaderAndCheckFolder(src, false);
                         oldAlias = CheckTypes.commandAlias;
-                        newAlias = ConfigOperations.loadConfig("CheckTypes");
+                        newAlias = ConfigMethods.loadConfig("CheckTypes");
                         returnString = "--> §aLoaded config for command §2/checktypes§a, alias §2/" + CheckTypes.commandAlias + "§a.";
                         break;
                     }
@@ -115,7 +115,7 @@ public class ReloadConfigs implements CommandExecutor
                     {
                         printHeaderAndCheckFolder(src, false);
                         oldAlias = DittoFusion.commandAlias;
-                        newAlias = ConfigOperations.loadConfig("DittoFusion");
+                        newAlias = ConfigMethods.loadConfig("DittoFusion");
                         returnString = "--> §aLoaded config for command §2/dittofusion§a, alias §2/" + DittoFusion.commandAlias + "§a.";
                         break;
                     }
@@ -123,7 +123,7 @@ public class ReloadConfigs implements CommandExecutor
                     {
                         printHeaderAndCheckFolder(src, false);
                         oldAlias = FixGenders.commandAlias;
-                        newAlias = ConfigOperations.loadConfig("FixGenders");
+                        newAlias = ConfigMethods.loadConfig("FixGenders");
                         returnString = "--> §aLoaded config for command §2/fixgenders§a, alias §2/" + FixGenders.commandAlias + "§a.";
                         break;
                     }
@@ -131,7 +131,7 @@ public class ReloadConfigs implements CommandExecutor
                     {
                         printHeaderAndCheckFolder(src, false);
                         oldAlias = ForceHatch.commandAlias;
-                        newAlias = ConfigOperations.loadConfig("ForceHatch");
+                        newAlias = ConfigMethods.loadConfig("ForceHatch");
                         returnString = "--> §aLoaded config for command §2/forcehatch§a, alias §2/" + ForceHatch.commandAlias + "§a.";
                         break;
                     }
@@ -139,7 +139,7 @@ public class ReloadConfigs implements CommandExecutor
                     {
                         printHeaderAndCheckFolder(src, false);
                         oldAlias = ForceStats.commandAlias;
-                        newAlias = ConfigOperations.loadConfig("ForceStats");
+                        newAlias = ConfigMethods.loadConfig("ForceStats");
                         returnString = "--> §aLoaded config for command §2/forcestats§a, alias §2/" + ForceStats.commandAlias + "§a.";
                         break;
                     }
@@ -147,7 +147,7 @@ public class ReloadConfigs implements CommandExecutor
                     {
                         printHeaderAndCheckFolder(src, false);
                         oldAlias = PixelUpgradeInfo.commandAlias;
-                        newAlias = ConfigOperations.loadConfig("PixelUpgradeInfo");
+                        newAlias = ConfigMethods.loadConfig("PixelUpgradeInfo");
                         returnString = "--> §aLoaded config for the command listing (§2/pixelupgrade§a), alias §2/" +
                                 PixelUpgradeInfo.commandAlias + "§a.";
                         break;
@@ -156,7 +156,7 @@ public class ReloadConfigs implements CommandExecutor
                     {
                         printHeaderAndCheckFolder(src, false);
                         oldAlias = ResetCount.commandAlias;
-                        newAlias = ConfigOperations.loadConfig("ResetCount");
+                        newAlias = ConfigMethods.loadConfig("ResetCount");
                         returnString = "--> §aLoaded config for command §2/resetcount§a, alias §2/" + ResetCount.commandAlias + "§a.";
                         break;
                     }
@@ -164,7 +164,7 @@ public class ReloadConfigs implements CommandExecutor
                     {
                         printHeaderAndCheckFolder(src, false);
                         oldAlias = ResetEVs.commandAlias;
-                        newAlias = ConfigOperations.loadConfig("ResetEVs");
+                        newAlias = ConfigMethods.loadConfig("ResetEVs");
                         returnString = "--> §aLoaded config for command §2/resetevs§a, alias §2/" + ResetEVs.commandAlias + "§a.";
                         break;
                     }
@@ -172,7 +172,7 @@ public class ReloadConfigs implements CommandExecutor
                     {
                         printHeaderAndCheckFolder(src, false);
                         oldAlias = ShowStats.commandAlias;
-                        newAlias = ConfigOperations.loadConfig("ShowStats");
+                        newAlias = ConfigMethods.loadConfig("ShowStats");
                         returnString = "--> §aLoaded config for command §2/showstats§a, alias §2/" + ShowStats.commandAlias + "§a.";
                         break;
                     }
@@ -180,7 +180,7 @@ public class ReloadConfigs implements CommandExecutor
                     {
                         printHeaderAndCheckFolder(src, false);
                         oldAlias = SpawnDex.commandAlias;
-                        newAlias = ConfigOperations.loadConfig("SpawnDex");
+                        newAlias = ConfigMethods.loadConfig("SpawnDex");
                         returnString = "--> §aLoaded config for command §2/spawndex§a, alias §2/" + SpawnDex.commandAlias + "§a.";
                         break;
                     }
@@ -188,7 +188,7 @@ public class ReloadConfigs implements CommandExecutor
                     {
                         printHeaderAndCheckFolder(src, false);
                         oldAlias = SwitchGender.commandAlias;
-                        newAlias = ConfigOperations.loadConfig("SwitchGender");
+                        newAlias = ConfigMethods.loadConfig("SwitchGender");
                         returnString = "--> §aLoaded config for command §2/switchgender§a, alias §2/" + SwitchGender.commandAlias + "§a.";
                         break;
                     }
@@ -196,7 +196,7 @@ public class ReloadConfigs implements CommandExecutor
                     {
                         printHeaderAndCheckFolder(src, false);
                         oldAlias = TimedHatch.commandAlias;
-                        newAlias = ConfigOperations.loadConfig("TimedHatch");
+                        newAlias = ConfigMethods.loadConfig("TimedHatch");
                         returnString = "--> §aLoaded config for command §2/timedhatch§a, alias §2/" + TimedHatch.commandAlias + "§a.";
                         break;
                     }
@@ -204,7 +204,7 @@ public class ReloadConfigs implements CommandExecutor
                     {
                         printHeaderAndCheckFolder(src, false);
                         oldAlias = TimedHeal.commandAlias;
-                        newAlias = ConfigOperations.loadConfig("TimedHeal");
+                        newAlias = ConfigMethods.loadConfig("TimedHeal");
                         returnString = "--> §aLoaded config for command §2/timedheal§a, alias §2/" + TimedHeal.commandAlias + "§a.";
                         break;
                     }
@@ -212,7 +212,7 @@ public class ReloadConfigs implements CommandExecutor
                     {
                         printHeaderAndCheckFolder(src, false);
                         oldAlias = UpgradeIVs.commandAlias;
-                        newAlias = ConfigOperations.loadConfig("UpgradeIVs");
+                        newAlias = ConfigMethods.loadConfig("UpgradeIVs");
                         returnString = "--> §aLoaded config for command §2/upgradeivs§a, alias §2/" + UpgradeIVs.commandAlias + "§a.";
                         break;
                     }

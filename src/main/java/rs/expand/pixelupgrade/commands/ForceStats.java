@@ -2,16 +2,16 @@
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
+import com.pixelmonmod.pixelmon.battles.BattleRegistry;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
-
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.block.tileentity.CommandBlock;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -21,9 +21,9 @@ import org.spongepowered.api.text.Text;
 
 // Local imports.
 import rs.expand.pixelupgrade.PixelUpgrade;
-import rs.expand.pixelupgrade.utilities.CommonMethods;
+import rs.expand.pixelupgrade.utilities.PrintingMethods;
 
-// FIXME: Fix Pokémon not changing if certain stats get changed while they're sent out.
+// FIXME: Long numberic inputs cause a NumberFormatException.
 public class ForceStats implements CommandExecutor
 {
     // Initialize a config variable. We'll load stuff into it when we call the config loader.
@@ -33,11 +33,20 @@ public class ForceStats implements CommandExecutor
     // Set up some more variables for internal use.
     private boolean calledRemotely;
 
+    // Allows us to redirect printed messages away from command blocks, and into the console if need be.
+    private void sendCheckedMessage(final CommandSource src, final String input)
+    {
+        if (src instanceof CommandBlock) // Redirect to console, respecting existing formatting.
+            PrintingMethods.printBasicMessage(input);
+        else // Print normally.
+            src.sendMessage(Text.of(input));
+    }
+
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
-    private void printToLog (int debugNum, String inputString)
+    private void printToLog (final int debugNum, final String inputString)
     {
         if (!calledRemotely)
-            CommonMethods.printDebugMessage("ForceStats", debugNum, inputString);
+            PrintingMethods.printDebugMessage("ForceStats", debugNum, inputString);
     }
 
     // Create a few sets of Strings that we query during input checking.
@@ -68,42 +77,50 @@ public class ForceStats implements CommandExecutor
     }
 
     @SuppressWarnings("NullableProblems")
-    public CommandResult execute(CommandSource src, CommandContext args)
+    public CommandResult execute(final CommandSource src, final CommandContext args)
     {
-        // Are we running from the console? Let's tell our code that. If "src" is not a Player, this becomes true.
+        // Running from console or blocks? Let's tell our code that. If "src" is not a Player, this becomes true.
         calledRemotely = !(src instanceof Player);
 
         if (commandAlias == null)
         {
             printToLog(0, "Could not read node \"§4commandAlias§c\".");
             printToLog(0, "This command's config could not be parsed. Exiting.");
-            src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please check the file."));
+            sendCheckedMessage(src,"§4Error: §cThis command's config is invalid! Please check the file.");
         }
         else if (PixelUpgrade.useBritishSpelling == null)
         {
             printToLog(0, "Could not read remote node \"§4useBritishSpelling§c\".");
             printToLog(0, "The main config contains invalid variables. Exiting.");
-            src.sendMessage(Text.of("§4Error: §cCould not parse main config. Please report to staff."));
+            sendCheckedMessage(src,"§4Error: §cCould not parse main config. Please report to staff.");
         }
         else
         {
             if (calledRemotely)
             {
-                CommonMethods.printDebugMessage("ForceStats", 1,
-                        "Called by console, starting. Omitting debug messages for clarity.");
+                if (src instanceof CommandBlock)
+                {
+                    PrintingMethods.printDebugMessage("ForceStats", 1,
+                            "Called by command block, starting. Silencing logger messages.");
+                }
+                else
+                {
+                    PrintingMethods.printDebugMessage("ForceStats", 1,
+                            "Called by console, starting. Silencing further log messages.");
+                }
             }
             else
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
-            boolean statWasFixed = false, foundValidStat = false, isIVorEV = false, foundUpgradeStyleStat = false;
-            boolean canContinue = true, forceValue = false, valueIsInt = false;
-            Optional<String> arg1Optional = args.getOne("target/slot");
-            Optional<String> arg2Optional = args.getOne("slot/stat");
-            Optional<String> arg3Optional = args.getOne("stat/value");
-            Optional<String> arg4Optional = args.getOne("value/force flag");
-            Optional<String> arg5Optional = args.getOne("confirmation");
-            String stat = null;
-            int slot = 0, intValue = 0;
+            boolean canContinue = true, forceValue = false, valueIsNumeric = false;
+            final Optional<String> arg1Optional = args.getOne("target/slot");
+            final Optional<String> arg2Optional = args.getOne("slot/stat");
+            final Optional<String> arg3Optional = args.getOne("stat/value");
+            final Optional<String> arg4Optional = args.getOne("value/force flag");
+            final Optional<String> arg5Optional = args.getOne("force flag");
+            String stat = null, fixMessageString = null;
+            int slot = 0;
+            long longValue = 0;
             Player target = null;
 
             // Ugly, but it'll do for now... Doesn't seem like my usual way of getting flags will work here.
@@ -120,7 +137,7 @@ public class ForceStats implements CommandExecutor
 
             if (arg1Optional.isPresent()) // Target or slot.
             {
-                String arg1String = arg1Optional.get();
+                final String arg1String = arg1Optional.get();
 
                 if (calledRemotely)
                 {
@@ -175,7 +192,7 @@ public class ForceStats implements CommandExecutor
             {
                 if (arg2Optional.isPresent()) // Slot or stat.
                 {
-                    String arg2String = arg2Optional.get();
+                    final String arg2String = arg2Optional.get();
 
                     if (target != null)
                     {
@@ -186,8 +203,8 @@ public class ForceStats implements CommandExecutor
                         }
                         else
                         {
-                            printToLog(1, "Missing slot on second argument. Exit.");
-                            printError(src, "§4Error: §cMissing slot on second argument. See below.");
+                            printToLog(1, "Invalid slot on second argument. Exit.");
+                            printError(src, "§4Error: §cInvalid slot on second argument. See below.");
                             canContinue = false;
                         }
                     }
@@ -195,8 +212,8 @@ public class ForceStats implements CommandExecutor
                     {
                         if (validIVsEVs.contains(arg2String) || validOtherStats.contains(arg2String))
                         {
+                            printToLog(2, "Provided stat was valid, proceeding without adjustment.");
                             stat = arg2String;
-                            foundValidStat = true;
                         }
                         else
                         {
@@ -204,18 +221,21 @@ public class ForceStats implements CommandExecutor
 
                             if (!stat.equals(arg2String))
                             {
-                                foundUpgradeStyleStat = true;
-                                statWasFixed = true;
+                                printToLog(2, "Found a known Upgrade-style stat. Fixing...");
+                                fixMessageString = "§eFound Upgrade-style stat, adjusting to \"§6" + stat + "§e\"...";
                             }
                             else
                             {
                                 stat = checkForOtherStats(arg2String);
 
                                 if (!stat.equals(arg2String))
-                                    statWasFixed = true;
+                                {
+                                    printToLog(2, "Found a known bad stat. Fixing...");
+                                    fixMessageString = "§eFound known bad stat, adjusting to \"§6" + stat + "§e\"...";
+                                }
                             }
 
-                            if (!statWasFixed)
+                            if (fixMessageString == null) // No message means we didn't fix anything.
                             {
                                 if (!forceValue)
                                 {
@@ -227,7 +247,7 @@ public class ForceStats implements CommandExecutor
                                     printToLog(2, "No valid stat found, but force mode is on. Proceeding...");
                             }
                             else
-                                printToLog(2, "Invalid stat found, but we managed to fix it. Let's continue.");
+                                printToLog(2, "Managed to fix it, let's continue.");
                         }
                     }
                 }
@@ -252,17 +272,14 @@ public class ForceStats implements CommandExecutor
             {
                 if (arg3Optional.isPresent()) // Stat or value.
                 {
-                    String arg3String = arg3Optional.get();
+                    final String arg3String = arg3Optional.get();
 
                     if (target != null)
                     {
                         if (validIVsEVs.contains(arg3String) || validOtherStats.contains(arg3String))
                         {
-                            if (validIVsEVs.contains(arg3String))
-                                isIVorEV = true;
-
+                            printToLog(2, "Provided stat was valid, proceeding without adjustment.");
                             stat = arg3String;
-                            foundValidStat = true;
                         }
                         else
                         {
@@ -270,42 +287,45 @@ public class ForceStats implements CommandExecutor
 
                             if (!stat.equals(arg3String))
                             {
-                                foundUpgradeStyleStat = true;
-                                statWasFixed = true;
+                                printToLog(2, "Found a known Upgrade-style stat. Fixing...");
+                                fixMessageString = "§eFound Upgrade-style stat, adjusting to \"§6" + stat + "§e\"...";
                             }
                             else
                             {
                                 stat = checkForOtherStats(arg3String);
 
                                 if (!stat.equals(arg3String))
-                                    statWasFixed = true;
+                                {
+                                    printToLog(2, "Found a known bad stat. Fixing...");
+                                    fixMessageString = "§eFound known bad stat, adjusting to \"§6" + stat + "§e\"...";
+                                }
                             }
 
-                            if (!statWasFixed)
+                            if (fixMessageString == null) // No message means we didn't fix anything.
                             {
                                 if (!forceValue)
                                 {
                                     printToLog(1, "Invalid and unfixable stat on arg 3, not in force mode. Exit.");
-                                    printError(src, "§4Error: §cInvalid stat on second argument. See below.");
+                                    printError(src, "§4Error: §cInvalid stat on third argument. See below.");
                                     canContinue = false;
                                 }
                                 else
                                     printToLog(2, "No valid stat found, but force mode is on. Proceeding...");
                             }
                             else
-                                printToLog(2, "Invalid stat found, but we managed to fix it. Let's continue.");
+                                printToLog(2, "Managed to fix it, let's continue.");
                         }
                     }
                     else
                     {
                         if (arg3String.matches("-?[1-9]\\d*|0"))
                         {
-                            printToLog(2, "Checked value, and found out it's an integer. Setting flag.");
-                            intValue = Integer.parseInt(arg3String);
-                            valueIsInt = true;
+                            printToLog(2, "Checked value, and found out it's numeric. Setting flag.");
+                            longValue = Long.parseLong(arg3String);
+                            valueIsNumeric = true;
                         }
                         else
-                            printToLog(2, "Value is not an integer, so treating it as a String.");
+                            printToLog(2, "Value is not numeric, so treating it as a String.");
                     }
                 }
                 else
@@ -325,38 +345,61 @@ public class ForceStats implements CommandExecutor
                 }
             }
 
+            // Every argument shifts up by one if we have a target. Run this to finalize args if we're shifted.
             if (canContinue && target != null)
             {
                 if (arg4Optional.isPresent() && !arg4Optional.get().equalsIgnoreCase("-f")) // Value or force flag.
                 {
-                    String arg4String = arg4Optional.get();
+                    final String arg4String = arg4Optional.get();
 
                     if (arg4String.matches("-?[1-9]\\d*|0"))
                     {
-                        printToLog(2, "Checked value, and found out it's an integer. Setting flag.");
-                        intValue = Integer.parseInt(arg4String);
-                        valueIsInt = true;
+                        printToLog(2, "Checked value, and found out it's numeric. Setting flag.");
+                        longValue = Long.parseLong(arg4String);
+                        valueIsNumeric = true;
                     }
                     else
-                        printToLog(2, "Value is not an integer, so treating it as a String.");
+                        printToLog(2, "Value is not numeric, so treating it as a String.");
                 }
                 else
                 {
-                    printToLog(1, "Invalid or missing value on fourth argument. Exit.");
+                    printToLog(1, "Missing or invalid value on fourth argument. Exit.");
                     printError(src, "§4Error: §cMissing or invalid value on fourth argument. See below.");
 
                     canContinue = false;
                 }
             }
 
+            // Do in-battle checks.
             if (canContinue)
             {
-                Optional<PlayerStorage> storage;
+                // Only hittable if we got called by an actual Player.
+                if (target == null && BattleRegistry.getBattle((EntityPlayerMP) src) != null)
+                {
+                    printToLog(0, "Player tried to set stats on own Pokémon while in a battle. Exit.");
+                    sendCheckedMessage(src, "§4Error: §cYou can't use this command while in a battle!");
+
+                    canContinue = false;
+                }
+                else if (target != null && BattleRegistry.getBattle((EntityPlayerMP) target) != null)
+                {
+                    printToLog(0, "Target was in a battle, cannot proceed. Exit."); // Swallowed if console.
+                    sendCheckedMessage(src, "§4Error: §cTarget is battling, changes wouldn't stick. Exiting.");
+
+                    canContinue = false;
+                }
+            }
+
+            // Did we pass ALL those checks? Go go go!
+            if (canContinue)
+            {
+                final Optional<PlayerStorage> storage;
                 if (target != null)
                     storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) target));
                 else
                     storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
+                // ...unless this happens.
                 if (!storage.isPresent())
                 {
                     if (target != null)
@@ -364,136 +407,137 @@ public class ForceStats implements CommandExecutor
                     else
                         printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
 
-                    src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Might be a bug?"));
+                    sendCheckedMessage(src,"§4Error: §cNo Pixelmon storage found. Might be a bug?");
                 }
                 else
                 {
                     printToLog(2, "Checks completed, entering execution.");
-                    src.sendMessage(Text.of("§7-----------------------------------------------------"));
 
-                    PlayerStorage storageCompleted = storage.get();
-                    NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
+                    final PlayerStorage storageCompleted = storage.get();
+                    final NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
 
+                    // ...or this.
                     if (nbt == null)
                     {
                         printToLog(1, "No NBT data found in slot, probably empty. Exit.");
 
                         if (target != null)
-                            src.sendMessage(Text.of("§4Error: §cYour target does not have anything in that slot!"));
+                            sendCheckedMessage(src,"§4Error: §cYour target does not have anything in that slot!");
                         else
-                            src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
+                            sendCheckedMessage(src,"§4Error: §cYou don't have anything in that slot!");
                     }
                     else
                     {
-                        // We'll already have errored out if we had an unusable stat at this point, unless forced.
-                        if (!foundValidStat && statWasFixed)
+                        // ...or THIS.
+                        if (!forceValue && !valueIsNumeric)
                         {
-                            printToLog(2, "Found a known bad stat. Fixing...");
-
-                            if (forceValue || valueIsInt)
+                            printToLog(1, "We support Strings only in force mode. Exit.");
+                            printError(src, "§4Error: §cGot a non-numeric value, but no flag. Try a number.");
+                        }
+                        else // ok we good
+                        {
+                            if (forceValue)
                             {
-                                if (foundUpgradeStyleStat)
+                                sendCheckedMessage(src,"§7-----------------------------------------------------");
+
+                                if (fixMessageString != null)
                                 {
-                                    src.sendMessage(Text.of("§eFound Upgrade-style stat, adjusting to \"§6" +
-                                            stat + "§e\"..."));
+                                    sendCheckedMessage(src,fixMessageString);
+                                    sendCheckedMessage(src,"");
+                                }
+
+                                if (!nbt.getString(stat).isEmpty())
+                                {
+                                    printToLog(1, "Value is being forced! Old String value: §3" +
+                                            nbt.getString(stat));
+                                    sendCheckedMessage(src,"§aForcing value! Old String value: §2" +
+                                            nbt.getString(stat));
+                                }
+                                else if (nbt.getLong(stat) != 0)
+                                {
+                                    printToLog(1, "Value is being forced! Old numeric value: §3" +
+                                            nbt.getLong(stat));
+                                    sendCheckedMessage(src,"§aForcing value! Old numeric value: §2" +
+                                            nbt.getLong(stat));
                                 }
                                 else
                                 {
-                                    src.sendMessage(Text.of("§eFound known bad stat, adjusting to \"§6" +
-                                            stat + "§e\"..."));
+                                    // Slightly awkward, we'll have to make an assumption here.
+                                    // getLong returns 0 both if something isn't present or if it is actually 0.
+                                    printToLog(1,
+                                            "Value is being forced! Tried to grab old value, but couldn't.");
+                                    sendCheckedMessage(src,
+                                            "§eForcing value! Tried to grab old value, but couldn't.");
                                 }
 
-                                src.sendMessage(Text.of(""));
-                            }
-                        }
-                        else // The player's input was already entirely valid! Good job, player. 💮
-                            printToLog(2, "Provided stat was valid, proceeding without adjustment.");
-
-                        if (forceValue)
-                        {
-                            try
-                            {
-                                src.sendMessage(Text.of("§aForcing value! Old value: §2" +
-                                        nbt.getString(stat)));
-                                printToLog(1, "Value is being forced! Old value: §3" +
-                                        nbt.getString(stat));
-                            }
-                            catch (Exception F)
-                            {
-                                src.sendMessage(Text.of("§eForcing value! Tried to grab old value, but couldn't..."));
-                                printToLog(1,
-                                        "Value is being forced! Tried to grab old value, but couldn't...");
-                            }
-
-                            if (valueIsInt)
-                            {
-                                printToLog(1, "Integer value written. Glad to be of service.");
-                                nbt.setInteger(stat, intValue);
-                            }
-                            else
-                            {
-                                printToLog(1, "Non-integer value written... Glad to be of service?");
-
-                                // All the arguments shift by one to accomodate for arg1 being a target, if it is one.
-                                if (target == null)
-                                    nbt.setString(stat, arg3Optional.get());
+                                if (valueIsNumeric)
+                                {
+                                    printToLog(1, "Numeric value written. Glad to be of service.");
+                                    nbt.setLong(stat, longValue);
+                                }
                                 else
-                                    nbt.setString(stat, arg4Optional.get());
-                            }
+                                {
+                                    printToLog(1, "Non-numeric value written... Glad to be of service?");
 
-                            storageCompleted.sendUpdatedList();
+                                    // All the arguments shift by one to accomodate for arg1 being a target, if it is one.
+                                    if (target == null)
+                                        nbt.setString(stat, arg3Optional.get());
+                                    else
+                                        nbt.setString(stat, arg4Optional.get());
+                                }
 
-                            src.sendMessage(Text.of("§aThe new value was written. You may have to reconnect."));
-                        }
-                        else if (valueIsInt)
-                        {
-                            printToLog(2, "Value is not forced, but is valid. Patching up player's input.");
-
-                            if (isIVorEV && intValue > 32767 || isIVorEV && intValue < -32768)
-                            {
-                                printToLog(1, "Found an IV/EV value so high that it'd roll over. Exit.");
-                                src.sendMessage(Text.of("§4Error: §cIV/EV value out of bounds. Valid range: -32768 ~ 32767"));
-                            }
-                            else if (stat.equals("Gender") && intValue > 2 || stat.equals("Gender") && intValue < 0)
-                            {
-                                printToLog(1, "Found a Gender value above 2 or below 0; out of bounds. Exit.");
-                                src.sendMessage(Text.of("§4Error: §cSize value out of bounds. Valid range: 0 ~ 2"));
-                            }
-                            else if (stat.equals("Growth") && intValue > 8 || stat.equals("Growth") && intValue < 0)
-                            {
-                                printToLog(1, "Found a Growth value above 8 or below 0; out of bounds. Exit.");
-                                src.sendMessage(Text.of("§4Error: §cSize value out of bounds. Valid range: 0 ~ 8"));
-                            }
-                            else if (stat.equals("IsShiny") && intValue != 0 && intValue != 1)
-                            {
-                                printToLog(1, "Invalid shiny status value detected. Exit.");
-                                src.sendMessage(Text.of("§4Error: §cInvalid boolean value. Valid values: 0 (=false) or 1 (=true)"));
-                            }
-                            else if (stat.equals("Nature") && intValue > 24 || stat.equals("Nature") && intValue < 0)
-                            {
-                                printToLog(1, "Found a Nature value above 24 or below 0; out of bounds. Exit.");
-                                src.sendMessage(Text.of("§4Error: §cNature value out of bounds. Valid range: 0 ~ 24"));
-                            }
-                            else
-                            {
-                                printToLog(1, "Setting... Stat is §3" + stat + "§b, old value was §3" +
-                                        nbt.getInteger(stat) + "§b, new is §3" + intValue + "§b.");
-
-                                src.sendMessage(Text.of("§aWriting value..."));
-
-                                nbt.setInteger(stat, intValue);
                                 storageCompleted.sendUpdatedList();
 
-                                src.sendMessage(Text.of("§aExisting NBT value changed! You may have to reconnect."));
+                                sendCheckedMessage(src,"§aThe new value was written. You may have to reconnect.");
+                                sendCheckedMessage(src,"§7-----------------------------------------------------");
+                            }
+                            else
+                            {
+                                printToLog(2, "Found valid non-forced input, testing against limits.");
+
+                                if (stat.equals("Gender") && longValue > 2 || stat.equals("Gender") && longValue < 0)
+                                {
+                                    printToLog(1, "Found a Gender value above 2 or below 0; out of bounds. Exit.");
+                                    sendCheckedMessage(src,"§4Error: §cSize value out of bounds. Valid range: 0 ~ 2");
+                                }
+                                else if (stat.equals("Growth") && longValue > 8 || stat.equals("Growth") && longValue < 0)
+                                {
+                                    printToLog(1, "Found a Growth value above 8 or below 0; out of bounds. Exit.");
+                                    sendCheckedMessage(src,"§4Error: §cSize value out of bounds. Valid range: 0 ~ 8");
+                                }
+                                else if (stat.equals("IsShiny") && longValue != 0 && longValue != 1)
+                                {
+                                    printToLog(1, "Invalid shiny status value detected. Exit.");
+                                    sendCheckedMessage(src,"§4Error: §cInvalid boolean value. Valid values: 0 (=false) or 1 (=true)");
+                                }
+                                else if (stat.equals("Nature") && longValue > 24 || stat.equals("Nature") && longValue < 0)
+                                {
+                                    printToLog(1, "Found a Nature value above 24 or below 0; out of bounds. Exit.");
+                                    sendCheckedMessage(src,"§4Error: §cNature value out of bounds. Valid range: 0 ~ 24");
+                                }
+                                else
+                                {
+                                    sendCheckedMessage(src,"§7-----------------------------------------------------");
+
+                                    if (fixMessageString != null)
+                                    {
+                                        sendCheckedMessage(src,fixMessageString);
+                                        sendCheckedMessage(src,"");
+                                    }
+
+                                    printToLog(1, "Setting... Stat is §3" + stat + "§b, old value was §3" +
+                                            nbt.getLong(stat) + "§b, new is §3" + longValue + "§b.");
+
+                                    sendCheckedMessage(src,"§aWriting value...");
+
+                                    nbt.setLong(stat, longValue);
+                                    storageCompleted.sendUpdatedList();
+
+                                    sendCheckedMessage(src,"§aExisting NBT value changed! You may have to reconnect.");
+                                    sendCheckedMessage(src,"§7-----------------------------------------------------");
+                                }
                             }
                         }
-                        else
-                        {
-                            printToLog(1, "We only support Strings in force mode. Exit.");
-                            printError(src, "§4Error: §cGot a non-integer value, but no flag. Try a number.");
-                        }
-
-                        src.sendMessage(Text.of("§7-----------------------------------------------------"));
                     }
                 }
             }
@@ -502,7 +546,7 @@ public class ForceStats implements CommandExecutor
         return CommandResult.success();
 	}
 
-	private String checkForUpgradeStats(String stat)
+	private String checkForUpgradeStats(final String stat)
     {
         switch (stat.toUpperCase())
         {
@@ -524,7 +568,7 @@ public class ForceStats implements CommandExecutor
         }
     }
 
-	private String checkForOtherStats(String stat)
+	private String checkForOtherStats(final String stat)
     {
         switch (stat.toUpperCase()) // Keep in mind: we toUpperCase() our stat, stuff like ivHP or EvhP will get fixed.
         {
@@ -566,24 +610,24 @@ public class ForceStats implements CommandExecutor
         }
     }
 
-	private void printError(CommandSource src, String errorString)
+	private void printError(final CommandSource src, final String errorString)
     {
-        src.sendMessage(Text.of("§5-----------------------------------------------------"));
-        src.sendMessage(Text.of(errorString));
+        sendCheckedMessage(src,"§5-----------------------------------------------------");
+        sendCheckedMessage(src,errorString);
 
         if (calledRemotely)
-            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <target> <slot> <stat> <value> {-f to force}"));
+            sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " <target> <slot> <stat> <value> {-f to force}");
         else
-            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [target?] <slot> <stat> <value> {-f to force}"));
+            sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " [target?] <slot> <stat> <value> {-f to force}");
 
-        src.sendMessage(Text.of(""));
-        src.sendMessage(Text.of("§6IVs: §eIVHP, IVAttack, IVDefence, IVSpAtt, IVSpDef, IVSpeed"));
-        src.sendMessage(Text.of("§6EVs: §eEVHP, EVAttack, EVDefence, EVSpAtt, EVSpDef, EVSpeed"));
-        src.sendMessage(Text.of("§6Others: §eGender, Growth, Nature, IsShiny"));
-        src.sendMessage(Text.of("§eThese are internal names, common mistakes will be fixed."));
-        src.sendMessage(Text.of(""));
-        src.sendMessage(Text.of("§5Please note: §dPassing the -f flag will disable safety checks."));
-        src.sendMessage(Text.of("§dThis may lead to crashes or even corruption. Handle with care!"));
-        src.sendMessage(Text.of("§5-----------------------------------------------------"));
+        sendCheckedMessage(src,"");
+        sendCheckedMessage(src,"§6IVs: §eIVHP, IVAttack, IVDefence, IVSpAtt, IVSpDef, IVSpeed");
+        sendCheckedMessage(src,"§6EVs: §eEVHP, EVAttack, EVDefence, EVSpAtt, EVSpDef, EVSpeed");
+        sendCheckedMessage(src,"§6Others: §eGender, Growth, Nature, IsShiny");
+        sendCheckedMessage(src,"§eThese are internal names, common mistakes will be fixed.");
+        sendCheckedMessage(src,"");
+        sendCheckedMessage(src,"§5Please note: §dPassing the -f flag will disable safety checks.");
+        sendCheckedMessage(src,"§dMay lead to crashes or even corruption, handle with care!");
+        sendCheckedMessage(src,"§5-----------------------------------------------------");
     }
 }

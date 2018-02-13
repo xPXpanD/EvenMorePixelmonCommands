@@ -20,31 +20,32 @@ import org.spongepowered.api.text.Text;
 
 // Local imports.
 import rs.expand.pixelupgrade.commands.*;
-import rs.expand.pixelupgrade.utilities.ConfigOperations;
-import static rs.expand.pixelupgrade.utilities.CommonMethods.printBasicMessage;
+import rs.expand.pixelupgrade.utilities.ConfigMethods;
+import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicMessage;
 
 /*                                                              *\
        THE WHO-KNOWS-WHEN LIST OF POTENTIALLY AWESOME IDEAS
     TODO: Add new TODOs here. Cross off TODOs if they're done.
+      NOTE: Stuff that's here will not necessarily get made.
 \*                                                              */
 
 // New things:
-// TODO: Make a token redeeming command for shinies. Maybe make it a starter picker command, even. - Xenoyia
+// TODO: Make a token redeeming command for shinies? Maybe make it a starter picker command, even. - Xenoyia
 // TODO: Make a /pokesell, maybe one that sells based on ball worth.
-// TODO: Maybe see if a cooldown on trading machines is possible? - FrostEffects
-// TODO: Maybe use setIsRed on an EntityPixelmon to emulate "Who's that Pokémon"? Could use statues. - DaeM0nS
+// TODO: See if a cooldown on trading machines is possible? - FrostEffects
+// TODO: Make a command that uses setIsRed to emulate "Who's that Pokémon"? Could use statues. - DaeM0nS
 // TODO: Look into name colors?
 // TODO: Make a Pokéball changing command, get it to write the old ball to the Pokémon for ball sale purposes.
 // TODO: Do something with setPixelmonScale. Maybe a /spawnboss for super big high HP IV bosses with custom loot?
-// TODO: Make a legendary spawner that mimics the vanilla Pixelmon spawning message.
 // TODO: Make a random legendary spawner.
-// TODO: Add a /pokehatch if that's not done yet. Something with two cooldowns, /timedheal-style.
+// TODO: Allow people to unlock hidden abilities, probably through the economy. - Fabyoulust
 
 // Improvements to existing things:
 // TODO: Tab completion on player names.
-// TODO: Maybe add some nice "====" borders to config node errors.
-// TODO: Actually add an economy safe mode to things. Baby steps are done, time to take the leap.
+// TODO: Merge /checkegg into /checkstats.
+// TODO: Maybe add some nice "====" borders to config node errors?
 // TODO: Make just about every command with a target show said target a message when stuff is being used on them.
+// TODO: Actually add an economy safe mode to things. Baby steps are done, time to take the leap.
 
 @Plugin
 (
@@ -69,7 +70,7 @@ import static rs.expand.pixelupgrade.utilities.CommonMethods.printBasicMessage;
         // Thanks for helping make PU what it is now, people!
 )
 
-// Note: printBasicMessage is a static import for a function from CommonMethods, for convenience.
+// Note: printBasicMessage is a static import for a function from PrintingMethods, for convenience.
 public class PixelUpgrade
 {
     // Some basic setup.
@@ -188,14 +189,14 @@ public class PixelUpgrade
             .executor(new CheckTypes())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("Pokémon name/ID"))),
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("optional second word of name"))))
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("optional second word"))))
             .build();
 
     public static CommandSpec dittofusion = CommandSpec.builder()
             .permission("pixelupgrade.command.dittofusion")
             .executor(new DittoFusion())
             .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target slot"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("main slot"))),
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("sacrifice slot"))),
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
             .build();
@@ -212,8 +213,8 @@ public class PixelUpgrade
             .permission("pixelupgrade.command.staff.forcehatch")
             .executor(new ForceHatch())
             .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/slot/confirmation"))),
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot/confirmation"))))
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/slot"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))))
             .build();
 
     public static CommandSpec forcestats = CommandSpec.builder()
@@ -256,8 +257,9 @@ public class PixelUpgrade
             .permission("pixelupgrade.command.staff.spawndex")
             .executor(new SpawnDex())
             .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("number"))),
-                    GenericArguments.flags().flag("b").flag("o").flag("s").buildWith(GenericArguments.none()))
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("Pokémon name/ID"))),
+                    GenericArguments.flags().flag("b").flag("f").flag("o").flag("r").flag("s").buildWith(GenericArguments.none()),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("optional square radius"))))
             .build();
 
     public static CommandSpec switchgender = CommandSpec.builder()
@@ -297,7 +299,7 @@ public class PixelUpgrade
             .build();
 
     @Listener
-    public void onPreInitEvent(GamePreInitializationEvent event)
+    public void onPreInitEvent(final GamePreInitializationEvent event)
     {
         // Load up the primary config and the info command config, and figure out the info alias.
         // We start printing stuff, here. If any warnings/errors pop up they'll be shown here.
@@ -305,39 +307,33 @@ public class PixelUpgrade
         printBasicMessage("========================= P I X E L U P G R A D E =========================");
 
         // Create a config directory if it doesn't exist. Silently swallow an error if it does. I/O is awkward.
-        ConfigOperations.checkConfigDir();
+        ConfigMethods.checkConfigDir();
 
         printBasicMessage("--> §aLoading and validating primary config...");
-        ConfigOperations.loadConfig("PixelUpgrade");
+        ConfigMethods.loadConfig("PixelUpgrade");
 
         printBasicMessage("--> §aLoading and validating command-specific settings...");
-        ConfigOperations.loadAllCommandConfigs();
-        ConfigOperations.printCommandsAndAliases();
+        ConfigMethods.loadAllCommandConfigs();
+        ConfigMethods.printCommandsAndAliases();
 
         printBasicMessage("--> §aRegistering commands and known aliases with Sponge...");
-        boolean registrationCompleted = ConfigOperations.registerCommands();
+        final boolean registrationCompleted = ConfigMethods.registerCommands();
 
         if (registrationCompleted)
-            printBasicMessage("--> §aPre-init completed.");
+            printBasicMessage("--> §aPre-init completed. Bidoof is okay.");
         printBasicMessage("===========================================================================");
         printBasicMessage("");
     }
 
     @Listener
-    public void onPostInitEvent(GamePostInitializationEvent event)
+    public void onPostInitEvent(final GamePostInitializationEvent event)
     {
         printBasicMessage("");
         printBasicMessage("========================= P I X E L U P G R A D E =========================");
         printBasicMessage("--> §aChecking whether an economy plugin is present...");
 
-        Optional<EconomyService> potentialEconomyService = Sponge.getServiceManager().provide(EconomyService.class);
-        if (!potentialEconomyService.isPresent())
-        {
-            printBasicMessage("--> §cNo economy plugin was found. Some commands will break!");
-            printBasicMessage("--> §eProper support for running without economies is coming soon.");
-            //printBasicMessage("--> §eNo economy plugin was found. Proceeding with integration disabled.");
-        }
-        else
+        final Optional<EconomyService> potentialEconomyService = Sponge.getServiceManager().provide(EconomyService.class);
+        if (potentialEconomyService.isPresent())
         {
             printBasicMessage("--> §aAn economy plugin was detected.");
             //printBasicMessage("--> §aAn economy plugin was detected. Enabling integration!");
@@ -346,6 +342,12 @@ public class PixelUpgrade
 
             printBasicMessage("--> §aAll systems nominal.");
         }
+        else
+        {
+            printBasicMessage("--> §cNo economy plugin was found. Some commands will break!");
+            printBasicMessage("--> §eProper support for running without economies is coming soon.");
+            //printBasicMessage("--> §eNo economy plugin was found. Proceeding with integration disabled.");
+        }
 
         //printBasicMessage("--> §aAll systems nominal.");
         printBasicMessage("===========================================================================");
@@ -353,14 +355,14 @@ public class PixelUpgrade
     }
 
     @Listener
-    public void onServerStartedEvent(GameStartedServerEvent event)
+    public void onServerStartedEvent(final GameStartedServerEvent event)
     {
-        int currentInternalVersion = 400;
+        final int currentInternalVersion = 400;
         if (PixelUpgrade.configVersion != null && currentInternalVersion > PixelUpgrade.configVersion)
         {
             printBasicMessage("");
-            printBasicMessage("===========================================================================");
-            printBasicMessage("§4/showstats §clikely has an outdated (§43.0§c or earlier) config.");
+            printBasicMessage("========================= P I X E L U P G R A D E =========================");
+            printBasicMessage("§4/showstats §clikely has an outdated (§43.0§c) config.");
             printBasicMessage("");
             printBasicMessage("§6Please follow these steps to fix this:");
             printBasicMessage("§61. §eDelete §6ShowStats.conf§e, or move it somewhere safe.");
@@ -387,7 +389,7 @@ public class PixelUpgrade
                 printBasicMessage("We've got a Pixelmon entity!");
                 EntityPixelmon targetEntity = (EntityPixelmon) entity;
                 targetEntity.setHealth(5000);
-                targetEntity.setIsRed(true); // Could use this for a "Who's that Pokémon?" kind of deal? :O
+                targetEntity.setIsRed(true);
                 //targetEntity.setFire(60);
                 //targetEntity.setPixelmonScale(5);
             }

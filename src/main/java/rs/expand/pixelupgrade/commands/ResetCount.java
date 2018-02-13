@@ -18,7 +18,7 @@ import org.spongepowered.api.text.Text;
 import java.util.Optional;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.CommonMethods;
+import rs.expand.pixelupgrade.utilities.PrintingMethods;
 
 // TODO: Add target support.
 public class ResetCount implements CommandExecutor
@@ -27,11 +27,11 @@ public class ResetCount implements CommandExecutor
     public static String commandAlias;
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
-    private void printToLog (int debugNum, String inputString)
-    { CommonMethods.printDebugMessage("ResetCount", debugNum, inputString); }
+    private void printToLog (final int debugNum, final String inputString)
+    { PrintingMethods.printDebugMessage("ResetCount", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
-    public CommandResult execute(CommandSource src, CommandContext args)
+    public CommandResult execute(final CommandSource src, final CommandContext args)
     {
         if (src instanceof Player)
         {
@@ -45,7 +45,7 @@ public class ResetCount implements CommandExecutor
             {
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
-                Player player = (Player) src;
+                final Player player = (Player) src;
                 boolean canContinue = true, commandConfirmed = false, printError = false;
                 String fixedCount = "";
                 int slot = 0;
@@ -62,7 +62,7 @@ public class ResetCount implements CommandExecutor
                 }
                 else
                 {
-                    String slotString = args.<String>getOne("slot").get();
+                    final String slotString = args.<String>getOne("slot").get();
 
                     if (slotString.matches("^[1-6]"))
                     {
@@ -83,7 +83,7 @@ public class ResetCount implements CommandExecutor
 
                 if (args.<String>getOne("count").isPresent() && canContinue)
                 {
-                    String countString = args.<String>getOne("count").get();
+                    final String countString = args.<String>getOne("count").get();
 
                     switch (countString.toUpperCase())
                     {
@@ -118,8 +118,7 @@ public class ResetCount implements CommandExecutor
 
                 if (canContinue)
                 {
-                    printToLog(2, "No errors encountered, input should be valid. Continuing!");
-                    Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
+                    final Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
                     if (!storage.isPresent())
                     {
@@ -128,8 +127,8 @@ public class ResetCount implements CommandExecutor
                     }
                     else
                     {
-                        PlayerStorage storageCompleted = (PlayerStorage) storage.get();
-                        NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
+                        final PlayerStorage storageCompleted = (PlayerStorage) storage.get();
+                        final NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
 
                         if (nbt == null)
                         {
@@ -142,14 +141,14 @@ public class ResetCount implements CommandExecutor
                             {
                                 printToLog(2, "Command was confirmed, proceeding to execution.");
 
-                                EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
+                                final EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
 
                                 switch (fixedCount)
                                 {
                                     case "Fusion":
                                     {
-                                        int fuseCount = pokemon.getEntityData().getInteger("fuseCount");
-                                        boolean isDitto = nbt.getString("Name").equals("Ditto");
+                                        final int fuseCount = pokemon.getEntityData().getInteger("fuseCount");
+                                        final boolean isDitto = nbt.getString("Name").equals("Ditto");
 
                                         printToLog(1,
                                                 "Resetting Fusion count on target Pokémon. Old count: §3" + fuseCount);
@@ -163,8 +162,8 @@ public class ResetCount implements CommandExecutor
                                     }
                                     case "Upgrade":
                                     {
-                                        int upgradeCount = pokemon.getEntityData().getInteger("upgradeCount");
-                                        boolean isDitto = nbt.getString("Name").equals("Ditto");
+                                        final int upgradeCount = pokemon.getEntityData().getInteger("upgradeCount");
+                                        final boolean isDitto = nbt.getString("Name").equals("Ditto");
 
                                         printToLog(1,
                                                 "Resetting Upgrade count on target Pokémon. Old count: §3" + upgradeCount);
@@ -178,8 +177,8 @@ public class ResetCount implements CommandExecutor
                                     }
                                     default:
                                     {
-                                        int upgradeCount = pokemon.getEntityData().getInteger("upgradeCount");
-                                        int fuseCount = pokemon.getEntityData().getInteger("fuseCount");
+                                        final int upgradeCount = pokemon.getEntityData().getInteger("upgradeCount");
+                                        final int fuseCount = pokemon.getEntityData().getInteger("fuseCount");
 
                                         printToLog(1, "Resetting all counts. Old: §3" + upgradeCount +
                                                 "§b upgrades, §3" + fuseCount + "§b fusions.");
@@ -200,9 +199,9 @@ public class ResetCount implements CommandExecutor
                                 src.sendMessage(Text.of("§5-----------------------------------------------------"));
 
                                 if (fixedCount.equals("All"))
-                                    src.sendMessage(Text.of("§6Warning: §eYou're about to reset this Pokémon's improvement counts!"));
+                                    src.sendMessage(Text.of("§6Warning: §eYou're about to reset this Pokémon's edit counts!"));
                                 else
-                                    src.sendMessage(Text.of("§6Warning: §eYou are about to reset this Pokémon's §6" + fixedCount + "§e count!"));
+                                    src.sendMessage(Text.of("§6Warning: §eYou're about to reset this Pokémon's §6" + fixedCount + "§e count!"));
 
                                 src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
                                 src.sendMessage(Text.of("§5-----------------------------------------------------"));
@@ -218,11 +217,11 @@ public class ResetCount implements CommandExecutor
         return CommandResult.success();
     }
 
-    private void addFooter(CommandSource src)
+    private void addFooter(final CommandSource src)
     {
         src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> <count> {-c to confirm}"));
         src.sendMessage(Text.of(""));
-        src.sendMessage(Text.of("§6Valid counts: §eUpgrade§6, §eFusion"));
+        src.sendMessage(Text.of("§6Valid counts: §eUpgrade, Fusion, All (wipes both!)"));
         src.sendMessage(Text.of(""));
         src.sendMessage(Text.of("§5Warning: §dThe -c flag immediately wipes the chosen count!"));
         src.sendMessage(Text.of("§d(these counts are a Pokémon's upgrade/fusion totals)"));

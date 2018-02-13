@@ -2,6 +2,7 @@
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
+import com.pixelmonmod.pixelmon.battles.BattleRegistry;
 import com.pixelmonmod.pixelmon.config.PixelmonEntityList;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import com.pixelmonmod.pixelmon.enums.EnumPokemon;
@@ -27,7 +28,7 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.CommonMethods;
+import rs.expand.pixelupgrade.utilities.PrintingMethods;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
 public class UpgradeIVs implements CommandExecutor
@@ -41,16 +42,16 @@ public class UpgradeIVs implements CommandExecutor
     public static Double legendaryAndShinyMult, legendaryMult, shinyMult, regularMult;
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
-    private void printToLog (int debugNum, String inputString)
-    { CommonMethods.printDebugMessage("UpgradeIVs", debugNum, inputString); }
+    private void printToLog (final int debugNum, final String inputString)
+    { PrintingMethods.printDebugMessage("UpgradeIVs", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
-    public CommandResult execute(CommandSource src, CommandContext args)
+    public CommandResult execute(final CommandSource src, final CommandContext args)
     {
         if (src instanceof Player)
         {
             // Validate the data we get from the command's main config.
-            ArrayList<String> nativeErrorArray = new ArrayList<>();
+            final ArrayList<String> nativeErrorArray = new ArrayList<>();
             if (commandAlias == null)
                 nativeErrorArray.add("commandAlias");
             if (legendaryAndShinyCap == null)
@@ -80,7 +81,7 @@ public class UpgradeIVs implements CommandExecutor
 
             if (!nativeErrorArray.isEmpty())
             {
-                CommonMethods.printCommandNodeError("UpgradeIVs", nativeErrorArray);
+                PrintingMethods.printCommandNodeError("UpgradeIVs", nativeErrorArray);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else if (useBritishSpelling == null)
@@ -89,11 +90,16 @@ public class UpgradeIVs implements CommandExecutor
                 printToLog(0, "The main config contains invalid variables. Exiting.");
                 src.sendMessage(Text.of("§4Error: §cCould not parse main config. Please report to staff."));
             }
+            else if (BattleRegistry.getBattle((EntityPlayerMP) src) != null)
+            {
+                printToLog(0, "Called by player §4" + src.getName() + "§c, but in a battle. Exit.");
+                src.sendMessage(Text.of("§4Error: §cYou can't use this command while in a battle!"));
+            }
             else
             {
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
-                Player player = (Player) src;
+                final Player player = (Player) src;
                 String stat = null, fixedStat = null, cleanStat = "Error, please report!";
                 boolean canContinue = true, commandConfirmed = false, statWasValid = true;
                 int slot = 0, quantity = 0;
@@ -110,7 +116,7 @@ public class UpgradeIVs implements CommandExecutor
                 }
                 else
                 {
-                    String slotString = args.<String>getOne("slot").get();
+                    final String slotString = args.<String>getOne("slot").get();
 
                     if (slotString.matches("^[1-6]"))
                     {
@@ -212,7 +218,7 @@ public class UpgradeIVs implements CommandExecutor
                 }
                 else if (canContinue)
                 {
-                    String quantityString = args.<String>getOne("quantity").get();
+                    final String quantityString = args.<String>getOne("quantity").get();
 
                     if (quantityString.equals("-c"))
                     {
@@ -252,7 +258,7 @@ public class UpgradeIVs implements CommandExecutor
 
                 if (canContinue)
                 {
-                    Optional<PlayerStorage> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
+                    final Optional<PlayerStorage> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
 
                     if (!storage.isPresent())
                     {
@@ -261,8 +267,8 @@ public class UpgradeIVs implements CommandExecutor
                     }
                     else
                     {
-                        PlayerStorage storageCompleted = storage.get();
-                        NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
+                        final PlayerStorage storageCompleted = storage.get();
+                        final NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
 
                         if (nbt == null)
                         {
@@ -281,16 +287,16 @@ public class UpgradeIVs implements CommandExecutor
                         }
                         else
                         {
-                            int statOld = nbt.getInteger(fixedStat);
-                            int IVHP = nbt.getInteger(NbtKeys.IV_HP);
-                            int IVATK = nbt.getInteger(NbtKeys.IV_ATTACK);
-                            int IVDEF = nbt.getInteger(NbtKeys.IV_DEFENCE);
-                            int IVSPATK = nbt.getInteger(NbtKeys.IV_SP_ATT);
-                            int IVSPDEF = nbt.getInteger(NbtKeys.IV_SP_DEF);
-                            int IVSPD = nbt.getInteger(NbtKeys.IV_SPEED);
-                            int totalIVs = IVHP + IVATK + IVDEF + IVSPATK + IVSPDEF + IVSPD;
+                            final int statOld = nbt.getInteger(fixedStat);
+                            final int IVHP = nbt.getInteger(NbtKeys.IV_HP);
+                            final int IVATK = nbt.getInteger(NbtKeys.IV_ATTACK);
+                            final int IVDEF = nbt.getInteger(NbtKeys.IV_DEFENCE);
+                            final int IVSPATK = nbt.getInteger(NbtKeys.IV_SP_ATT);
+                            final int IVSPDEF = nbt.getInteger(NbtKeys.IV_SP_DEF);
+                            final int IVSPD = nbt.getInteger(NbtKeys.IV_SPEED);
+                            final int totalIVs = IVHP + IVATK + IVDEF + IVSPATK + IVSPDEF + IVSPD;
 
-                            EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
+                            final EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
                             int upgradeCount = pokemon.getEntityData().getInteger("upgradeCount");
                             int upgradeTicker = 0;
                             boolean isShiny = false, isLegendary = false;
@@ -379,8 +385,10 @@ public class UpgradeIVs implements CommandExecutor
 
                                 BigDecimal costToConfirm;
                                 boolean freeUpgrade = false, paidUpgrade = false, singleUpgrade = false;
-                                double priceMultiplier, iteratedValue = 0.0;
-                                int remainder, initialRemainder;
+                                final double priceMultiplier;
+                                double iteratedValue = 0.0;
+                                int remainder;
+                                final int initialRemainder;
 
                                 if (isShiny && isLegendary)
                                 {
@@ -405,14 +413,14 @@ public class UpgradeIVs implements CommandExecutor
 
                                 printToLog(2, "Calculated remainder from previous upgrade count + config: §2" + remainder);
 
-                                StringBuilder listOfValues = new StringBuilder();
+                                final StringBuilder listOfValues = new StringBuilder();
                                 for (int i = totalIVs + 1; i <= 186; i++)
                                 {
                                     listOfValues.append(i);
                                     listOfValues.append(",");
                                 }
                                 listOfValues.setLength(listOfValues.length() - 1);
-                                String[] outputArray = listOfValues.toString().split(",");
+                                final String[] outputArray = listOfValues.toString().split(",");
                                 initialRemainder = remainder;
 
                                 if (quantity == 1)
@@ -420,12 +428,12 @@ public class UpgradeIVs implements CommandExecutor
                                 else if (quantity > (31 - statOld)) // Let's sanitize input so we don't exceed 31.
                                     quantity = (31 - statOld);
 
-                                for (String loopValueAsString : outputArray)
+                                for (final String loopValueAsString : outputArray)
                                 {
                                     if (upgradeTicker >= quantity || upgradeTicker >= initialRemainder)
                                         break;
 
-                                    int loopValue = Integer.valueOf(loopValueAsString);
+                                    final int loopValue = Integer.valueOf(loopValueAsString);
 
                                     // freeUpgrade and paidUpgrade can be true at the same time. Pricing and messages change accordingly.
                                     if (loopValue <= upgradesFreeBelow)
@@ -451,8 +459,8 @@ public class UpgradeIVs implements CommandExecutor
 
                                 if (commandConfirmed)
                                 {
-                                    String name = nbt.getString("Name");
-                                    String upgradeString = "§eYou upgraded §6" + name + "§e's §6" + cleanStat;
+                                    final String name = nbt.getString("Name");
+                                    final String upgradeString = "§eYou upgraded §6" + name + "§e's §6" + cleanStat;
 
                                     if (isShiny && isLegendary)
                                         upgradeCount = legendaryAndShinyCap - remainder;
@@ -488,15 +496,15 @@ public class UpgradeIVs implements CommandExecutor
                                     }
                                     else
                                     {
-                                        Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
+                                        final Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
 
                                         if (optionalAccount.isPresent())
                                         {
-                                            UniqueAccount uniqueAccount = optionalAccount.get();
+                                            final UniqueAccount uniqueAccount = optionalAccount.get();
                                             BigDecimal newTotal = uniqueAccount.getBalance(economyService.getDefaultCurrency());
                                             printToLog(2, "Entering final stage, got confirmation. Current cash: §2" + newTotal + "§a.");
 
-                                            TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
+                                            final TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
                                                         costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
                                             if (transactionResult.getResult() == ResultType.SUCCESS)
                                             {
@@ -511,7 +519,7 @@ public class UpgradeIVs implements CommandExecutor
 
                                                 if (costToConfirm.signum() == 1) // 1 = we've got a cost. 0 = cost is zero. -1 would be negative.
                                                 {
-                                                    String paidString = "§aYou paid §2" + costToConfirm + "§a coins";
+                                                    final String paidString = "§aYou paid §2" + costToConfirm + "§a coins";
                                                     src.sendMessage(Text.of(""));
 
                                                     if (remainder == 1)
@@ -540,7 +548,7 @@ public class UpgradeIVs implements CommandExecutor
                                             }
                                             else
                                             {
-                                                BigDecimal balanceNeeded = newTotal.subtract(costToConfirm).abs();
+                                                final BigDecimal balanceNeeded = newTotal.subtract(costToConfirm).abs();
                                                 printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
                                                         "§b, and we're lacking §3" + balanceNeeded);
 
@@ -560,8 +568,8 @@ public class UpgradeIVs implements CommandExecutor
                                     printToLog(1, "Got no confirmation; end of the line. Exit.");
 
                                     src.sendMessage(Text.of("§7-----------------------------------------------------"));
-                                    String helperString = "§eThe §6" + cleanStat + "§e stat will be upgraded by §6";
-                                    String syntaxString = "§2Ready? Use: §a/" + commandAlias + " " + slot + " " + stat;
+                                    final String helperString = "§eThe §6" + cleanStat + "§e stat will be upgraded by §6";
+                                    final String syntaxString = "§2Ready? Use: §a/" + commandAlias + " " + slot + " " + stat;
 
                                     if (quantity == 1)
                                         src.sendMessage(Text.of(helperString + "one §epoint!"));
@@ -643,7 +651,7 @@ public class UpgradeIVs implements CommandExecutor
         return CommandResult.success();
 	}
 
-    private void addHelperAndFooter(CommandSource src)
+    private void addHelperAndFooter(final CommandSource src)
     {
         src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot> <IV type> [amount?] {-c to confirm}"));
 

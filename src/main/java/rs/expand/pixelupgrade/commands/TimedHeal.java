@@ -2,6 +2,7 @@
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
+import com.pixelmonmod.pixelmon.battles.BattleRegistry;
 import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
@@ -13,6 +14,7 @@ import java.util.UUID;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.block.tileentity.CommandBlock;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -24,7 +26,7 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.CommonMethods;
+import rs.expand.pixelupgrade.utilities.PrintingMethods;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
 public class TimedHeal implements CommandExecutor
@@ -39,21 +41,30 @@ public class TimedHeal implements CommandExecutor
     private boolean calledRemotely;
     private HashMap<UUID, Long> cooldownMap = new HashMap<>();
 
+    // Allows us to redirect printed messages away from command blocks, and into the console if need be.
+    private void sendCheckedMessage(final CommandSource src, final String input)
+    {
+        if (src instanceof CommandBlock) // Redirect to console, respecting existing formatting.
+            PrintingMethods.printBasicMessage(input);
+        else // Print normally.
+            src.sendMessage(Text.of(input));
+    }
+
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
-    private void printToLog (int debugNum, String inputString)
+    private void printToLog (final int debugNum, final String inputString)
     {
         if (!calledRemotely)
-            CommonMethods.printDebugMessage("TimedHeal", debugNum, inputString);
+            PrintingMethods.printDebugMessage("TimedHeal", debugNum, inputString);
     }
 
     @SuppressWarnings("NullableProblems")
-    public CommandResult execute(CommandSource src, CommandContext args)
+    public CommandResult execute(final CommandSource src, final CommandContext args)
     {
-        // Are we running from the console? Let's tell our code that. If "src" is not a Player, this becomes true.
+        // Running from console or blocks? Let's tell our code that. If "src" is not a Player, this becomes true.
         calledRemotely = !(src instanceof Player);
 
         // Validate the data we get from the command's main config.
-        ArrayList<String> nativeErrorArray = new ArrayList<>();
+        final ArrayList<String> nativeErrorArray = new ArrayList<>();
         if (commandAlias == null)
             nativeErrorArray.add("commandAlias");
         if (cooldownInSeconds == null)
@@ -69,25 +80,33 @@ public class TimedHeal implements CommandExecutor
 
         if (!nativeErrorArray.isEmpty())
         {
-            CommonMethods.printCommandNodeError("TimedHeal", nativeErrorArray);
-            src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
+            PrintingMethods.printCommandNodeError("TimedHeal", nativeErrorArray);
+            sendCheckedMessage(src,"§4Error: §cThis command's config is invalid! Please report to staff.");
         }
         else
         {
             if (calledRemotely)
             {
-                CommonMethods.printDebugMessage("TimedHeal", 1,
-                        "Called by console, starting. Omitting debug messages for clarity.");
+                if (src instanceof CommandBlock)
+                {
+                    PrintingMethods.printDebugMessage("TimedHeal", 1,
+                            "Called by command block, starting. Silencing logger messages.");
+                }
+                else
+                {
+                    PrintingMethods.printDebugMessage("TimedHeal", 1,
+                            "Called by console, starting. Silencing further log messages.");
+                }
             }
             else
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
             int slot = 0;
-            long currentTime = System.currentTimeMillis() / 1000; // Grab seconds.
+            final long currentTime = System.currentTimeMillis() / 1000; // Grab seconds.
             boolean canContinue = true, commandConfirmed = false, hitCooldown = false;
-            boolean hasOtherPerm = src.hasPermission("pixelupgrade.command.other.timedheal");
-            Optional<String> arg1Optional = args.getOne("target/slot/confirmation");
-            Optional<String> arg2Optional = args.getOne("slot/confirmation");
+            final boolean hasOtherPerm = src.hasPermission("pixelupgrade.command.other.timedheal");
+            final Optional<String> arg1Optional = args.getOne("target/slot/confirmation");
+            final Optional<String> arg2Optional = args.getOne("slot/confirmation");
             String errorString = "§4There's an error message missing, please report this!";
             UUID playerUUID = null;
             Player target = null;
@@ -97,7 +116,7 @@ public class TimedHeal implements CommandExecutor
                 // Do we have an argument in the first slot?
                 if (arg1Optional.isPresent())
                 {
-                    String arg1String = arg1Optional.get();
+                    final String arg1String = arg1Optional.get();
 
                     // Do we have a valid online player?
                     if (Sponge.getServer().getPlayer(arg1String).isPresent())
@@ -116,7 +135,7 @@ public class TimedHeal implements CommandExecutor
 
                 if (canContinue && arg2Optional.isPresent())
                 {
-                    String arg2String = arg2Optional.get();
+                    final String arg2String = arg2Optional.get();
 
                     // Do we have a slot?
                     if (arg2String.matches("^[1-6]"))
@@ -138,9 +157,9 @@ public class TimedHeal implements CommandExecutor
 
                 if (!src.hasPermission("pixelupgrade.command.bypass.timedheal") && cooldownMap.containsKey(playerUUID))
                 {
-                    boolean hasAltPerm = src.hasPermission("pixelupgrade.command.altcooldown.timedheal");
-                    long timeDifference = currentTime - cooldownMap.get(playerUUID);
-                    long timeRemaining;
+                    final boolean hasAltPerm = src.hasPermission("pixelupgrade.command.altcooldown.timedheal");
+                    final long timeDifference = currentTime - cooldownMap.get(playerUUID);
+                    final long timeRemaining;
 
                     if (hasAltPerm)
                     {
@@ -184,7 +203,7 @@ public class TimedHeal implements CommandExecutor
                     printToLog(2, "Starting argument check for player's input.");
 
                     // Ugly, but it'll do for now... Doesn't seem like my usual way of getting flags will work here.
-                    Optional<String> arg3Optional = args.getOne("confirmation");
+                    final Optional<String> arg3Optional = args.getOne("confirmation");
 
                     if (arg1Optional.isPresent() && arg1Optional.get().equalsIgnoreCase("-c"))
                     {
@@ -211,7 +230,7 @@ public class TimedHeal implements CommandExecutor
 
                         if (arg1Optional.isPresent() && !arg1Optional.get().equalsIgnoreCase("-c"))
                         {
-                            String arg1String = arg1Optional.get();
+                            final String arg1String = arg1Optional.get();
 
                             if (hasOtherPerm)
                             {
@@ -238,7 +257,7 @@ public class TimedHeal implements CommandExecutor
                     {
                         if (arg1Optional.isPresent() && !arg1Optional.get().equalsIgnoreCase("-c"))
                         {
-                            String arg1String = arg1Optional.get();
+                            final String arg1String = arg1Optional.get();
 
                             if (arg1String.matches("^[1-6]"))
                             {
@@ -275,7 +294,7 @@ public class TimedHeal implements CommandExecutor
                             if (arg2Optional.isPresent() && !arg2Optional.get().equalsIgnoreCase("-c"))
                             {
                                 printToLog(2, "There's something in the second argument slot, and we need it!");
-                                String arg2String = arg2Optional.get();
+                                final String arg2String = arg2Optional.get();
 
                                 // Do we have a slot?
                                 if (arg2String.matches("^[1-6]"))
@@ -303,15 +322,27 @@ public class TimedHeal implements CommandExecutor
 
             if (!canContinue)
             {
-                src.sendMessage(Text.of(errorString));
+                sendCheckedMessage(src,errorString);
+                
                 if (!hitCooldown)
                     printSyntaxHelper(src, hasOtherPerm);
+            }
+            // Only hittable if we got called by an actual Player.
+            else if (target == null && BattleRegistry.getBattle((EntityPlayerMP) src) != null)
+            {
+                printToLog(0, "Player tried to heal own Pokémon while in a battle. Exit.");
+                sendCheckedMessage(src, "§4Error: §cYou can't use this command while in a battle!");
+            }
+            else if (target != null && BattleRegistry.getBattle((EntityPlayerMP) target) != null)
+            {
+                printToLog(0, "Target was in a battle, cannot proceed. Exit."); // Swallowed if console.
+                sendCheckedMessage(src, "§4Error: §cTarget is battling, changes wouldn't stick. Exiting.");
             }
             else
             {
                 // At this point we should always have a valid input, whatever the settings may be.
                 // The only thing we'll require now is confirmation, if applicable.
-                Optional<PlayerStorage> storage;
+                final Optional<PlayerStorage> storage;
                 if (target != null)
                     storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) target));
                 else
@@ -324,12 +355,12 @@ public class TimedHeal implements CommandExecutor
                     else
                         printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
 
-                    src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
+                    sendCheckedMessage(src,"§4Error: §cNo Pixelmon storage found. Please contact staff!");
                 }
                 else
                 {
-                    PlayerStorage storageCompleted = storage.get();
-                    NBTTagCompound nbt;
+                    final PlayerStorage storageCompleted = storage.get();
+                    final NBTTagCompound nbt;
                     if (slot != 0)
                         nbt = storageCompleted.partyPokemon[slot - 1];
                     else
@@ -342,16 +373,16 @@ public class TimedHeal implements CommandExecutor
                             printToLog(1, "No NBT data found in slot, probably empty. Exit.");
 
                             if (target != null)
-                                src.sendMessage(Text.of("§4Error: §cYour target does not have anything in that slot!"));
+                                sendCheckedMessage(src,"§4Error: §cYour target does not have anything in that slot!");
                             else
-                                src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
+                                sendCheckedMessage(src,"§4Error: §cYou don't have anything in that slot!");
 
                             canContinue = false;
                         }
                         else if (nbt.getBoolean(NbtKeys.IS_EGG))
                         {
                             printToLog(1, "Tried to show off an egg. Exit.");
-                            src.sendMessage(Text.of("§4Error: §cThat's an egg! You won't need to heal that."));
+                            sendCheckedMessage(src,"§4Error: §cThat's an egg! You won't need to heal that.");
                             canContinue = false;
                         }
                     }
@@ -360,16 +391,16 @@ public class TimedHeal implements CommandExecutor
                     {
                         if (!calledRemotely && commandCost > 0)
                         {
-                            BigDecimal costToConfirm = new BigDecimal(commandCost);
+                            final BigDecimal costToConfirm = new BigDecimal(commandCost);
 
                             if (commandConfirmed)
                             {
-                                Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(playerUUID);
+                                final Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(playerUUID);
 
                                 if (optionalAccount.isPresent())
                                 {
-                                    UniqueAccount uniqueAccount = optionalAccount.get();
-                                    TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
+                                    final UniqueAccount uniqueAccount = optionalAccount.get();
+                                    final TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
                                             costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
 
                                     if (transactionResult.getResult() == ResultType.SUCCESS)
@@ -406,18 +437,18 @@ public class TimedHeal implements CommandExecutor
                                     }
                                     else
                                     {
-                                        BigDecimal balanceNeeded = uniqueAccount.getBalance(
+                                        final BigDecimal balanceNeeded = uniqueAccount.getBalance(
                                                 economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
 
                                         printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
                                                 "§b, and we're lacking §3" + balanceNeeded);
-                                        src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
+                                        sendCheckedMessage(src,"§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this.");
                                     }
                                 }
                                 else
                                 {
                                     printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. Bug?");
-                                    src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
+                                    sendCheckedMessage(src,"§4Error: §cNo economy account found. Please contact staff!");
                                 }
                             }
                             else
@@ -430,50 +461,50 @@ public class TimedHeal implements CommandExecutor
                                     if (target == null)
                                     {
                                         if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
-                                            src.sendMessage(Text.of("§6Warning: §eHealing your team costs §6one §ecoin."));
+                                            sendCheckedMessage(src,"§6Warning: §eHealing your team costs §6one §ecoin.");
                                         else
                                         {
-                                            src.sendMessage(Text.of("§6Warning: §eHealing your team costs §6" +
-                                                    costToConfirm + "§e coins."));
+                                            sendCheckedMessage(src,"§6Warning: §eHealing your team costs §6" +
+                                                    costToConfirm + "§e coins.");
                                         }
 
-                                        src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " -c"));
+                                        sendCheckedMessage(src,"§2Ready? Type: §a/" + commandAlias + " -c");
                                     }
                                     else
                                     {
                                         if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
-                                            src.sendMessage(Text.of("§6Warning: §eHealing §6" + target.getName() +
-                                                    "§e's team costs §6one §ecoin."));
+                                            sendCheckedMessage(src,"§6Warning: §eHealing §6" + target.getName() +
+                                                    "§e's team costs §6one §ecoin.");
                                         else
                                         {
-                                            src.sendMessage(Text.of("§6Warning: §eHealing §6" + target.getName() +
-                                                    "§e's team costs §6" + costToConfirm + "§e coins."));
+                                            sendCheckedMessage(src,"§6Warning: §eHealing §6" + target.getName() +
+                                                    "§e's team costs §6" + costToConfirm + "§e coins.");
                                         }
 
-                                        src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " +
-                                                target.getName() + " -c"));
+                                        sendCheckedMessage(src,"§2Ready? Type: §a/" + commandAlias + " " +
+                                                target.getName() + " -c");
                                     }
                                 }
                                 else
                                 {
                                     // Is cost to confirm exactly one coin?
                                     if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
-                                        src.sendMessage(Text.of("§6Warning: §eHealing this Pokémon costs §6one §ecoin."));
+                                        sendCheckedMessage(src,"§6Warning: §eHealing this Pokémon costs §6one §ecoin.");
                                     else
                                     {
-                                        src.sendMessage(Text.of("§6Warning: §eHealing this Pokémon costs §6" +
-                                                costToConfirm + "§e coins."));
+                                        sendCheckedMessage(src,"§6Warning: §eHealing this Pokémon costs §6" +
+                                                costToConfirm + "§e coins.");
                                     }
 
                                     if (target == null)
                                     {
-                                        src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " +
-                                                slot + " -c"));
+                                        sendCheckedMessage(src,"§2Ready? Type: §a/" + commandAlias + " " +
+                                                slot + " -c");
                                     }
                                     else
                                     {
-                                        src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " +
-                                                target.getName() + " " + slot + " -c"));
+                                        sendCheckedMessage(src,"§2Ready? Type: §a/" + commandAlias + " " +
+                                                target.getName() + " " + slot + " -c");
                                     }
                                 }
                             }
@@ -520,13 +551,13 @@ public class TimedHeal implements CommandExecutor
     }
 
     // Called when it's necessary to figure out the right perm message, or when it's just convenient. Saves typing!
-    private void printSyntaxHelper(CommandSource src, boolean hasOtherPerm)
+    private void printSyntaxHelper(final CommandSource src, final boolean hasOtherPerm)
     {
         if (calledRemotely)
-            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <target> [slot? 1-6]"));
+            sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " <target> [slot? 1-6]");
         else
         {
-            String confirmString;
+            final String confirmString;
             if (commandCost != 0)
                 confirmString = " {-c to confirm}";
             else
@@ -535,41 +566,41 @@ public class TimedHeal implements CommandExecutor
             if (healParty)
             {
                 if (hasOtherPerm)
-                    src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [target?]" + confirmString));
+                    sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " [target?]" + confirmString);
                 else
-                    src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " " + confirmString));
+                    sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " " + confirmString);
             }
             else
             {
                 if (hasOtherPerm)
-                    src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [target?] <slot, 1-6>" + confirmString));
+                    sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " [target?] <slot, 1-6>" + confirmString);
                 else
-                    src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6>" + confirmString));
+                    sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " <slot, 1-6>" + confirmString);
             }
         }
     }
 
-    private void doHeal(CommandSource src, Player target, int slot, PlayerStorage storage, NBTTagCompound nbt)
+    private void doHeal(final CommandSource src, final Player target, final int slot, final PlayerStorage storage, final NBTTagCompound nbt)
     {
         if (healParty && target == null)
         {
-            EntityPlayerMP playerEntity = (EntityPlayerMP) src;
+            final EntityPlayerMP playerEntity = (EntityPlayerMP) src;
             storage.healAllPokemon(playerEntity.getServerWorld());
 
-            src.sendMessage(Text.of("§aYour party has been healed!"));
+            sendCheckedMessage(src,"§aYour party has been healed!");
         }
         else if (calledRemotely && slot == 0 || !calledRemotely && healParty)
         {
-            EntityPlayerMP playerEntity = (EntityPlayerMP) target;
+            final EntityPlayerMP playerEntity = (EntityPlayerMP) target;
             storage.healAllPokemon(playerEntity.getServerWorld());
 
             if (calledRemotely && sneakyMode)
-                src.sendMessage(Text.of("§aThe target's party has been silently healed!"));
+                sendCheckedMessage(src,"§aThe target's party has been silently healed!");
             else
-                src.sendMessage(Text.of("§aThe target's party has been healed!"));
+                sendCheckedMessage(src,"§aThe target's party has been healed!");
 
             if (calledRemotely && !sneakyMode)
-                target.sendMessage(Text.of("§aYour party was healed from the console!"));
+                target.sendMessage(Text.of("§aYour party was healed remotely!"));
             else if (!calledRemotely)
                 target.sendMessage(Text.of("§aYour party was healed by §2" + src.getName() + "§a!"));
         }
@@ -580,7 +611,7 @@ public class TimedHeal implements CommandExecutor
             nbt.setBoolean(NbtKeys.IS_FAINTED, false);
             nbt.removeTag("Status");
 
-            int numberOfMoves = nbt.getInteger(NbtKeys.PIXELMON_NUMBER_MOVES);
+            final int numberOfMoves = nbt.getInteger(NbtKeys.PIXELMON_NUMBER_MOVES);
             for (int i = 0; i < numberOfMoves; i++)
                 nbt.setInteger(NbtKeys.PIXELMON_MOVE_PP + i, nbt.getInteger(NbtKeys.PIXELMON_MOVE_PPBASE + i));
 
@@ -589,17 +620,17 @@ public class TimedHeal implements CommandExecutor
             if (target != null)
             {
                 if (calledRemotely && sneakyMode)
-                    src.sendMessage(Text.of("§aThe target's slot §2" + slot + " §aPokémon has been silently healed!"));
+                    sendCheckedMessage(src,"§aThe target's slot §2" + slot + " §aPokémon has been silently healed!");
                 else
-                    src.sendMessage(Text.of("§aThe target's slot §2" + slot + " §aPokémon has been healed!"));
+                    sendCheckedMessage(src,"§aThe target's slot §2" + slot + " §aPokémon has been healed!");
 
                 if (calledRemotely && !sneakyMode)
-                    target.sendMessage(Text.of("§aThe Pokémon in slot §2" + slot + "§a was healed from the console!"));
+                    target.sendMessage(Text.of("§aThe Pokémon in slot §2" + slot + "§a was healed remotely!"));
                 else if (!calledRemotely)
                     target.sendMessage(Text.of("§aThe Pokémon in slot §2" + slot + "§a was healed by §2" + src.getName() + "§a!"));
             }
             else
-                src.sendMessage(Text.of("§aThe Pokémon in slot §2" + slot + " §ahas been healed!"));
+                sendCheckedMessage(src,"§aThe Pokémon in slot §2" + slot + " §ahas been healed!");
         }
     }
 }

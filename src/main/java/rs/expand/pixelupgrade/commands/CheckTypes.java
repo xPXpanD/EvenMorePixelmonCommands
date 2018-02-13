@@ -4,6 +4,7 @@ package rs.expand.pixelupgrade.commands;
 // Remote imports.
 import com.pixelmonmod.pixelmon.enums.EnumType;
 import java.util.*;
+import org.spongepowered.api.block.tileentity.CommandBlock;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -13,23 +14,22 @@ import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.CommonMethods;
-import rs.expand.pixelupgrade.utilities.EnumPokemonList;
+import rs.expand.pixelupgrade.utilities.PrintingMethods;
+import rs.expand.pixelupgrade.utilities.PokemonMethods;
 
-// FIXME: Some super long lists like /checktypes 599 cause minor visual issues. Fixing that would be nice polish.
+// FIXME: Fix some super long lists like /checktypes 599 causing minor visual issues. Nice polish.
 // TODO: Maybe look into paginated lists that you can move through. Lots of work, but would be real neat for evolutions.
-
 public class CheckTypes implements CommandExecutor
 {
     // Initialize some variables. We'll load stuff into these when we call the config loader.
     public static String commandAlias;
     public static Boolean showFormMessage, showAlolanMessage;
 
-    // Set up a console-checking variable for internal use.
+    // Are we running from console? We'll flag this true, and proceed accordingly.
     private boolean calledRemotely;
 
     /* TODO: Maybe move over to this later. Might be good practice?
-    private static final Map<String, String> formattedTypeMap = new HashMap<>();
+    private static Map<String, String> formattedTypeMap = new HashMap<>();
     {
         formattedTypeMap.put("Normal", "§fNormal");
         formattedTypeMap.put("Fighting", "§4Fighting");
@@ -53,240 +53,266 @@ public class CheckTypes implements CommandExecutor
     */
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
-    // If we're running from console, we need to swallow everything to avoid cluttering it.
-    private void printToLog (int debugNum, String inputString)
+    // If we're running from console, we need to swallow everything to avoid cluttering.
+    private void printToLog (final int debugNum, final String inputString)
     {
         if (!calledRemotely)
-            CommonMethods.printDebugMessage("CheckTypes", debugNum, inputString);
+            PrintingMethods.printDebugMessage("CheckTypes", debugNum, inputString);
     }
 
     @SuppressWarnings("NullableProblems")
-    public CommandResult execute(CommandSource src, CommandContext args)
+    public CommandResult execute(final CommandSource src, final CommandContext args)
     {
-        // Are we running from the console? Let's tell our code that. If "src" is not a Player, this becomes true.
-        calledRemotely = !(src instanceof Player);
-
-        // Validate the data we get from the command's main config.
-        ArrayList<String> nativeErrorArray = new ArrayList<>();
-        if (commandAlias == null)
-            nativeErrorArray.add("commandAlias");
-        if (showFormMessage == null)
-            nativeErrorArray.add("showFormMessage");
-        if (showAlolanMessage == null)
-            nativeErrorArray.add("showAlolanMessage");
-
-        if (!nativeErrorArray.isEmpty())
+        if (!(src instanceof CommandBlock))
         {
-            CommonMethods.printCommandNodeError("CheckTypes", nativeErrorArray);
-            src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
-        }
-        else
-        {
-            if (calledRemotely)
+            // Validate the data we get from the command's main config.
+            final ArrayList<String> nativeErrorArray = new ArrayList<>();
+            if (commandAlias == null)
+                nativeErrorArray.add("commandAlias");
+            if (showFormMessage == null)
+                nativeErrorArray.add("showFormMessage");
+            if (showAlolanMessage == null)
+                nativeErrorArray.add("showAlolanMessage");
+
+            if (!nativeErrorArray.isEmpty())
             {
-                CommonMethods.printDebugMessage("CheckTypes", 1,
-                        "Called by console, starting. Omitting debug messages for clarity.");
+                PrintingMethods.printCommandNodeError("CheckTypes", nativeErrorArray);
+                src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else
-                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
-
-            EnumPokemonList returnedPokemon = null;
-            boolean canContinue = true, inputIsInteger = false, inputWasEdited = false;
-            String arg1String = null, arg2String = "", errorString = "§4There's an error message missing, please report this!";
-            int inputInteger;
-
-            // Do we have an argument in the first slot?
-            if (args.<String>getOne("Pokémon name/ID").isPresent())
             {
-                printToLog(2, "Starting argument check for player's input.");
-                arg1String = args.<String>getOne("Pokémon name/ID").get();
-                Optional<String> arg2Optional = args.getOne("optional second word of name");
-
-                if (arg1String.matches("-?\\d+"))
+                if (!(src instanceof Player))
                 {
-                    printToLog(2, "Got a number, converting input into Dex ID and checking.");
+                    PrintingMethods.printDebugMessage("CheckTypes", 1,
+                            "Called by console, starting. Silencing further log messages.");
 
-                    inputIsInteger = true;
-                    inputInteger = Integer.parseInt(arg1String);
-
-                    if (inputInteger > 807 || inputInteger < 1)
-                    {
-                        printToLog(1, "Dex ID \"§3" + inputInteger + "§b\" was out of range. Exit.");
-                        errorString = "§4Error: §cInvalid Pokédex number! Valid range is 1-807.";
-                        canContinue = false;
-                    }
-                    else
-                        returnedPokemon = EnumPokemonList.getPokemonFromID(inputInteger);
+                    // Running from console? Let's tell our code that. If "src" is not a Player, this becomes true.
+                    calledRemotely = true;
                 }
                 else
+                    printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
+
+                PokemonMethods returnedPokemon = null;
+                boolean canContinue = true, inputIsInteger = false, inputWasEdited = false;
+                String arg1String = null, arg2String = "", errorString = "§4There's an error message missing, please report this!";
+                final int inputInteger;
+
+                // Do we have an argument in the first slot?
+                if (args.<String>getOne("Pokémon name/ID").isPresent())
                 {
-                    printToLog(2, "Input not numeric, checking if it's a valid name.");
-                    String updatedString = arg1String;
+                    printToLog(2, "Starting argument check for player's input.");
+                    arg1String = args.<String>getOne("Pokémon name/ID").get();
+                    final Optional<String> arg2Optional = args.getOne("optional second word");
 
-                    switch (arg1String.toUpperCase())
+                    if (arg1String.matches("-?\\d+"))
                     {
-                        // Possibly dodgy inputs and names that are different internally for technical reasons.
-                        case "NIDORANF": case "FNIDORAN": case "FEMALENIDORAN": case "NIDORAN♀":
-                            updatedString = "NidoranFemale"; break;
-                        case "NIDORANM": case "MNIDORAN": case "MALENIDORAN": case "NIDORAN♂":
-                            updatedString = "NidoranMale"; break;
-                        case "FARFETCH'D": case "FARFETCHED":
-                            updatedString = "Farfetchd"; break;
-                        case "MR.MIME": case "MISTERMIME":
-                            updatedString = "MrMime"; break;
-                        case "HO-OH":
-                            updatedString = "HoOh"; break;
-                        case "MIMEJR.": case "MIMEJUNIOR":
-                            updatedString = "MimeJr"; break;
-                        case "FLABÉBÉ": case "FLABÈBÈ":
-                            updatedString = "Flabebe"; break;
-                        case "TYPE:NULL":
-                            updatedString = "TypeNull"; break;
-                        case "JANGMO-O":
-                            updatedString = "JangmoO"; break;
-                        case "HAKAMO-O":
-                            updatedString = "HakamoO"; break;
-                        case "KOMMO-O":
-                            updatedString = "KommoO"; break;
-                    }
+                        printToLog(2, "Got a number, converting input into Dex ID and checking.");
 
-                    if (arg2Optional.isPresent())
-                    {
-                        // Used purely so we don't show extraneous input.
-                        boolean isFixed = true;
+                        inputIsInteger = true;
+                        inputInteger = Integer.parseInt(arg1String);
 
-                        arg2String = arg2Optional.get();
-                        printToLog(2, "Found second arg \"§2" + arg2String +
-                                "§a\", checking if it's part of a name.");
-
-                        switch (arg2String.toUpperCase())
+                        if (inputInteger > 807 || inputInteger < 1)
                         {
-                            case "OH":
-                            {
-                                if (arg1String.toUpperCase().equals("HO"))
-                                    updatedString = "HoOh";
+                            printToLog(1, "Dex ID \"§3" + inputInteger + "§b\" was out of range. Exit.");
+                            errorString = "§4Error: §cInvalid Pokédex number! Valid range is 1-807.";
+                            canContinue = false;
+                        }
+                        else
+                            returnedPokemon = PokemonMethods.getPokemonFromID(inputInteger);
+                    }
+                    else
+                    {
+                        printToLog(2, "Input not numeric, checking if it's a valid name.");
+                        String updatedString = arg1String;
 
-                                break;
-                            }
-                            case "O":
-                            {
-                                switch (arg1String.toUpperCase())
-                                {
-                                    case "JANGMO":
-                                        updatedString = "JangmoO"; break;
-                                    case "HAKAMO":
-                                        updatedString = "HakamoO"; break;
-                                    case "KOMMO":
-                                        updatedString = "KommoO"; break;
-                                }
-
-                                break;
-                            }
-                            case "NULL":
-                            {
-                                if (arg1String.toUpperCase().equals("TYPE") || arg1String.toUpperCase().equals("TYPE:"))
-                                    updatedString = "TypeNull";
-
-                                break;
-                            }
-                            case "KOKO":
-                            {
-                                if (arg1String.toUpperCase().equals("TAPU"))
-                                    updatedString = "TapuKoko";
-
-                                break;
-                            }
-                            case "LELE":
-                            {
-                                if (arg1String.toUpperCase().equals("TAPU"))
-                                    updatedString = "TapuLele";
-
-                                break;
-                            }
-                            case "Bunu":
-                            {
-                                if (arg1String.toUpperCase().equals("TAPU"))
-                                    updatedString = "TapuBunu";
-
-                                break;
-                            }
-                            case "Fini":
-                            {
-                                if (arg1String.toUpperCase().equals("TAPU"))
-                                    updatedString = "TapuFini";
-
-                                break;
-                            }
-                            default:
-                            {
-                                printToLog(2, "Nope, nothing here. Let's just check the first argument.");
-                                isFixed = false; // Flag as false so we don't show the second arg in our debug messages.
-                            }
+                        switch (arg1String.toUpperCase())
+                        {
+                            // Possibly dodgy inputs and names that are different internally for technical reasons.
+                            case "NIDORANF": case "FNIDORAN": case "FEMALENIDORAN": case "NIDORAN♀":
+                                updatedString = "NidoranFemale"; break;
+                            case "NIDORANM": case "MNIDORAN": case "MALENIDORAN": case "NIDORAN♂":
+                                updatedString = "NidoranMale"; break;
+                            case "FARFETCH'D": case "FARFETCHED":
+                                updatedString = "Farfetchd"; break;
+                            case "MR.MIME": case "MISTERMIME":
+                                updatedString = "MrMime"; break;
+                            case "HO-OH":
+                                updatedString = "HoOh"; break;
+                            case "MIMEJR.": case "MIMEJUNIOR":
+                                updatedString = "MimeJr"; break;
+                            case "FLABÉBÉ": case "FLABÈBÈ":
+                                updatedString = "Flabebe"; break;
+                            case "TYPE:NULL":
+                                updatedString = "TypeNull"; break;
+                            case "JANGMO-O":
+                                updatedString = "JangmoO"; break;
+                            case "HAKAMO-O":
+                                updatedString = "HakamoO"; break;
+                            case "KOMMO-O":
+                                updatedString = "KommoO"; break;
                         }
 
-                        if (isFixed && !Objects.equals(updatedString, arg1String))
+                        if (arg2Optional.isPresent())
                         {
-                            printToLog(2, "Fixable input found! Was \"§2" + arg1String + " " +
-                                    arg2String + "§a\", changed to \"§2" + updatedString + "§a\"");
+                            // Used purely so we don't show extraneous input.
+                            boolean isFixed = true;
+
+                            arg2String = arg2Optional.get();
+                            printToLog(2, "Found second arg \"§2" + arg2String +
+                                    "§a\", checking if it's part of a name.");
+
+                            switch (arg2String.toUpperCase())
+                            {
+                                // Alolan variants.
+                                case "RATTATA": case "RATICATE": case "RAICHU": case "SANDSHREW": case "SANDSLASH": case "VULPIX":
+                                case "NINETALES": case "DIGLETT": case "DUGTRIO": case "MEOWTH": case "PERSIAN": case "GEODUDE":
+                                case "GRAVELER": case "GOLEM": case "GRIMER": case "MUK": case "EXEGGUTOR": case "MAROWAK":
+                                {
+                                    if (arg1String.toUpperCase().equals("ALOLAN"))
+                                    {
+                                        // Split our arg2String String into constituent characters.
+                                        final char[] characterArray = arg2String.toCharArray();
+
+                                        // Uppercase the first letter. We'll go from "eXaMpLe" to "EXaMpLe".
+                                        characterArray[0] = Character.toUpperCase(characterArray[0]);
+
+                                        // Lowercase the rest, start from char 2 at pos 1. Go from "EXaMpLe" to "Example".
+                                        for (int i = 1; i < characterArray.length; i++)
+                                            characterArray[i] = Character.toLowerCase(characterArray[i]);
+
+                                        updatedString = new String(characterArray) + "Alolan";
+                                    }
+
+                                    break;
+                                }
+
+                                // Generic (potential) two-word names.
+                                case "OH":
+                                {
+                                    if (arg1String.toUpperCase().equals("HO"))
+                                        updatedString = "HoOh";
+
+                                    break;
+                                }
+                                case "O":
+                                {
+                                    switch (arg1String.toUpperCase())
+                                    {
+                                        case "JANGMO":
+                                            updatedString = "JangmoO"; break;
+                                        case "HAKAMO":
+                                            updatedString = "HakamoO"; break;
+                                        case "KOMMO":
+                                            updatedString = "KommoO"; break;
+                                    }
+
+                                    break;
+                                }
+                                case "NULL":
+                                {
+                                    if (arg1String.toUpperCase().equals("TYPE") || arg1String.toUpperCase().equals("TYPE:"))
+                                        updatedString = "TypeNull";
+
+                                    break;
+                                }
+                                case "KOKO":
+                                {
+                                    if (arg1String.toUpperCase().equals("TAPU"))
+                                        updatedString = "TapuKoko";
+
+                                    break;
+                                }
+                                case "LELE":
+                                {
+                                    if (arg1String.toUpperCase().equals("TAPU"))
+                                        updatedString = "TapuLele";
+
+                                    break;
+                                }
+                                case "Bunu":
+                                {
+                                    if (arg1String.toUpperCase().equals("TAPU"))
+                                        updatedString = "TapuBunu";
+
+                                    break;
+                                }
+                                case "Fini":
+                                {
+                                    if (arg1String.toUpperCase().equals("TAPU"))
+                                        updatedString = "TapuFini";
+
+                                    break;
+                                }
+                                default:
+                                {
+                                    printToLog(2, "Nope, nothing here. Let's just check the first argument.");
+                                    isFixed = false; // Flag as false so we don't show the second arg in our debug messages.
+                                }
+                            }
+
+                            if (isFixed && !Objects.equals(updatedString, arg1String))
+                            {
+                                printToLog(2, "Fixable input found! Was \"§2" + arg1String + " " +
+                                        arg2String + "§a\", now \"§2" + updatedString + "§a\"");
+
+                                inputWasEdited = true;
+                            }
+                        }
+                        else if (!Objects.equals(updatedString, arg1String))
+                        {
+                            printToLog(2, "Fixable input found! Was \"§2" + arg1String +
+                                    "§a\", now \"§2" + updatedString + "§a\"");
 
                             inputWasEdited = true;
                         }
-                    }
-                    else if (!Objects.equals(updatedString, arg1String))
-                    {
-                        printToLog(2, "Fixable input found! Was \"§2" + arg1String +
-                                "§a\", changed to \"§2" + updatedString + "§a\"");
 
-                        inputWasEdited = true;
-                    }
+                        arg1String = updatedString;
+                        returnedPokemon = PokemonMethods.getPokemonFromName(arg1String);
 
-                    arg1String = updatedString;
-                    returnedPokemon = EnumPokemonList.getPokemonFromName(arg1String);
+                        if (returnedPokemon == null)
+                        {
+                            // arg2String is initialized as "", so we'll only get a blank space if it's not there.
+                            printToLog(1, "Could not find a Pokémon. Exit. Input was: §3" + arg1String +
+                                    " " + arg2String);
 
-                    if (returnedPokemon == null)
-                    {
-                        // arg2String is initialized as "", so we'll only get a blank space if it's not there.
-                        printToLog(1, "Could not find a Pokémon. Exit. Input was: §3" + arg1String +
-                                " " + arg2String);
-
-                        errorString = "§4Error: §cInvalid Pokémon! Check your spelling, or try a number.";
-                        canContinue = false;
+                            errorString = "§4Error: §cInvalid Pokémon! Check your spelling, or try a number.";
+                            canContinue = false;
+                        }
                     }
                 }
-            }
-            else
-            {
-                printToLog(1, "No arguments provided. Exit.");
-
-                errorString = "§4Error: §cNo arguments found. Provide a Pokémon or Dex ID.";
-                canContinue = false;
-            }
-
-            if (!canContinue)
-            {
-                src.sendMessage(Text.of(errorString));
-                src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <Pokémon name/number>"));
-            }
-            else
-            {
-                if (inputWasEdited)
-                    printToLog(2, "Moving to execution with previously-fixed input.");
                 else
-                    printToLog(2, "Moving to execution with input \"§2" + arg1String + "§a\".");
+                {
+                    printToLog(1, "No arguments provided. Exit.");
 
-                checkTypes(returnedPokemon, inputIsInteger, arg1String, src);
+                    errorString = "§4Error: §cNo arguments found. Provide a Pokémon or Dex ID.";
+                    canContinue = false;
+                }
+
+                if (!canContinue)
+                {
+                    src.sendMessage(Text.of(errorString));
+                    src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <Pokémon name/number>"));
+                }
+                else
+                {
+                    if (inputWasEdited)
+                        printToLog(2, "Moving to execution with previously-fixed input.");
+                    else
+                        printToLog(2, "Moving to execution with input \"§2" + arg1String + "§a\".");
+
+                    checkTypes(returnedPokemon, inputIsInteger, arg1String, src);
+                }
             }
         }
+        else
+            src.sendMessage(Text.of("§cThis command cannot run from command blocks."));
 
         return CommandResult.success();
     }
 
-    private void checkTypes(EnumPokemonList returnedPokemon, boolean inputIsInteger, String arg1String, CommandSource src)
+    private void checkTypes(final PokemonMethods returnedPokemon, final boolean inputIsInteger, final String arg1String, final CommandSource src)
     {
-        /*                                                           *\
-             Check for differently typed forms or Alolan variants.
-             Use fallthroughs to flag specific dex IDs as special.
-        \*                                                           */
+        // Check for differently typed forms or Alolan variants. Use fallthroughs to flag specific dex IDs as special.
         boolean hasForms = false, hasAlolanVariants = false;
         if (inputIsInteger)
         {
@@ -301,8 +327,8 @@ public class CheckTypes implements CommandExecutor
 
             switch (returnedPokemon.index) // Alolan variants.
             {
-                case 19: case 20: case 26: case 27: case 28: case 37: case 38: case 50: case 51: case 52:
-                case 53: case 74: case 75: case 76: case 88: case 89: case 103: case 105:
+                case 19: case 20: case 26: case 27: case 28: case 37: case 38: case 50: case 51: case 52: case 53:
+                case 74: case 75: case 76: case 88: case 89: case 103: case 105:
                 {
                     hasAlolanVariants = true;
                     break;
@@ -313,8 +339,8 @@ public class CheckTypes implements CommandExecutor
         {
             switch (arg1String.toUpperCase()) // Differently typed forms.
             {
-                case "CASTFORM": case "WORMADAM": case "ROTOM": case "SHAYMIN":
-                case "DARMANITAN": case "MELOETTA": case "HOOPA":
+                case "CASTFORM": case "WORMADAM": case "ROTOM": case "SHAYMIN": case "DARMANITAN": case "MELOETTA":
+                case "HOOPA":
                 {
                     hasForms = true;
                     break;
@@ -333,33 +359,39 @@ public class CheckTypes implements CommandExecutor
             }
         }
 
-        /*                                                        *\
-             Set up internal variables for (almost) EVERYTHING.
-             Plenty of room to improve, but it'll work for now.
-        \*                                                        */
+        // Set up internal variables for (almost) EVERYTHING. Plenty of room to improve, but it'll work for now.
         boolean type2Present = true;
-        int pNumber = returnedPokemon.index;
-        String nameMessage, typeMessage, pName = returnedPokemon.name();
-        EnumType type1 = EnumType.parseType(returnedPokemon.type1);
-        EnumType type2 = EnumType.parseType(returnedPokemon.type2);
+        final int pNumber = returnedPokemon.index;
+        final char arrowChar;
+        final String nameMessage, typeMessage;
+        final String pName = returnedPokemon.name();
+        final EnumType type1 = EnumType.parseType(returnedPokemon.type1);
+        final EnumType type2 = EnumType.parseType(returnedPokemon.type2);
         if (returnedPokemon.type2.contains("EMPTY"))
             type2Present = false;
 
-        String typeString =
+        // Decide which arrow to show. Unicode stuff tends to print as question marks in console.
+        if (calledRemotely)
+            arrowChar = '>';
+        else
+            arrowChar = '➡';
+
+        final String typeString =
                 "§fNormal, §4Fighting, §9Flying, §5Poison, §6Ground, " +
                 "§7Rock, §2Bug, §5Ghost, §7Steel, §cFire, §3Water, " +
                 "§aGrass, §eElectric, §dPsychic, §bIce, §9Dragon, " +
                 "§8Dark, §dFairy";
-        String[] typeList = typeString.split(", ");
+        final String[] typeList = typeString.split(", ");
 
-        String unformattedTypeString =
+        final String unformattedTypeString =
                 "Normal, Fighting, Flying, Poison, Ground, Rock, Bug, Ghost, Steel, " +
                 "Fire, Water, Grass, Electric, Psychic, Ice, Dragon, Dark, Fairy";
-        String[] unformattedTypeList = unformattedTypeString.split(", ");
+        final String[] unformattedTypeList = unformattedTypeString.split(", ");
 
-        ArrayList<EnumType> foundTypes = new ArrayList<>();
+        final ArrayList<EnumType> foundTypes = new ArrayList<>();
         foundTypes.add(type1);
-        int indexType1 = Arrays.asList(unformattedTypeList).indexOf(String.valueOf(type1)), indexType2;
+        final int indexType1 = Arrays.asList(unformattedTypeList).indexOf(String.valueOf(type1));
+        final int indexType2;
         if (type2Present)
         {
             printToLog(2, "Found two types on provided Pokémon.");
@@ -375,18 +407,18 @@ public class CheckTypes implements CommandExecutor
             typeMessage = " §f(" + typeList[indexType1] + "§f)";
         }
 
-        /*                                                                         *\
-             Run through the big list of Pokémon and check the target's type(s).
-        \*                                                                         */
-        StringBuilder weaknessBuilder2x = new StringBuilder(), weaknessBuilder4x = new StringBuilder();
-        StringBuilder strengthBuilder50p = new StringBuilder(), strengthBuilder25p = new StringBuilder();
-        StringBuilder immunityBuilder = new StringBuilder();
+        // Run through the big list of Pokémon and check the target's type(s).
+        final StringBuilder weaknessBuilder2x = new StringBuilder();
+        final StringBuilder weaknessBuilder4x = new StringBuilder();
+        final StringBuilder strengthBuilder50p = new StringBuilder();
+        final StringBuilder strengthBuilder25p = new StringBuilder();
+        final StringBuilder immunityBuilder = new StringBuilder();
 
         printToLog(2, "Building the type list... Loop is go!");
         for (int i = 1; i < 19; i++)
         {
-            EnumType typeToTest = EnumType.parseType(unformattedTypeList[i - 1]);
-            float typeEffectiveness = EnumType.getTotalEffectiveness(foundTypes, typeToTest);
+            final EnumType typeToTest = EnumType.parseType(unformattedTypeList[i - 1]);
+            final float typeEffectiveness = EnumType.getTotalEffectiveness(foundTypes, typeToTest);
 
             if (typeEffectiveness < 1.0f)
             {
@@ -406,9 +438,7 @@ public class CheckTypes implements CommandExecutor
             }
         }
 
-        /*                                                 *\
-             Fix the shown Pokémon's name, if necessary.
-        \*                                                 */
+        // Fix the Pokémon's name, if necessary.
         printToLog(2, "Checking whether the Pokémon needs its shown name adjusted.");
         src.sendMessage(Text.of("§7-----------------------------------------------------"));
         switch (pName)
@@ -524,21 +554,19 @@ public class CheckTypes implements CommandExecutor
         src.sendMessage(Text.of(nameMessage + typeMessage));
         src.sendMessage(Text.of(""));
 
-        /*                                                                *\
-             Get resistances, weaknesses and immunities. Print to chat.
-        \*                                                                */
+        // Get resistances, weaknesses and immunities. Print to chat.
         if (weaknessBuilder2x.length() != 0 || weaknessBuilder4x.length() != 0)
         {
             src.sendMessage(Text.of("§cWeaknesses§f:"));
             if (weaknessBuilder4x.length() != 0)
             {
                 weaknessBuilder4x.setLength(weaknessBuilder4x.length() - 2); // Cut off the last comma.
-                src.sendMessage(Text.of("➡ §c400%§f: " + weaknessBuilder4x));
+                src.sendMessage(Text.of(arrowChar + " §c400%§f: " + weaknessBuilder4x));
             }
             if (weaknessBuilder2x.length() != 0)
             {
                 weaknessBuilder2x.setLength(weaknessBuilder2x.length() - 2); // Cut off the last comma.
-                src.sendMessage(Text.of("➡ §c200%§f: " + weaknessBuilder2x));
+                src.sendMessage(Text.of(arrowChar + " §c200%§f: " + weaknessBuilder2x));
             }
         }
 
@@ -548,85 +576,83 @@ public class CheckTypes implements CommandExecutor
             if (strengthBuilder50p.length() != 0)
             {
                 strengthBuilder50p.setLength(strengthBuilder50p.length() - 2); // Cut off the last comma.
-                src.sendMessage(Text.of("➡ §a50%§f: " + strengthBuilder50p));
+                src.sendMessage(Text.of(arrowChar + " §a50%§f: " + strengthBuilder50p));
             }
             if (strengthBuilder25p.length() != 0)
             {
                 strengthBuilder25p.setLength(strengthBuilder25p.length() - 2); // Cut off the last comma.
-                src.sendMessage(Text.of("➡ §a25%§f: " + strengthBuilder25p));
+                src.sendMessage(Text.of(arrowChar + " §a25%§f: " + strengthBuilder25p));
             }
         }
 
-        /*                                                          *\
-             Find and format a Pokémon's type-relevant abilities.
-        \*                                                          */
+        // Find and format a Pokémon's type-relevant abilities.
         src.sendMessage(Text.of("§bImmunities§f:"));
-        printToLog(2, "Grabbing immunities and turning them into a fancy list.");
-
-        // Make a bunch of lists for different type-nullifying abilities.
-        String motorDrive =
-                "Electivire, Blitzle, Zebstrika, Emolga";
-        String suctionCups =
-                "Octillery, Lileep, Cradily, Inkay, Malamar";
-        String voltAbsorb =
-                "Jolteon, Chinchou, Lanturn, Thundurus, Raikou, Minun, Pachirisu, Zeraora";
-        String stormDrain =
-                "Lileep, Cradily, Shellos, Gastrodon, Finneon, Lumineon, Maractus";
-        String drySkin =
-                "Paras, Parasect, Croagunk, Toxicroak, Helioptile, Heliolisk, Jynx";
-        String justified =
-                "Growlithe, Arcanine, Absol, Lucario, Gallade, Cobalion, Terrakion, Virizion, Keldeo";
-        String hyperCutter =
-                "Krabby, Kingler, Pinsir, Gligar, Mawile, Trapinch, Corphish, Crawdaunt, Gliscor, Crabrawler, " +
-                "Crabominable";
-        String soundProof =
-                "Voltorb, Electrode, MrMime, Whismur, Loudred, Exploud, MimeJr, Shieldon, Bastiodon, Snover, " +
-                "Abomasnow, Bouffalant";
-        String bigPecks =
-                "Pidove, Tranquill, Unfezant, Ducklett, Swanna, Vullaby, Mandibuzz, Fletchling, Pidgey," +
-                "Pidgeotto, Pidgeot, Chatot";
-        String clearBody =
-                "Tentacool, Tentacruel, Beldum, Metang, Metagross, Regirock, Regice, Registeel, Carbink, " +
-                "Diancie, Klink, Klang, Klinklang";
-        String sapSipper =
-                "Deerling, Sawsbuck, Bouffalant, Skiddo, Gogoat, Goomy, Sliggoo, Goodra, Drampa, Marill, " +
-                "Azumarill, Girafarig, Stantler, Miltank, Azurill, Blitzle, Zebstrika";
-        String damp =
-                "Psyduck, Golduck, Paras, Parasect, Horsea, Seadra, Kingdra, Mudkip, Marshtomp, Swampert, " +
-                "Frillish, Jellicent, Poliwag, Poliwhirl, Poliwrath, Politoed, Wooper, Quagsire";
-        String lightningRod =
-                "Cubone, Marowak, Rhyhorn, Rhydon, Electrike, Manectric, Rhyperior, Blitzle, Zebstrika, " +
-                "Pikachu, Raichu, Goldeen, Seaking, Zapdos, Pichu, Plusle, Sceptile, MarowakAlolan";
-        String flashFire =
-                "Vulpix, Ninetales, Growlithe, Arcanine, Ponyta, Rapidash, Flareon, Houndour, Houndoom, " +
-                "Heatran, Litwick, Lampent, Chandelure, Heatmor, Cyndaquil, Quilava, Typhlosion, Entei";
-        String waterAbsorb =
-                "Lapras, Vaporeon, Mantine, Mantyke, Maractus, Volcanion, Chinchou, Lanturn, Suicune, Cacnea, " +
-                "Cacturne, Tympole, Palpitoad, Seismitoad, Frillish, Jellicent, Poliwag, Poliwhirl, Poliwrath, " +
-                "Politoed, Wooper, Quagsire";
-        String sturdy =
-                "Geodude, Graveler, Golem, Magnemite, Magneton, Onix, Sudowoodo, Pineco, Forretress, Steelix, " +
-                "Shuckle, Skarmory, Donphan, Nosepass, Aron, Lairon, Aggron, Shieldon, Bastiodon, Bonsly, " +
-                "Magnezone, Probopass, Roggenrola, Boldore, Gigalith, Sawk, Dwebble, Crustle, Tirtouga, " +
-                "Carracosta, Relicanth, Regirock, Tyrunt, Carbink, Bergmite, Avalugg";
-        String levitate =
-                "Gastly, Haunter, Gengar, Koffing, Weezing, Misdreavus, Unown, Vibrava, Flygon, Lunatone, " +
-                "Solrock, Baltoy, Claydol, Duskull, Chimecho, Latias, Latios, Mismagius, Chingling, Bronzor, " +
-                "Bronzong, Carnivine, Rotom, RotomHeat, RotomWash, RotomFrost, RotomFan, RotomMow, Uxie, " +
-                "Mesprit, Azelf, Giratina, Cresselia, Tynamo, Eelektrik, Eelektross, Cryogonal, Hydreigon, " +
-                "Vikavolt";
+        printToLog(2, "Grabbing immunities and turning them into a fancy overview.");
 
         // Abilities/hovers are linked. If one has two entries, the other will have two, too!
-        ArrayList<String> abilities = new ArrayList<>(), hovers = new ArrayList<>();
+        final ArrayList<String> abilities = new ArrayList<>();
+        final ArrayList<String> hovers = new ArrayList<>();
 
         if (immunityBuilder.length() == 0)
             immunityBuilder.append("§8None"); // Shown when a Pokémon isn't immune against anything.
         else
             immunityBuilder.setLength(immunityBuilder.length() - 2); // Shank any trailing commas.
 
-        Text immunityStart = Text.of("➡ §b0%§f: " + immunityBuilder + "§7 (may have ");
+        Text immunityStart = Text.of(arrowChar + " §b0%§f: " + immunityBuilder + "§7 (may have ");
 
-        // Check if Pokémon are on certain lists. Create nice Strings to print to chat and add as hovers.
+        // Make a bunch of lists for different type-nullifying abilities.
+        final String motorDrive =
+                "Electivire, Blitzle, Zebstrika, Emolga";
+        final String suctionCups =
+                "Octillery, Lileep, Cradily, Inkay, Malamar";
+        final String voltAbsorb =
+                "Jolteon, Chinchou, Lanturn, Thundurus, Raikou, Minun, Pachirisu, Zeraora";
+        final String stormDrain =
+                "Lileep, Cradily, Shellos, Gastrodon, Finneon, Lumineon, Maractus";
+        final String drySkin =
+                "Paras, Parasect, Croagunk, Toxicroak, Helioptile, Heliolisk, Jynx";
+        final String justified =
+                "Growlithe, Arcanine, Absol, Lucario, Gallade, Cobalion, Terrakion, Virizion, Keldeo";
+        final String hyperCutter =
+                "Krabby, Kingler, Pinsir, Gligar, Mawile, Trapinch, Corphish, Crawdaunt, Gliscor, Crabrawler, " +
+                "Crabominable";
+        final String soundProof =
+                "Voltorb, Electrode, MrMime, Whismur, Loudred, Exploud, MimeJr, Shieldon, Bastiodon, Snover, " +
+                "Abomasnow, Bouffalant";
+        final String bigPecks =
+                "Pidove, Tranquill, Unfezant, Ducklett, Swanna, Vullaby, Mandibuzz, Fletchling, Pidgey, Pidgeotto, " +
+                "Pidgeot, Chatot";
+        final String clearBody =
+                "Tentacool, Tentacruel, Beldum, Metang, Metagross, Regirock, Regice, Registeel, Carbink, Diancie, " +
+                "Klink, Klang, Klinklang";
+        final String sapSipper =
+                "Deerling, Sawsbuck, Bouffalant, Skiddo, Gogoat, Goomy, Sliggoo, Goodra, Drampa, Marill, Azumarill, " +
+                "Girafarig, Stantler, Miltank, Azurill, Blitzle, Zebstrika";
+        final String damp =
+                "Psyduck, Golduck, Paras, Parasect, Horsea, Seadra, Kingdra, Mudkip, Marshtomp, Swampert, Frillish, " +
+                "Jellicent, Poliwag, Poliwhirl, Poliwrath, Politoed, Wooper, Quagsire";
+        final String lightningRod =
+                "Cubone, Marowak, Rhyhorn, Rhydon, Electrike, Manectric, Rhyperior, Blitzle, Zebstrika, Pikachu, " +
+                "Raichu, Goldeen, Seaking, Zapdos, Pichu, Plusle, Sceptile, MarowakAlolan";
+        final String flashFire =
+                "Vulpix, Ninetales, Growlithe, Arcanine, Ponyta, Rapidash, Flareon, Houndour, Houndoom, Heatran, " +
+                "Litwick, Lampent, Chandelure, Heatmor, Cyndaquil, Quilava, Typhlosion, Entei";
+        final String waterAbsorb =
+                "Lapras, Vaporeon, Mantine, Mantyke, Maractus, Volcanion, Chinchou, Lanturn, Suicune, Cacnea, " +
+                "Cacturne, Tympole, Palpitoad, Seismitoad, Frillish, Jellicent, Poliwag, Poliwhirl, Poliwrath, " +
+                "Politoed, Wooper, Quagsire";
+        final String sturdy =
+                "Geodude, Graveler, Golem, Magnemite, Magneton, Onix, Sudowoodo, Pineco, Forretress, Steelix, " +
+                "Shuckle, Skarmory, Donphan, Nosepass, Aron, Lairon, Aggron, Shieldon, Bastiodon, Bonsly, Magnezone, " +
+                "Probopass, Roggenrola, Boldore, Gigalith, Sawk, Dwebble, Crustle, Tirtouga, Carracosta, Relicanth, " +
+                "Regirock, Tyrunt, Carbink, Bergmite, Avalugg";
+        final String levitate =
+                "Gastly, Haunter, Gengar, Koffing, Weezing, Misdreavus, Unown, Vibrava, Flygon, Lunatone, Solrock, " +
+                "Baltoy, Claydol, Duskull, Chimecho, Latias, Latios, Mismagius, Chingling, Bronzor, Bronzong, " +
+                "Carnivine, Rotom, RotomHeat, RotomWash, RotomFrost, RotomFan, RotomMow, Uxie, Mesprit, Azelf, " +
+                "Giratina, Cresselia, Tynamo, Eelektrik, Eelektross, Cryogonal, Hydreigon, Vikavolt";
+
+        // Check if Pokémon are on these lists. Create nice Strings to print to chat and add as hovers.
         if (motorDrive.contains(pName))
         {
             abilities.add("§f§l§nMotor Drive");
@@ -723,14 +749,14 @@ public class CheckTypes implements CommandExecutor
         {
             abilities.add("§f§l§nWonder Guard");
             hovers.add("§7§lWonder Guard §7disables all §nnon-super effective§r§7 damage.");
-            immunityStart = Text.of("➡ §b0%§f: " + immunityBuilder + "§7 (has "); // Less awkward.
+            immunityStart = Text.of(arrowChar + " §b0%§f: " + immunityBuilder + "§7 (has "); // Less awkward.
         }
 
-        /*                                                          *\
-             Figure out what to show in chat, and how to show it.
-        \*                                                          */
-        Text immunityPair, immunityPair2, immunityPair3;
-        String immunityEnd = "§r§7)";
+        // Figure out what to show in chat, and how to show it.
+        final Text immunityPair;
+        final Text immunityPair2;
+        final Text immunityPair3;
+        final String immunityEnd = "§r§7)";
         switch (abilities.size())
         {
             case 1:
@@ -744,7 +770,7 @@ public class CheckTypes implements CommandExecutor
             }
             case 2:
             {
-                Text orMessage = Text.of("§r§7 or §f§l§n");
+                final Text orMessage = Text.of("§r§7 or §f§l§n");
                 immunityPair = Text.builder(abilities.get(0))
                         .onHover(TextActions.showText(Text.of(hovers.get(0))))
                         .build();
@@ -759,10 +785,11 @@ public class CheckTypes implements CommandExecutor
             {
                 // Overwrite this here so we can squeeze in more info.
                 // Not ideal, but not rolling over to double lines is nice.
-                immunityStart = Text.of("➡ §b0%§f: " + immunityBuilder + "§7 (may have type abilities, see below)");
+                immunityStart = Text.of(
+                        arrowChar + " §b0%§f: " + immunityBuilder + "§7 (may have type abilities, see below)");
 
-                Text orMessage = Text.of("§r§7 or §f§l§n");
-                Text newLineFormat = Text.of("➡ §b=>§f: ");
+                final Text orMessage = Text.of("§r§7 or §f§l§n");
+                final Text newLineFormat = Text.of(arrowChar + " §b=>§f: ");
                 immunityPair = Text.builder(abilities.get(0))
                         .onHover(TextActions.showText(Text.of(hovers.get(0))))
                         .build();
@@ -778,16 +805,14 @@ public class CheckTypes implements CommandExecutor
                 break;
             }
             default:
-                src.sendMessage(Text.of("➡ §b0%§f: " + immunityBuilder));
+                src.sendMessage(Text.of(arrowChar + " §b0%§f: " + immunityBuilder));
         }
 
-        /*                                                                              *\
-             Print messages if differently typed forms or Alolan forms are available.
-        \*                                                                              */
+        // Print messages if differently typed forms or Alolan forms are available.
         if (hasForms && showFormMessage)
         {
             printToLog(2, "Showing forms is enabled, and we can show one! Doing it.");
-            String commandHelper = "§cCheck out: §6/" + commandAlias + " ";
+            final String commandHelper = "§cCheck out: §6/" + commandAlias + " ";
 
             src.sendMessage(Text.of(""));
             src.sendMessage(Text.of("§dThis Pokémon has one or more forms with different types."));
@@ -816,7 +841,7 @@ public class CheckTypes implements CommandExecutor
         else if (hasAlolanVariants && showAlolanMessage)
         {
             printToLog(2, "Showing Alolan variants is enabled, and we've got one! Showing.");
-            String commandHelper = "§cCheck out: §6/" + commandAlias + " ";
+            final String commandHelper = "§cCheck out: §6/" + commandAlias + " ";
 
             src.sendMessage(Text.of(""));
             src.sendMessage(Text.of("§dThis Pokémon has an Alolan variant."));
@@ -825,41 +850,41 @@ public class CheckTypes implements CommandExecutor
             {
                 // Alolan variants. Same as above.
                 case "Rattata":
-                    src.sendMessage(Text.of(commandHelper + "RattataAlolan §f(§8Dark§f, Normal)")); break;
+                    src.sendMessage(Text.of(commandHelper + "Alolan Rattata §f(§8Dark§f, Normal)")); break;
                 case "Raticate":
-                    src.sendMessage(Text.of(commandHelper + "RaticateAlolan §f(§8Dark§f, Normal)")); break;
+                    src.sendMessage(Text.of(commandHelper + "Alolan Raticate §f(§8Dark§f, Normal)")); break;
                 case "Raichu":
-                    src.sendMessage(Text.of(commandHelper + "RaichuAlolan §f(§eElectric§f, §dPsychic§f)")); break;
+                    src.sendMessage(Text.of(commandHelper + "Alolan Raichu §f(§eElectric§f, §dPsychic§f)")); break;
                 case "Sandshrew":
-                    src.sendMessage(Text.of(commandHelper + "SandshrewAlolan §f(§bIce§f, §7Steel§f)")); break;
+                    src.sendMessage(Text.of(commandHelper + "Alolan Sandshrew §f(§bIce§f, §7Steel§f)")); break;
                 case "Sandslash":
-                    src.sendMessage(Text.of(commandHelper + "SandslashAlolan §f(§bIce§f, §7Steel§f)")); break;
+                    src.sendMessage(Text.of(commandHelper + "Alolan Sandslash §f(§bIce§f, §7Steel§f)")); break;
                 case "Vulpix":
-                    src.sendMessage(Text.of(commandHelper + "VulpixAlolan §f(§bIce§f)")); break;
+                    src.sendMessage(Text.of(commandHelper + "Alolan Vulpix §f(§bIce§f)")); break;
                 case "Ninetales":
-                    src.sendMessage(Text.of(commandHelper + "NinetalesAlolan §f(§bIce§f, §dFairy§f)")); break;
+                    src.sendMessage(Text.of(commandHelper + "Alolan Ninetales §f(§bIce§f, §dFairy§f)")); break;
                 case "Diglett":
-                    src.sendMessage(Text.of(commandHelper + "DiglettAlolan §f(§6Ground§f, §7Steel§f)")); break;
+                    src.sendMessage(Text.of(commandHelper + "Alolan Diglett §f(§6Ground§f, §7Steel§f)")); break;
                 case "Dugtrio":
-                    src.sendMessage(Text.of(commandHelper + "DugtrioAlolan §f(§6Ground§f, §7Steel§f)")); break;
+                    src.sendMessage(Text.of(commandHelper + "Alolan Dugtrio §f(§6Ground§f, §7Steel§f)")); break;
                 case "Meowth":
-                    src.sendMessage(Text.of(commandHelper + "MeowthAlolan §f(§8Dark§f)")); break;
+                    src.sendMessage(Text.of(commandHelper + "Alolan Meowth §f(§8Dark§f)")); break;
                 case "Persian":
-                    src.sendMessage(Text.of(commandHelper + "PersianAlolan §f(§8Dark§f)")); break;
+                    src.sendMessage(Text.of(commandHelper + "Alolan Persian §f(§8Dark§f)")); break;
                 case "Geodude":
-                    src.sendMessage(Text.of(commandHelper + "GeodudeAlolan §f(§7Rock§f, §eElectric§f)")); break;
+                    src.sendMessage(Text.of(commandHelper + "Alolan Geodude §f(§7Rock§f, §eElectric§f)")); break;
                 case "Graveler":
-                    src.sendMessage(Text.of(commandHelper + "GravelerAlolan §f(§7Rock§f, §eElectric§f)")); break;
+                    src.sendMessage(Text.of(commandHelper + "Alolan Graveler §f(§7Rock§f, §eElectric§f)")); break;
                 case "Golem":
-                    src.sendMessage(Text.of(commandHelper + "GolemAlolan §f(§7Rock§f, §eElectric§f)")); break;
+                    src.sendMessage(Text.of(commandHelper + "Alolan Golem §f(§7Rock§f, §eElectric§f)")); break;
                 case "Grimer":
-                    src.sendMessage(Text.of(commandHelper + "GrimerAlolan §f(§5Poison§f, §8Dark§f)")); break;
+                    src.sendMessage(Text.of(commandHelper + "Alolan Grimer §f(§5Poison§f, §8Dark§f)")); break;
                 case "Muk":
-                    src.sendMessage(Text.of(commandHelper + "MukAlolan §f(§5Poison§f, §8Dark§f)")); break;
+                    src.sendMessage(Text.of(commandHelper + "Alolan Muk §f(§5Poison§f, §8Dark§f)")); break;
                 case "Exeggutor":
-                    src.sendMessage(Text.of(commandHelper + "ExeggutorAlolan §f(§aGrass§f, §9Dragon§f)")); break;
+                    src.sendMessage(Text.of(commandHelper + "Alolan Exeggutor §f(§aGrass§f, §9Dragon§f)")); break;
                 case "Marowak":
-                    src.sendMessage(Text.of(commandHelper + "MarowakAlolan §f(§cFire§f, §5Ghost§f)")); break;
+                    src.sendMessage(Text.of(commandHelper + "Alolan Marowak §f(§cFire§f, §5Ghost§f)")); break;
             }
         }
 

@@ -16,17 +16,17 @@ import static org.apache.commons.lang3.BooleanUtils.toBooleanObject;
 import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.commands.*;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
-import static rs.expand.pixelupgrade.utilities.CommonMethods.printBasicMessage;
+import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicMessage;
 
-// Note: printBasicMessage is a static import for a function from CommonMethods, for convenience.
+// Note: printBasicMessage is a static import for a function from PrintingMethods, for convenience.
 // Also, PixelUpgrade class variables are loaded in the same way. Used in loadConfig and registerCommands.
-public class ConfigOperations
+public class ConfigMethods
 {
     // If we find a config that's broken during reloads, we set this flag and print an error.
     private static boolean gotConfigError;
 
     // Make a little converter for safely handling possibly null Strings that have an integer value inside.
-    private static Integer interpretInteger(String input)
+    private static Integer interpretInteger(final String input)
     {
         if (input != null && input.matches("-?[1-9]\\d*|0"))
             return Integer.parseInt(input);
@@ -35,22 +35,17 @@ public class ConfigOperations
     }
 
     // Do the same for doubles.
-    private static Double interpretDouble(String input)
+    private static Double interpretDouble(final String input)
     {
         if (input != null)
         {
-            Scanner readDouble = new Scanner(input);
+            final Scanner readDouble = new Scanner(input);
             if (readDouble.hasNextDouble())
                 return readDouble.nextDouble();
         }
 
         // Was the input null, or could we not find a double? Return null and let our commands show an error.
         return null;
-
-        /*try
-        { return Double.parseDouble(input); }
-        catch (Exception F)
-        { return null; }*/
     }
 
     // Create a config directory if it doesn't exist. Silently swallow an error if it does. I/O is awkward.
@@ -61,12 +56,12 @@ public class ConfigOperations
             Files.createDirectory(Paths.get(PixelUpgrade.commandConfigPath));
             printBasicMessage("--> §aPixelUpgrade folder not found, making a new one for command configs...");
         }
-        catch (IOException ignored) {}
+        catch (final IOException ignored) {}
     }
 
     public static boolean registerCommands()
     {
-        PluginContainer puContainer = Sponge.getPluginManager().getPlugin("pixelupgrade").orElse(null);
+        final PluginContainer puContainer = Sponge.getPluginManager().getPlugin("pixelupgrade").orElse(null);
 
         // Contains base commands and common (?) mistakes, as well as interchangeable alternatives.
         if (puContainer != null)
@@ -157,7 +152,7 @@ public class ConfigOperations
         }
         else
         {
-            printBasicMessage("§cCommand re-initialization failed. Please report this, this is a bug.");
+            printBasicMessage("§cCommand (re-)initialization failed. Please report this, this is a bug.");
             printBasicMessage("§cPixelUpgrade's commands are likely dead. A reboot or reload may work.");
 
             return false;
@@ -168,14 +163,15 @@ public class ConfigOperations
     public static void printCommandsAndAliases()
     {
         // Do some initial setup for our formatted messages later on. We'll show three commands per line.
-        ArrayList<String> commandList = new ArrayList<>();
-        StringBuilder formattedCommand = new StringBuilder(), printableList = new StringBuilder();
+        final ArrayList<String> commandList = new ArrayList<>();
+        final StringBuilder formattedCommand = new StringBuilder();
+        final StringBuilder printableList = new StringBuilder();
         String commandAlias = "§4There's an error message missing, please report this!", commandString = null;
 
         // Format our commands and aliases and add them to the lists that we'll print in a bit.
-        // TODO: If you add a command, update this list and increment the counters! (currently 17)
-        // FIXME: Move stuff to an external method so we don't have to update all these numbers manually.
-        for (int i = 1; i <= 17; i++)
+        // TODO: If you add/remove a command, update this list and the numEntries counter!
+        final int numEntries = 17;
+        for (int i = 1; i <= numEntries; i++)
         {
             switch (i)
             {
@@ -311,7 +307,7 @@ public class ConfigOperations
             }
 
             // If we're at the last command, shank the trailing formatting code, comma and space and for a clean end.
-            if (i == 17)
+            if (i == numEntries)
                 formattedCommand.setLength(formattedCommand.length() - 4);
 
             // Add the formatted command to the list, and then clear the StringBuilder so we can re-use it.
@@ -326,14 +322,13 @@ public class ConfigOperations
         // Print the formatted commands + aliases.
         printBasicMessage("--> §aLoaded a bunch of commands, see below.");
 
-        int listSize = commandList.size();
-        for (int q = 1; q < listSize + 1; q++)
+        for (int q = 1; q < numEntries + 1; q++)
         {
             printableList.append(commandList.get(q - 1));
 
-            if (q == listSize) // Are we on the last entry of the list? Exit.
+            if (q == numEntries) // Are we on the last entry of the list? Print and exit.
                 printBasicMessage("    " + printableList);
-            else if (q % 3 == 0) // Is the loop number a multiple of 3? If so, we have three commands stocked up. Print!
+            else if (q % 3 == 0) // Can the loop number be divided by 3? If so, we have three commands stocked up. Print!
             {
                 printBasicMessage("    " + printableList);
                 printableList.setLength(0); // Wipe the list so we can re-use it for the next three commands.
@@ -342,7 +337,7 @@ public class ConfigOperations
     }
 
     // Called during initial setup, either when the server is booting up or when /pureload has been executed.
-    private static void tryCreateConfig(String callSource, Path checkPath)
+    private static void tryCreateConfig(final String callSource, final Path checkPath)
     {
         if (Files.notExists(checkPath))
         {
@@ -353,10 +348,10 @@ public class ConfigOperations
                     // Spaces added so it falls in line with startup/reload message spacing.
                     printBasicMessage("    §eNo primary configuration file found, creating...");
 
-                    Files.copy(ConfigOperations.class.getResourceAsStream("/assets/PixelUpgradeMain.conf"),
+                    Files.copy(ConfigMethods.class.getResourceAsStream("/assets/PixelUpgradeMain.conf"),
                             Paths.get(PixelUpgrade.primaryPath, "PixelUpgrade.conf"));
                 }
-                catch (IOException F)
+                catch (final IOException F)
                 {
                     printBasicMessage("§cPrimary config setup has failed! Please report this.");
                     printBasicMessage("§cAdd any useful info you may have (operating system?). Stack trace:");
@@ -372,10 +367,10 @@ public class ConfigOperations
                     printBasicMessage("    §eNo §6/" + callSource.toLowerCase() +
                             "§e configuration file found, creating...");
 
-                    Files.copy(ConfigOperations.class.getResourceAsStream("/assets/" + callSource + ".conf"),
+                    Files.copy(ConfigMethods.class.getResourceAsStream("/assets/" + callSource + ".conf"),
                             Paths.get(PixelUpgrade.commandConfigPath, callSource + ".conf"));
                 }
-                catch (IOException F)
+                catch (final IOException F)
                 {
                     printBasicMessage("§cConfig setup for command \"§4/" + callSource.toLowerCase()
                             + "§c\" failed! Please report this.");
@@ -411,7 +406,7 @@ public class ConfigOperations
     }
 
     // Grab a specified config, create/read its config file, then load all of the variables into the matching command
-    public static String loadConfig(String callSource)
+    public static String loadConfig(final String callSource)
     {
         try
         {
@@ -421,7 +416,7 @@ public class ConfigOperations
                 case "PixelUpgrade":
                 {
                     tryCreateConfig("PixelUpgrade", primaryConfigPath);
-                    CommentedConfigurationNode commandConfig = PixelUpgrade.primaryConfigLoader.load();
+                    final CommentedConfigurationNode commandConfig = PixelUpgrade.primaryConfigLoader.load();
 
                     PixelUpgrade.configVersion =
                             interpretInteger(commandConfig.getNode("configVersion").getString());
@@ -462,7 +457,7 @@ public class ConfigOperations
                 case "CheckEgg":
                 {
                     tryCreateConfig("CheckEgg", checkEggPath);
-                    CommentedConfigurationNode commandConfig = PixelUpgrade.checkEggLoader.load();
+                    final CommentedConfigurationNode commandConfig = PixelUpgrade.checkEggLoader.load();
 
                     CheckEgg.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -482,7 +477,7 @@ public class ConfigOperations
                 case "CheckStats":
                 {
                     tryCreateConfig("CheckStats", checkStatsPath);
-                    CommentedConfigurationNode commandConfig = PixelUpgrade.checkStatsLoader.load();
+                    final CommentedConfigurationNode commandConfig = PixelUpgrade.checkStatsLoader.load();
 
                     CheckStats.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -504,7 +499,7 @@ public class ConfigOperations
                 case "CheckTypes":
                 {
                     tryCreateConfig("CheckTypes", checkTypesPath);
-                    CommentedConfigurationNode commandConfig = PixelUpgrade.checkTypesLoader.load();
+                    final CommentedConfigurationNode commandConfig = PixelUpgrade.checkTypesLoader.load();
 
                     CheckTypes.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -518,7 +513,7 @@ public class ConfigOperations
                 case "DittoFusion":
                 {
                     tryCreateConfig("DittoFusion", dittoFusionPath);
-                    CommentedConfigurationNode commandConfig = PixelUpgrade.dittoFusionLoader.load();
+                    final CommentedConfigurationNode commandConfig = PixelUpgrade.dittoFusionLoader.load();
 
                     DittoFusion.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -554,19 +549,21 @@ public class ConfigOperations
                 case "FixGenders":
                 {
                     tryCreateConfig("FixGenders", fixGendersPath);
-                    CommentedConfigurationNode commandConfig = PixelUpgrade.fixGendersLoader.load();
+                    final CommentedConfigurationNode commandConfig = PixelUpgrade.fixGendersLoader.load();
 
                     FixGenders.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
                     FixGenders.sneakyMode =
                             toBooleanObject(commandConfig.getNode("sneakyMode").getString());
+                    FixGenders.requireConfirmation =
+                            toBooleanObject(commandConfig.getNode("requireConfirmation").getString());
 
                     return FixGenders.commandAlias;
                 }
                 case "ForceHatch":
                 {
                     tryCreateConfig("ForceHatch", forceHatchPath);
-                    CommentedConfigurationNode commandConfig = PixelUpgrade.forceHatchLoader.load();
+                    final CommentedConfigurationNode commandConfig = PixelUpgrade.forceHatchLoader.load();
 
                     ForceHatch.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -576,7 +573,7 @@ public class ConfigOperations
                 case "ForceStats":
                 {
                     tryCreateConfig("ForceStats", forceStatsPath);
-                    CommentedConfigurationNode commandConfig = PixelUpgrade.forceStatsLoader.load();
+                    final CommentedConfigurationNode commandConfig = PixelUpgrade.forceStatsLoader.load();
 
                     ForceStats.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -586,7 +583,7 @@ public class ConfigOperations
                 case "PixelUpgradeInfo":
                 {
                     tryCreateConfig("PixelUpgradeInfo", puInfoPath);
-                    CommentedConfigurationNode commandConfig = PixelUpgrade.puInfoLoader.load();
+                    final CommentedConfigurationNode commandConfig = PixelUpgrade.puInfoLoader.load();
 
                     PixelUpgradeInfo.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -598,7 +595,7 @@ public class ConfigOperations
                 case "ResetCount":
                 {
                     tryCreateConfig("ResetCount", resetCountPath);
-                    CommentedConfigurationNode commandConfig = PixelUpgrade.resetCountLoader.load();
+                    final CommentedConfigurationNode commandConfig = PixelUpgrade.resetCountLoader.load();
 
                     ResetCount.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -608,7 +605,7 @@ public class ConfigOperations
                 case "ResetEVs":
                 {
                     tryCreateConfig("ResetEVs", resetEVsPath);
-                    CommentedConfigurationNode commandConfig = PixelUpgrade.resetEVsLoader.load();
+                    final CommentedConfigurationNode commandConfig = PixelUpgrade.resetEVsLoader.load();
 
                     ResetEVs.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -620,7 +617,7 @@ public class ConfigOperations
                 case "ShowStats":
                 {
                     tryCreateConfig("ShowStats", showStatsPath);
-                    CommentedConfigurationNode commandConfig = PixelUpgrade.showStatsLoader.load();
+                    final CommentedConfigurationNode commandConfig = PixelUpgrade.showStatsLoader.load();
 
                     ShowStats.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -648,17 +645,19 @@ public class ConfigOperations
                 case "SpawnDex":
                 {
                     tryCreateConfig("SpawnDex", spawnDexPath);
-                    CommentedConfigurationNode commandConfig = PixelUpgrade.spawnDexLoader.load();
+                    final CommentedConfigurationNode commandConfig = PixelUpgrade.spawnDexLoader.load();
 
                     SpawnDex.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
+                    SpawnDex.fakeMessage =
+                            commandConfig.getNode("fakeMessage").getString();
 
                     return SpawnDex.commandAlias;
                 }
                 case "SwitchGender":
                 {
                     tryCreateConfig("SwitchGender", switchGenderPath);
-                    CommentedConfigurationNode commandConfig = PixelUpgrade.switchGenderLoader.load();
+                    final CommentedConfigurationNode commandConfig = PixelUpgrade.switchGenderLoader.load();
 
                     SwitchGender.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -670,7 +669,7 @@ public class ConfigOperations
                 case "TimedHatch":
                 {
                     tryCreateConfig("TimedHatch", timedHatchPath);
-                    CommentedConfigurationNode commandConfig = PixelUpgrade.timedHatchLoader.load();
+                    final CommentedConfigurationNode commandConfig = PixelUpgrade.timedHatchLoader.load();
 
                     TimedHatch.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -690,7 +689,7 @@ public class ConfigOperations
                 case "TimedHeal":
                 {
                     tryCreateConfig("TimedHeal", timedHealPath);
-                    CommentedConfigurationNode commandConfig = PixelUpgrade.timedHealLoader.load();
+                    final CommentedConfigurationNode commandConfig = PixelUpgrade.timedHealLoader.load();
 
                     TimedHeal.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -710,7 +709,7 @@ public class ConfigOperations
                 case "UpgradeIVs":
                 {
                     tryCreateConfig("UpgradeIVs", upgradeIVsPath);
-                    CommentedConfigurationNode commandConfig = PixelUpgrade.upgradeIVsLoader.load();
+                    final CommentedConfigurationNode commandConfig = PixelUpgrade.upgradeIVsLoader.load();
 
                     UpgradeIVs.commandAlias =
                             commandConfig.getNode("commandAlias").getString();
@@ -749,7 +748,7 @@ public class ConfigOperations
                 }
             }
         }
-        catch (Exception F)
+        catch (final Exception F)
         {
             // Spaces added so it falls in line with startup/reload message spacing.
             printBasicMessage("    §cCould not read alias for §4/" + callSource + "§c.");

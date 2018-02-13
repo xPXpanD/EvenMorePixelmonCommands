@@ -1,6 +1,13 @@
 package rs.expand.pixelupgrade.utilities;
 
-public enum EnumPokemonList
+import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.entity.living.player.Player;
+
+import java.util.ArrayList;
+
+import static rs.expand.pixelupgrade.PixelUpgrade.*;
+
+public enum PokemonMethods
 {
     // Gen 1
     Bulbasaur(1, "Grass, Poison"),
@@ -864,11 +871,11 @@ public enum EnumPokemonList
     public int index;
     public String type1, type2;
 
-    EnumPokemonList(int index, String types)
+    PokemonMethods(final int index, final String types)
     {
         this.index = index;
-        String[] delimitedTypes = types.split(", ");
-        int typeCount = delimitedTypes.length;
+        final String[] delimitedTypes = types.split(", ");
+        final int typeCount = delimitedTypes.length;
 
         if (typeCount == 2)
         {
@@ -882,10 +889,10 @@ public enum EnumPokemonList
         }
     }
 
-    public static EnumPokemonList getPokemonFromID(int index)
+    public static PokemonMethods getPokemonFromID(final int index)
     {
-        EnumPokemonList[] values = values();
-        EnumPokemonList pokemon = values[index - 1];
+        final PokemonMethods[] values = values();
+        final PokemonMethods pokemon = values[index - 1];
 
         if (pokemon != null)
             return values[index - 1];
@@ -893,11 +900,11 @@ public enum EnumPokemonList
             return null;
     }
 
-    public static EnumPokemonList getPokemonFromName(String name)
+    public static PokemonMethods getPokemonFromName(final String name)
     {
-        EnumPokemonList[] allValues = values();
+        final PokemonMethods[] allValues = values();
 
-        for (EnumPokemonList pokemon : allValues)
+        for (final PokemonMethods pokemon : allValues)
         {
             if (pokemon.name().equalsIgnoreCase(name))
                 return pokemon;
@@ -905,5 +912,194 @@ public enum EnumPokemonList
 
         // If the loop does not find and return a Pokémon, do this.
         return null;
+    }
+
+    public static char getGenderCharacter(final CommandSource src, final int genderNum)
+    {
+        // Console doesn't like these characters, so use letters.
+        if (!(src instanceof Player))
+        {
+            switch (genderNum)
+            {
+                case 0: return 'M';
+                case 1: return 'F';
+                case 2: return '-';
+                default: return '?';
+            }
+        }
+        else
+        {
+            switch (genderNum)
+            {
+                case 0: return '♂';
+                case 1: return '♀';
+                case 2: return '⚥';
+                default: return '?';
+            }
+        }
+    }
+
+    public static String getGrowthName(final int growthNum)
+    {
+        switch (growthNum)
+        {
+            case 0: return "Pygmy";
+            case 1: return "Runt";
+            case 2: return "Small";
+            case 3: return "Ordinary";
+            case 4: return "Huge";
+            case 5: return "Giant";
+            case 6: return "Enormous";
+            case 7: return "§nGinormous§r"; // NOW with fancy underlining!
+            case 8: return "§oMicroscopic§r"; // NOW with fancy italicization!
+            default: return "?";
+        }
+    }
+
+    public static ArrayList<String> getNatureStrings(final int natureNum)
+    {
+        final String natureName;
+        final String plusVal;
+        final String minusVal;
+
+        switch (natureNum)
+        {
+            case 0:
+                natureName = "Hardy";
+                plusVal = "None";
+                minusVal = "None";
+                break;
+            case 1:
+                natureName = "Serious";
+                plusVal = "None";
+                minusVal = "None";
+                break;
+            case 2:
+                natureName = "Docile";
+                plusVal = "None";
+                minusVal = "None";
+                break;
+            case 3:
+                natureName = "Bashful";
+                plusVal = "None";
+                minusVal = "None";
+                break;
+            case 4:
+                natureName = "Quirky";
+                plusVal = "None";
+                minusVal = "None";
+                break;
+            case 5:
+                natureName = "Lonely";
+                plusVal = "Atk";
+                minusVal = "Def";
+                break;
+            case 6:
+                natureName = "Brave";
+                plusVal = "Atk";
+                minusVal = shortenedSpeed;
+                break;
+            case 7:
+                natureName = "Adamant";
+                plusVal = "Atk";
+                minusVal = shortenedSpecialAttack;
+                break;
+            case 8:
+                natureName = "Naughty";
+                plusVal = "Atk";
+                minusVal = shortenedSpecialDefense;
+                break;
+            case 9:
+                natureName = "Bold";
+                plusVal = "Def";
+                minusVal = "Atk";
+                break;
+            case 10:
+                natureName = "Relaxed";
+                plusVal = "Def";
+                minusVal = shortenedSpeed;
+                break;
+            case 11:
+                natureName = "Impish";
+                plusVal = "Def";
+                minusVal = shortenedSpecialAttack;
+                break;
+            case 12:
+                natureName = "Lax";
+                plusVal = "Def";
+                minusVal = shortenedSpecialDefense;
+                break;
+            case 13:
+                natureName = "Timid";
+                plusVal = shortenedSpeed;
+                minusVal = "Atk";
+                break;
+            case 14:
+                natureName = "Hasty";
+                plusVal = shortenedSpeed;
+                minusVal = "Def";
+                break;
+            case 15:
+                natureName = "Jolly";
+                plusVal = shortenedSpeed;
+                minusVal = shortenedSpecialAttack;
+                break;
+            case 16:
+                natureName = "Naive";
+                plusVal = shortenedSpeed;
+                minusVal = shortenedSpecialDefense;
+                break;
+            case 17:
+                natureName = "Modest";
+                plusVal = shortenedSpecialAttack;
+                minusVal = "Atk";
+                break;
+            case 18:
+                natureName = "Mild";
+                plusVal = shortenedSpecialAttack;
+                minusVal = "Def";
+                break;
+            case 19:
+                natureName = "Quiet";
+                plusVal = shortenedSpecialAttack;
+                minusVal = shortenedSpeed;
+                break;
+            case 20:
+                natureName = "Rash";
+                plusVal = shortenedSpecialAttack;
+                minusVal = shortenedSpecialDefense;
+                break;
+            case 21:
+                natureName = "Calm";
+                plusVal = shortenedSpecialDefense;
+                minusVal = "Atk";
+                break;
+            case 22:
+                natureName = "Gentle";
+                plusVal = shortenedSpecialDefense;
+                minusVal = "Def";
+                break;
+            case 23:
+                natureName = "Sassy";
+                plusVal = shortenedSpecialDefense;
+                minusVal = shortenedSpeed;
+                break;
+            case 24:
+                natureName = "Careful";
+                plusVal = shortenedSpecialDefense;
+                minusVal = shortenedSpecialAttack;
+                break;
+            default:
+                natureName = "ERROR! PLEASE REPORT!";
+                plusVal = "?";
+                minusVal = "?";
+                break;
+        }
+
+        final ArrayList<String> returnString = new ArrayList<>();
+        returnString.add(natureName);
+        returnString.add(plusVal);
+        returnString.add(minusVal);
+        return returnString;
     }
 }

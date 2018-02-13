@@ -6,13 +6,15 @@ import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.source.ConsoleSource;
 import org.spongepowered.api.text.Text;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 // Local imports.
 import rs.expand.pixelupgrade.PixelUpgrade;
 
 // A collection of methods that are commonly used. One changed word or color here, and half the mod changes. Sweet.
-public class CommonMethods
+public class PrintingMethods
 {
     // Remove the ugly prefix from console commands, so we can roll our own. Thanks for the examples, NickImpact!
     private static Optional<ConsoleSource> getConsole()
@@ -24,7 +26,7 @@ public class CommonMethods
     }
 
     // Depending on the global debug level, decide whether or not to print debug messages here.
-    public static void printDebugMessage(String callSource, int debugNum, String inputString)
+    public static void printDebugMessage(final String callSource, final int debugNum, final String inputString)
     {
         if (debugNum <= PixelUpgrade.debugVerbosityMode)
         {
@@ -42,12 +44,6 @@ public class CommonMethods
                             console.sendMessage(Text.of("§3" + callSource + " info §f// §b" + inputString)));
                     break;
                 }
-                case 1337: // Only used for testing stuff. Should go unused in actual releases.
-                {
-                    getConsole().ifPresent(console ->
-                            console.sendMessage(Text.of("§6" + callSource + " TEST §f// §e" + inputString)));
-                    break;
-                }
                 default:
                 {
                     getConsole().ifPresent(console ->
@@ -56,19 +52,24 @@ public class CommonMethods
                 }
             }
         }
+        else if (debugNum == 1337) // Used for test logging, should go unused for release builds.
+        {
+            getConsole().ifPresent(console ->
+                    console.sendMessage(Text.of("§6" + callSource + " TEST §f// §e" + inputString)));
+        }
     }
 
     // If we need to print something without any major formatting, do it here. Good for console lists.
-    public static void printBasicMessage(String inputString)
+    public static void printBasicMessage(final String inputString)
     {
         getConsole().ifPresent(console ->
                 console.sendMessage(Text.of("§f" + inputString)));
     }
 
     // If we can't read a main config parameter, format and throw this error.
-    public static void printMainNodeError(String callSource, ArrayList<String> nodes)
+    public static void printMainNodeError(final String callSource, final ArrayList<String> nodes)
     {
-        for (String node : nodes)
+        for (final String node : nodes)
         { printDebugMessage(callSource, 0, "Could not read remote node \"§4" + node + "§c\"."); }
 
         printDebugMessage(callSource, 0, "The main config contains invalid variables. Exiting.");
@@ -76,9 +77,9 @@ public class CommonMethods
     }
 
     // And here's one for the per-command configs.
-    public static void printCommandNodeError(String callSource, ArrayList<String> nodes)
+    public static void printCommandNodeError(final String callSource, final ArrayList<String> nodes)
     {
-        for (String node : nodes)
+        for (final String node : nodes)
         { printDebugMessage(callSource, 0, "Could not read node \"§4" + node + "§c\"."); }
 
         printDebugMessage(callSource, 0, "This command's config could not be parsed. Exiting.");
@@ -86,9 +87,9 @@ public class CommonMethods
     }
 
     // Use this one if we have to check multiple configs, then end with a separate message.
-    public static void printPartialNodeError(String callSource, String targetCommand, ArrayList<String> nodes)
+    public static void printPartialNodeError(final String callSource, final String targetCommand, final ArrayList<String> nodes)
     {
-        for (String node : nodes)
+        for (final String node : nodes)
         {
             printDebugMessage(callSource, 0, "Could not read node \"§4" + node +
                     "§c\" for command \"§4/" + targetCommand.toLowerCase() + "§c\".");
@@ -97,7 +98,7 @@ public class CommonMethods
 
     // If a command has a cost, we'll want to get explicit confirmation. This lets players know how that works.
     // Used so commonly that we might as well set it up here.
-    public static void checkAndAddFooter(int cost, CommandSource src)
+    public static void checkAndAddFooter(final int cost, final CommandSource src)
     {
         if (cost > 0)
         {
@@ -106,5 +107,51 @@ public class CommonMethods
             src.sendMessage(Text.of("§eConfirming will cost you §6" + cost + "§e coins."));
             src.sendMessage(Text.of("§5-----------------------------------------------------"));
         }
+    }
+
+    // Takes a config String, and changes any ampersands to section symbols, which we can use internally.
+    public static String parseRemoteString(final String input)
+    {
+        // Set up a list of valid formatting codes.
+        final List<Character> validFormattingCharacters = Arrays.asList
+        (
+                // Color numbers.
+                '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                // Color letters, lower and upper case.
+                'a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F',
+                // Other formatting codes.
+                'k', 'l', 'm', 'n', 'o', 'r'
+        );
+
+        // Start replacing our ampersands.
+        final StringBuilder mutableInput = new StringBuilder(input);
+        for (int i = 0; i < mutableInput.length(); i++)
+        {
+            // Is the character that's currently being checked an ampersand?
+            if (mutableInput.charAt(i) == '&')
+            {
+                // Is the loop value lower than the total length of the input String? Let's not check out of bounds.
+                if ((i + 1) < mutableInput.length())
+                {
+                    // Look ahead: Does the next character contain a known formatting character? Replace the ampersand!
+                    if (validFormattingCharacters.contains(mutableInput.charAt(i + 1)))
+                        mutableInput.setCharAt(i, '§');
+                }
+            }
+        }
+
+        // Replace our old input String with the one that we fixed formatting on.
+        return mutableInput.toString();
+    }
+
+    // TODO: Add support for multiple input sets.
+    // Takes a config String, and replaces a single placeholder with the proper replacement as many times as needed.
+    public static String replacePlaceholder(final String input, final String placeholder, final String replacement)
+    {
+        // If our input has a placeholder inside, replace it with the provided replacement String. Case-insensitive.
+        if (input.toLowerCase().contains(placeholder))
+            return input.replaceAll("(?i)" + placeholder, replacement);
+        else
+            return input;
     }
 }
