@@ -22,6 +22,7 @@ import rs.expand.pixelupgrade.utilities.PrintingMethods;
 // [] = optional, {} = flag, <> = required, () = add comment here
 // Make comments gray (color 7) so they don't look like part of the syntax. Useful for showing missing arg perms.
 
+// TODO: Try the arrow Unicode character.
 public class PixelUpgradeInfo implements CommandExecutor
 {
     // Initialize some variables. We'll load stuff into these when we call the config loader.
@@ -92,12 +93,12 @@ public class PixelUpgradeInfo implements CommandExecutor
                     if (CheckEgg.commandCost > 0)
                     {
                         permissionMessageList.add(Text.of("§6/" + CheckEgg.commandAlias +
-                                " <slot, 1-6> {confirm flag} §7(no perms for target)"));
+                                " <slot, 1-6> {confirm flag}"));
                     }
                     else
                     {
                         permissionMessageList.add(Text.of("§6/" + CheckEgg.commandAlias +
-                                " <slot, 1-6> §7(no perms for target)"));
+                                " <slot, 1-6>"));
                     }
 
                     permissionMessageList.add(Text.of("§f --> §eChecks an egg to see what's inside."));
@@ -174,13 +175,13 @@ public class PixelUpgradeInfo implements CommandExecutor
                     else
                     {
                         if (src.hasPermission("pixelupgrade.command.staff.fixgenders") && FixGenders.requireConfirmation)
-                            permissionMessageList.add(Text.of("§4Usage: §c/" + commandAlias + " [target?] {-c to confirm}"));
+                            permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " [target?] {-c to confirm}"));
                         else if (src.hasPermission("pixelupgrade.command.staff.fixgenders"))
-                            permissionMessageList.add(Text.of("§4Usage: §c/" + commandAlias + " [target?]"));
+                            permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " [target?]"));
                         else if (FixGenders.requireConfirmation)
-                            permissionMessageList.add(Text.of("§4Usage: §c/" + commandAlias + " {-c to confirm}"));
+                            permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " {-c to confirm}"));
                         else
-                            permissionMessageList.add(Text.of("§4Usage: §c/" + commandAlias));
+                            permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias));
                     }
 
                     permissionMessageList.add(Text.of("§f --> §eFixes genders broken by commands or various bugs."));
