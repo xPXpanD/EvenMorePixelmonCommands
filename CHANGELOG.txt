@@ -1,5 +1,5 @@
 4.0.0 beta for 6.2.0+
-Released ???
+Released February 13th, 2018.
 
     Minor (non-breaking) config changes:
    * Changed a bunch of helper text to hopefully explain things a bit better.
@@ -10,8 +10,7 @@ Released ???
    * Removed per-config versions, as they turned out to be useless.
 
     Major (breaking) config changes:
-   * New /upgradeivs features: Separate settings for shiny babies. Regenerate this config.
-   * Completely reworked /showstats and its config; it now uses hovers for its info. Regenerate this, too.
+   * Completely reworked /showstats and its config; it now uses hovers for its info. Regenerate this config.
 
     New commands:
    * /fixgender: Fixes Pokémon affected by breeding bugs or bad commands. Experimental!
@@ -27,7 +26,7 @@ Released ???
    * /checkstats
    * /checktypes
    * /fixgenders
-   * /forcehatch
+   * /forcehatch (this command has become kinda useless, may be merged into /timedhatch soon)
    * /forcestats
    * /pixelupgrade (command list, only prints commands that work from console)
    * /timedheal (bypasses cooldowns)
@@ -35,7 +34,7 @@ Released ???
 
     Experimental command block support:
    * /fixgenders
-   * /forcehatch (probably kinda useless)
+   * /forcehatch
    * /forcestats
    * /timedheal (bypasses cooldowns, can be wired to do stuff like healing zones!)
    * /timedhatch (bypasses cooldowns, can be wired to automatically hatch whole teams)
@@ -43,10 +42,9 @@ Released ???
     Other changes:
    * Added a fancy Unicode arrow ("➡") to /checktypes and the new /showstats hover mode.
    * Added a Mew clone count check to /checkstats and /showstats.
-   * Added all babies and baby-based evolutions to /upgradeivs, and edited messages to fit.
    * Added an alternate VIP cooldown to /showstats and the two new timed commands.
    * Added battle checks to many commands, as they can't work reliably during battles. Prevents wasted cooldowns.
-   * Added Poipole (ID 803) and up to /checktypes and the new /spawndex, and made names like "Tapu Koko" work.
+   * Added Poipole (ID 803) and up to /checktypes and the new /spawndex.
    * Also, made Alolan Pokémon in /checktypes accessible through the less awkward "/checktypes Alolan NAMEHERE".
    * Changed many command messages to be a bit more professional.
    * Changed max-IV formatting for commands like /checkstats to italic to work around an external bug.
@@ -62,9 +60,10 @@ Released ???
    * Fixed missing spaces in front of the pipes when showing EVs in /checkstats.
    * Fixed a bunch of other bugs that were too small to mention, mostly formatting issues.
    * Made /checkstats on eggs only refer to /checkegg if the player has its permissions. Still configurable.
-   * Removed a few older default aliases that weren't being shown anywhere anyways.
+   * Made names like "Tapu Koko" work in /checktypes.
+   * Removed a few older internal aliases that weren't being shown anywhere anyways.
    * Removed baby IV checks from several commands, as Reforged updated to the gen6+ way of doing things.
-   * Removed the chat printing option from /showstats, moved to a far cleaner setup using hovers.
+   * Removed the chat printing option from /showstats, moved to a far cleaner and smaller setup using hovers.
    * Rewrote the internal config loader. Mostly helps maintainability, but filesize also benefits.
    * Shortened many console messages to fit a standard Windows Command Prompt window. Work in progress.
    * Switched to a #.#.# versioning system again (major/minor/patch) and started keeping proper changelogs!

@@ -51,7 +51,7 @@ import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicMessage
 (
         id = "pixelupgrade",
         name = "PixelUpgrade",
-        version = "4.0.0 beta",
+        version = "4.0.0 beta 1",
         dependencies = @Dependency(id = "pixelmon"),
         //description = "Adds a whole bunch of utility commands to Pixelmon, with optional economy integration.",
         description = "Adds a whole bunch of utility commands to Pixelmon, some with economy integration.",

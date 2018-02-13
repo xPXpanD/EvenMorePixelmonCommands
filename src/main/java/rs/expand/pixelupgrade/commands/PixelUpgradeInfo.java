@@ -160,7 +160,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                 {
                     permissionMessageList.add(Text.of("§6/" + DittoFusion.commandAlias +
                             " <target slot> <sacrifice slot> {confirm flag}"));
-                    permissionMessageList.add(Text.of("§f --> §eSacrifices one Ditto to improve another, for a price..."));
+                    permissionMessageList.add(Text.of("§f --> §eSacrifice one Ditto to improve another, for a price..."));
                 }
                 else
                     printToLog(1, "§3/dittofusion §bhas a malformed config, hiding from list.");
@@ -257,7 +257,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                     else
                         permissionMessageList.add(Text.of("§6/" + ShowStats.commandAlias + " <slot, 1-6>"));
 
-                    permissionMessageList.add(Text.of("§f --> §eShows off your chosen Pokémon to the server."));
+                    permissionMessageList.add(Text.of("§f --> §eShows off a Pokémon of choice to the server."));
                 }
                 else
                     printToLog(1, "§3/showstats §bhas a malformed config, hiding from list.");
@@ -267,8 +267,9 @@ public class PixelUpgradeInfo implements CommandExecutor
             {
                 if (SpawnDex.commandAlias != null)
                 {
-                    permissionMessageList.add(Text.of("§6/" + SpawnDex.commandAlias + " <Pokédex number> {one or more flags}"));
-                    permissionMessageList.add(Text.of("§f --> §eSpawns a (custom?) Pokémon from the given dex ID."));
+                    permissionMessageList.add(Text.of("§6/" + SpawnDex.commandAlias +
+                            " <Pokémon name/number> {tweak flag/flags}"));
+                    permissionMessageList.add(Text.of("§f --> §eSpawns a heavily customizable Pokémon at the cursor."));
                 }
                 else
                     printToLog(1, "§3/spawndex §bhas a malformed config, hiding from list.");
