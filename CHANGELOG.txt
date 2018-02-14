@@ -1,4 +1,11 @@
-4.0.0 beta for 6.2.0+
+4.0.0 beta 2 for 6.2.0+
+Release ???
+
+   * Fixed "a blocks" typo on /fixgenders, when used from command blocks.
+   * Fixed configs for /showstats, /timedhatch and /timedheal showing the wrong altcooldown permissions.
+   * Changed pixelupgrade.command.staff.fixgenders to pixelupgrade.command.other.fixgenders. Update your perms.
+
+4.0.0 beta 1 for 6.2.0+
 Released February 13th, 2018.
 
     Minor (non-breaking) config changes:

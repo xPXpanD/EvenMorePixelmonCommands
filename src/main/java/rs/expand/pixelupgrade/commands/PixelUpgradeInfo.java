@@ -174,9 +174,9 @@ public class PixelUpgradeInfo implements CommandExecutor
                         permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " <target>"));
                     else
                     {
-                        if (src.hasPermission("pixelupgrade.command.staff.fixgenders") && FixGenders.requireConfirmation)
+                        if (src.hasPermission("pixelupgrade.command.other.fixgenders") && FixGenders.requireConfirmation)
                             permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " [target?] {-c to confirm}"));
-                        else if (src.hasPermission("pixelupgrade.command.staff.fixgenders"))
+                        else if (src.hasPermission("pixelupgrade.command.other.fixgenders"))
                             permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " [target?]"));
                         else if (FixGenders.requireConfirmation)
                             permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " {-c to confirm}"));

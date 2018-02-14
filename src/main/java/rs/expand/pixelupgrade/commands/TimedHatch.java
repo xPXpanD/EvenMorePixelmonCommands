@@ -327,7 +327,7 @@ public class TimedHatch implements CommandExecutor
                 if (!hitCooldown)
                     printSyntaxHelper(src, hasOtherPerm);
             }
-            // Only hittable if we got called by an actual Player.
+            // Do some battle checks. Only hittable if we got called by an actual Player.
             else if (target == null && BattleRegistry.getBattle((EntityPlayerMP) src) != null)
             {
                 printToLog(0, "Player tried to hatch own Pokémon while in a battle. Exit.");

@@ -663,22 +663,27 @@ public class CheckStats implements CommandExecutor
                 startString = "§eStats of your §6" + name + "§e";
         }
 
+        // ...and their nickname, too, if one exists.
         if (!nickname.equals("") && !nickname.equals(name))
             src.sendMessage(Text.of(startString + nicknameString + "§e:"));
         else
             src.sendMessage(Text.of(startString + "§e:"));
 
-        // Print out IVs using previously formatted Strings.
+        // Print out IVs using previously formatted Strings. Add EVs if they're enabled.
         src.sendMessage(Text.of(""));
-        src.sendMessage(Text.of("§bTotal IVs§f: §a" + totalIVs + "§f/§a186§f (§a" + percentIVs + "%§f)"));
-        src.sendMessage(Text.of("§bIVs§f: §a" + ivs1 + ivs2 + ivs3 + ivs4 + ivs5 + ivs6));
 
-        // Do the same for EVs, if enabled in the config.
         if (showEVs)
         {
-            src.sendMessage(Text.of("§bTotal EVs§f: §a" + totalEVs + "§f/§a510§f (§a" + percentEVs + "%§f)"));
-            src.sendMessage(Text.of("§bEVs§f: §a" + evs1 + evs2 + evs3 + evs4 + evs5 + evs6));
+            src.sendMessage(Text.of("§bStat totals§f: §a" + totalIVs + "§f/§a186§f (§a" + percentIVs +
+                    "%§f) §2IVs, §a" + totalEVs + "§f/§a510§f (§a" + percentEVs + "%§f) §2EVs"));
         }
+        else
+            src.sendMessage(Text.of("§bTotal IVs§f: §a" + totalIVs + "§f/§a186§f (§a" + percentIVs + "%§f)"));
+
+        src.sendMessage(Text.of("§bIVs§f: §a" + ivs1 + ivs2 + ivs3 + ivs4 + ivs5 + ivs6));
+
+        if (showEVs)
+            src.sendMessage(Text.of("§bEVs§f: §a" + evs1 + evs2 + evs3 + evs4 + evs5 + evs6));
 
         // Show extra info, which we grabbed from PokemonMethods.
         final String extraInfo1 = String.valueOf("§bGender§f: " + genderChar +

@@ -92,7 +92,7 @@ public class FixGenders implements CommandExecutor
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
             boolean canContinue = true, targetedSelf = false, targetIsValid = false, commandConfirmed = false;
-            final boolean hasStaffPerm = src.hasPermission("pixelupgrade.command.staff.fixgenders");
+            final boolean hasStaffPerm = src.hasPermission("pixelupgrade.command.other.fixgenders");
             final Optional<String> arg1Optional = args.getOne("target/confirmation");
             final Optional<String> arg2Optional = args.getOne("confirmation");
             String errorString = "§4There's an error message missing, please report this!";
@@ -144,7 +144,7 @@ public class FixGenders implements CommandExecutor
                 // Start checking argument 1 for non-flag contents if our calling player has the right permissions.
                 if (hasStaffPerm)
                 {
-                    printToLog(2, "Player has staff permissions. Checking for target.");
+                    printToLog(2, "Player has target permissions. Checking for target.");
 
                     if (arg1Optional.isPresent() && !arg1Optional.get().equalsIgnoreCase("-c"))
                     {
@@ -198,7 +198,7 @@ public class FixGenders implements CommandExecutor
                     src.sendMessage(Text.of(errorString));
                 }
             }
-            // Only hittable if we got called by an actual Player.
+            // Do some battle checks. Only hittable if we got called by an actual Player.
             else if (!targetIsValid && BattleRegistry.getBattle((EntityPlayerMP) src) != null)
             {
                 printToLog(0, "Player tried to fix own team while in a battle. Exit.");
@@ -294,7 +294,7 @@ public class FixGenders implements CommandExecutor
             if (calledRemotely)
             {
                 if (src instanceof CommandBlock)
-                    target.sendMessage(Text.of("§eA check for broken genders was started from a §6blocks§e."));
+                    target.sendMessage(Text.of("§eA check for broken genders was started from a §6block§e."));
                 else
                     target.sendMessage(Text.of("§eA check for broken genders was started by §6console§e."));
             }

@@ -1,3 +1,5 @@
+// The enormous and rather complicated config handler, version two. Could use some work still, but it'll do for now.
+// Version one was just n classes, where n was the number of commands there were minus /pureload. Yeah.
 package rs.expand.pixelupgrade.utilities;
 
 // Remote imports.

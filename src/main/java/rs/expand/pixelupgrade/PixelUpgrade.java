@@ -41,6 +41,7 @@ import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicMessage
 // TODO: Allow people to unlock hidden abilities, probably through the economy. - Fabyoulust
 
 // Improvements to existing things:
+// TODO: Maybe color gender characters. Totally didn't steal that idea from NickImpact.
 // TODO: Tab completion on player names.
 // TODO: Merge /checkegg into /checkstats.
 // TODO: Maybe add some nice "====" borders to config node errors?
@@ -51,7 +52,7 @@ import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicMessage
 (
         id = "pixelupgrade",
         name = "PixelUpgrade",
-        version = "4.0.0 beta 1",
+        version = "4.0.0 beta 2",
         dependencies = @Dependency(id = "pixelmon"),
         //description = "Adds a whole bunch of utility commands to Pixelmon, with optional economy integration.",
         description = "Adds a whole bunch of utility commands to Pixelmon, some with economy integration.",
@@ -59,10 +60,10 @@ import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicMessage
 
         // Not listed but certainly appreciated:
 
-        // NickImpact (helping me understand NBTs, and a good few useful snippets)
+        // NickImpact (helping me understand NBTs, and a bunch of useful snippets)
         // Proxying (writing to entities in a copy-persistent manner)
         // Karanum (fancy paginated command lists)
-        // Hiroku (tip + snippet for setting up UTF-8 encoding; made § work)
+        // Hiroku (helping with questions and setting up UTF-8 encoding, which made § work)
         // Simon_Flash (helping with Sponge-related questions)
         // Xenoyia (helping get PU off the ground, and co-owning the server it started on)
         // ...and everybody else who contributed ideas and reported issues.

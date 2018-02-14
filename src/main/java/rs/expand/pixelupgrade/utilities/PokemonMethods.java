@@ -2,7 +2,6 @@ package rs.expand.pixelupgrade.utilities;
 
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
-
 import java.util.ArrayList;
 
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
