@@ -278,41 +278,25 @@ public class CheckEgg implements CommandExecutor
             printToLog(2, "Explicit reveal enabled. Printing full IVs, shiny-ness and other info.");
 
             // Format the IVs for use later, so we can print them.
-            final String ivs1;
-            final String ivs2;
-            final String ivs3;
-            final String ivs4;
-            final String ivs5;
-            final String ivs6;
-            if (HPIV < 31)
-                ivs1 = String.valueOf(HPIV + " §2" + shortenedHP + " §f|§a ");
-            else
-                ivs1 = String.valueOf("§l" + HPIV + " §2" + shortenedHP + " §r§f|§a ");
+            String ivs1 = String.valueOf(HPIV + " §2" + shortenedHP + statSeparator);
+            String ivs2 = String.valueOf(attackIV + " §2" + shortenedAttack + statSeparator);
+            String ivs3 = String.valueOf(defenseIV + " §2" + shortenedDefense + statSeparator);
+            String ivs4 = String.valueOf(spAttIV + " §2" + shortenedSpecialAttack + statSeparator);
+            String ivs5 = String.valueOf(spDefIV + " §2" + shortenedSpecialDefense + statSeparator);
+            String ivs6 = String.valueOf(speedIV + " §2" + shortenedSpeed);
 
-            if (attackIV < 31)
-                ivs2 = String.valueOf(attackIV + " §2" + shortenedAttack + " §f|§a ");
-            else
-                ivs2 = String.valueOf("§l" + attackIV + " §2" + shortenedAttack + " §r§f|§a ");
-
-            if (defenseIV < 31)
-                ivs3 = String.valueOf(defenseIV + " §2" + shortenedDefense + " §f|§a ");
-            else
-                ivs3 = String.valueOf("§l" + defenseIV + " §2" + shortenedDefense + " §r§f|§a ");
-
-            if (spAttIV < 31)
-                ivs4 = String.valueOf(spAttIV + " §2" + shortenedSpecialAttack + " §f|§a ");
-            else
-                ivs4 = String.valueOf("§l" + spAttIV + " §2" + shortenedSpecialAttack + " §r§f|§a ");
-
-            if (spDefIV < 31)
-                ivs5 = String.valueOf(spDefIV + " §2" + shortenedSpecialDefense + " §f|§a ");
-            else
-                ivs5 = String.valueOf("§l" + spDefIV + " §2" + shortenedSpecialDefense + " §r§f|§a ");
-
-            if (speedIV < 31)
-                ivs6 = String.valueOf(speedIV + " §2" + shortenedSpeed + "");
-            else
-                ivs6 = String.valueOf("§l" + speedIV + " §2" + shortenedSpeed + "");
+            if (HPIV > 30)
+                ivs1 = String.valueOf("§o") + ivs1;
+            if (attackIV > 30)
+                ivs2 = String.valueOf("§o") + ivs2;
+            if (defenseIV > 30)
+                ivs3 = String.valueOf("§o") + ivs3;
+            if (spAttIV > 30)
+                ivs4 = String.valueOf("§o") + ivs4;
+            if (spDefIV > 30)
+                ivs5 = String.valueOf("§o") + ivs5;
+            if (speedIV > 30)
+                ivs6 = String.valueOf("§o") + ivs6;
 
             src.sendMessage(Text.of("§bTotal IVs§f: §a" + totalIVs + "§f/§a186§f (§a" + percentIVs + "%§f)"));
             src.sendMessage(Text.of("§bIVs§f: §a" + ivs1 + "" + ivs2 + "" + ivs3 + "" + ivs4 + "" + ivs5 + "" + ivs6));

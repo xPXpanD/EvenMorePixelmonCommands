@@ -592,7 +592,7 @@ public class ForceStats implements CommandExecutor
                 return "EVDefence";
             case "EVSPECIALATTACK": case "EVSPATT": case "EVSPATK":
                 return "EVSpecialAttack";
-            case "EVSPECIALDEFENCE": case "EVSPDEF":
+            case "EVSPECIALDEFENCE": case "EVSPECIALDEFENSE": case "EVSPDEF":
                 return "EVSpecialDefence";
             case "EVSPEED":
                 return "EVSpeed";

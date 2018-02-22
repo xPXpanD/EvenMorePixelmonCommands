@@ -369,11 +369,11 @@ public class ShowStats implements CommandExecutor
                 2, BigDecimal.ROUND_HALF_UP);
 
         // Format the IVs for use later, so we can print them.
-        String ivs1 = String.valueOf(HPIV + " §2" + shortenedHP + " §r|§a ");
-        String ivs2 = String.valueOf(attackIV + " §2" + shortenedAttack + " §r|§a ");
-        String ivs3 = String.valueOf(defenseIV + " §2" + shortenedDefense + " §r|§a ");
-        String ivs4 = String.valueOf(spAttIV + " §2" + shortenedSpecialAttack + " §r|§a ");
-        String ivs5 = String.valueOf(spDefIV + " §2" + shortenedSpecialDefense + " §r|§a ");
+        String ivs1 = String.valueOf(HPIV + " §2" + shortenedHP + statSeparator);
+        String ivs2 = String.valueOf(attackIV + " §2" + shortenedAttack + statSeparator);
+        String ivs3 = String.valueOf(defenseIV + " §2" + shortenedDefense + statSeparator);
+        String ivs4 = String.valueOf(spAttIV + " §2" + shortenedSpecialAttack + statSeparator);
+        String ivs5 = String.valueOf(spDefIV + " §2" + shortenedSpecialDefense + statSeparator);
         String ivs6 = String.valueOf(speedIV + " §2" + shortenedSpeed);
 
         if (HPIV > 30)
@@ -388,38 +388,6 @@ public class ShowStats implements CommandExecutor
             ivs5 = String.valueOf("§o") + ivs5;
         if (speedIV > 30)
             ivs6 = String.valueOf("§o") + ivs6;
-
-        // Rinse and repeat for EVs.
-        final int HPEV = nbt.getInteger(NbtKeys.EV_HP);
-        final int attackEV = nbt.getInteger(NbtKeys.EV_ATTACK);
-        final int defenseEV = nbt.getInteger(NbtKeys.EV_DEFENCE);
-        final int spAttEV = nbt.getInteger(NbtKeys.EV_SPECIAL_ATTACK);
-        final int spDefEV = nbt.getInteger(NbtKeys.EV_SPECIAL_DEFENCE);
-        final int speedEV = nbt.getInteger(NbtKeys.EV_SPEED);
-        final BigDecimal totalEVs = BigDecimal.valueOf(HPEV + attackEV + defenseEV + spAttEV + spDefEV + speedEV);
-        final BigDecimal percentEVs = totalEVs.multiply(new BigDecimal("100")).divide(new BigDecimal("510"),
-                2, BigDecimal.ROUND_HALF_UP);
-
-        // Also format the strings for EVs.
-        String evs1 = String.valueOf(HPEV + " §2" + shortenedHP + " §r|§a ");
-        String evs2 = String.valueOf(attackEV + " §2" + shortenedAttack + " §r|§a ");
-        String evs3 = String.valueOf(defenseEV + " §2" + shortenedDefense + " §r|§a ");
-        String evs4 = String.valueOf(spAttEV + " §2" + shortenedSpecialAttack + " §r|§a ");
-        String evs5 = String.valueOf(spDefEV + " §2" + shortenedSpecialDefense + " §r|§a ");
-        String evs6 = String.valueOf(speedEV + " §2" + shortenedSpeed);
-
-        if (HPEV > 251)
-            evs1 = String.valueOf("§o") + evs1;
-        if (attackEV > 251)
-            evs2 = String.valueOf("§o") + evs2;
-        if (defenseEV > 251)
-            evs3 = String.valueOf("§o") + evs3;
-        if (spAttEV > 251)
-            evs4 = String.valueOf("§o") + evs4;
-        if (spDefEV > 251)
-            evs5 = String.valueOf("§o") + evs5;
-        if (speedEV > 251)
-            evs6 = String.valueOf("§o") + evs6;
 
         // Set up for our anti-cheat notifier.
         boolean nicknameTooLong = false;
@@ -461,7 +429,7 @@ public class ShowStats implements CommandExecutor
             case 4:
                 sizeString = " is §2huge§a."; break;
             case 5:
-                sizeString = " is §2gigantic§a."; break;
+                sizeString = " is §2giant§a."; break;
             case 6:
                 sizeString = " is §2enormous§a."; break;
             case 7:
@@ -515,6 +483,38 @@ public class ShowStats implements CommandExecutor
 
         if (showEVs)
         {
+            // Rinse and repeat the earlier IV code for EVs.
+            final int HPEV = nbt.getInteger(NbtKeys.EV_HP);
+            final int attackEV = nbt.getInteger(NbtKeys.EV_ATTACK);
+            final int defenseEV = nbt.getInteger(NbtKeys.EV_DEFENCE);
+            final int spAttEV = nbt.getInteger(NbtKeys.EV_SPECIAL_ATTACK);
+            final int spDefEV = nbt.getInteger(NbtKeys.EV_SPECIAL_DEFENCE);
+            final int speedEV = nbt.getInteger(NbtKeys.EV_SPEED);
+            final BigDecimal totalEVs = BigDecimal.valueOf(HPEV + attackEV + defenseEV + spAttEV + spDefEV + speedEV);
+            final BigDecimal percentEVs = totalEVs.multiply(new BigDecimal("100")).divide(new BigDecimal("510"),
+                    2, BigDecimal.ROUND_HALF_UP);
+
+            // Also format the strings for EVs.
+            String evs1 = String.valueOf(HPEV + " §2" + shortenedHP + statSeparator);
+            String evs2 = String.valueOf(attackEV + " §2" + shortenedAttack + statSeparator);
+            String evs3 = String.valueOf(defenseEV + " §2" + shortenedDefense + statSeparator);
+            String evs4 = String.valueOf(spAttEV + " §2" + shortenedSpecialAttack + statSeparator);
+            String evs5 = String.valueOf(spDefEV + " §2" + shortenedSpecialDefense + statSeparator);
+            String evs6 = String.valueOf(speedEV + " §2" + shortenedSpeed);
+
+            if (HPEV > 251)
+                evs1 = String.valueOf("§o") + evs1;
+            if (attackEV > 251)
+                evs2 = String.valueOf("§o") + evs2;
+            if (defenseEV > 251)
+                evs3 = String.valueOf("§o") + evs3;
+            if (spAttEV > 251)
+                evs4 = String.valueOf("§o") + evs4;
+            if (spDefEV > 251)
+                evs5 = String.valueOf("§o") + evs5;
+            if (speedEV > 251)
+                evs6 = String.valueOf("§o") + evs6;
+
             hovers.add("§bCurrent EVs§f:");
             hovers.add("➡ §a" + totalEVs + "§f/§a510§f (§a" + percentEVs + "%§f)");
             hovers.add("➡ §a" + evs1 + evs2 + evs3 + evs4 + evs5 + evs6);

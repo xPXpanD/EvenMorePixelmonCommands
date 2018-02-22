@@ -408,7 +408,7 @@ public class ConfigMethods
     }
 
     // Grab a specified config, create/read its config file, then load all of the variables into the matching command
-    public static String loadConfig(final String callSource)
+    public static String loadConfig(final String callSource, final boolean... reloadingAll)
     {
         try
         {
@@ -426,6 +426,8 @@ public class ConfigMethods
                             interpretInteger(commandConfig.getNode("debugVerbosityMode").getString());
                     PixelUpgrade.useBritishSpelling =
                             toBooleanObject(commandConfig.getNode("useBritishSpelling").getString());
+                    PixelUpgrade.statSeparator =
+                            commandConfig.getNode("statSeparator").getString();
                     PixelUpgrade.shortenedHP =
                             commandConfig.getNode("shortenedHealth").getString();
                     PixelUpgrade.shortenedAttack =
@@ -439,18 +441,39 @@ public class ConfigMethods
                     PixelUpgrade.shortenedSpeed =
                             commandConfig.getNode("shortenedSpeed").getString();
 
+                    // Do some checks, these values are very important for other parts of the code.
+                    boolean gotIssue = false;
+
                     if (debugVerbosityMode == null)
                     {
-                        printBasicMessage("§cCould not read §4debugVerbosityMode§c. Other things may be broken, too.");
-                        printBasicMessage("§cCheck your config. We'll enable high verbosity (mode 2) for now.");
+                        printBasicMessage("§cValue of global setting §4debugVerbosityMode§c could not be read.");
+                        printBasicMessage("§cEnabling high verbosity (mode 2) fallback for now...");
+
                         debugVerbosityMode = 2;
-                    }
-                    else if (debugVerbosityMode < 0 || debugVerbosityMode > 2 && debugVerbosityMode != 1337) // debug
+                        gotIssue = true;
+                    } // 1337 is the internal testing level, not used in releases.
+                    else if (debugVerbosityMode < 0 || debugVerbosityMode > 2 && debugVerbosityMode != 1337)
                     {
-                        printBasicMessage("§cValue of §4debugVerbosityMode§c is out of bounds.");
-                        printBasicMessage("§cCheck your config. We'll enable high verbosity (mode 2) for now.");
+                        printBasicMessage("§cValue of global setting §4debugVerbosityMode§c is out of bounds.");
+                        printBasicMessage("§cEnabling high debug verbosity (mode §42§c) fallback for now...");
+
                         debugVerbosityMode = 2;
+                        gotIssue = true;
                     }
+
+                    if (statSeparator == null)
+                    {
+                        printBasicMessage("§cValue of global setting §4statSeparator§c could not be read.");
+                        printBasicMessage("§cEnabling default stat separator (\"§4, §c\") fallback for now...");
+
+                        statSeparator = "§r,§a ";
+                        gotIssue = true;
+                    }
+                    else // Replace any provided ampersands with section symbols, which we can use inside of our code.
+                        statSeparator = "§r" + PrintingMethods.parseRemoteString(statSeparator) + "§r§a";
+
+                    if (gotIssue)
+                        printBasicMessage("§cPlease check the main config carefully. Stuff may break.");
 
                     return null;
                 }
@@ -753,9 +776,15 @@ public class ConfigMethods
         catch (final Exception F)
         {
             // Spaces added so it falls in line with startup/reload message spacing.
-            printBasicMessage("    §cCould not read alias for §4/" + callSource + "§c.");
+            printBasicMessage("    §cCould not read config for §4/" + callSource.toLowerCase() + "§c.");
+
+            // Did we get the optional "hey we're reloading everything" argument, and is it true? Print.
+            if (reloadingAll.length != 0 && reloadingAll[0])
+                printBasicMessage("    §cPlease check your config for any missing or invalid entries.");
+
             gotConfigError = true;
 
+            // Null the command alias so these commands error out instead of trying to interpret broken values.
             switch (callSource)
             {
                 case "CheckEgg": CheckEgg.commandAlias = null; break;

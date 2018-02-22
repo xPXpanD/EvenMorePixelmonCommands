@@ -566,11 +566,11 @@ public class CheckStats implements CommandExecutor
         final BigDecimal percentIVs = totalIVs.multiply(new BigDecimal("100")).divide(new BigDecimal("186"), 2, BigDecimal.ROUND_HALF_UP);
 
         // Format the IVs for use later, so we can print them.
-        String ivs1 = String.valueOf(HPIV + " §2" + shortenedHP + " §r|§a ");
-        String ivs2 = String.valueOf(attackIV + " §2" + shortenedAttack + " §r|§a ");
-        String ivs3 = String.valueOf(defenseIV + " §2" + shortenedDefense + " §r|§a ");
-        String ivs4 = String.valueOf(spAttIV + " §2" + shortenedSpecialAttack + " §r|§a ");
-        String ivs5 = String.valueOf(spDefIV + " §2" + shortenedSpecialDefense + " §r|§a ");
+        String ivs1 = String.valueOf(HPIV + " §2" + shortenedHP + statSeparator);
+        String ivs2 = String.valueOf(attackIV + " §2" + shortenedAttack + statSeparator);
+        String ivs3 = String.valueOf(defenseIV + " §2" + shortenedDefense + statSeparator);
+        String ivs4 = String.valueOf(spAttIV + " §2" + shortenedSpecialAttack + statSeparator);
+        String ivs5 = String.valueOf(spDefIV + " §2" + shortenedSpecialDefense + statSeparator);
         String ivs6 = String.valueOf(speedIV + " §2" + shortenedSpeed);
 
         if (HPIV > 30)
@@ -597,11 +597,11 @@ public class CheckStats implements CommandExecutor
         final BigDecimal percentEVs = totalEVs.multiply(new BigDecimal("100")).divide(new BigDecimal("510"), 2, BigDecimal.ROUND_HALF_UP);
 
         // Also format the strings for EVs.
-        String evs1 = String.valueOf(HPEV + " §2" + shortenedHP + " §r|§a ");
-        String evs2 = String.valueOf(attackEV + " §2" + shortenedAttack + " §r|§a ");
-        String evs3 = String.valueOf(defenseEV + " §2" + shortenedDefense + " §r|§a ");
-        String evs4 = String.valueOf(spAttEV + " §2" + shortenedSpecialAttack + " §r|§a ");
-        String evs5 = String.valueOf(spDefEV + " §2" + shortenedSpecialDefense + " §r|§a ");
+        String evs1 = String.valueOf(HPEV + " §2" + shortenedHP + statSeparator);
+        String evs2 = String.valueOf(attackEV + " §2" + shortenedAttack + statSeparator);
+        String evs3 = String.valueOf(defenseEV + " §2" + shortenedDefense + statSeparator);
+        String evs4 = String.valueOf(spAttEV + " §2" + shortenedSpecialAttack + statSeparator);
+        String evs5 = String.valueOf(spDefEV + " §2" + shortenedSpecialDefense + statSeparator);
         String evs6 = String.valueOf(speedEV + " §2" + shortenedSpeed);
 
         if (HPEV > 251)
@@ -616,6 +616,9 @@ public class CheckStats implements CommandExecutor
             evs5 = String.valueOf("§o") + evs5;
         if (speedEV > 251)
             evs6 = String.valueOf("§o") + evs6;
+
+        src.sendMessage(Text.of("§7-----------------------------------------------------"));
+
 
         // Get a bunch of data from our PokemonMethods utility class. Used for messages, later on.
         final ArrayList<String> natureArray = PokemonMethods.getNatureStrings(nbt.getInteger(NbtKeys.NATURE));
@@ -675,7 +678,7 @@ public class CheckStats implements CommandExecutor
         if (showEVs)
         {
             src.sendMessage(Text.of("§bStat totals§f: §a" + totalIVs + "§f/§a186§f (§a" + percentIVs +
-                    "%§f) §2IVs, §a" + totalEVs + "§f/§a510§f (§a" + percentEVs + "%§f) §2EVs"));
+                    "%§f) §2IVs§f, §a" + totalEVs + "§f/§a510§f (§a" + percentEVs + "%§f) §2EVs"));
         }
         else
             src.sendMessage(Text.of("§bTotal IVs§f: §a" + totalIVs + "§f/§a186§f (§a" + percentIVs + "%§f)"));

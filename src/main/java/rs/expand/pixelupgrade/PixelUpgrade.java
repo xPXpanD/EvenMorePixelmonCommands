@@ -39,6 +39,8 @@ import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicMessage
 // TODO: Do something with setPixelmonScale. Maybe a /spawnboss for super big high HP IV bosses with custom loot?
 // TODO: Make a random legendary spawner.
 // TODO: Allow people to unlock hidden abilities, probably through the economy. - Fabyoulust
+// TODO: Make a command that counts the Pokémon in the world, maybe also nearby. - Mikirae (comment, not suggestion)
+// TODO: Make a command that wipes a player's Pokédex. - Mikirae
 
 // Improvements to existing things:
 // TODO: Maybe color gender characters. Totally didn't steal that idea from NickImpact.
@@ -82,6 +84,7 @@ public class PixelUpgrade
     public static Integer configVersion;
     public static Integer debugVerbosityMode;
     public static Boolean useBritishSpelling;
+    public static String statSeparator;
     public static String shortenedHP;
     public static String shortenedAttack;
     public static String shortenedDefense;

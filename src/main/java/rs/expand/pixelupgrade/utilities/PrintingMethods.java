@@ -28,7 +28,7 @@ public class PrintingMethods
     // Depending on the global debug level, decide whether or not to print debug messages here.
     public static void printDebugMessage(final String callSource, final int debugNum, final String inputString)
     {
-        if (debugNum <= PixelUpgrade.debugVerbosityMode)
+        if (PixelUpgrade.debugVerbosityMode != null && debugNum <= PixelUpgrade.debugVerbosityMode)
         {
             switch (debugNum)
             {
@@ -130,7 +130,7 @@ public class PrintingMethods
             // Is the character that's currently being checked an ampersand?
             if (mutableInput.charAt(i) == '&')
             {
-                // Is the loop value lower than the total length of the input String? Let's not check out of bounds.
+                // Make sure the iterator is still inside of the input String's length. Let's not check out of bounds.
                 if ((i + 1) < mutableInput.length())
                 {
                     // Look ahead: Does the next character contain a known formatting character? Replace the ampersand!
