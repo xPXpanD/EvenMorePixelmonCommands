@@ -8,3 +8,5 @@ Latest sources will be here for the time being, most likely in a broken state. C
 
 If you have any suggestions, shoot me a message on Discord. You can find me (as "XpanD") here:
 http://discord.gg/pixelmon
+
+Permission is granted for this mod to be redistributed through the official Pixelmon site.
