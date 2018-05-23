@@ -10,6 +10,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.plugin.PluginContainer;
+
+import java.util.List;
 import java.util.Scanner;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanObject;
@@ -20,7 +22,7 @@ import rs.expand.pixelupgrade.commands.*;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
 import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicMessage;
 
-// Note: printBasicMessage is a static import for a function from PrintingMethods, for convenience.
+// Note: printBasicMessage is a static import for a method from PrintingMethods, for convenience.
 // Also, PixelUpgrade class variables are loaded in the same way. Used in loadConfig and registerCommands.
 public class ConfigMethods
 {
@@ -61,6 +63,7 @@ public class ConfigMethods
         catch (final IOException ignored) {}
     }
 
+    // Registers all known PixelUpgrade commands and their aliases.
     public static boolean registerCommands()
     {
         final PluginContainer puContainer = Sponge.getPluginManager().getPlugin("pixelupgrade").orElse(null);
@@ -165,7 +168,7 @@ public class ConfigMethods
     public static void printCommandsAndAliases()
     {
         // Do some initial setup for our formatted messages later on. We'll show three commands per line.
-        final ArrayList<String> commandList = new ArrayList<>();
+        final List<String> commandList = new ArrayList<>();
         final StringBuilder formattedCommand = new StringBuilder();
         final StringBuilder printableList = new StringBuilder();
         String commandAlias = "§4There's an error message missing, please report this!", commandString = null;

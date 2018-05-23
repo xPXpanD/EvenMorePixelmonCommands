@@ -9,10 +9,8 @@ import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
@@ -34,9 +32,10 @@ import rs.expand.pixelupgrade.utilities.PrintingMethods;
 import rs.expand.pixelupgrade.utilities.PokemonMethods;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
+// TODO: Add ability showing. Thanks, Mikirae.
 public class ShowStats implements CommandExecutor
 {
-    // Initialize some variables. We'll load stuff into these when we call the config loader.
+    // Declare some variables. We'll load stuff into these when we call the config loader.
     // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
     public static Integer cooldownInSeconds, altCooldownInSeconds, commandCost;
@@ -56,7 +55,7 @@ public class ShowStats implements CommandExecutor
         if (src instanceof Player)
         {
             // Validate the data we get from the command's main config.
-            final ArrayList<String> nativeErrorArray = new ArrayList<>();
+            final List<String> nativeErrorArray = new ArrayList<>();
             if (commandAlias == null)
                 nativeErrorArray.add("commandAlias");
             if (cooldownInSeconds == null)
@@ -79,7 +78,7 @@ public class ShowStats implements CommandExecutor
                 nativeErrorArray.add("commandCost");
 
             // Also get some stuff from PixelUpgrade.conf.
-            final ArrayList<String> mainConfigErrorArray = new ArrayList<>();
+            final List<String> mainConfigErrorArray = new ArrayList<>();
             if (configVersion == null)
                 mainConfigErrorArray.add("configVersion");
             if (shortenedHP == null)
@@ -120,8 +119,8 @@ public class ShowStats implements CommandExecutor
 
                 if (showCounts)
                 {
-                    final ArrayList<String> upgradeErrorArray = new ArrayList<>();
-                    final ArrayList<String> fusionErrorArray = new ArrayList<>();
+                    final List<String> upgradeErrorArray = new ArrayList<>();
+                    final List<String> fusionErrorArray = new ArrayList<>();
 
                     printToLog(2, "Entering external config validation. Errors will be logged.");
 
@@ -393,7 +392,7 @@ public class ShowStats implements CommandExecutor
         boolean nicknameTooLong = false;
 
         // Get a bunch of data from our PokemonMethods utility class. Used for messages, later on.
-        final ArrayList<String> natureArray = PokemonMethods.getNatureStrings(nbt.getInteger(NbtKeys.NATURE));
+        final List<String> natureArray = PokemonMethods.getNatureStrings(nbt.getInteger(NbtKeys.NATURE));
         final String natureName = natureArray.get(0).toLowerCase();
         final String plusVal = natureArray.get(1);
         final String minusVal = natureArray.get(2);
@@ -474,7 +473,7 @@ public class ShowStats implements CommandExecutor
             natureString = "is §2" + natureName + "§a, boosting §2" + plusVal + " §aand cutting §2" + minusVal + "§a.";
 
         // Populate our ArrayList. Every entry will be its own line. May be a bit hacky, but it'll do.
-        final ArrayList<String> hovers = new ArrayList<>();
+        final List<String> hovers = new ArrayList<>();
         hovers.add("§eStats of §6" + player.getName() + "§e's " + shinyString + formattedName + nameAdditionString);
         hovers.add("");
         hovers.add("§bCurrent IVs§f:");

@@ -1,11 +1,15 @@
 package rs.expand.pixelupgrade.utilities;
 
+// Remote imports.
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
 import java.util.ArrayList;
+import java.util.List;
 
+// Local imports.
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
+// Big ol' list of Pokémon.
 public enum PokemonMethods
 {
     // Gen 1
@@ -955,7 +959,7 @@ public enum PokemonMethods
         }
     }
 
-    public static ArrayList<String> getNatureStrings(final int natureNum)
+    public static List<String> getNatureStrings(final int natureNum)
     {
         final String natureName;
         final String plusVal;
@@ -1095,7 +1099,7 @@ public enum PokemonMethods
                 break;
         }
 
-        final ArrayList<String> returnString = new ArrayList<>();
+        final List<String> returnString = new ArrayList<>();
         returnString.add(natureName);
         returnString.add(plusVal);
         returnString.add(minusVal);

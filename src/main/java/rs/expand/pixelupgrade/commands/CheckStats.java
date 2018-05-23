@@ -10,6 +10,7 @@ import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -34,7 +35,7 @@ import static rs.expand.pixelupgrade.PixelUpgrade.*;
 // TODO: Show level?
 public class CheckStats implements CommandExecutor
 {
-    // Initialize some variables. We'll load stuff into these when we call the config loader.
+    // Declare some variables. We'll load stuff into these when we call the config loader.
     // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
     public static Boolean showTeamWhenSlotEmpty, showEVs, showUpgradeHelper, showDittoFusionHelper;
@@ -61,7 +62,7 @@ public class CheckStats implements CommandExecutor
             calledRemotely = !(src instanceof Player);
 
             // Validate the data we get from the command's main config.
-            final ArrayList<String> nativeErrorArray = new ArrayList<>();
+            final List<String> nativeErrorArray = new ArrayList<>();
             if (commandAlias == null)
                 nativeErrorArray.add("commandAlias");
             if (showTeamWhenSlotEmpty == null)
@@ -78,7 +79,7 @@ public class CheckStats implements CommandExecutor
                 nativeErrorArray.add("commandCost");
 
             // Also get some stuff from PixelUpgrade.conf.
-            final ArrayList<String> mainConfigErrorArray = new ArrayList<>();
+            final List<String> mainConfigErrorArray = new ArrayList<>();
             if (shortenedHP == null)
                 mainConfigErrorArray.add("shortenedHP");
             if (shortenedAttack == null)
@@ -117,8 +118,8 @@ public class CheckStats implements CommandExecutor
                 if (showDittoFusionHelper || showUpgradeHelper || enableCheckEggIntegration)
                 {
                     printToLog(2, "Entering external config loading. Errors will be logged.");
-                    final ArrayList<String> upgradeErrorArray = new ArrayList<>();
-                    final ArrayList<String> fusionErrorArray = new ArrayList<>();
+                    final List<String> upgradeErrorArray = new ArrayList<>();
+                    final List<String> fusionErrorArray = new ArrayList<>();
 
                     if (showDittoFusionHelper)
                     {
@@ -621,7 +622,7 @@ public class CheckStats implements CommandExecutor
 
 
         // Get a bunch of data from our PokemonMethods utility class. Used for messages, later on.
-        final ArrayList<String> natureArray = PokemonMethods.getNatureStrings(nbt.getInteger(NbtKeys.NATURE));
+        final List<String> natureArray = PokemonMethods.getNatureStrings(nbt.getInteger(NbtKeys.NATURE));
         final String natureName = natureArray.get(0);
         final String plusVal = "+" + natureArray.get(1);
         final String minusVal = "-" + natureArray.get(2);

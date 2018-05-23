@@ -23,7 +23,7 @@ import rs.expand.pixelupgrade.utilities.PrintingMethods;
 // TODO: Add target support.
 public class ResetCount implements CommandExecutor
 {
-    // Initialize a config variable. We'll load stuff into it when we call the config loader.
+    // Declare a config variable. We'll load stuff into it when we call the config loader.
     public static String commandAlias;
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.

@@ -5,7 +5,6 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.source.ConsoleSource;
 import org.spongepowered.api.text.Text;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -67,7 +66,7 @@ public class PrintingMethods
     }
 
     // If we can't read a main config parameter, format and throw this error.
-    public static void printMainNodeError(final String callSource, final ArrayList<String> nodes)
+    public static void printMainNodeError(final String callSource, final List<String> nodes)
     {
         for (final String node : nodes)
         { printDebugMessage(callSource, 0, "Could not read remote node \"§4" + node + "§c\"."); }
@@ -77,7 +76,7 @@ public class PrintingMethods
     }
 
     // And here's one for the per-command configs.
-    public static void printCommandNodeError(final String callSource, final ArrayList<String> nodes)
+    public static void printCommandNodeError(final String callSource, final List<String> nodes)
     {
         for (final String node : nodes)
         { printDebugMessage(callSource, 0, "Could not read node \"§4" + node + "§c\"."); }
@@ -87,7 +86,7 @@ public class PrintingMethods
     }
 
     // Use this one if we have to check multiple configs, then end with a separate message.
-    public static void printPartialNodeError(final String callSource, final String targetCommand, final ArrayList<String> nodes)
+    public static void printPartialNodeError(final String callSource, final String targetCommand, final List<String> nodes)
     {
         for (final String node : nodes)
         {

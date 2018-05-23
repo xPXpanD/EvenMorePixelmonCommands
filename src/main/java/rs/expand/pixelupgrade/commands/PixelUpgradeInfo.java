@@ -22,17 +22,17 @@ import rs.expand.pixelupgrade.utilities.PrintingMethods;
 // [] = optional, {} = flag, <> = required, () = add comment here
 // Make comments gray (color 7) so they don't look like part of the syntax. Useful for showing missing arg perms.
 
-// TODO: Try the arrow Unicode character.
+// TODO: Replace --> with Unicode arrow and space, "➡ ".
 public class PixelUpgradeInfo implements CommandExecutor
 {
-    // Initialize some variables. We'll load stuff into these when we call the config loader.
+    // Declare some variables. We'll load stuff into these when we call the config loader.
     // Other config variables are loaded in from their respective classes.
     public static String commandAlias;
     public static Integer numLinesPerPage;
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     private void printToLog (final int debugNum, final String inputString)
-    { PrintingMethods.printDebugMessage("PU Info", debugNum, inputString); }
+    { PrintingMethods.printDebugMessage("PU list", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)
@@ -45,12 +45,7 @@ public class PixelUpgradeInfo implements CommandExecutor
             // Make an uninitialized String for command confirmation flags. We fill this in when people need to know a flag.
             String flagString;
 
-            if (calledRemotely)
-            {
-                PrintingMethods.printDebugMessage("PU Info", 1,
-                        "Called by console, starting. Silencing further log messages.");
-            }
-            else
+            if (!calledRemotely)
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
             // Validate the data we get from the command's main config. Revert to safe values if necessary.
@@ -384,7 +379,7 @@ public class PixelUpgradeInfo implements CommandExecutor
             final PaginationList.Builder list = PaginationList.builder()
                         .title(Text.of(TextColors.DARK_PURPLE, "§dPixelUpgrade commands"))
                         .contents(permissionMessageList)
-                        .padding(Text.of(TextColors.DARK_PURPLE, "="));
+                        .padding(Text.of(TextColors.DARK_PURPLE, '='));
 
             if (permissionMessageList.isEmpty())
             {
@@ -403,7 +398,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                 }
                 else
                 {
-                    printToLog(1, "Player was shown a list of commands they have access to. Exit.");
+                    printToLog(1, "Player was shown a list of accessible commands. Exit.");
                     list.linesPerPage(sanitizedNumLinesPerPage);
                 }
             }

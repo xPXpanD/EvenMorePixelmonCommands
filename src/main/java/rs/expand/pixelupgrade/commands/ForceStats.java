@@ -26,7 +26,7 @@ import rs.expand.pixelupgrade.utilities.PrintingMethods;
 // FIXME: Long numberic inputs cause a NumberFormatException.
 public class ForceStats implements CommandExecutor
 {
-    // Initialize a config variable. We'll load stuff into it when we call the config loader.
+    // Declare a config variable. We'll load stuff into it when we call the config loader.
     // Other config variables are loaded in from their respective classes.
     public static String commandAlias;
 

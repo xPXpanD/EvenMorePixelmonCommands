@@ -1,12 +1,18 @@
-4.0.0 beta 2 for 6.2.1
-Release ???
+4.1.0 for 6.3.0
+Released ???
 
+    Major (breaking) config changes:
+   * Added a "statSeparator" option to the main config. We'll load a failsafe and warn if it's not present.
+
+    Other changes:
    * Fixed "a blocks" typo on /fixgenders, when used from command blocks.
+   * Fixed /pixelupgrade showing further messages getting hidden when run in console, even though it wouldn't.
+   * Fixed /pixelupgrade console info messages showing up as "PU Info info". Oops.
    * Fixed /showstats "This Pokémon is gigantic" when "giant" is apparently perfectly valid, here.
    * Fixed configs for /showstats, /timedhatch and /timedheal showing the wrong altcooldown permissions.
    * Fixed debug logger breaking with a NullPointerException if the main config was broken.
    * Fixed missing EVSpecialDefense tag for /forcestats.
-   * "pixelupgrade.command.staff.*" perms are now "pixelupgrade.command.other.*". Update your perms. Sorry!
+   * Some "pixelupgrade.command.staff.*" perms are now "pixelupgrade.command.other.*". Update your perms. Sorry!
 
 4.0.0 beta 1 for 6.2.0
 Released February 13th, 2018.

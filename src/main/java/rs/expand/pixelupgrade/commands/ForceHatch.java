@@ -23,7 +23,7 @@ import rs.expand.pixelupgrade.utilities.PrintingMethods;
 
 public class ForceHatch implements CommandExecutor
 {
-    // Initialize a config variable. We'll load stuff into it when we call the config loader.
+    // Declare a config variable. We'll load stuff into it when we call the config loader.
     public static String commandAlias;
 
     // Are we running from console or command blocks? We'll flag this true, and proceed accordingly.

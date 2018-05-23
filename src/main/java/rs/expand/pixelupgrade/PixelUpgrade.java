@@ -54,7 +54,7 @@ import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicMessage
 (
         id = "pixelupgrade",
         name = "PixelUpgrade",
-        version = "4.0.0 beta 2",
+        version = "4.1.0",
         dependencies = @Dependency(id = "pixelmon"),
         //description = "Adds a whole bunch of utility commands to Pixelmon, with optional economy integration.",
         description = "Adds a whole bunch of utility commands to Pixelmon, some with economy integration.",
@@ -73,7 +73,7 @@ import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicMessage
         // Thanks for helping make PU what it is now, people!
 )
 
-// Note: printBasicMessage is a static import for a function from PrintingMethods, for convenience.
+// Note: printBasicMessage is a static import for a method from PrintingMethods, for convenience.
 public class PixelUpgrade
 {
     // Some basic setup.
@@ -324,7 +324,7 @@ public class PixelUpgrade
         final boolean registrationCompleted = ConfigMethods.registerCommands();
 
         if (registrationCompleted)
-            printBasicMessage("--> §aPre-init completed. Bidoof is okay.");
+            printBasicMessage("--> §aPre-init completed.  All systems nominal.");
         printBasicMessage("===========================================================================");
         printBasicMessage("");
     }

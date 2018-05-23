@@ -16,7 +16,7 @@ import org.spongepowered.api.text.Text;
 import rs.expand.pixelupgrade.utilities.ConfigMethods;
 import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicMessage;
 
-// Note: printBasicMessage is a static import for a function from PrintingMethods, for convenience.
+// Note: printBasicMessage is a static import for a method from PrintingMethods, for convenience.
 public class ReloadConfigs implements CommandExecutor
 {
     // Formats the first of the messages shown to the player, and loads a config while at it.

@@ -10,6 +10,7 @@ import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -29,10 +30,11 @@ import org.spongepowered.api.text.Text;
 import rs.expand.pixelupgrade.utilities.PrintingMethods;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
+// TODO: Zero economy support.
 // TODO: Turn /dittofusion into a generic /fuse that works on everything?
 public class DittoFusion implements CommandExecutor
 {
-    // Initialize some variables. We'll load stuff into these when we call the config loader.
+    // Declare some variables. We'll load stuff into these when we call the config loader.
     // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
     public static Integer stat0to5, stat6to10, stat11to15, stat16to20, stat21to25, stat26to30, stat31plus, regularCap;
@@ -49,7 +51,7 @@ public class DittoFusion implements CommandExecutor
         if (src instanceof Player)
         {
             // Validate the data we get from the command's main config.
-            final ArrayList<String> nativeErrorArray = new ArrayList<>();
+            final List<String> nativeErrorArray = new ArrayList<>();
             if (commandAlias == null)
                 nativeErrorArray.add("commandAlias");
             if (stat0to5 == null)
@@ -524,7 +526,7 @@ public class DittoFusion implements CommandExecutor
             }
         }
         else
-            printToLog(0,"This command cannot run from the console or command blocks.");
+            printToLog(0, "This command cannot run from the console or command blocks.");
 
         return CommandResult.success();
     }

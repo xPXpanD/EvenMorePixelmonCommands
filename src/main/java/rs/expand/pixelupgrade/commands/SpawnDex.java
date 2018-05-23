@@ -6,10 +6,10 @@ import com.pixelmonmod.pixelmon.RandomHelper;
 import com.pixelmonmod.pixelmon.api.pokemon.PokemonSpec;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import com.pixelmonmod.pixelmon.enums.EnumPokemon;
-import com.pixelmonmod.pixelmon.spawning.PixelmonBiomeDictionary;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.WorldServer;
 import org.spongepowered.api.command.args.CommandContext;
@@ -33,7 +33,7 @@ import rs.expand.pixelupgrade.utilities.PokemonMethods;
 // FIXME: Some names with multiple words (like "Mime Jr.") don't work right. Hard to fix, but nice polish?
 public class SpawnDex implements CommandExecutor
 {
-    // Initialize a config variable. We'll load stuff into it when we call the config loader.
+    // Declare a config variable. We'll load stuff into it when we call the config loader.
     public static String commandAlias, fakeMessage;
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
@@ -46,7 +46,7 @@ public class SpawnDex implements CommandExecutor
         if (src instanceof Player)
         {
             // Validate the data we get from the command's main config.
-            final ArrayList<String> nativeErrorArray = new ArrayList<>();
+            final List<String> nativeErrorArray = new ArrayList<>();
             if (commandAlias == null)
                 nativeErrorArray.add("commandAlias");
             if (fakeMessage == null)
@@ -328,22 +328,19 @@ public class SpawnDex implements CommandExecutor
 
                             try
                             {
-                                // Get our biome.
-                                final String biomeBaseName = Objects.requireNonNull(
-                                        world.getBiomeForCoordsBody(pokemonToSpawn.getPosition()).getRegistryName()).getResourcePath();
-                                final String biomeInEnglish =
-                                        PixelmonBiomeDictionary.getBiomeInfo(biomeBaseName).biomeEnglishName;
+                                // Grab a biome name. This compiles fine if the access transformer is loaded correctly, despite any errors.
+                                final String biome = pokemonToSpawn.getEntityWorld().getBiomeForCoordsBody(pokemonToSpawn.getPosition()).biomeName;
 
                                 // Run our fake message through a check that converts ampersands to section signs.
                                 // After that, replace any included %biome% placeholders with the prettied-up biome name.
                                 final String sanitizedFakeMessage = PrintingMethods.parseRemoteString(fakeMessage);
                                 final String finalizedFakeMessage =
-                                        PrintingMethods.replacePlaceholder(sanitizedFakeMessage, "%biome%", biomeInEnglish);
+                                        PrintingMethods.replacePlaceholder(sanitizedFakeMessage, "%biome%", biome);
 
                                 // Send our formatted fake to everybody!
                                 MessageChannel.TO_PLAYERS.send(Text.of(finalizedFakeMessage));
                                 printToLog(1,
-                                        "Faked a Pixelmon message, internal biome name is §3" + biomeBaseName + "§b.");
+                                        "Faked a Pixelmon message, in biome §3" + biome + "§b.");
                             }
                             catch (final NullPointerException F)
                             {

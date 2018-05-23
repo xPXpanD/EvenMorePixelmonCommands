@@ -12,6 +12,7 @@ import com.pixelmonmod.pixelmon.storage.PlayerStorage;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -33,7 +34,7 @@ import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
 public class UpgradeIVs implements CommandExecutor
 {
-    // Initialize some variables. We'll load stuff into these when we call the config loader.
+    // Declare some variables. We'll load stuff into these when we call the config loader.
     // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
     public static Integer legendaryAndShinyCap, legendaryCap, shinyCap, regularCap, fixedUpgradeCost;
@@ -51,7 +52,7 @@ public class UpgradeIVs implements CommandExecutor
         if (src instanceof Player)
         {
             // Validate the data we get from the command's main config.
-            final ArrayList<String> nativeErrorArray = new ArrayList<>();
+            final List<String> nativeErrorArray = new ArrayList<>();
             if (commandAlias == null)
                 nativeErrorArray.add("commandAlias");
             if (legendaryAndShinyCap == null)

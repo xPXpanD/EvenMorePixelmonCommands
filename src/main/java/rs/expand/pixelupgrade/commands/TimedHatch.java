@@ -7,10 +7,7 @@ import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import org.spongepowered.api.Sponge;
@@ -31,7 +28,7 @@ import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
 public class TimedHatch implements CommandExecutor
 {
-    // Initialize some variables. We'll load stuff into these when we call the config loader.
+    // Declare some variables. We'll load stuff into these when we call the config loader.
     // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
     public static Integer cooldownInSeconds, altCooldownInSeconds, commandCost;
@@ -64,7 +61,7 @@ public class TimedHatch implements CommandExecutor
         calledRemotely = !(src instanceof Player);
 
         // Validate the data we get from the command's main config.
-        final ArrayList<String> nativeErrorArray = new ArrayList<>();
+        final List<String> nativeErrorArray = new ArrayList<>();
         if (commandAlias == null)
             nativeErrorArray.add("commandAlias");
         if (cooldownInSeconds == null)

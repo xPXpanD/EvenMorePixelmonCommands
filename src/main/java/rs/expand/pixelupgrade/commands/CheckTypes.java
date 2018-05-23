@@ -21,7 +21,7 @@ import rs.expand.pixelupgrade.utilities.PokemonMethods;
 // TODO: Maybe look into paginated lists that you can move through. Lots of work, but would be real neat for evolutions.
 public class CheckTypes implements CommandExecutor
 {
-    // Initialize some variables. We'll load stuff into these when we call the config loader.
+    // Declare some variables. We'll load stuff into these when we call the config loader.
     public static String commandAlias;
     public static Boolean showFormMessage, showAlolanMessage;
 
@@ -66,7 +66,7 @@ public class CheckTypes implements CommandExecutor
         if (!(src instanceof CommandBlock))
         {
             // Validate the data we get from the command's main config.
-            final ArrayList<String> nativeErrorArray = new ArrayList<>();
+            final List<String> nativeErrorArray = new ArrayList<>();
             if (commandAlias == null)
                 nativeErrorArray.add("commandAlias");
             if (showFormMessage == null)
@@ -388,7 +388,7 @@ public class CheckTypes implements CommandExecutor
                 "Fire, Water, Grass, Electric, Psychic, Ice, Dragon, Dark, Fairy";
         final String[] unformattedTypeList = unformattedTypeString.split(", ");
 
-        final ArrayList<EnumType> foundTypes = new ArrayList<>();
+        final List<EnumType> foundTypes = new ArrayList<>();
         foundTypes.add(type1);
         final int indexType1 = Arrays.asList(unformattedTypeList).indexOf(String.valueOf(type1));
         final int indexType2;
@@ -590,8 +590,8 @@ public class CheckTypes implements CommandExecutor
         printToLog(2, "Grabbing immunities and turning them into a fancy overview.");
 
         // Abilities/hovers are linked. If one has two entries, the other will have two, too!
-        final ArrayList<String> abilities = new ArrayList<>();
-        final ArrayList<String> hovers = new ArrayList<>();
+        final List<String> abilities = new ArrayList<>();
+        final List<String> hovers = new ArrayList<>();
 
         if (immunityBuilder.length() == 0)
             immunityBuilder.append("§8None"); // Shown when a Pokémon isn't immune against anything.

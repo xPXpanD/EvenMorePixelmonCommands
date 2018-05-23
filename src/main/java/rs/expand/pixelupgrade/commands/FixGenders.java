@@ -10,6 +10,7 @@ import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -29,7 +30,7 @@ import rs.expand.pixelupgrade.utilities.PrintingMethods;
 // TODO: Add a -s flag to allow silent messages even if sneakyMode is off?
 public class FixGenders implements CommandExecutor
 {
-    // Initialize some variables. We'll load stuff into these when we call the config loader.
+    // Declare some variables. We'll load stuff into these when we call the config loader.
     public static String commandAlias;
     public static Boolean sneakyMode, requireConfirmation;
 
@@ -60,7 +61,7 @@ public class FixGenders implements CommandExecutor
         calledRemotely = !(src instanceof Player);
 
         // Validate the data we get from the command's main config.
-        final ArrayList<String> nativeErrorArray = new ArrayList<>();
+        final List<String> nativeErrorArray = new ArrayList<>();
         if (commandAlias == null)
             nativeErrorArray.add("commandAlias");
         if (sneakyMode == null)
