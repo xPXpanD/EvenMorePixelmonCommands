@@ -57,7 +57,7 @@ public class CheckEgg implements CommandExecutor
                 nativeErrorArray.add("explicitReveal");
             if (babyHintPercentage == null)
                 nativeErrorArray.add("babyHintPercentage");
-            if (economyEnabled)
+            if (commandCost == null)
                 nativeErrorArray.add("commandCost");
             if (recheckIsFree == null)
                 nativeErrorArray.add("recheckIsFree");
@@ -279,7 +279,7 @@ public class CheckEgg implements CommandExecutor
 
         if (explicitReveal)
         {
-            printToLog(2, "Explicit reveal enabled. Printing full IVs, shiny-ness and other info.");
+            printToLog(2, "Explicit reveal enabled. Printing IVs, shiny-ness and other info.");
 
             // Format the IVs for use later, so we can print them.
             String ivs1 = String.valueOf(HPIV + " §2" + shortenedHP + statSeparator);
@@ -308,8 +308,8 @@ public class CheckEgg implements CommandExecutor
             // Get a bunch of data from our PokemonMethods utility class.
             final List<String> natureArray = PokemonMethods.getNatureStrings(nbt.getInteger(NbtKeys.NATURE));
             final String natureName = natureArray.get(0);
-            final String plusVal = natureArray.get(1);
-            final String minusVal = natureArray.get(2);
+            final String plusVal = '+' + natureArray.get(1);
+            final String minusVal = '-' + natureArray.get(2);
             final String growthName = PokemonMethods.getGrowthName(nbt.getInteger(NbtKeys.GROWTH));
 
             // Set up a gender character. Console doesn't like Unicode genders, so if src is not a Player we'll use M/F/-.

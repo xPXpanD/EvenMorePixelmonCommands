@@ -97,16 +97,21 @@ public class PrintingMethods
     }
 
     // Adds a footer based on input and matching intent. Used so commonly it might as well be here.
-    public static void checkAndAddFooter(final boolean requireConfirmation, final int cost, final CommandSource src)
+    public static void checkAndAddFooter(final boolean requireConfirmation, final long cost, final CommandSource src)
     {
-        if (requireConfirmation || economyEnabled)
+        if (requireConfirmation || economyEnabled && cost > 0)
+        {
             src.sendMessage(Text.of(""));
-
-        if (requireConfirmation)
             src.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're sure!"));
+        }
 
-        if (economyEnabled)
-            src.sendMessage(Text.of("§eConfirming will cost you §6" + cost + "§e coins."));
+        if (economyEnabled && cost > 0)
+        {
+            if (cost == 1)
+                src.sendMessage(Text.of("§eConfirming will cost you §6" + cost + "§e coin."));
+            else
+                src.sendMessage(Text.of("§eConfirming will cost you §6" + cost + "§e coins."));
+        }
 
         src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }

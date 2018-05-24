@@ -78,7 +78,7 @@ public class ResetEVs implements CommandExecutor
 
                     src.sendMessage(Text.of("§4Error: §cNo arguments found. Please provide a slot."));
                     printSyntaxHelper(src);
-                    PrintingMethods.checkAndAddFooter(commandCost, src);
+                    PrintingMethods.checkAndAddFooter(true, commandCost, src);
 
                     canContinue = false;
                 }
@@ -100,7 +100,7 @@ public class ResetEVs implements CommandExecutor
 
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
                         printSyntaxHelper(src);
-                        PrintingMethods.checkAndAddFooter(commandCost, src);
+                        PrintingMethods.checkAndAddFooter(true, commandCost, src);
 
                         canContinue = false;
                     }

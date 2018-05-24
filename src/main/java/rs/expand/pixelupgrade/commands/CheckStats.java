@@ -320,13 +320,11 @@ public class CheckStats implements CommandExecutor
 
                     if (!canContinue)
                     {
-                        if (economyEnabled && commandCost > 0)
-                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
-
+                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of(errorString));
-                        printSyntaxHelper(src, hasOtherPerm);
 
-                        PrintingMethods.checkAndAddFooter(commandCost, src);
+                        printSyntaxHelper(src, hasOtherPerm);
+                        PrintingMethods.checkAndAddFooter(false, commandCost, src);
                     }
                 }
 
@@ -559,6 +557,7 @@ public class CheckStats implements CommandExecutor
         src.sendMessage(Text.of("§7-----------------------------------------------------"));
     }
 
+    // Checks a slot's stats and prints them to chat in a neat list, with contents differing based on config flags.
     private void checkSpecificSlot(final CommandSource src, final Player target, final NBTTagCompound nbt, final boolean haveTarget)
     {
         // Set up IVs and matching math.
@@ -623,13 +622,11 @@ public class CheckStats implements CommandExecutor
         if (speedEV > 251)
             evs6 = String.valueOf("§o") + evs6;
 
-        src.sendMessage(Text.of("§7-----------------------------------------------------"));
-
         // Get a bunch of data from our PokemonMethods utility class. Used for messages, later on.
         final List<String> natureArray = PokemonMethods.getNatureStrings(nbt.getInteger(NbtKeys.NATURE));
         final String natureName = natureArray.get(0);
-        final String plusVal = "+" + natureArray.get(1);
-        final String minusVal = "-" + natureArray.get(2);
+        final String plusVal = '+' + natureArray.get(1);
+        final String minusVal = '-' + natureArray.get(2);
         final String growthName = PokemonMethods.getGrowthName(nbt.getInteger(NbtKeys.GROWTH));
 
         // Set up a gender character. Console doesn't like Unicode genders, so if src is not a Player we'll use M/F/-.
