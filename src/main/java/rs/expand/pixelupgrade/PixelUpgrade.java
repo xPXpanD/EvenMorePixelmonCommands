@@ -34,7 +34,7 @@ import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicMessage
 // TODO: Make a /pokesell, maybe one that sells based on ball worth.
 // TODO: See if a cooldown on trading machines is possible? - FrostEffects
 // TODO: Make a command that uses setIsRed to emulate "Who's that Pokémon"? Could use statues. - DaeM0nS
-// TODO: Look into name colors?
+// TODO: Look into name colors, or make a full-on rename command with color support. Maybe make it set a tag, and check.
 // TODO: Make a Pokéball changing command, get it to write the old ball to the Pokémon for ball sale purposes.
 // TODO: Do something with setPixelmonScale. Maybe a /spawnboss for super big high HP IV bosses with custom loot?
 // TODO: Make a random legendary spawner.
@@ -48,7 +48,9 @@ import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicMessage
 // TODO: Merge /checkegg into /checkstats.
 // TODO: Maybe add some nice "====" borders to config node errors?
 // TODO: Make just about every command with a target show said target a message when stuff is being used on them.
-// TODO: Actually add an economy safe mode to things. Baby steps are done, time to take the leap.
+// TODO: Fix header/footer consistency.
+// TODO: Move everything to lang files.
+// TODO: Add a level-showing message to /showstats and /checkstats.
 
 @Plugin
 (
@@ -56,8 +58,7 @@ import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicMessage
         name = "PixelUpgrade",
         version = "4.1.0",
         dependencies = @Dependency(id = "pixelmon"),
-        //description = "Adds a whole bunch of utility commands to Pixelmon, with optional economy integration.",
-        description = "Adds a whole bunch of utility commands to Pixelmon, some with economy integration.",
+        description = "Adds a whole bunch of utility commands to Pixelmon, with optional economy integration.",
         authors = "XpanD"
 
         // Not listed but certainly appreciated:
@@ -78,7 +79,7 @@ public class PixelUpgrade
 {
     // Some basic setup.
     public static EconomyService economyService;
-    public static boolean economyEnabled;
+    public static boolean economyEnabled = false;
 
     // Load up a ton of variables for use by other commands. We'll fill these in during pre-init.
     public static Integer configVersion;
@@ -343,17 +344,11 @@ public class PixelUpgrade
             //printBasicMessage("--> §aAn economy plugin was detected. Enabling integration!");
             economyEnabled = true;
             economyService = potentialEconomyService.get();
-
-            printBasicMessage("--> §aAll systems nominal.");
         }
         else
-        {
-            printBasicMessage("--> §cNo economy plugin was found. Some commands will break!");
-            printBasicMessage("--> §eProper support for running without economies is coming soon.");
-            //printBasicMessage("--> §eNo economy plugin was found. Proceeding with integration disabled.");
-        }
+            printBasicMessage("--> §eNo economy plugin was found. Proceeding with integration disabled!");
 
-        //printBasicMessage("--> §aAll systems nominal.");
+        printBasicMessage("--> §aAll systems nominal.");
         printBasicMessage("===========================================================================");
         printBasicMessage("");
     }
@@ -361,43 +356,32 @@ public class PixelUpgrade
     @Listener
     public void onServerStartedEvent(final GameStartedServerEvent event)
     {
-        final int currentInternalVersion = 400;
+        final int currentInternalVersion = 410;
         if (PixelUpgrade.configVersion != null && currentInternalVersion > PixelUpgrade.configVersion)
         {
             printBasicMessage("");
             printBasicMessage("========================= P I X E L U P G R A D E =========================");
-            printBasicMessage("§4/showstats §clikely has an outdated (§43.0§c) config.");
+            printBasicMessage("§4PixelUpgrade §clikely has an outdated (§44.0.0?§c) main config.");
             printBasicMessage("");
             printBasicMessage("§6Please follow these steps to fix this:");
-            printBasicMessage("§61. §eDelete §6ShowStats.conf§e, or move it somewhere safe.");
-            printBasicMessage("§62. §eOpen §6PixelUpgrade.conf §eand change §6configVersion§e's value to §6400§e.");
-            printBasicMessage("§63. §eUse §6/pureload all§e to create a new config and update the version.");
-            printBasicMessage("§64. §eIf so desired, manually recover old settings and §6/pureload §eagain.");
-            printBasicMessage("");
-            printBasicMessage("§cThis command will have reduced functionality until this is fixed.");
+            printBasicMessage("§61. §eOpen PixelUpgrade's main config file, §6PixelUpgrade.conf§e.");
+            printBasicMessage("§62. §eChange §6configVersion§e's value to §6410§e.");
+            printBasicMessage("§63. §eAdd the following line: §6statSeparator = \"&r, \"");
+            printBasicMessage("§64. §eSave, and then use §6/pureload main §eto load your changes.");
+
+            if (PixelUpgrade.configVersion < 400)
+            {
+                printBasicMessage("");
+                printBasicMessage("§6If you're coming off of 3.0.0, also do this:");
+                printBasicMessage("§61. §eDelete §6ShowStats.conf§e, or move it somewhere safe.");
+                printBasicMessage("§62. §eUse §6/pureload all §eto create a new config and update the version.");
+                printBasicMessage("§63. §eIf so desired, manually recover old settings and §6/pureload all §eagain.");
+                printBasicMessage("");
+                printBasicMessage("§cWith an unchanged 3.0.0 config, §4/showstats §cwill have reduced functionality!");
+            }
+
             printBasicMessage("===========================================================================");
             printBasicMessage("");
         }
     }
-
-    // Don't mind this, just me messing around.
-    // This won't make it to release, that'd be awful. Might use it for another future feature's core, though!
-    /*
-    @Listener
-    public void spawnTest(SpawnEntityEvent event)
-    {
-        event.getEntities().forEach(entity ->
-        {
-            if (entity instanceof EntityPixelmon)
-            {
-                printBasicMessage("We've got a Pixelmon entity!");
-                EntityPixelmon targetEntity = (EntityPixelmon) entity;
-                targetEntity.setHealth(5000);
-                targetEntity.setIsRed(true);
-                //targetEntity.setFire(60);
-                //targetEntity.setPixelmonScale(5);
-            }
-        });
-    }
-    */
 }

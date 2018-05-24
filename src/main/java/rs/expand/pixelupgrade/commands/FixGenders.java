@@ -93,7 +93,7 @@ public class FixGenders implements CommandExecutor
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
             boolean canContinue = true, targetedSelf = false, targetIsValid = false, commandConfirmed = false;
-            final boolean hasStaffPerm = src.hasPermission("pixelupgrade.command.other.fixgenders");
+            final boolean hasStaffPerm = src.hasPermission("pixelupgrade.command.staff.fixgenders");
             final Optional<String> arg1Optional = args.getOne("target/confirmation");
             final Optional<String> arg2Optional = args.getOne("confirmation");
             String errorString = "§4There's an error message missing, please report this!";
@@ -273,7 +273,6 @@ public class FixGenders implements CommandExecutor
 
                     sendCheckedMessage(src, "");
                     sendCheckedMessage(src, "§5Please note: §dAny broken genders will be immediately rerolled.");
-                    sendCheckedMessage(src, "§dThis command is experimental. Stuff may break, report issues!");
                     sendCheckedMessage(src, "§5-----------------------------------------------------");
                 }
             }

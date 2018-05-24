@@ -2,6 +2,7 @@
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
+import com.pixelmonmod.pixelmon.config.PixelmonConfig;
 import com.pixelmonmod.pixelmon.config.PixelmonEntityList;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import com.pixelmonmod.pixelmon.enums.EnumPokemon;
@@ -249,7 +250,7 @@ public class CheckStats implements CommandExecutor
                             canContinue = true;
 
                             // Is the player not allowed to check other people's Pokémon, and is there no cost? Skip ahead!
-                            if (!hasOtherPerm && commandCost == 0)
+                            if (!hasOtherPerm && economyEnabled && commandCost == 0)
                             {
                                 printToLog(2, "Player is missing \"other\" perm, cost is 0. Skip to execution!");
                                 canSkip = true;
@@ -319,7 +320,7 @@ public class CheckStats implements CommandExecutor
 
                     if (!canContinue)
                     {
-                        if (commandCost > 0)
+                        if (economyEnabled && commandCost > 0)
                             src.sendMessage(Text.of("§5-----------------------------------------------------"));
 
                         src.sendMessage(Text.of(errorString));
@@ -391,7 +392,7 @@ public class CheckStats implements CommandExecutor
                                 src.sendMessage(Text.of("§4Error: §cYou can only check hatched Pokémon."));
                             }
                         }
-                        else if (!calledRemotely && commandCost > 0) // Don't use the economy for console!
+                        else if (economyEnabled && !calledRemotely && commandCost > 0) // Don't use the economy for console!
                         {
                             @SuppressWarnings("ConstantConditions") final // !calledRemotely already guarantees src is a Player.
                                 Player player = (Player) src;
@@ -462,7 +463,11 @@ public class CheckStats implements CommandExecutor
                                 haveTarget = true;
 
                             // Debug message gets swallowed if run from console, as usual.
-                            printToLog(1, "Checked slot §3" + slot + "§b. Config price is §30§b, taking nothing.");
+                            if (economyEnabled)
+                                printToLog(1, "Checked slot §3" + slot + "§b. Config price is §30§b, taking nothing.");
+                            else
+                                printToLog(1, "Checked slot §3" + slot + "§b. No economy, so we skipped eco checks.");
+
                             checkSpecificSlot(src, target, nbt, haveTarget);
                         }
                     }
@@ -483,7 +488,7 @@ public class CheckStats implements CommandExecutor
         else
         {
             final String confirmString;
-            if (commandCost != 0)
+            if (economyEnabled && commandCost != 0)
                 confirmString = " {-c to confirm}";
             else
                 confirmString = "";
@@ -537,7 +542,7 @@ public class CheckStats implements CommandExecutor
 
         src.sendMessage(Text.of(""));
 
-        if (!calledRemotely && commandCost > 0)
+        if (economyEnabled && !calledRemotely && commandCost > 0)
         {
             src.sendMessage(Text.of("§eWant more info? §6/" + commandAlias + " " + target.getName() +
                     " <slot, 1-6> {-c to confirm}"));
@@ -620,7 +625,6 @@ public class CheckStats implements CommandExecutor
 
         src.sendMessage(Text.of("§7-----------------------------------------------------"));
 
-
         // Get a bunch of data from our PokemonMethods utility class. Used for messages, later on.
         final List<String> natureArray = PokemonMethods.getNatureStrings(nbt.getInteger(NbtKeys.NATURE));
         final String natureName = natureArray.get(0);
@@ -673,21 +677,17 @@ public class CheckStats implements CommandExecutor
         else
             src.sendMessage(Text.of(startString + "§e:"));
 
-        // Print out IVs using previously formatted Strings. Add EVs if they're enabled.
+        // Print out IVs using previously formatted Strings.
         src.sendMessage(Text.of(""));
-
-        if (showEVs)
-        {
-            src.sendMessage(Text.of("§bStat totals§f: §a" + totalIVs + "§f/§a186§f (§a" + percentIVs +
-                    "%§f) §2IVs§f, §a" + totalEVs + "§f/§a510§f (§a" + percentEVs + "%§f) §2EVs"));
-        }
-        else
-            src.sendMessage(Text.of("§bTotal IVs§f: §a" + totalIVs + "§f/§a186§f (§a" + percentIVs + "%§f)"));
-
+        src.sendMessage(Text.of("§bTotal IVs§f: §a" + totalIVs + "§f/§a186§f (§a" + percentIVs + "%§f)"));
         src.sendMessage(Text.of("§bIVs§f: §a" + ivs1 + ivs2 + ivs3 + ivs4 + ivs5 + ivs6));
 
+        // Do the same for EVs, if enabled in the config.
         if (showEVs)
+        {
+            src.sendMessage(Text.of("§bTotal EVs§f: §a" + totalEVs + "§f/§a510§f (§a" + percentEVs + "%§f)"));
             src.sendMessage(Text.of("§bEVs§f: §a" + evs1 + evs2 + evs3 + evs4 + evs5 + evs6));
+        }
 
         // Show extra info, which we grabbed from PokemonMethods.
         final String extraInfo1 = String.valueOf("§bGender§f: " + genderChar +
@@ -777,10 +777,10 @@ public class CheckStats implements CommandExecutor
             }
         }
 
-        // Mew-specific check for cloning counts. A bit cheap, but it'll work down here.
+        // Mew-specific check for cloning counts. A bit cheap, but it'll work down here. Also, lake trio enchant check.
         if (name.equals("Mew"))
         {
-            // If we haven't broken into a new paragraph yet, do it now.
+            // If we haven't added a new line yet, do it now.
             if (isDitto && !showDittoFusionHelper || !isDitto && !showUpgradeHelper)
                 src.sendMessage(Text.of(""));
 
@@ -790,6 +790,20 @@ public class CheckStats implements CommandExecutor
                 src.sendMessage(Text.of("§eCloning has not yet been attempted."));
             else
                 src.sendMessage(Text.of("§eCloning has been attempted §6" + cloneCount + "§f/§63 §etimes."));
+        }
+        else if (name.equals("Azelf") || name.equals("Mesprit") || name.equals("Uxie"))
+        {
+            // If we haven't added a new line yet, do it now.
+            if (isDitto && !showDittoFusionHelper || !isDitto && !showUpgradeHelper)
+                src.sendMessage(Text.of(""));
+
+            final int enchantCount = nbt.getInteger(NbtKeys.STATS_NUM_ENCHANTED);
+            final int maxEnchants = PixelmonConfig.getConfig().getNode("General", "lakeTrioMaxEnchants").getInt();
+
+            if (enchantCount == 0)
+                src.sendMessage(Text.of("§aIt has not enchanted any rubies yet."));
+            else
+                src.sendMessage(Text.of("§aIt has enchanted §2" + enchantCount + "§f/§2" + maxEnchants + " §arubies."));
         }
 
         // Finish up the output text box. Done!

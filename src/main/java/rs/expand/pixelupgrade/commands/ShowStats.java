@@ -2,6 +2,7 @@
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
+import com.pixelmonmod.pixelmon.config.PixelmonConfig;
 import com.pixelmonmod.pixelmon.config.PixelmonEntityList;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import com.pixelmonmod.pixelmon.enums.EnumPokemon;
@@ -10,7 +11,6 @@ import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
 import java.math.BigDecimal;
 import java.util.*;
-
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
@@ -28,11 +28,11 @@ import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.channel.MessageChannel;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.PrintingMethods;
 import rs.expand.pixelupgrade.utilities.PokemonMethods;
+import rs.expand.pixelupgrade.utilities.PrintingMethods;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
-// TODO: Add ability showing. Thanks, Mikirae.
+// TODO: Add ability showing. Thanks for the idea, Mikirae.
 public class ShowStats implements CommandExecutor
 {
     // Declare some variables. We'll load stuff into these when we call the config loader.
@@ -160,7 +160,7 @@ public class ShowStats implements CommandExecutor
                 {
                     printToLog(1, "No arguments provided. Exit.");
 
-                    if (commandCost > 0)
+                    if (economyEnabled && commandCost > 0)
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo arguments found. Please provide a slot."));
                     printSyntaxHelper(src);
@@ -181,7 +181,7 @@ public class ShowStats implements CommandExecutor
                     {
                         printToLog(1, "Invalid slot provided. Exit.");
 
-                        if (commandCost > 0)
+                        if (economyEnabled && commandCost > 0)
                             src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
                         printSyntaxHelper(src);
@@ -273,7 +273,7 @@ public class ShowStats implements CommandExecutor
 
                             if (canContinue)
                             {
-                                if (commandCost > 0)
+                                if (economyEnabled && commandCost > 0)
                                 {
                                     final BigDecimal costToConfirm = new BigDecimal(commandCost);
 
@@ -330,7 +330,17 @@ public class ShowStats implements CommandExecutor
                                 }
                                 else
                                 {
-                                    printToLog(1, "Showing off slot §3" + slot + "§b. Config price is §30§b, taking nothing.");
+                                    if (economyEnabled)
+                                    {
+                                        printToLog(1, "Showing off slot §3" + slot +
+                                                "§b. Config price is §30§b, taking nothing.");
+                                    }
+                                    else
+                                    {
+                                        printToLog(1, "Showing off slot §3" + slot +
+                                                "§b. No economy, so we skipped eco checks.");
+                                    }
+
                                     cooldownMap.put(playerUUID, currentTime);
                                     checkAndShowStats(nbt, (Player) src);
                                 }
@@ -348,7 +358,7 @@ public class ShowStats implements CommandExecutor
 
     private void printSyntaxHelper(final CommandSource src)
     {
-        if (commandCost != 0)
+        if (economyEnabled && commandCost != 0)
             src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> {-c to confirm}"));
         else
             src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6>"));
@@ -459,7 +469,7 @@ public class ShowStats implements CommandExecutor
             shinyString = "§6§lshiny §r";
         if (showNicknames)
         {
-            if (nickname != null && !nickname.isEmpty())
+            if (nickname != null && !nickname.isEmpty() && !nickname.equals(name))
                 nameAdditionString = "§e, nicknamed §6" + nickname + "§e:";
         }
 
@@ -535,6 +545,16 @@ public class ShowStats implements CommandExecutor
                 else
                     hovers.add("➡ §aCloning has been attempted §2" + cloneCount + "§f/§23 §atimes.");
             }
+            else if (name.equals("Azelf") || name.equals("Mesprit") || name.equals("Uxie"))
+            {
+                final int enchantCount = nbt.getInteger(NbtKeys.STATS_NUM_ENCHANTED);
+                final int maxEnchants = PixelmonConfig.getConfig().getNode("General", "lakeTrioMaxEnchants").getInt();
+
+                if (enchantCount == 0)
+                    hovers.add("➡ §aIt has not enchanted any rubies yet.");
+                else
+                    hovers.add("➡ §aIt has enchanted §2" + enchantCount + "§f/§2" + maxEnchants + " §arubies.");
+            }
         }
 
         if (showCounts && !gotExternalConfigError)
@@ -579,7 +599,7 @@ public class ShowStats implements CommandExecutor
                 if (isLegendary)
                     introString = "§eThis " + shinyString + "§6§llegendary§r §e";
                 else
-                    introString = "§eThis " + shinyString + "§6Pokémon §e";
+                    introString = "§eThis " + shinyString + "Pokémon ";
 
                 if (upgradeCount != 0 && upgradeCount < upgradeCap)
                     hovers.add(introString + "has been upgraded §6" + upgradeCount + "§e/§6" + upgradeCap + " §etimes.");

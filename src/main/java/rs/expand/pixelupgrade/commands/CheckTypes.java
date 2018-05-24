@@ -3,7 +3,11 @@ package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
 import com.pixelmonmod.pixelmon.enums.EnumType;
-import java.util.*;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import org.spongepowered.api.block.tileentity.CommandBlock;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;

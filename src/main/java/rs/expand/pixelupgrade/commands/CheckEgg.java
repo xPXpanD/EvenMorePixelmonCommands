@@ -57,7 +57,7 @@ public class CheckEgg implements CommandExecutor
                 nativeErrorArray.add("explicitReveal");
             if (babyHintPercentage == null)
                 nativeErrorArray.add("babyHintPercentage");
-            if (commandCost == null)
+            if (economyEnabled)
                 nativeErrorArray.add("commandCost");
             if (recheckIsFree == null)
                 nativeErrorArray.add("recheckIsFree");
@@ -99,12 +99,11 @@ public class CheckEgg implements CommandExecutor
                 {
                     printToLog(1, "No arguments provided. Exit.");
 
-                    if (commandCost > 0)
-                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
-
+                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo arguments found. Please provide a slot."));
+
                     printSyntaxHelper(src);
-                    PrintingMethods.checkAndAddFooter(commandCost, src);
+                    PrintingMethods.checkAndAddFooter(false, commandCost, src);
 
                     canContinue = false;
                 }
@@ -121,12 +120,11 @@ public class CheckEgg implements CommandExecutor
                     {
                         printToLog(1, "Invalid slot provided. Exit.");
 
-                        if (commandCost > 0)
-                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
-
+                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
+
                         printSyntaxHelper(src);
-                        PrintingMethods.checkAndAddFooter(commandCost, src);
+                        PrintingMethods.checkAndAddFooter(false, commandCost, src);
 
                         canContinue = false;
                     }
@@ -163,12 +161,17 @@ public class CheckEgg implements CommandExecutor
                             final EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, (World) player.getWorld());
                             final boolean wasEggChecked = pokemon.getEntityData().getBoolean("hadEggChecked");
 
-                            if (commandCost == 0 || wasEggChecked && recheckIsFree)
+                            if (!economyEnabled || commandCost == 0 || wasEggChecked && recheckIsFree)
                             {
                                 printEggResults(nbt, pokemon, wasEggChecked, src);
 
                                 // Keep this below the printEggResults call, or your debug message order will look weird.
-                                if (commandCost == 0)
+                                if (!economyEnabled)
+                                {
+                                    printToLog(1, "Checking egg in slot §3" + slot +
+                                            "§b. No economy, so we skipped eco checks.");
+                                }
+                                else if (commandCost == 0)
                                 {
                                     printToLog(1, "Checking egg in slot §3" + slot +
                                             "§b. Config price is §30§b, taking nothing.");
@@ -245,7 +248,7 @@ public class CheckEgg implements CommandExecutor
 
     private void printSyntaxHelper(final CommandSource src)
     {
-        if (commandCost != 0)
+        if (economyEnabled && commandCost != 0)
             src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> {-c to confirm}"));
         else
             src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6>"));
@@ -341,7 +344,7 @@ public class CheckEgg implements CommandExecutor
                 src.sendMessage(Text.of("§eThis baby seems to be fairly ordinary..."));
         }
 
-        if (commandCost > 0 && recheckIsFree)
+        if (economyEnabled && commandCost > 0 && recheckIsFree)
         {
             if (wasEggChecked)
             {

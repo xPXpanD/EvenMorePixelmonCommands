@@ -2,17 +2,19 @@
 Released ???
 
     Major (breaking) config changes:
-   * Added a "statSeparator" option to the main config. We'll load a failsafe and warn if it's not present.
+   * Added a "statSeparator" option to the main config. We'll warn and fall back to safe values if need be.
 
     Other changes:
+   * Added a Lake Trio ruby enchant check to /checkstats and /showstats, similar to the recent Mew one.
+   * Added zero-economy support for everything except for /dittofusion and /upgradeivs, which show an error.
    * Fixed "a blocks" typo on /fixgenders, when used from command blocks.
-   * Fixed /pixelupgrade showing further messages getting hidden when run in console, even though it wouldn't.
    * Fixed /pixelupgrade console info messages showing up as "PU Info info". Oops.
+   * Fixed /pixelupgrade showing it hiding further messages when used from console, even though it wouldn't.
    * Fixed /showstats "This Pokémon is gigantic" when "giant" is apparently perfectly valid, here.
    * Fixed configs for /showstats, /timedhatch and /timedheal showing the wrong altcooldown permissions.
    * Fixed debug logger breaking with a NullPointerException if the main config was broken.
    * Fixed missing EVSpecialDefense tag for /forcestats.
-   * Some "pixelupgrade.command.staff.*" perms are now "pixelupgrade.command.other.*". Update your perms. Sorry!
+   * Removed a few unnecessary messages. Reworded a few others to convey the same info, where necessary.
 
 4.0.0 beta 1 for 6.2.0
 Released February 13th, 2018.

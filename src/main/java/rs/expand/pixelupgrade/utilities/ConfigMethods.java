@@ -1,5 +1,5 @@
 // The enormous and rather complicated config handler, version two. Could use some work still, but it'll do for now.
-// Version one was just n classes, where n was the number of commands there were minus /pureload. Yeah.
+// Version one was just n classes, where n was the number of commands there were minus /pureload. We've come a long way.
 package rs.expand.pixelupgrade.utilities;
 
 // Remote imports.
@@ -10,7 +10,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.plugin.PluginContainer;
-
 import java.util.List;
 import java.util.Scanner;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -449,16 +448,16 @@ public class ConfigMethods
 
                     if (debugVerbosityMode == null)
                     {
-                        printBasicMessage("§cValue of global setting §4debugVerbosityMode§c could not be read.");
-                        printBasicMessage("§cEnabling high verbosity (mode 2) fallback for now...");
+                        printBasicMessage("    §cValue of global setting §4debugVerbosityMode§c could not be read.");
+                        printBasicMessage("    §cEnabling high verbosity (mode 2) fallback for now...");
 
                         debugVerbosityMode = 2;
                         gotIssue = true;
                     } // 1337 is the internal testing level, not used in releases.
                     else if (debugVerbosityMode < 0 || debugVerbosityMode > 2 && debugVerbosityMode != 1337)
                     {
-                        printBasicMessage("§cValue of global setting §4debugVerbosityMode§c is out of bounds.");
-                        printBasicMessage("§cEnabling high debug verbosity (mode §42§c) fallback for now...");
+                        printBasicMessage("    §cValue of global setting §4debugVerbosityMode§c is out of bounds.");
+                        printBasicMessage("    §cEnabling high debug verbosity (mode §42§c) fallback for now...");
 
                         debugVerbosityMode = 2;
                         gotIssue = true;
@@ -466,8 +465,8 @@ public class ConfigMethods
 
                     if (statSeparator == null)
                     {
-                        printBasicMessage("§cValue of global setting §4statSeparator§c could not be read.");
-                        printBasicMessage("§cEnabling default stat separator (\"§4, §c\") fallback for now...");
+                        printBasicMessage("    §cValue of global setting §4statSeparator§c could not be read.");
+                        printBasicMessage("    §cEnabling default stat separator (\"§4, §c\") fallback for now...");
 
                         statSeparator = "§r,§a ";
                         gotIssue = true;
@@ -476,7 +475,7 @@ public class ConfigMethods
                         statSeparator = "§r" + PrintingMethods.parseRemoteString(statSeparator) + "§r§a";
 
                     if (gotIssue)
-                        printBasicMessage("§cPlease check the main config carefully. Stuff may break.");
+                        printBasicMessage("    §cPlease check the main config carefully. Stuff may break.");
 
                     return null;
                 }
@@ -770,8 +769,8 @@ public class ConfigMethods
                 }
                 default:
                 {
-                    printBasicMessage("§cConfig gathering failed; fell through the switch.");
-                    printBasicMessage("§cIf you're on an official release, this is a bug. Source: §4" + callSource);
+                    printBasicMessage("    §cConfig gathering failed; fell through the switch.");
+                    printBasicMessage("    §cIf you're on an official release, this is a bug. Source: §4" + callSource);
                     return null;
                 }
             }

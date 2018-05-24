@@ -30,7 +30,6 @@ import org.spongepowered.api.text.Text;
 import rs.expand.pixelupgrade.utilities.PrintingMethods;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
-// TODO: Zero economy support.
 // TODO: Turn /dittofusion into a generic /fuse that works on everything?
 public class DittoFusion implements CommandExecutor
 {
@@ -48,7 +47,7 @@ public class DittoFusion implements CommandExecutor
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)
     {
-        if (src instanceof Player)
+        if (economyEnabled && src instanceof Player)
         {
             // Validate the data we get from the command's main config.
             final List<String> nativeErrorArray = new ArrayList<>();
@@ -525,6 +524,8 @@ public class DittoFusion implements CommandExecutor
                 }
             }
         }
+        else if (!economyEnabled)
+            src.sendMessage(Text.of("§4Error: §cThis server does not have an economy plugin installed."));
         else
             printToLog(0, "This command cannot run from the console or command blocks.");
 

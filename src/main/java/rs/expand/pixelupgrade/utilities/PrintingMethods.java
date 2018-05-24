@@ -11,6 +11,7 @@ import java.util.Optional;
 
 // Local imports.
 import rs.expand.pixelupgrade.PixelUpgrade;
+import static rs.expand.pixelupgrade.PixelUpgrade.economyEnabled;
 
 // A collection of methods that are commonly used. One changed word or color here, and half the mod changes. Sweet.
 public class PrintingMethods
@@ -69,7 +70,7 @@ public class PrintingMethods
     public static void printMainNodeError(final String callSource, final List<String> nodes)
     {
         for (final String node : nodes)
-        { printDebugMessage(callSource, 0, "Could not read remote node \"§4" + node + "§c\"."); }
+            printDebugMessage(callSource, 0, "Could not read remote node \"§4" + node + "§c\".");
 
         printDebugMessage(callSource, 0, "The main config contains invalid variables. Exiting.");
         printDebugMessage(callSource, 0, "Check the related config, and when fixed use §4/pureload§c.");
@@ -79,7 +80,7 @@ public class PrintingMethods
     public static void printCommandNodeError(final String callSource, final List<String> nodes)
     {
         for (final String node : nodes)
-        { printDebugMessage(callSource, 0, "Could not read node \"§4" + node + "§c\"."); }
+            printDebugMessage(callSource, 0, "Could not read node \"§4" + node + "§c\".");
 
         printDebugMessage(callSource, 0, "This command's config could not be parsed. Exiting.");
         printDebugMessage(callSource, 0, "Check the related config, and when fixed use §4/pureload§c.");
@@ -95,17 +96,19 @@ public class PrintingMethods
         }
     }
 
-    // If a command has a cost, we'll want to get explicit confirmation. This lets players know how that works.
-    // Used so commonly that we might as well set it up here.
-    public static void checkAndAddFooter(final int cost, final CommandSource src)
+    // Adds a footer based on input and matching intent. Used so commonly it might as well be here.
+    public static void checkAndAddFooter(final boolean requireConfirmation, final int cost, final CommandSource src)
     {
-        if (cost > 0)
-        {
+        if (requireConfirmation || economyEnabled)
             src.sendMessage(Text.of(""));
+
+        if (requireConfirmation)
             src.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're sure!"));
+
+        if (economyEnabled)
             src.sendMessage(Text.of("§eConfirming will cost you §6" + cost + "§e coins."));
-            src.sendMessage(Text.of("§5-----------------------------------------------------"));
-        }
+
+        src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
 
     // Takes a config String, and changes any ampersands to section symbols, which we can use internally.

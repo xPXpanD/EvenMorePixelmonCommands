@@ -15,8 +15,8 @@ import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.format.TextColors;
 
 // Local imports.
-import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.utilities.PrintingMethods;
+import static rs.expand.pixelupgrade.PixelUpgrade.economyEnabled;
 
 // Command format helper! Use this format if you want to add your own stuff.
 // [] = optional, {} = flag, <> = required, () = add comment here
@@ -72,20 +72,11 @@ public class PixelUpgradeInfo implements CommandExecutor
             if (gotConfigError)
                 printToLog(0, "We'll proceed with safe defaults. Please fix this.");
 
-            // Check if an economy plugin was found during startup.
-            if (!calledRemotely)
-            {
-                if (PixelUpgrade.economyEnabled)
-                    printToLog(2, "Found an economy, showing §2/dittofusion §aand §2/upgradeivs§a.");
-                else
-                    printToLog(2, "No economy was found, hiding §2/dittofusion §aand §2/upgradeivs§a.");
-            }
-
             if (!calledRemotely && src.hasPermission("pixelupgrade.command.checkegg"))
             {
                 if (CheckEgg.commandCost != null && CheckEgg.commandAlias != null)
                 {
-                    if (CheckEgg.commandCost > 0)
+                    if (economyEnabled && CheckEgg.commandCost > 0)
                     {
                         permissionMessageList.add(Text.of("§6/" + CheckEgg.commandAlias +
                                 " <slot, 1-6> {confirm flag}"));
@@ -110,7 +101,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                         permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias + " <target> [slot? 1-6]"));
                     else
                     {
-                        if (CheckStats.commandCost != 0)
+                        if (economyEnabled && CheckStats.commandCost != 0)
                             flagString = " {confirm flag}";
                         else
                             flagString = "";
@@ -149,13 +140,17 @@ public class PixelUpgradeInfo implements CommandExecutor
                     printToLog(1, "§3/checktypes §bhas a malformed config, hiding from list.");
             }
 
-            if (!calledRemotely && PixelUpgrade.economyEnabled && src.hasPermission("pixelupgrade.command.dittofusion"))
+            if (!calledRemotely && src.hasPermission("pixelupgrade.command.dittofusion"))
             {
                 if (DittoFusion.commandAlias != null)
                 {
                     permissionMessageList.add(Text.of("§6/" + DittoFusion.commandAlias +
                             " <target slot> <sacrifice slot> {confirm flag}"));
-                    permissionMessageList.add(Text.of("§f --> §eSacrifice one Ditto to improve another, for a price..."));
+
+                    if (economyEnabled)
+                        permissionMessageList.add(Text.of("§f --> §eSacrifice one Ditto to improve another, for a price..."));
+                    else // No creepy "for a price..." note here, folks.
+                        permissionMessageList.add(Text.of("§f --> §eSacrifice one Ditto to improve another."));
                 }
                 else
                     printToLog(1, "§3/dittofusion §bhas a malformed config, hiding from list.");
@@ -169,9 +164,9 @@ public class PixelUpgradeInfo implements CommandExecutor
                         permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " <target>"));
                     else
                     {
-                        if (src.hasPermission("pixelupgrade.command.other.fixgenders") && FixGenders.requireConfirmation)
+                        if (src.hasPermission("pixelupgrade.command.staff.fixgenders") && FixGenders.requireConfirmation)
                             permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " [target?] {-c to confirm}"));
-                        else if (src.hasPermission("pixelupgrade.command.other.fixgenders"))
+                        else if (src.hasPermission("pixelupgrade.command.staff.fixgenders"))
                             permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " [target?]"));
                         else if (FixGenders.requireConfirmation)
                             permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " {-c to confirm}"));
@@ -247,7 +242,7 @@ public class PixelUpgradeInfo implements CommandExecutor
             {
                 if (ShowStats.commandCost != null && ShowStats.commandAlias != null)
                 {
-                    if (ShowStats.commandCost != 0)
+                    if (economyEnabled && ShowStats.commandCost != 0)
                         permissionMessageList.add(Text.of("§6/" + ShowStats.commandAlias + " <slot, 1-6> {confirm flag}"));
                     else
                         permissionMessageList.add(Text.of("§6/" + ShowStats.commandAlias + " <slot, 1-6>"));
@@ -289,7 +284,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                         permissionMessageList.add(Text.of("§6/" + TimedHatch.commandAlias + " <target> [slot? 1-6]"));
                     else
                     {
-                        if (TimedHatch.commandCost != 0)
+                        if (economyEnabled && TimedHatch.commandCost != 0)
                             flagString = " {confirm flag}";
                         else
                             flagString = "";
@@ -331,7 +326,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                         permissionMessageList.add(Text.of("§6/" + TimedHeal.commandAlias + " <target> [slot? 1-6]"));
                     else
                     {
-                        if (TimedHeal.commandCost != 0)
+                        if (economyEnabled && TimedHeal.commandCost != 0)
                             flagString = " {confirm flag}";
                         else
                             flagString = "";
@@ -365,12 +360,16 @@ public class PixelUpgradeInfo implements CommandExecutor
                     printToLog(1, "§3/timedheal §bhas a malformed config, hiding from list.");
             }
 
-            if (!calledRemotely && PixelUpgrade.economyEnabled && src.hasPermission("pixelupgrade.command.upgradeivs"))
+            if (!calledRemotely && src.hasPermission("pixelupgrade.command.upgradeivs"))
             {
                 if (UpgradeIVs.commandAlias != null)
                 {
                     permissionMessageList.add(Text.of("§6/" + UpgradeIVs.commandAlias + " <slot> <IV type> [amount?] {confirm flag}"));
-                    permissionMessageList.add(Text.of("§f --> §eUpgrades a Pokémon's IVs for economy money."));
+
+                    if (economyEnabled)
+                        permissionMessageList.add(Text.of("§f --> §eUpgrades a Pokémon's IVs for economy money."));
+                    else
+                        permissionMessageList.add(Text.of("§f --> §eUpgrades a Pokémon's IVs."));
                 }
                 else
                     printToLog(1, "§3/upgradeivs §bhas a malformed config, hiding from list.");

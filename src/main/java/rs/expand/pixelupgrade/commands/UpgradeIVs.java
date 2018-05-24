@@ -49,7 +49,7 @@ public class UpgradeIVs implements CommandExecutor
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)
     {
-        if (src instanceof Player)
+        if (economyEnabled && src instanceof Player)
         {
             // Validate the data we get from the command's main config.
             final List<String> nativeErrorArray = new ArrayList<>();
@@ -646,6 +646,8 @@ public class UpgradeIVs implements CommandExecutor
                 }
             }
         }
+        else if (!economyEnabled)
+            src.sendMessage(Text.of("§4Error: §cThis server does not have an economy plugin installed."));
         else
             printToLog(0,"This command cannot run from the console or command blocks.");
 

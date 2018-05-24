@@ -25,7 +25,7 @@ import org.spongepowered.api.text.Text;
 
 // Local imports.
 import rs.expand.pixelupgrade.utilities.PrintingMethods;
-import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
+import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
 // TODO: Update the economy setup to be in line with most other economy-using commands.
 public class ResetEVs implements CommandExecutor
@@ -73,7 +73,7 @@ public class ResetEVs implements CommandExecutor
                 {
                     printToLog(1, "No arguments provided. Exit.");
 
-                    if (commandCost > 0)
+                    if (economyEnabled && commandCost > 0)
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
 
                     src.sendMessage(Text.of("§4Error: §cNo arguments found. Please provide a slot."));
@@ -95,7 +95,7 @@ public class ResetEVs implements CommandExecutor
                     {
                         printToLog(1, "Invalid slot provided. Exit.");
 
-                        if (commandCost > 0)
+                        if (economyEnabled && commandCost > 0)
                             src.sendMessage(Text.of("§5-----------------------------------------------------"));
 
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
@@ -137,7 +137,7 @@ public class ResetEVs implements CommandExecutor
                         {
                             printToLog(2, "Command was confirmed, checking balances.");
 
-                            if (commandCost > 0)
+                            if (economyEnabled && commandCost > 0)
                             {
                                 final BigDecimal costToConfirm = new BigDecimal(commandCost);
                                 final Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
@@ -171,9 +171,18 @@ public class ResetEVs implements CommandExecutor
                             }
                             else
                             {
+                                if (economyEnabled)
+                                {
+                                    printToLog(1, "Resetting EVs for slot §3" + slot +
+                                            "§b. Config price is §30§b, taking nothing.");
+                                }
+                                else
+                                {
+                                    printToLog(1, "Resetting EVs for slot §3" + slot +
+                                            "§b. No economy, so we skipped eco checks.");
+                                }
+
                                 resetPlayerEVs(nbt, src);
-                                printToLog(1, "Reset EVs for slot §3" + slot +
-                                        "§b. Config price is §30§b, taking nothing.");
                             }
                         }
                         else
@@ -182,7 +191,7 @@ public class ResetEVs implements CommandExecutor
 
                             src.sendMessage(Text.of("§5-----------------------------------------------------"));
                             src.sendMessage(Text.of("§6Warning: §eYou are about to reset this Pokémon's EVs to zero!"));
-                            if (commandCost > 0)
+                            if (economyEnabled && commandCost > 0)
                                 src.sendMessage(Text.of("§eResetting will cost §6" + commandCost + "§e coins!"));
                             src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
                             src.sendMessage(Text.of("§5-----------------------------------------------------"));
@@ -206,8 +215,7 @@ public class ResetEVs implements CommandExecutor
         final int EVSPDEF = nbt.getInteger(NbtKeys.EV_SPECIAL_DEFENCE);
         final int EVSPD = nbt.getInteger(NbtKeys.EV_SPEED);
 
-        printToLog(1, "Command has been confirmed, printing old EVs...");
-        printToLog(1, "HP: §3" + EVHP + "§b | ATK: §3" + EVATT + "§b | DEF: §3" + EVDEF +
+        printToLog(1, "Old EVS -- HP: §3" + EVHP + "§b | ATK: §3" + EVATT + "§b | DEF: §3" + EVDEF +
                 "§b | SPATK: §3" + EVSPATT + "§b | SPDEF: §3" + EVSPDEF + "§b | SPD: §3" + EVSPD);
 
         nbt.setInteger(NbtKeys.EV_HP, 0);
@@ -217,10 +225,7 @@ public class ResetEVs implements CommandExecutor
         nbt.setInteger(NbtKeys.EV_SPECIAL_DEFENCE, 0);
         nbt.setInteger(NbtKeys.EV_SPEED, 0);
 
-        if (nbt.getString("Nickname").equals(""))
-            src.sendMessage(Text.of("§2" + nbt.getString("Name") + "§a had its EVs wiped!"));
-        else
-            src.sendMessage(Text.of("§aYour §2" + nbt.getString("Nickname") + "§a had its EVs wiped!"));
+        src.sendMessage(Text.of("§aYour §2" + nbt.getString("Name") + "§a had its EVs wiped!"));
     }
 
     // Called when it's necessary to figure out the right perm message, or when it's just convenient. Saves typing!

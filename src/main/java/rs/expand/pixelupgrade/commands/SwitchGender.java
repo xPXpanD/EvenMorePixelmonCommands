@@ -25,6 +25,7 @@ import org.spongepowered.api.text.Text;
 
 // Local imports.
 import rs.expand.pixelupgrade.utilities.PrintingMethods;
+import static rs.expand.pixelupgrade.PixelUpgrade.economyEnabled;
 import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
 
 // TODO: Update the economy setup to be in line with most other economy-using commands.
@@ -139,7 +140,7 @@ public class SwitchGender implements CommandExecutor
                                 printToLog(2, "Command was confirmed, checking balances.");
                                 final int gender = nbt.getInteger(NbtKeys.GENDER);
 
-                                if (commandCost > 0)
+                                if (economyEnabled && commandCost > 0)
                                 {
                                     final BigDecimal costToConfirm = new BigDecimal(commandCost);
                                     final Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
@@ -175,8 +176,17 @@ public class SwitchGender implements CommandExecutor
                                 }
                                 else
                                 {
-                                    printToLog(1, "Switched gender for slot §3" + slot +
-                                            "§b. Config price is §30§b, taking nothing.");
+                                    if (economyEnabled)
+                                    {
+                                        printToLog(1, "Switching gender for slot §3" + slot +
+                                                "§b. Config price is §30§b, taking nothing.");
+                                    }
+                                    else
+                                    {
+                                        printToLog(1, "Switching gender for slot §3" + slot +
+                                                "§b. No economy, so we skipped eco checks.");
+                                    }
+
                                     switchGenders(nbt, src, gender);
                                     storageCompleted.sendUpdatedList();
                                 }
@@ -187,7 +197,7 @@ public class SwitchGender implements CommandExecutor
 
                                 src.sendMessage(Text.of("§5-----------------------------------------------------"));
                                 src.sendMessage(Text.of("§6Warning: §eYou are about to switch this Pokémon's gender!"));
-                                if (commandCost > 0)
+                                if (economyEnabled && commandCost > 0)
                                     src.sendMessage(Text.of("§eSwitching will cost §6" + commandCost + "§e coins!"));
                                 src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
                                 src.sendMessage(Text.of("§5-----------------------------------------------------"));
@@ -230,7 +240,7 @@ public class SwitchGender implements CommandExecutor
         src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> {-c to confirm}"));
         src.sendMessage(Text.of(""));
         src.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're sure!"));
-        if (commandCost > 0)
+        if (economyEnabled && commandCost > 0)
             src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coins."));
         src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }

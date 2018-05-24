@@ -386,7 +386,7 @@ public class TimedHeal implements CommandExecutor
 
                     if (canContinue)
                     {
-                        if (!calledRemotely && commandCost > 0)
+                        if (economyEnabled && !calledRemotely && commandCost > 0)
                         {
                             final BigDecimal costToConfirm = new BigDecimal(commandCost);
 
@@ -510,27 +510,30 @@ public class TimedHeal implements CommandExecutor
                         {
                             if (!calledRemotely)
                             {
+                                final String priceNote;
+                                if (economyEnabled)
+                                    priceNote = "Config price is §30§b, taking nothing.";
+                                else
+                                    priceNote = "No economy, so we skipped eco checks.";
+
                                 if (target == null)
                                 {
                                     if (healParty)
-                                        printToLog(1, "Healing player's party. Config price is §30§b, taking nothing.");
+                                        printToLog(1, "Healing player's party. " + priceNote);
                                     else
-                                    {
-                                        printToLog(1, "Healing slot §3" + slot +
-                                                "§b. Config price is §30§b, taking nothing.");
-                                    }
+                                        printToLog(1, "Healing slot §3" + slot + "§b. " + priceNote);
                                 }
                                 else
                                 {
                                     if (healParty)
                                     {
                                         printToLog(1, "Healing §3" + target.getName() +
-                                                "§b's party. Config price is §30§b, taking nothing.");
+                                                "§b's party. " + priceNote);
                                     }
                                     else
                                     {
-                                        printToLog(1, "Healing slot §3" + slot + "§b for §3" +
-                                                target.getName() + "§b. Config price is §30§b.");
+                                        printToLog(1, "Healing slot §3" + slot +
+                                                "§b for §3" + target.getName() + "§b. " + priceNote);
                                     }
                                 }
 
@@ -555,7 +558,7 @@ public class TimedHeal implements CommandExecutor
         else
         {
             final String confirmString;
-            if (commandCost != 0)
+            if (economyEnabled && commandCost != 0)
                 confirmString = " {-c to confirm}";
             else
                 confirmString = "";
