@@ -169,7 +169,7 @@ public class DittoFusion implements CommandExecutor
                     src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of(errorString));
                     src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <target> <sacrifice> {-c to confirm}"));
-                    src.sendMessage(Text.of(""));
+                    src.sendMessage(Text.EMPTY);
                     src.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're ready to spend money!"));
                     src.sendMessage(Text.of("§5-----------------------------------------------------"));
                 }
@@ -363,7 +363,7 @@ public class DittoFusion implements CommandExecutor
                                                 src.sendMessage(Text.of("§7-----------------------------------------------------"));
                                                 src.sendMessage(Text.of("§eThe §6Ditto §ein slot §6" + slot2 +
                                                     "§e was eaten, taking §6" + costToConfirm + "§e coins with it."));
-                                                src.sendMessage(Text.of(""));
+                                                src.sendMessage(Text.EMPTY);
 
                                                 if (HPPlusNum != 0)
                                                 {
@@ -412,7 +412,7 @@ public class DittoFusion implements CommandExecutor
 
                                                 if (sacrificeFuseCount > 0)
                                                 {
-                                                    src.sendMessage(Text.of(""));
+                                                    src.sendMessage(Text.EMPTY);
                                                     src.sendMessage(Text.of("§dSacrifice had prior upgrades. You paid an extra §5" + extraCost + "§d coins."));
                                                 }
 
@@ -456,7 +456,7 @@ public class DittoFusion implements CommandExecutor
                                             else
                                                 src.sendMessage(Text.of("§eYou are about to upgrade the Ditto in slot §6" + slot1 + "§e."));
 
-                                            src.sendMessage(Text.of(""));
+                                            src.sendMessage(Text.EMPTY);
 
                                             if (HPPlusNum != 0)
                                             {
@@ -497,7 +497,7 @@ public class DittoFusion implements CommandExecutor
                                                 src.sendMessage(Text.of("§7" + targetSPD + " §f-> §a" + (targetSPD + SPDPlusNum)));
                                             }
 
-                                            src.sendMessage(Text.of(""));
+                                            src.sendMessage(Text.EMPTY);
 
                                             if (sacrificeFuseCount > 0)
                                             {

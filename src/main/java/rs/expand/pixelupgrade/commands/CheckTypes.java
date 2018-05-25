@@ -556,7 +556,7 @@ public class CheckTypes implements CommandExecutor
         }
 
         src.sendMessage(Text.of(nameMessage + typeMessage));
-        src.sendMessage(Text.of(""));
+        src.sendMessage(Text.EMPTY);
 
         // Get resistances, weaknesses and immunities. Print to chat.
         if (weaknessBuilder2x.length() != 0 || weaknessBuilder4x.length() != 0)
@@ -818,7 +818,7 @@ public class CheckTypes implements CommandExecutor
             printToLog(2, "Showing forms is enabled, and we can show one! Doing it.");
             final String commandHelper = "§cCheck out: §6/" + commandAlias + " ";
 
-            src.sendMessage(Text.of(""));
+            src.sendMessage(Text.EMPTY);
             src.sendMessage(Text.of("§dThis Pokémon has one or more forms with different types."));
 
             switch (pName)
@@ -847,7 +847,7 @@ public class CheckTypes implements CommandExecutor
             printToLog(2, "Showing Alolan variants is enabled, and we've got one! Showing.");
             final String commandHelper = "§cCheck out: §6/" + commandAlias + " ";
 
-            src.sendMessage(Text.of(""));
+            src.sendMessage(Text.EMPTY);
             src.sendMessage(Text.of("§dThis Pokémon has an Alolan variant."));
 
             switch (pName)

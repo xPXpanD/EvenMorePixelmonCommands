@@ -436,6 +436,8 @@ public class CheckStats implements CommandExecutor
                             {
                                 printToLog(1, "Got cost but no confirmation; end of the line.");
 
+                                src.sendMessage(Text.of("§5-----------------------------------------------------"));
+
                                 // Is cost to confirm exactly one coin?
                                 if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
                                     src.sendMessage(Text.of("§6Warning: §eChecking a Pokémon's status costs §6one §ecoin."));
@@ -445,6 +447,8 @@ public class CheckStats implements CommandExecutor
                                             costToConfirm + "§e coins."));
                                 }
 
+                                src.sendMessage(Text.EMPTY);
+
                                 if (target != null)
                                 {
                                     src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " +
@@ -452,6 +456,8 @@ public class CheckStats implements CommandExecutor
                                 }
                                 else
                                     src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
+
+                                src.sendMessage(Text.of("§5-----------------------------------------------------"));
                             }
                         }
                         else
@@ -509,7 +515,7 @@ public class CheckStats implements CommandExecutor
 
         src.sendMessage(Text.of("§7-----------------------------------------------------"));
         src.sendMessage(Text.of("§eNo slot found, showing the target's whole team."));
-        src.sendMessage(Text.of(""));
+        src.sendMessage(Text.EMPTY);
 
         int slotTicker = 0;
         for (final NBTTagCompound loopValue : storageCompleted.partyPokemon)
@@ -538,7 +544,7 @@ public class CheckStats implements CommandExecutor
             slotTicker++;
         }
 
-        src.sendMessage(Text.of(""));
+        src.sendMessage(Text.EMPTY);
 
         if (economyEnabled && !calledRemotely && commandCost > 0)
         {
@@ -675,7 +681,7 @@ public class CheckStats implements CommandExecutor
             src.sendMessage(Text.of(startString + "§e:"));
 
         // Print out IVs using previously formatted Strings.
-        src.sendMessage(Text.of(""));
+        src.sendMessage(Text.EMPTY);
         src.sendMessage(Text.of("§bTotal IVs§f: §a" + totalIVs + "§f/§a186§f (§a" + percentIVs + "%§f)"));
         src.sendMessage(Text.of("§bIVs§f: §a" + ivs1 + ivs2 + ivs3 + ivs4 + ivs5 + ivs6));
 
@@ -709,7 +715,7 @@ public class CheckStats implements CommandExecutor
             final boolean isShiny = nbt.getInteger(NbtKeys.IS_SHINY) == 1;
 
             // Let's not forget to do this. Moves the count helper message to its own line, right at the bottom.
-            src.sendMessage(Text.of(""));
+            src.sendMessage(Text.EMPTY);
 
             // Let's re-use the startString String. It's still relevant.
             if (isDitto)
@@ -779,7 +785,7 @@ public class CheckStats implements CommandExecutor
         {
             // If we haven't added a new line yet, do it now.
             if (isDitto && !showDittoFusionHelper || !isDitto && !showUpgradeHelper)
-                src.sendMessage(Text.of(""));
+                src.sendMessage(Text.EMPTY);
 
             final int cloneCount = nbt.getInteger(NbtKeys.STATS_NUM_CLONED);
 
@@ -792,15 +798,15 @@ public class CheckStats implements CommandExecutor
         {
             // If we haven't added a new line yet, do it now.
             if (isDitto && !showDittoFusionHelper || !isDitto && !showUpgradeHelper)
-                src.sendMessage(Text.of(""));
+                src.sendMessage(Text.EMPTY);
 
             final int enchantCount = nbt.getInteger(NbtKeys.STATS_NUM_ENCHANTED);
             final int maxEnchants = PixelmonConfig.getConfig().getNode("General", "lakeTrioMaxEnchants").getInt();
 
             if (enchantCount == 0)
-                src.sendMessage(Text.of("§aIt has not enchanted any rubies yet."));
+                src.sendMessage(Text.of("§eIt has not enchanted any rubies yet."));
             else
-                src.sendMessage(Text.of("§aIt has enchanted §2" + enchantCount + "§f/§2" + maxEnchants + " §arubies."));
+                src.sendMessage(Text.of("§eIt has enchanted §6" + enchantCount + "§f/§6" + maxEnchants + " §erubies."));
         }
 
         // Finish up the output text box. Done!

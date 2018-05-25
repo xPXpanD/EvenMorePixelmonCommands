@@ -160,9 +160,9 @@ public class ShowStats implements CommandExecutor
                 {
                     printToLog(1, "No arguments provided. Exit.");
 
-                    if (economyEnabled && commandCost > 0)
-                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo arguments found. Please provide a slot."));
+
                     printSyntaxHelper(src);
                     PrintingMethods.checkAndAddFooter(false, commandCost, src);
 
@@ -181,9 +181,9 @@ public class ShowStats implements CommandExecutor
                     {
                         printToLog(1, "Invalid slot provided. Exit.");
 
-                        if (economyEnabled && commandCost > 0)
-                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
+
                         printSyntaxHelper(src);
                         PrintingMethods.checkAndAddFooter(false, commandCost, src);
 
@@ -325,6 +325,7 @@ public class ShowStats implements CommandExecutor
                                                     costToConfirm + "§e coins."));
                                         }
 
+                                        src.sendMessage(Text.EMPTY);
                                         src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
                                     }
                                 }
@@ -630,7 +631,7 @@ public class ShowStats implements CommandExecutor
         if (notifyBadNicknames && nicknameTooLong)
         {
             // Add a space to avoid clutter.
-            MessageChannel.permission("pixelupgrade.notify.staff.showstats").send(Text.of(""));
+            MessageChannel.permission("pixelupgrade.notify.staff.showstats").send(Text.EMPTY);
 
             // Print our warnings.
             MessageChannel.permission("pixelupgrade.notify.staff.showstats").send(Text.of(

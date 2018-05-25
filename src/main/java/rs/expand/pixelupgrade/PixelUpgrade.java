@@ -48,7 +48,7 @@ import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicMessage
 // TODO: Merge /checkegg into /checkstats.
 // TODO: Maybe add some nice "====" borders to config node errors?
 // TODO: Make just about every command with a target show said target a message when stuff is being used on them.
-// TODO: Fix header/footer consistency.
+// TODO: Check for more header/footer inconsistency. Might combine well with the below: vvv
 // TODO: Move everything to lang files.
 // TODO: Add a level-showing message to /showstats and /checkstats.
 
@@ -166,7 +166,7 @@ public class PixelUpgrade
     public static CommandSpec pixelupgradeinfo = CommandSpec.builder()
             .executor(new PixelUpgradeInfo())
             .arguments( // Ignore all arguments, don't error on anything. Command doesn't use them, anyways.
-                    GenericArguments.optional(GenericArguments.remainingJoinedStrings(Text.of(""))))
+                    GenericArguments.optional(GenericArguments.remainingJoinedStrings(Text.EMPTY)))
             .build();
 
     /*                    *\

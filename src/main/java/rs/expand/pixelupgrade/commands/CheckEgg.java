@@ -223,6 +223,8 @@ public class CheckEgg implements CommandExecutor
                                 {
                                     printToLog(1, "Showed cost, no confirmation was provided. Exit.");
 
+                                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
+
                                     // Is cost to confirm exactly one coin?
                                     if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
                                         src.sendMessage(Text.of("§6Warning: §eChecking an egg's status costs §6one §ecoin."));
@@ -232,7 +234,9 @@ public class CheckEgg implements CommandExecutor
                                                 costToConfirm + "§e coins."));
                                     }
 
+                                    src.sendMessage(Text.EMPTY);
                                     src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
+                                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
                                 }
                             }
                         }
@@ -274,7 +278,7 @@ public class CheckEgg implements CommandExecutor
         {
             src.sendMessage(Text.of("§eThere's a healthy §6" + nbt.getString("Name") + "§e inside of this egg!"));
             if (explicitReveal)
-                src.sendMessage(Text.of(""));
+                src.sendMessage(Text.EMPTY);
         }
 
         if (explicitReveal)
@@ -325,7 +329,7 @@ public class CheckEgg implements CommandExecutor
             // Lucky!
             if (isShiny)
             {
-                src.sendMessage(Text.of(""));
+                src.sendMessage(Text.EMPTY);
                 src.sendMessage(Text.of("§6§lCongratulations! §r§eThis baby is shiny!"));
             }
         }
@@ -349,7 +353,7 @@ public class CheckEgg implements CommandExecutor
             if (wasEggChecked)
             {
                 if (!isShiny || !explicitReveal)
-                    src.sendMessage(Text.of(""));
+                    src.sendMessage(Text.EMPTY);
                 src.sendMessage(Text.of("§dThis egg was checked before, so this check was free!"));
             }
             else

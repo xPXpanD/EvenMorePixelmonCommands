@@ -257,7 +257,7 @@ public class ReloadConfigs implements CommandExecutor
                 src.sendMessage(Text.of("§4Error: §cNo config provided. See below for valid configs."));
 
             src.sendMessage(Text.of("§4Usage: §c/pureload <config>"));
-            src.sendMessage(Text.of(""));
+            src.sendMessage(Text.EMPTY);
             src.sendMessage(Text.of("§6Commands: §eCheckEgg, CheckStats, CheckTypes, DittoFusion"));
             src.sendMessage(Text.of("§6Commands: §eFixGenders, ForceHatch, ForceStats, Info"));
             src.sendMessage(Text.of("§6Commands: §eResetCount, ResetEVs, ShowStats, SpawnDex"));

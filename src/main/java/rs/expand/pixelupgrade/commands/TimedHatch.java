@@ -319,10 +319,13 @@ public class TimedHatch implements CommandExecutor
 
             if (!canContinue)
             {
-                sendCheckedMessage(src,errorString);
+                sendCheckedMessage(src, "§5-----------------------------------------------------");
+                sendCheckedMessage(src, errorString);
 
                 if (!hitCooldown)
                     printSyntaxHelper(src, hasOtherPerm);
+
+                PrintingMethods.checkAndAddFooter(false, commandCost, src);
             }
             // Do some battle checks. Only hittable if we got called by an actual Player.
             else if (target == null && BattleRegistry.getBattle((EntityPlayerMP) src) != null)
@@ -453,6 +456,8 @@ public class TimedHatch implements CommandExecutor
                             {
                                 printToLog(1, "Got cost but no confirmation; end of the line.");
 
+                                src.sendMessage(Text.of("§5-----------------------------------------------------"));
+
                                 if (hatchParty)
                                 {
                                     // Is cost to confirm exactly one coin?
@@ -505,6 +510,8 @@ public class TimedHatch implements CommandExecutor
                                                 target.getName() + " " + slot + " -c");
                                     }
                                 }
+
+                                src.sendMessage(Text.of("§5-----------------------------------------------------"));
                             }
                         }
                         else

@@ -203,6 +203,7 @@ public class ResetCount implements CommandExecutor
                                 else
                                     src.sendMessage(Text.of("§6Warning: §eYou're about to reset this Pokémon's §6" + fixedCount + "§e count!"));
 
+                                src.sendMessage(Text.EMPTY);
                                 src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
                                 src.sendMessage(Text.of("§5-----------------------------------------------------"));
                             }
@@ -220,9 +221,9 @@ public class ResetCount implements CommandExecutor
     private void addFooter(final CommandSource src)
     {
         src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> <count> {-c to confirm}"));
-        src.sendMessage(Text.of(""));
+        src.sendMessage(Text.EMPTY);
         src.sendMessage(Text.of("§6Valid counts: §eUpgrade, Fusion, All (wipes both!)"));
-        src.sendMessage(Text.of(""));
+        src.sendMessage(Text.EMPTY);
         src.sendMessage(Text.of("§5Warning: §dThe -c flag immediately wipes the chosen count!"));
         src.sendMessage(Text.of("§d(these counts are a Pokémon's upgrade/fusion totals)"));
         src.sendMessage(Text.of("§5-----------------------------------------------------"));

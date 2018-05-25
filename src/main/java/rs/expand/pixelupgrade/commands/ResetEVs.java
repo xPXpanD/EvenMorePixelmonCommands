@@ -73,10 +73,9 @@ public class ResetEVs implements CommandExecutor
                 {
                     printToLog(1, "No arguments provided. Exit.");
 
-                    if (economyEnabled && commandCost > 0)
-                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
-
+                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     src.sendMessage(Text.of("§4Error: §cNo arguments found. Please provide a slot."));
+
                     printSyntaxHelper(src);
                     PrintingMethods.checkAndAddFooter(true, commandCost, src);
 
@@ -95,10 +94,9 @@ public class ResetEVs implements CommandExecutor
                     {
                         printToLog(1, "Invalid slot provided. Exit.");
 
-                        if (economyEnabled && commandCost > 0)
-                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
-
+                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
+
                         printSyntaxHelper(src);
                         PrintingMethods.checkAndAddFooter(true, commandCost, src);
 
@@ -191,8 +189,11 @@ public class ResetEVs implements CommandExecutor
 
                             src.sendMessage(Text.of("§5-----------------------------------------------------"));
                             src.sendMessage(Text.of("§6Warning: §eYou are about to reset this Pokémon's EVs to zero!"));
+                            src.sendMessage(Text.EMPTY);
+
                             if (economyEnabled && commandCost > 0)
                                 src.sendMessage(Text.of("§eResetting will cost §6" + commandCost + "§e coins!"));
+
                             src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
                             src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         }
@@ -205,6 +206,12 @@ public class ResetEVs implements CommandExecutor
 
         return CommandResult.success();
 	}
+
+    // Called when it's necessary to figure out the right perm message, or when it's just convenient. Saves typing!
+    private void printSyntaxHelper(final CommandSource src)
+    {
+        src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> {-c to confirm}"));
+    }
 
 	private void resetPlayerEVs(final NBTTagCompound nbt, final CommandSource src)
     {
@@ -226,11 +233,5 @@ public class ResetEVs implements CommandExecutor
         nbt.setInteger(NbtKeys.EV_SPEED, 0);
 
         src.sendMessage(Text.of("§aYour §2" + nbt.getString("Name") + "§a had its EVs wiped!"));
-    }
-
-    // Called when it's necessary to figure out the right perm message, or when it's just convenient. Saves typing!
-    private void printSyntaxHelper(final CommandSource src)
-    {
-        src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> {-c to confirm}"));
     }
 }

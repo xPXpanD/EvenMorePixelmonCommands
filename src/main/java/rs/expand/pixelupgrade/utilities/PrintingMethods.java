@@ -101,7 +101,7 @@ public class PrintingMethods
     {
         if (requireConfirmation || economyEnabled && cost > 0)
         {
-            src.sendMessage(Text.of(""));
+            src.sendMessage(Text.EMPTY);
             src.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're sure!"));
         }
 

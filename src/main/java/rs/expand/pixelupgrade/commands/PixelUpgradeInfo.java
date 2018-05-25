@@ -165,16 +165,16 @@ public class PixelUpgradeInfo implements CommandExecutor
                     else
                     {
                         if (src.hasPermission("pixelupgrade.command.staff.fixgenders") && FixGenders.requireConfirmation)
-                            permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " [target?] {-c to confirm}"));
+                            permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " [target?] {confirm flag}"));
                         else if (src.hasPermission("pixelupgrade.command.staff.fixgenders"))
                             permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " [target?]"));
                         else if (FixGenders.requireConfirmation)
-                            permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " {-c to confirm}"));
+                            permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " {confirm flag}"));
                         else
                             permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias));
                     }
 
-                    permissionMessageList.add(Text.of("§f --> §eFixes genders broken by commands or various bugs."));
+                    permissionMessageList.add(Text.of("§f --> §eFixes genders broken by commands or bugs."));
                 }
                 else
                     printToLog(1, "§3/fixgenders §bhas a malformed config, hiding from list.");
@@ -391,7 +391,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                 // Add 2 to the list size so title/padding doesn't create a new page. Can't click those in console.
                 if (calledRemotely)
                 {
-                    permissionMessageList.add(Text.of(""));
+                    permissionMessageList.add(Text.EMPTY);
                     permissionMessageList.add(Text.of("§6Please note: §eCommands without console functionality were omitted."));
                     list.linesPerPage(permissionMessageList.size() + 2);
                 }

@@ -389,13 +389,13 @@ public class SpawnDex implements CommandExecutor
         src.sendMessage(Text.of("§5-----------------------------------------------------"));
         src.sendMessage(Text.of(errorString));
         src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <Pokémon name/number> {flag or flags}"));
-        src.sendMessage(Text.of(""));
+        src.sendMessage(Text.EMPTY);
         src.sendMessage(Text.of("§6Valid flags:"));
         src.sendMessage(Text.of("§f➡ §6-b §f- §eTurns spawns entirely black. Reverts when caught."));
         src.sendMessage(Text.of("§f➡ §6-f §f- §eShows a fake Pixelmon-like spawning announcement."));
         src.sendMessage(Text.of("§f➡ §6-o §f- §eGives spawns an outline that shows through walls."));
         src.sendMessage(Text.of("§f➡ §6-s §f- §eMakes spawns shiny."));
-        src.sendMessage(Text.of(""));
+        src.sendMessage(Text.EMPTY);
         src.sendMessage(Text.of("§5Please note: §dOutlined Pokémon stay outlined if caught."));
         src.sendMessage(Text.of("§dThe effect persists even through trades and evolutions!"));
         src.sendMessage(Text.of("§5-----------------------------------------------------"));

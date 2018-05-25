@@ -485,7 +485,7 @@ public class UpgradeIVs implements CommandExecutor
                                             src.sendMessage(Text.of(upgradeString + "§e stat by §6one §epoint!"));
                                         else
                                             src.sendMessage(Text.of(upgradeString + "§e stat by §6" + upgradeTicker + "§e points!"));
-                                        src.sendMessage(Text.of(""));
+                                        src.sendMessage(Text.EMPTY);
 
                                         if (remainder == 1)
                                             src.sendMessage(Text.of("§aThis upgrade was free. You have §2one §aupgrade remaining..."));
@@ -521,7 +521,7 @@ public class UpgradeIVs implements CommandExecutor
                                                 if (costToConfirm.signum() == 1) // 1 = we've got a cost. 0 = cost is zero. -1 would be negative.
                                                 {
                                                     final String paidString = "§aYou paid §2" + costToConfirm + "§a coins";
-                                                    src.sendMessage(Text.of(""));
+                                                    src.sendMessage(Text.EMPTY);
 
                                                     if (remainder == 1)
                                                         src.sendMessage(Text.of(paidString + ". §2One §aupgrade remains..."));
@@ -532,7 +532,7 @@ public class UpgradeIVs implements CommandExecutor
                                                 }
                                                 else if (costToConfirm.signum() == 0) // Cost is zero, either due to low stats or config.
                                                 {
-                                                    src.sendMessage(Text.of(""));
+                                                    src.sendMessage(Text.EMPTY);
 
                                                     if (remainder == 1)
                                                         src.sendMessage(Text.of("§2One §aupgrade remains..."));
@@ -628,7 +628,7 @@ public class UpgradeIVs implements CommandExecutor
                                         }
                                     }
 
-                                    src.sendMessage(Text.of(""));
+                                    src.sendMessage(Text.EMPTY);
 
                                     // Are we above 0 coins?
                                     if (costToConfirm.compareTo(BigDecimal.ZERO) > 0)
@@ -663,7 +663,7 @@ public class UpgradeIVs implements CommandExecutor
         else
             src.sendMessage(Text.of("§2Valid types: §aHP, Attack, Defense, SpAtt, SpDef, Speed"));
 
-        src.sendMessage(Text.of(""));
+        src.sendMessage(Text.EMPTY);
         src.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're sure!"));
         src.sendMessage(Text.of("§eConfirming will immediately take your money, if you have enough!"));
         src.sendMessage(Text.of("§5-----------------------------------------------------"));

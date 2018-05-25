@@ -183,6 +183,7 @@ public class FixGenders implements CommandExecutor
 
             if (!canContinue)
             {
+                sendCheckedMessage(src, "§5-----------------------------------------------------");
                 sendCheckedMessage(src, errorString);
 
                 if (calledRemotely)
@@ -198,6 +199,10 @@ public class FixGenders implements CommandExecutor
                     errorString = errorString.replaceAll(" See below\\.", " See console.");
                     src.sendMessage(Text.of(errorString));
                 }
+
+                sendCheckedMessage(src, "");
+                sendCheckedMessage(src, "§5Please note: §dAny broken genders will be immediately rerolled.");
+                sendCheckedMessage(src, "§5-----------------------------------------------------");
             }
             // Do some battle checks. Only hittable if we got called by an actual Player.
             else if (!targetIsValid && BattleRegistry.getBattle((EntityPlayerMP) src) != null)
@@ -301,7 +306,7 @@ public class FixGenders implements CommandExecutor
             else
                 target.sendMessage(Text.of("§6" + src.getName() + " §eis checking your party for broken genders."));
 
-            target.sendMessage(Text.of(""));
+            target.sendMessage(Text.EMPTY);
         }
 
         // Set up for our loop, and then actually loop.
@@ -416,7 +421,7 @@ public class FixGenders implements CommandExecutor
 
             if (!sneakyMode && targetIsValid)
             {
-                target.sendMessage(Text.of(""));
+                target.sendMessage(Text.EMPTY);
                 target.sendMessage(Text.of("§eYour party has been checked, and broken genders fixed."));
             }
         }
