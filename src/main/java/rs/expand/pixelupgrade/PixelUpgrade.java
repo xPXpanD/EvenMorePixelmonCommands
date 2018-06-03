@@ -80,12 +80,12 @@ public class PixelUpgrade
     // Some basic setup.
     public static EconomyService economyService;
     public static boolean economyEnabled = false;
+    public static String statSeparator = "§r, §a"; // Can be changed internally. Awaiting lang support for public tweaking.
 
     // Load up a ton of variables for use by other commands. We'll fill these in during pre-init.
     public static Integer configVersion;
     public static Integer debugVerbosityMode;
     public static Boolean useBritishSpelling;
-    public static String statSeparator;
     public static String shortenedHP;
     public static String shortenedAttack;
     public static String shortenedDefense;
@@ -355,30 +355,23 @@ public class PixelUpgrade
     @Listener
     public void onServerStartedEvent(final GameStartedServerEvent event)
     {
-        final int currentInternalVersion = 410;
-        if (PixelUpgrade.configVersion != null && currentInternalVersion > PixelUpgrade.configVersion)
+        // Shown when we're running a config that is too outdated. Not shown on 4.0.0 configs, since they're fine.
+        if (PixelUpgrade.configVersion != null && PixelUpgrade.configVersion < 400)
         {
             printBasicMessage("");
             printBasicMessage("========================= P I X E L U P G R A D E =========================");
-            printBasicMessage("§4PixelUpgrade §clikely has an outdated (§44.0.0?§c) main config.");
+            printBasicMessage("§4PixelUpgrade §clikely has an outdated main config.");
             printBasicMessage("");
             printBasicMessage("§6Please follow these steps to fix this:");
-            printBasicMessage("§61. §eOpen PixelUpgrade's main config file, §6PixelUpgrade.conf§e.");
-            printBasicMessage("§62. §eChange §6configVersion§e's value to §6410§e.");
-            printBasicMessage("§63. §eAdd the following line: §6statSeparator = \"&r, \"");
-            printBasicMessage("§64. §eSave, and then use §6/pureload main §eto load your changes.");
-
-            if (PixelUpgrade.configVersion < 400)
-            {
-                printBasicMessage("");
-                printBasicMessage("§6If you're coming off of 3.0.0, also do this:");
-                printBasicMessage("§61. §eDelete §6ShowStats.conf§e, or move it somewhere safe.");
-                printBasicMessage("§62. §eUse §6/pureload all §eto create a new config and update the version.");
-                printBasicMessage("§63. §eIf so desired, manually recover old settings and §6/pureload all §eagain.");
-                printBasicMessage("");
-                printBasicMessage("§cWith an unchanged 3.0.0 config, §4/showstats §cwill have reduced functionality!");
-            }
-
+            printBasicMessage("§61. §eOpen the \"§6config§e\" folder in the server's root.");
+            printBasicMessage("§62. §eOpen PixelUpgrade's main config file, \"§6PixelUpgrade.conf\"§e.");
+            printBasicMessage("§63. §eChange \"§6configVersion\"§e to §6\"410\"§e (without quotes), then save.");
+            printBasicMessage("§64. §eOpen the \"§6PixelUpgrade§e\" folder and find §6\"ShowStats.conf§e\".");
+            printBasicMessage("§65. §eDelete this file, or move it somewhere safe if changes were made.");
+            printBasicMessage("§66. §eUse §6/pureload all §eto recreate this file and update our version.");
+            printBasicMessage("§67. §eIf so desired, manually recover old settings and §6/pureload all §eagain.");
+            printBasicMessage("");
+            printBasicMessage("§cUntil this is done, §4/showstats §cwill have reduced functionality!");
             printBasicMessage("===========================================================================");
             printBasicMessage("");
         }

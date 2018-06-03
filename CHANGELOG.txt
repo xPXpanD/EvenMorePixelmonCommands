@@ -1,12 +1,12 @@
 4.1.0 for 6.3.0
 Released ???
 
-    Major (breaking) config changes:
-   * Added a "statSeparator" option to the main config. We'll warn and fall back to safe values if need be.
-
-    Other changes:
+    Additions:
    * Added a Lake Trio ruby enchant check to /checkstats and /showstats, similar to the recent Mew one.
+   * Added a %pokemon% placeholder to /spawndex's fake message option, and updated its config.
    * Added no-economy support for everything except for /dittofusion and /upgradeivs, which show clean errors.
+
+    Fixes and tweaks:
    * Fixed "a blocks" typo on /fixgenders, when used from command blocks.
    * Fixed /pixelupgrade console info messages showing up as "PU Info info". Oops.
    * Fixed /pixelupgrade showing it hiding further messages when used from console, even though it wouldn't.
@@ -15,7 +15,7 @@ Released ???
    * Fixed debug logger breaking with a NullPointerException if the main config was broken.
    * Fixed inconsistencies with several command errors. Might cause minor visual glitches -- please report.
    * Fixed missing EVSpecialDefense tag for /forcestats.
-   * Fixed some inconsistencies with /pixelupgrade's command descriptions.
+   * Fixed some inconsistencies with the /pixelupgrade (command listing) command descriptions.
    * Removed a few unnecessary messages. Reworded a few others to convey the same info, where necessary.
 
 4.0.0 beta 1 for 6.2.0

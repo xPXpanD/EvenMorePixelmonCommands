@@ -256,7 +256,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                 if (SpawnDex.commandAlias != null)
                 {
                     permissionMessageList.add(Text.of("§6/" + SpawnDex.commandAlias +
-                            " <Pokémon name/number> {tweak flag/flags}"));
+                            " <Pokémon name/number> {flags?} [radius?]"));
                     permissionMessageList.add(Text.of("§f ➡ §eSpawns a heavily customizable Pokémon at the cursor."));
                 }
                 else

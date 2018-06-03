@@ -19,6 +19,7 @@ import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.channel.MessageChannel;
+import org.spongepowered.api.text.serializer.TextSerializers;
 import org.spongepowered.api.util.blockray.BlockRay;
 import org.spongepowered.api.util.blockray.BlockRayHit;
 import org.spongepowered.api.world.Location;
@@ -324,30 +325,55 @@ public class SpawnDex implements CommandExecutor
                         }
                         if (doFakeAnnouncement)
                         {
-                            src.sendMessage(Text.of("§eBroadcasting a §llegendary §r§emessage..."));
+                            // TODO: Maybe register our spawns directly with Pixelmon, using the stuff below? Dunno.
+                            //SpawnEvent spawnEvent = new SpawnEvent();
+                            //Pixelmon.EVENT_BUS.post(spawnEvent);
 
-                            try
+                            // Tell the calling player what we're doing, as usual.
+                            src.sendMessage(Text.of("§eBroadcasting the §lconfig-set spawn message§r§e..."));
+
+                            // Grab a biome name. This compiles fine if the access transformer is loaded correctly, despite any errors.
+                            String biome =
+                                    pokemonToSpawn.getEntityWorld().getBiomeForCoordsBody(pokemonToSpawn.getPosition()).biomeName;
+
+                            // Add a space in front of every capital letter after the first.
+                            int capitalCount = 0, iterator = 0;
+                            while (iterator < biome.length())
                             {
-                                // Grab a biome name. This compiles fine if the access transformer is loaded correctly, despite any errors.
-                                final String biome = pokemonToSpawn.getEntityWorld().getBiomeForCoordsBody(pokemonToSpawn.getPosition()).biomeName;
+                                // Is there an upper case character at the checked location?
+                                if (Character.isUpperCase(biome.charAt(iterator)))
+                                {
+                                    // Add to the pile.
+                                    capitalCount++;
 
-                                // Run our fake message through a check that converts ampersands to section signs.
-                                // After that, replace any included %biome% placeholders with the prettied-up biome name.
-                                final String sanitizedFakeMessage = PrintingMethods.parseRemoteString(fakeMessage);
-                                final String finalizedFakeMessage =
-                                        PrintingMethods.replacePlaceholder(sanitizedFakeMessage, "%biome%", biome);
+                                    // Did we get more than one capital letter on the pile?
+                                    if (capitalCount > 1)
+                                    {
+                                        // Look back: Was the previous character a space? If not, proceed with adding one.
+                                        if (biome.charAt(iterator - 1) != ' ')
+                                        {
+                                            // Add a space at the desired location.
+                                            biome = biome.substring(0, iterator) + ' ' + biome.substring(iterator, biome.length());
 
-                                // Send our formatted fake to everybody!
-                                MessageChannel.TO_PLAYERS.send(Text.of(finalizedFakeMessage));
-                                printToLog(1,
-                                        "Faked a Pixelmon message, in biome §3" + biome + "§b.");
+                                            // Up the main iterator so we do not repeat the check on the character we're at now.
+                                            iterator++;
+                                        }
+                                    }
+                                }
+
+                                // Up the iterator for another go, if we're below length().
+                                iterator++;
                             }
-                            catch (final NullPointerException F)
-                            {
-                                src.sendMessage(Text.of("§cBiome reading failed! Check console for what went wrong."));
-                                printToLog(0, "Could not figure out base biome name. Please report. Trace:");
-                                F.printStackTrace();
-                            }
+
+                            // Replace any included placeholders in our message with what they represent.
+                            String completedMessage = fakeMessage.replaceAll("(?i)%biome%", biome);
+                            completedMessage = completedMessage.replaceAll("(?i)%pokemon%", pokemonName);
+
+                            // Deserialize the given message as a Text, with given formatting turned into Text metadata.
+                            MessageChannel.TO_PLAYERS.send(TextSerializers.FORMATTING_CODE.deserialize(completedMessage));
+
+                            // Tell the console what we did, too.
+                            printToLog(1, "Faked a Pixelmon message, in biome §3" + biome + "§b.");
                         }
                         if (makeOutlined)
                         {
@@ -388,12 +414,13 @@ public class SpawnDex implements CommandExecutor
     {
         src.sendMessage(Text.of("§5-----------------------------------------------------"));
         src.sendMessage(Text.of(errorString));
-        src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <Pokémon name/number> {flag or flags}"));
+        src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <Pokémon name/number> {flags?} [radius?]"));
         src.sendMessage(Text.EMPTY);
         src.sendMessage(Text.of("§6Valid flags:"));
         src.sendMessage(Text.of("§f➡ §6-b §f- §eTurns spawns entirely black. Reverts when caught."));
-        src.sendMessage(Text.of("§f➡ §6-f §f- §eShows a fake Pixelmon-like spawning announcement."));
+        src.sendMessage(Text.of("§f➡ §6-f §f- §eBroadcasts a fake spawning message, as per the config."));
         src.sendMessage(Text.of("§f➡ §6-o §f- §eGives spawns an outline that shows through walls."));
+        src.sendMessage(Text.of("§f➡ §6-r §f- §eSpawns a Pokémon randomly within the given radius."));
         src.sendMessage(Text.of("§f➡ §6-s §f- §eMakes spawns shiny."));
         src.sendMessage(Text.EMPTY);
         src.sendMessage(Text.of("§5Please note: §dOutlined Pokémon stay outlined if caught."));

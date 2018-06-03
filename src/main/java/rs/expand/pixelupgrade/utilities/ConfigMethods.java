@@ -428,8 +428,6 @@ public class ConfigMethods
                             interpretInteger(commandConfig.getNode("debugVerbosityMode").getString());
                     PixelUpgrade.useBritishSpelling =
                             toBooleanObject(commandConfig.getNode("useBritishSpelling").getString());
-                    PixelUpgrade.statSeparator =
-                            commandConfig.getNode("statSeparator").getString();
                     PixelUpgrade.shortenedHP =
                             commandConfig.getNode("shortenedHealth").getString();
                     PixelUpgrade.shortenedAttack =
@@ -462,17 +460,6 @@ public class ConfigMethods
                         debugVerbosityMode = 2;
                         gotIssue = true;
                     }
-
-                    if (statSeparator == null)
-                    {
-                        printBasicMessage("    §cValue of global setting §4statSeparator§c could not be read.");
-                        printBasicMessage("    §cEnabling default stat separator (\"§4, §c\") fallback for now...");
-
-                        statSeparator = "§r,§a ";
-                        gotIssue = true;
-                    }
-                    else // Replace any provided ampersands with section symbols, which we can use inside of our code.
-                        statSeparator = "§r" + PrintingMethods.parseRemoteString(statSeparator) + "§r§a";
 
                     if (gotIssue)
                         printBasicMessage("    §cPlease check the main config carefully. Stuff may break.");
