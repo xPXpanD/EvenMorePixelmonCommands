@@ -340,8 +340,7 @@ public class PixelUpgrade
         final Optional<EconomyService> potentialEconomyService = Sponge.getServiceManager().provide(EconomyService.class);
         if (potentialEconomyService.isPresent())
         {
-            printBasicMessage("--> §aAn economy plugin was detected.");
-            //printBasicMessage("--> §aAn economy plugin was detected. Enabling integration!");
+            printBasicMessage("--> §aAn economy plugin was detected. Enabling integration!");
             economyEnabled = true;
             economyService = potentialEconomyService.get();
         }

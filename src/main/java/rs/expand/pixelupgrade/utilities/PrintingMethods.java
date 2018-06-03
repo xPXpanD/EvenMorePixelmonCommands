@@ -116,7 +116,8 @@ public class PrintingMethods
         src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
 
-    // Takes a config String, and changes any ampersands to section symbols, which we can use internally.
+    // TODO: Check Sponge's serializers for legacy formatting. Might not need this. RIP, was proud of this one. :(
+    // Takes a config String and changes any ampersands to section symbols, which we can use internally.
     public static String parseRemoteString(final String input)
     {
         // Set up a list of valid formatting codes.

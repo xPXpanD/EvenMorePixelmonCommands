@@ -51,7 +51,8 @@ repositories {
     }
 }
 
-// Allows Sponge stuff to load up correctly. Remember to import Pixelmon as a library! Couldn't get it to sort that automatically.
+// Allows Sponge stuff to load up correctly.
+// Remember to also import Pixelmon as a library! Couldn't get it to sort that automatically.
 dependencies
 {
     compile 'org.spongepowered:spongeapi:7.0.0'
