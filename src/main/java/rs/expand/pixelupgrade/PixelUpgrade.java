@@ -1,3 +1,4 @@
+// Written for Pixelmon Reforged. Running this on Gens is unsupported and ill-advised, just like Gens itself.
 package rs.expand.pixelupgrade;
 
 // Remote imports.

@@ -373,7 +373,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                     printToLog(1, "§3/upgradeivs §bhas a malformed config, hiding from list.");
             }
 
-            final PaginationList.Builder list = PaginationList.builder()
+            final PaginationList.Builder paginatedList = PaginationList.builder()
                         .title(Text.of(TextColors.DARK_PURPLE, "§dPixelUpgrade commands"))
                         .contents(permissionMessageList)
                         .padding(Text.of(TextColors.DARK_PURPLE, '='));
@@ -391,16 +391,16 @@ public class PixelUpgradeInfo implements CommandExecutor
                 {
                     permissionMessageList.add(Text.EMPTY);
                     permissionMessageList.add(Text.of("§6Please note: §eCommands without console functionality were omitted."));
-                    list.linesPerPage(permissionMessageList.size() + 2);
+                    paginatedList.linesPerPage(permissionMessageList.size() + 2);
                 }
                 else
                 {
                     printToLog(1, "Player was shown a list of accessible commands. Exit.");
-                    list.linesPerPage(sanitizedNumLinesPerPage);
+                    paginatedList.linesPerPage(sanitizedNumLinesPerPage);
                 }
             }
 
-            list.sendTo(src);
+            paginatedList.sendTo(src);
         }
         else
             src.sendMessage(Text.of("§cThis command cannot run from command blocks."));
