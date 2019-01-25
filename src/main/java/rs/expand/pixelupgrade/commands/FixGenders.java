@@ -2,19 +2,16 @@
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
+import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.RandomHelper;
+import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
+import com.pixelmonmod.pixelmon.api.storage.PartyStorage;
 import com.pixelmonmod.pixelmon.battles.BattleRegistry;
-import com.pixelmonmod.pixelmon.config.PixelmonEntityList;
-import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
-import com.pixelmonmod.pixelmon.storage.NbtKeys;
-import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
-import com.pixelmonmod.pixelmon.storage.PlayerStorage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.Gender;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.world.World;
 import org.spongepowered.api.block.tileentity.CommandBlock;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
@@ -221,39 +218,30 @@ public class FixGenders implements CommandExecutor
             {
                 if (calledRemotely || !requireConfirmation || commandConfirmed)
                 {
-                    // Target will be the source player if no valid player was provided and we didn't hit any errors.
-                    final Optional<PlayerStorage> storage =
-                            PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) target));
+                    // Get the player's party.
+                    final PartyStorage party = Pixelmon.storageManager.getParty((EntityPlayerMP) src);
 
-                    if (!storage.isPresent())
+                    if (sneakyMode)
                     {
-                        printToLog(0, "§4" + target.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
-                        sendCheckedMessage(src, "§4Error: §cNo Pixelmon storage found. Please contact staff!");
+                        printToLog(1, "Silently fixing genders for player §3" + target.getName() +
+                                "§b as per config.");
                     }
                     else
                     {
-                        if (sneakyMode)
-                        {
-                            printToLog(1, "Silently fixing genders for player §3" + target.getName() +
-                                    "§b as per config.");
-                        }
-                        else
-                        {
-                            printToLog(1, "Fixing genders for player §3" + target.getName() +
-                                    "§b, informing if need be.");
-                        }
-
-                        sendCheckedMessage(src, "§7-----------------------------------------------------");
-
-                        if (hasStaffPerm && targetIsValid)
-                            sendCheckedMessage(src, "§eTarget found, checking their whole team...");
-                        else if (hasStaffPerm && !targetedSelf)
-                            sendCheckedMessage(src, "§eNo target found, checking your whole team...");
-                        else
-                            sendCheckedMessage(src, "§eChecking your whole team...");
-
-                        fixParty(src, target, storage.get(), targetIsValid);
+                        printToLog(1, "Fixing genders for player §3" + target.getName() +
+                                "§b, informing if need be.");
                     }
+
+                    sendCheckedMessage(src, "§7-----------------------------------------------------");
+
+                    if (hasStaffPerm && targetIsValid)
+                        sendCheckedMessage(src, "§eTarget found, checking their whole team...");
+                    else if (hasStaffPerm && !targetedSelf)
+                        sendCheckedMessage(src, "§eNo target found, checking your whole team...");
+                    else
+                        sendCheckedMessage(src, "§eChecking your whole team...");
+
+                    fixParty(src, target, party, targetIsValid);
                 }
                 else
                 {
@@ -286,7 +274,7 @@ public class FixGenders implements CommandExecutor
         return CommandResult.success();
 	}
 
-	private void fixParty(final CommandSource src, final Player target, final PlayerStorage storageCompleted, final boolean targetIsValid)
+	private void fixParty(final CommandSource src, final Player target, final PartyStorage party, final boolean targetIsValid)
     {
         // Add a blank line, so we can print results below that.
         sendCheckedMessage(src, "");
@@ -310,21 +298,21 @@ public class FixGenders implements CommandExecutor
         }
 
         // Set up for our loop, and then actually loop.
-        EntityPixelmon pokemon;
-        int slotTicker = 1, fixCount = 0, gender, malePercent;
-        for (final NBTTagCompound loopValue : storageCompleted.partyPokemon)
+        int slotTicker = 1, fixCount = 0, malePercent;
+        Gender gender;
+        for (final Pokemon pokemon : party.getAll())
         {
             if (slotTicker > 6)
                 break;
 
-            if (loopValue != null)
+            // Does the slot we're on have a Pokémon in it?
+            if (pokemon != null)
             {
-                pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(loopValue, (World) target.getWorld());
-                gender = loopValue.getInteger(NbtKeys.GENDER);
-                malePercent = pokemon.baseStats.malePercent;
+                gender = pokemon.getGender();
+                malePercent = pokemon.getBaseStats().malePercent;
 
                 // Is the Pokémon not male (0) or female (1), and is our male percentage above -1? Fix!
-                if (gender > 1 && malePercent >= 0)
+                if (gender == Gender.None && malePercent > -1)
                 {
                     // Increment our fix count, since we had to fix something.
                     fixCount++;
@@ -335,7 +323,7 @@ public class FixGenders implements CommandExecutor
                         printToLog(1, "§bSlot §3" + slotTicker +
                             " §bshould be gendered. Rerolled, now §3male§b.");
 
-                        loopValue.setInteger(NbtKeys.GENDER, 0);
+                        pokemon.setGender(Gender.Male);
 
                         if (!sneakyMode && targetIsValid)
                         {
@@ -350,7 +338,7 @@ public class FixGenders implements CommandExecutor
                         printToLog(1, "§bSlot §2" + slotTicker +
                             " §bshould be gendered. Rerolled, now §5female§b.");
 
-                        loopValue.setInteger(NbtKeys.GENDER, 1);
+                        pokemon.setGender(Gender.Female);
 
                         if (!sneakyMode && targetIsValid)
                         {
@@ -362,7 +350,7 @@ public class FixGenders implements CommandExecutor
                     }
                 }
                 // Is our Pokémon male (0), and is the chance of that happening 0%? Fix!
-                else if (gender == 0 && malePercent == 0)
+                else if (gender == Gender.Male && malePercent == 0)
                 {
                     // Increment our fix count, since we had to fix something.
                     fixCount++;
@@ -370,7 +358,7 @@ public class FixGenders implements CommandExecutor
                     printToLog(1, "§bSlot §2" + slotTicker +
                             " §bis male, should be female. Fixing.");
 
-                    loopValue.setInteger(NbtKeys.GENDER, 1);
+                    pokemon.setGender(Gender.Female);
 
                     if (!sneakyMode && targetIsValid)
                     {
@@ -381,7 +369,7 @@ public class FixGenders implements CommandExecutor
                     sendCheckedMessage(src, "§dSlot §5" + slotTicker + "§d was changed to §5female§d!");
                 }
                 // Is our Pokémon female (1), and is the chance of it being male 100%? Fix!
-                else if (gender == 1 && malePercent == 100)
+                else if (gender == Gender.Female && malePercent == 100)
                 {
                     // Increment our fix count, since we had to fix something.
                     fixCount++;
@@ -389,7 +377,7 @@ public class FixGenders implements CommandExecutor
                     printToLog(1, "§bSlot §2" + slotTicker +
                                                 " §bis female, should be male. Fixing.");
 
-                    loopValue.setInteger(NbtKeys.GENDER, 0);
+                    pokemon.setGender(Gender.Male);
 
                     if (!sneakyMode && targetIsValid)
                     {
@@ -414,7 +402,7 @@ public class FixGenders implements CommandExecutor
         else // We add another blank line here to create space between the fixing messages and the end message.
         {
             // Update the player's sidebar with the new changes.
-            storageCompleted.sendUpdatedList();
+            printToLog(0, "Yo, did it update? If not, TODO.");
 
             sendCheckedMessage(src, "");
             sendCheckedMessage(src, "§aWe're done! Glad to be of service.");

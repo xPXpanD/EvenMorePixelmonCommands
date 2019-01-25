@@ -54,7 +54,7 @@ public class CheckTypes implements CommandExecutor
         formattedTypeMap.put("Dark", "§8Dark");
         formattedTypeMap.put("Fairy", "§dFairy");
     }
-    */
+     */
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     // If we're running from console, we need to swallow everything to avoid cluttering.

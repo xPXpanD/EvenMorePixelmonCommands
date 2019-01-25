@@ -1,4 +1,4 @@
-// What have I done?
+/*// What have I done?
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
@@ -190,17 +190,17 @@ public class DittoFusion implements CommandExecutor
 
                         if (nbt1 == null && nbt2 != null)
                         {
-                            printToLog(1, "No NBT data found for target Pokémon, slot empty? Exit.");
+                            printToLog(1, "No Pokémon data found for target Pokémon, slot empty? Exit.");
                             src.sendMessage(Text.of("§4Error: §cThe target Pokémon does not seem to exist."));
                         }
                         else if (nbt1 != null && nbt2 == null)
                         {
-                            printToLog(1, "No NBT data found for sacrifice Pokémon, slot empty? Exit.");
+                            printToLog(1, "No Pokémon data found for sacrifice Pokémon, slot empty? Exit.");
                             src.sendMessage(Text.of("§4Error: §cThe sacrifice Pokémon does not seem to exist."));
                         }
                         else if (nbt1 == null)
                         {
-                            printToLog(1, "No NBT data found for target not sacrifice, slots empty? Exit.");
+                            printToLog(1, "No Pokémon data found for target not sacrifice, slots empty? Exit.");
                             src.sendMessage(Text.of("§4Error: §cNeither the target nor the sacrifice seem to exist."));
                         }
                         else
@@ -532,3 +532,4 @@ public class DittoFusion implements CommandExecutor
         return CommandResult.success();
     }
 }
+*/

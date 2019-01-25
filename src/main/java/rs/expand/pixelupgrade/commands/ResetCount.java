@@ -1,4 +1,4 @@
-// Made for testing, but probably useful on a public server too.
+/*// Made for testing, but probably useful on a public server too.
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
@@ -132,7 +132,7 @@ public class ResetCount implements CommandExecutor
 
                         if (nbt == null)
                         {
-                            printToLog(1, "No NBT data found in slot, probably empty. Exit.");
+                            printToLog(1, "No Pokémon data found in slot, probably empty. Exit.");
                             src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
                         }
                         else
@@ -228,4 +228,4 @@ public class ResetCount implements CommandExecutor
         src.sendMessage(Text.of("§d(these counts are a Pokémon's upgrade/fusion totals)"));
         src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
-}
+}*/

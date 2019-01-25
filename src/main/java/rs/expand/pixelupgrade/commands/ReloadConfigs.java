@@ -22,7 +22,7 @@ public class ReloadConfigs implements CommandExecutor
     // Formats the first of the messages shown to the player, and loads a config while at it.
     private void printHeaderAndCheckFolder(final CommandSource src, final boolean loadingEverything)
     {
-        printBasicMessage("===========================================================================");
+        printBasicMessage("========================= P I X E L U P G R A D E =========================");
         if (src instanceof Player)
             printBasicMessage("--> §aPixelUpgrade config reload called by player §2" + src.getName() + "§a.");
 
@@ -60,8 +60,6 @@ public class ReloadConfigs implements CommandExecutor
             if (cappedConfigString.equals("ALL"))
             {
                 printHeaderAndCheckFolder(src, true);
-
-                ConfigMethods.checkConfigDir();
                 ConfigMethods.loadConfig("PixelUpgrade");
                 ConfigMethods.loadAllCommandConfigs();
                 ConfigMethods.printCommandsAndAliases();
@@ -111,14 +109,14 @@ public class ReloadConfigs implements CommandExecutor
                         returnString = "--> §aLoaded config for command §2/checktypes§a, alias §2/" + CheckTypes.commandAlias + "§a.";
                         break;
                     }
-                    case "DITTOFUSION":
+                    /*case "DITTOFUSION":
                     {
                         printHeaderAndCheckFolder(src, false);
                         oldAlias = DittoFusion.commandAlias;
                         newAlias = ConfigMethods.loadConfig("DittoFusion");
                         returnString = "--> §aLoaded config for command §2/dittofusion§a, alias §2/" + DittoFusion.commandAlias + "§a.";
                         break;
-                    }
+                    }*/
                     case "FIXGENDERS":
                     {
                         printHeaderAndCheckFolder(src, false);
@@ -208,14 +206,14 @@ public class ReloadConfigs implements CommandExecutor
                         returnString = "--> §aLoaded config for command §2/timedheal§a, alias §2/" + TimedHeal.commandAlias + "§a.";
                         break;
                     }
-                    case "UPGRADEIVS":
+                    /*case "UPGRADEIVS":
                     {
                         printHeaderAndCheckFolder(src, false);
                         oldAlias = UpgradeIVs.commandAlias;
                         newAlias = ConfigMethods.loadConfig("UpgradeIVs");
                         returnString = "--> §aLoaded config for command §2/upgradeivs§a, alias §2/" + UpgradeIVs.commandAlias + "§a.";
                         break;
-                    }
+                    }*/
                     default:
                         gotConfigError = true;
                 }

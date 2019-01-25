@@ -2,13 +2,11 @@
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
+import com.pixelmonmod.pixelmon.Pixelmon;
+import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.battles.BattleRegistry;
-import com.pixelmonmod.pixelmon.storage.NbtKeys;
-import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
-import com.pixelmonmod.pixelmon.storage.PlayerStorage;
 import java.util.Optional;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
 import org.spongepowered.api.block.tileentity.CommandBlock;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
@@ -218,54 +216,41 @@ public class ForceHatch implements CommandExecutor
             }
             else
             {
-                final Optional<PlayerStorage> storage;
+                // Get the player's party, and then get the Pokémon in the targeted slot.
+                final Pokemon pokemon;
                 if (target != null)
-                    storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) target));
+                    pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) target).get(slot - 1);
                 else
-                    storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
+                    pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot - 1);
 
-                if (!storage.isPresent())
+                if (pokemon == null)
                 {
-                    if (target != null)
-                        printToLog(0, "§4" + target.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
-                    else
-                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
-
-                    sendCheckedMessage(src, "§4Error: §cNo Pixelmon storage found. Might be a bug?");
+                    printToLog(1, "No Pokémon was found in the provided slot. Abort, abort!");
+                    sendCheckedMessage(src, "§4Error: §cThere's nothing in that slot!");
+                }
+                else if (!pokemon.isEgg())
+                {
+                    printToLog(1, "Tried to hatch an actual Pokémon. That's too brutal; let's exit.");
+                    sendCheckedMessage(src, "§4Error: §cThat's not an egg. Don't hatch actual Pokémon, kids!");
                 }
                 else
                 {
-                    final PlayerStorage storageCompleted = storage.get();
-                    final NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
+                    printToLog(1, "Passed all checks, hatching us an egg!");
+                    pokemon.hatch();
 
-                    if (nbt == null)
+                    // Update the player's sidebar with the new changes.
+                    printToLog(0, "Yo, did it update? If not, TODO.");
+
+                    if (calledRemotely)
                     {
-                        printToLog(1, "No Pokémon was found in the provided slot. Abort, abort!");
-                        sendCheckedMessage(src, "§4Error: §cThere's nothing in that slot!");
-                    }
-                    else if (!nbt.getBoolean(NbtKeys.IS_EGG))
-                    {
-                        printToLog(1, "Tried to hatch an actual Pokémon. That's too brutal; let's exit.");
-                        sendCheckedMessage(src, "§4Error: §cThat's not an egg. Don't hatch actual Pokémon, kids!");
+                        // http://i0.kym-cdn.com/photos/images/original/000/625/834/a48.png
+                        sendCheckedMessage(src, "§aCracked open a healthy §2" +
+                                pokemon.getSpecies().getLocalizedName() + "§a.");
                     }
                     else
                     {
-                        printToLog(1, "Passed all checks, hatching us an egg!");
-
-                        nbt.setBoolean(NbtKeys.IS_EGG, false);
-                        storageCompleted.changePokemonAndAssignID(slot - 1, nbt);
-
-                        if (calledRemotely)
-                        {
-                            // http://i0.kym-cdn.com/photos/images/original/000/625/834/a48.png
-                            sendCheckedMessage(src, "§aCracked open a healthy §2" +
-                                    nbt.getString("Name") + "§a.");
-                        }
-                        else
-                        {
-                            sendCheckedMessage(src, "§aCongratulations, it's a healthy baby §2" +
-                                    nbt.getString("Name") + "§a!");
-                        }
+                        sendCheckedMessage(src, "§aCongratulations, it's a healthy baby §2" +
+                                pokemon.getSpecies().getLocalizedName() + "§a!");
                     }
                 }
             }

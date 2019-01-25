@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import com.pixelmonmod.pixelmon.enums.EnumPokemon;
+import com.pixelmonmod.pixelmon.enums.EnumSpecies;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.WorldServer;
 import org.spongepowered.api.command.args.CommandContext;
@@ -62,8 +62,8 @@ public class SpawnDex implements CommandExecutor
             {
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
-                boolean canContinue = true, makePureBlack = false, doFakeAnnouncement = false, makeOutlined = false,
-                        doRadiusSpawn = false, makeShiny = false;
+                boolean canContinue = true, doFakeAnnouncement = false, makeOutlined = false, doRadiusSpawn = false,
+                        makeShiny = false;
                 final Optional<String> arg1Optional = args.getOne("Pokémon name/ID");
                 String arg1String;
                 String pokemonName = null;
@@ -132,7 +132,7 @@ public class SpawnDex implements CommandExecutor
                                     arg1String = "MrMime"; break;
                             }
 
-                            pokemonName = EnumPokemon.getFromName(arg1String).orElseThrow(Exception::new).toString();
+                            pokemonName = EnumSpecies.getFromName(arg1String).orElseThrow(Exception::new).toString();
                             printToLog(2, "Successfully grabbed a Pokémon name: §2" + pokemonName);
                         }
                         catch (final Exception F)
@@ -153,9 +153,6 @@ public class SpawnDex implements CommandExecutor
                 }
 
                 // Dumb flags.
-                if (args.hasAny("b"))
-                    makePureBlack = true;
-
                 if (args.hasAny("f"))
                     doFakeAnnouncement = true;
 
@@ -318,11 +315,6 @@ public class SpawnDex implements CommandExecutor
                         src.sendMessage(Text.of("§aSetting up a fresh §2" + pokemonName + "§a..."));
 
                         // Run through our flag executors.
-                        if (makePureBlack)
-                        {
-                            src.sendMessage(Text.of("§eTurning the Pokémon §lpure black§r§e..."));
-                            pokemonToSpawn.setIsRed(true); // Yeah, weird name. Works, though.
-                        }
                         if (doFakeAnnouncement)
                         {
                             // TODO: Maybe register our spawns directly with Pixelmon, using the stuff below? Dunno.
@@ -353,7 +345,7 @@ public class SpawnDex implements CommandExecutor
                                         if (biome.charAt(iterator - 1) != ' ')
                                         {
                                             // Add a space at the desired location.
-                                            biome = biome.substring(0, iterator) + ' ' + biome.substring(iterator, biome.length());
+                                            biome = biome.substring(0, iterator) + ' ' + biome.substring(iterator);
 
                                             // Up the main iterator so we do not repeat the check on the character we're at now.
                                             iterator++;
@@ -383,7 +375,7 @@ public class SpawnDex implements CommandExecutor
                         if (makeShiny)
                         {
                             src.sendMessage(Text.of("§eMaking the Pokémon §lshiny§r§e..."));
-                            pokemonToSpawn.setIsShiny(true);
+                            pokemonToSpawn.getPokemonData().setIsShiny(true);
                         }
 
                         // Actually spawn it.
@@ -417,7 +409,6 @@ public class SpawnDex implements CommandExecutor
         src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <Pokémon name/number> {flags?} [radius?]"));
         src.sendMessage(Text.EMPTY);
         src.sendMessage(Text.of("§6Valid flags:"));
-        src.sendMessage(Text.of("§f➡ §6-b §f- §eTurns spawns entirely black. Reverts when caught."));
         src.sendMessage(Text.of("§f➡ §6-f §f- §eBroadcasts a fake spawning message, as per the config."));
         src.sendMessage(Text.of("§f➡ §6-o §f- §eGives spawns an outline that shows through walls."));
         src.sendMessage(Text.of("§f➡ §6-r §f- §eSpawns a Pokémon randomly within the given radius."));

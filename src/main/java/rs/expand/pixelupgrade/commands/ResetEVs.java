@@ -2,16 +2,16 @@
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
+import com.pixelmonmod.pixelmon.Pixelmon;
+import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.battles.BattleRegistry;
-import com.pixelmonmod.pixelmon.storage.NbtKeys;
-import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
-import com.pixelmonmod.pixelmon.storage.PlayerStorage;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.EVsStore;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
@@ -109,94 +109,84 @@ public class ResetEVs implements CommandExecutor
 
                 if (canContinue)
                 {
-                    final Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
+                    // Get the player's party, and then get the Pokémon in the targeted slot.
+                    final Pokemon pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot - 1);
 
-                    if (!storage.isPresent())
+                    if (pokemon == null)
                     {
-                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
-                        src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
+                        printToLog(1, "No Pokémon data found in slot, probably empty. Exit.");
+                        src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
                     }
-                    else
+                    else if (pokemon.isEgg())
                     {
-                        final PlayerStorage storageCompleted = (PlayerStorage) storage.get();
-                        final NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
+                        printToLog(1, "Tried to reset EVs on an egg. Exit.");
+                        src.sendMessage(Text.of("§4Error: §cThat's an egg! Go hatch it, first."));
+                    }
+                    else if (commandConfirmed)
+                    {
+                        printToLog(2, "Command was confirmed, checking balances.");
 
-                        if (nbt == null)
+                        if (economyEnabled && commandCost > 0)
                         {
-                            printToLog(1, "No NBT data found in slot, probably empty. Exit.");
-                            src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
-                        }
-                        else if (nbt.getBoolean(NbtKeys.IS_EGG))
-                        {
-                            printToLog(1, "Tried to reset EVs on an egg. Exit.");
-                            src.sendMessage(Text.of("§4Error: §cThat's an egg! Go hatch it, first."));
-                        }
-                        else if (commandConfirmed)
-                        {
-                            printToLog(2, "Command was confirmed, checking balances.");
+                            final BigDecimal costToConfirm = new BigDecimal(commandCost);
+                            final Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
 
-                            if (economyEnabled && commandCost > 0)
+                            if (optionalAccount.isPresent())
                             {
-                                final BigDecimal costToConfirm = new BigDecimal(commandCost);
-                                final Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
+                                final UniqueAccount uniqueAccount = optionalAccount.get();
+                                final TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
+                                            costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
 
-                                if (optionalAccount.isPresent())
+                                if (transactionResult.getResult() == ResultType.SUCCESS)
                                 {
-                                    final UniqueAccount uniqueAccount = optionalAccount.get();
-                                    final TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
-                                                costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
-
-                                    if (transactionResult.getResult() == ResultType.SUCCESS)
-                                    {
-                                        resetPlayerEVs(nbt, src);
-                                        printToLog(1, "Reset EVs for slot §3" + slot +
-                                                "§b, taking §3" + costToConfirm + "§b coins.");
-                                    }
-                                    else
-                                    {
-                                        final BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                        printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
-                                                "§b, and we're lacking §3" + balanceNeeded);
-
-                                        src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
-                                    }
+                                    resetPlayerEVs(pokemon, src);
+                                    printToLog(1, "Reset EVs for slot §3" + slot +
+                                            "§b, taking §3" + costToConfirm + "§b coins.");
                                 }
                                 else
                                 {
-                                    printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. Bug?");
-                                    src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
+                                    final BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
+                                    printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
+                                            "§b, and we're lacking §3" + balanceNeeded);
+
+                                    src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
                                 }
                             }
                             else
                             {
-                                if (economyEnabled)
-                                {
-                                    printToLog(1, "Resetting EVs for slot §3" + slot +
-                                            "§b. Config price is §30§b, taking nothing.");
-                                }
-                                else
-                                {
-                                    printToLog(1, "Resetting EVs for slot §3" + slot +
-                                            "§b. No economy, so we skipped eco checks.");
-                                }
-
-                                resetPlayerEVs(nbt, src);
+                                printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. Bug?");
+                                src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
                             }
                         }
                         else
                         {
-                            printToLog(1, "No confirmation provided, printing warning and aborting.");
+                            if (economyEnabled)
+                            {
+                                printToLog(1, "Resetting EVs for slot §3" + slot +
+                                        "§b. Config price is §30§b, taking nothing.");
+                            }
+                            else
+                            {
+                                printToLog(1, "Resetting EVs for slot §3" + slot +
+                                        "§b. No economy, so we skipped eco checks.");
+                            }
 
-                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                            src.sendMessage(Text.of("§6Warning: §eYou are about to reset this Pokémon's EVs to zero!"));
-                            src.sendMessage(Text.EMPTY);
-
-                            if (economyEnabled && commandCost > 0)
-                                src.sendMessage(Text.of("§eResetting will cost §6" + commandCost + "§e coins!"));
-
-                            src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
-                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                            resetPlayerEVs(pokemon, src);
                         }
+                    }
+                    else
+                    {
+                        printToLog(1, "No confirmation provided, printing warning and aborting.");
+
+                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                        src.sendMessage(Text.of("§6Warning: §eYou are about to reset this Pokémon's EVs to zero!"));
+                        src.sendMessage(Text.EMPTY);
+
+                        if (economyEnabled && commandCost > 0)
+                            src.sendMessage(Text.of("§eResetting will cost §6" + commandCost + "§e coins!"));
+
+                        src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
+                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     }
                 }
             }
@@ -213,25 +203,21 @@ public class ResetEVs implements CommandExecutor
         src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> {-c to confirm}"));
     }
 
-	private void resetPlayerEVs(final NBTTagCompound nbt, final CommandSource src)
+	private void resetPlayerEVs(final Pokemon pokemon, final CommandSource src)
     {
-        final int EVHP = nbt.getInteger(NbtKeys.EV_HP);
-        final int EVATT = nbt.getInteger(NbtKeys.EV_ATTACK);
-        final int EVDEF = nbt.getInteger(NbtKeys.EV_DEFENCE);
-        final int EVSPATT = nbt.getInteger(NbtKeys.EV_SPECIAL_ATTACK);
-        final int EVSPDEF = nbt.getInteger(NbtKeys.EV_SPECIAL_DEFENCE);
-        final int EVSPD = nbt.getInteger(NbtKeys.EV_SPEED);
+        final EVsStore EVs = pokemon.getEVs();
 
-        printToLog(1, "Old EVS -- HP: §3" + EVHP + "§b | ATK: §3" + EVATT + "§b | DEF: §3" + EVDEF +
-                "§b | SPATK: §3" + EVSPATT + "§b | SPDEF: §3" + EVSPDEF + "§b | SPD: §3" + EVSPD);
+        printToLog(1, "Old EVS -- §3" + EVs.hp + "§b, §3" + EVs.attack + "§b, §3" + EVs.defence +
+                "§b, §3" + EVs.specialAttack + "§b, §3" + EVs.specialDefence + "§b, §3" + EVs.speed);
 
-        nbt.setInteger(NbtKeys.EV_HP, 0);
-        nbt.setInteger(NbtKeys.EV_ATTACK, 0);
-        nbt.setInteger(NbtKeys.EV_DEFENCE, 0);
-        nbt.setInteger(NbtKeys.EV_SPECIAL_ATTACK, 0);
-        nbt.setInteger(NbtKeys.EV_SPECIAL_DEFENCE, 0);
-        nbt.setInteger(NbtKeys.EV_SPEED, 0);
+        EVs.set(StatsType.HP, 0);
+        EVs.set(StatsType.Attack, 0);
+        EVs.set(StatsType.Defence, 0);
+        EVs.set(StatsType.SpecialAttack, 0);
+        EVs.set(StatsType.SpecialDefence, 0);
+        EVs.set(StatsType.Speed, 0);
 
-        src.sendMessage(Text.of("§aYour §2" + nbt.getString("Name") + "§a had its EVs wiped!"));
+        src.sendMessage(Text.of(
+                "§aYour §2" + pokemon.getSpecies().getLocalizedName() + "§a had its EVs wiped!"));
     }
 }

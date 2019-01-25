@@ -2,9 +2,9 @@
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
+import com.pixelmonmod.pixelmon.Pixelmon;
+import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.battles.BattleRegistry;
-import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
-import com.pixelmonmod.pixelmon.storage.PlayerStorage;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -393,50 +393,116 @@ public class ForceStats implements CommandExecutor
             // Did we pass ALL those checks? Go go go!
             if (canContinue)
             {
-                final Optional<PlayerStorage> storage;
+                // Get the player's party, and then get the Pokémon in the targeted slot.
+                final Pokemon pokemon;
                 if (target != null)
-                    storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) target));
+                    pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) target).get(slot - 1);
                 else
-                    storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
+                    pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot - 1);
+                    printToLog(2, "Checks completed, entering execution.");
 
-                // ...unless this happens.
-                if (!storage.isPresent())
+                if (pokemon == null)
                 {
-                    if (target != null)
-                        printToLog(0, "§4" + target.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
-                    else
-                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
+                    printToLog(1, "No Pokémon data found in slot, probably empty. Exit.");
 
-                    sendCheckedMessage(src,"§4Error: §cNo Pixelmon storage found. Might be a bug?");
+                    if (target != null)
+                        sendCheckedMessage(src,"§4Error: §cYour target does not have anything in that slot!");
+                    else
+                        sendCheckedMessage(src,"§4Error: §cYou don't have anything in that slot!");
                 }
                 else
                 {
-                    printToLog(2, "Checks completed, entering execution.");
-
-                    final PlayerStorage storageCompleted = storage.get();
-                    final NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
-
-                    // ...or this.
-                    if (nbt == null)
+                    if (!forceValue && !valueIsNumeric)
                     {
-                        printToLog(1, "No NBT data found in slot, probably empty. Exit.");
-
-                        if (target != null)
-                            sendCheckedMessage(src,"§4Error: §cYour target does not have anything in that slot!");
-                        else
-                            sendCheckedMessage(src,"§4Error: §cYou don't have anything in that slot!");
+                        printToLog(1, "We support Strings only in force mode. Exit.");
+                        printError(src, "§4Error: §cGot a non-numeric value, but no flag. Try a number.");
                     }
-                    else
+                    else // ok we good
                     {
-                        // ...or THIS.
-                        if (!forceValue && !valueIsNumeric)
+                        // Create a copy of the Pokémon's persistent data for extracting specific NBT info from.
+                        final NBTTagCompound pokemonNBT = pokemon.getPersistentData();
+
+                        if (forceValue)
                         {
-                            printToLog(1, "We support Strings only in force mode. Exit.");
-                            printError(src, "§4Error: §cGot a non-numeric value, but no flag. Try a number.");
+                            sendCheckedMessage(src,"§7-----------------------------------------------------");
+
+                            if (fixMessageString != null)
+                            {
+                                sendCheckedMessage(src,fixMessageString);
+                                sendCheckedMessage(src,"");
+                            }
+
+                            if (!pokemonNBT.getString(stat).isEmpty())
+                            {
+                                printToLog(1, "Value is being forced! Old String value: §3" +
+                                        pokemonNBT.getString(stat));
+                                sendCheckedMessage(src,"§aForcing value! Old String value: §2" +
+                                        pokemonNBT.getString(stat));
+                            }
+                            else if (pokemonNBT.getLong(stat) != 0)
+                            {
+                                printToLog(1, "Value is being forced! Old numeric value: §3" +
+                                        pokemonNBT.getLong(stat));
+                                sendCheckedMessage(src,"§aForcing value! Old numeric value: §2" +
+                                        pokemonNBT.getLong(stat));
+                            }
+                            else
+                            {
+                                // Slightly awkward, we'll have to make an assumption here.
+                                // getLong returns 0 both if something isn't present or if it is actually 0.
+                                printToLog(1,
+                                        "Value is being forced! Tried to grab old value, but couldn't.");
+                                sendCheckedMessage(src,
+                                        "§eForcing value! Tried to grab old value, but couldn't.");
+                            }
+
+                            if (valueIsNumeric)
+                            {
+                                printToLog(1, "Numeric value written. Glad to be of service.");
+                                pokemonNBT.setLong(stat, longValue);
+                            }
+                            else
+                            {
+                                printToLog(1, "Non-numeric value written... Glad to be of service?");
+
+                                // All the arguments shift by one to accomodate for arg1 being a target, if it is one.
+                                if (target == null)
+                                    pokemonNBT.setString(stat, arg3Optional.get());
+                                else
+                                    pokemonNBT.setString(stat, arg4Optional.get());
+                            }
+
+                            // Update the player's sidebar with the new changes.
+                            printToLog(0, "Yo, did it update? If not, TODO.");
+
+                            sendCheckedMessage(src,"§aThe new value was written. You may have to reconnect.");
+                            sendCheckedMessage(src,"§7-----------------------------------------------------");
                         }
-                        else // ok we good
+                        else
                         {
-                            if (forceValue)
+                            printToLog(2, "Found valid non-forced input, testing against limits.");
+
+                            if (stat.equals("Gender") && longValue > 2 || stat.equals("Gender") && longValue < 0)
+                            {
+                                printToLog(1, "Found a Gender value above 2 or below 0; out of bounds. Exit.");
+                                sendCheckedMessage(src,"§4Error: §cSize value out of bounds. Valid range: 0 ~ 2");
+                            }
+                            else if (stat.equals("Growth") && longValue > 8 || stat.equals("Growth") && longValue < 0)
+                            {
+                                printToLog(1, "Found a Growth value above 8 or below 0; out of bounds. Exit.");
+                                sendCheckedMessage(src,"§4Error: §cSize value out of bounds. Valid range: 0 ~ 8");
+                            }
+                            else if (stat.equals("IsShiny") && longValue != 0 && longValue != 1)
+                            {
+                                printToLog(1, "Invalid shiny status value detected. Exit.");
+                                sendCheckedMessage(src,"§4Error: §cInvalid boolean value. Valid values: 0 (=false) or 1 (=true)");
+                            }
+                            else if (stat.equals("Nature") && longValue > 24 || stat.equals("Nature") && longValue < 0)
+                            {
+                                printToLog(1, "Found a Nature value above 24 or below 0; out of bounds. Exit.");
+                                sendCheckedMessage(src,"§4Error: §cNature value out of bounds. Valid range: 0 ~ 24");
+                            }
+                            else
                             {
                                 sendCheckedMessage(src,"§7-----------------------------------------------------");
 
@@ -446,96 +512,17 @@ public class ForceStats implements CommandExecutor
                                     sendCheckedMessage(src,"");
                                 }
 
-                                if (!nbt.getString(stat).isEmpty())
-                                {
-                                    printToLog(1, "Value is being forced! Old String value: §3" +
-                                            nbt.getString(stat));
-                                    sendCheckedMessage(src,"§aForcing value! Old String value: §2" +
-                                            nbt.getString(stat));
-                                }
-                                else if (nbt.getLong(stat) != 0)
-                                {
-                                    printToLog(1, "Value is being forced! Old numeric value: §3" +
-                                            nbt.getLong(stat));
-                                    sendCheckedMessage(src,"§aForcing value! Old numeric value: §2" +
-                                            nbt.getLong(stat));
-                                }
-                                else
-                                {
-                                    // Slightly awkward, we'll have to make an assumption here.
-                                    // getLong returns 0 both if something isn't present or if it is actually 0.
-                                    printToLog(1,
-                                            "Value is being forced! Tried to grab old value, but couldn't.");
-                                    sendCheckedMessage(src,
-                                            "§eForcing value! Tried to grab old value, but couldn't.");
-                                }
+                                printToLog(1, "Setting... Stat is §3" + stat + "§b, old value was §3" +
+                                        pokemonNBT.getLong(stat) + "§b, new is §3" + longValue + "§b.");
 
-                                if (valueIsNumeric)
-                                {
-                                    printToLog(1, "Numeric value written. Glad to be of service.");
-                                    nbt.setLong(stat, longValue);
-                                }
-                                else
-                                {
-                                    printToLog(1, "Non-numeric value written... Glad to be of service?");
+                                sendCheckedMessage(src,"§aWriting value...");
+                                pokemonNBT.setLong(stat, longValue);
 
-                                    // All the arguments shift by one to accomodate for arg1 being a target, if it is one.
-                                    if (target == null)
-                                        nbt.setString(stat, arg3Optional.get());
-                                    else
-                                        nbt.setString(stat, arg4Optional.get());
-                                }
+                                // Update the player's sidebar with the new changes.
+                                printToLog(0, "Yo, did it update? If not, TODO.");
 
-                                storageCompleted.sendUpdatedList();
-
-                                sendCheckedMessage(src,"§aThe new value was written. You may have to reconnect.");
+                                sendCheckedMessage(src,"§aExisting NBT value changed! You may have to reconnect.");
                                 sendCheckedMessage(src,"§7-----------------------------------------------------");
-                            }
-                            else
-                            {
-                                printToLog(2, "Found valid non-forced input, testing against limits.");
-
-                                if (stat.equals("Gender") && longValue > 2 || stat.equals("Gender") && longValue < 0)
-                                {
-                                    printToLog(1, "Found a Gender value above 2 or below 0; out of bounds. Exit.");
-                                    sendCheckedMessage(src,"§4Error: §cSize value out of bounds. Valid range: 0 ~ 2");
-                                }
-                                else if (stat.equals("Growth") && longValue > 8 || stat.equals("Growth") && longValue < 0)
-                                {
-                                    printToLog(1, "Found a Growth value above 8 or below 0; out of bounds. Exit.");
-                                    sendCheckedMessage(src,"§4Error: §cSize value out of bounds. Valid range: 0 ~ 8");
-                                }
-                                else if (stat.equals("IsShiny") && longValue != 0 && longValue != 1)
-                                {
-                                    printToLog(1, "Invalid shiny status value detected. Exit.");
-                                    sendCheckedMessage(src,"§4Error: §cInvalid boolean value. Valid values: 0 (=false) or 1 (=true)");
-                                }
-                                else if (stat.equals("Nature") && longValue > 24 || stat.equals("Nature") && longValue < 0)
-                                {
-                                    printToLog(1, "Found a Nature value above 24 or below 0; out of bounds. Exit.");
-                                    sendCheckedMessage(src,"§4Error: §cNature value out of bounds. Valid range: 0 ~ 24");
-                                }
-                                else
-                                {
-                                    sendCheckedMessage(src,"§7-----------------------------------------------------");
-
-                                    if (fixMessageString != null)
-                                    {
-                                        sendCheckedMessage(src,fixMessageString);
-                                        sendCheckedMessage(src,"");
-                                    }
-
-                                    printToLog(1, "Setting... Stat is §3" + stat + "§b, old value was §3" +
-                                            nbt.getLong(stat) + "§b, new is §3" + longValue + "§b.");
-
-                                    sendCheckedMessage(src,"§aWriting value...");
-
-                                    nbt.setLong(stat, longValue);
-                                    storageCompleted.sendUpdatedList();
-
-                                    sendCheckedMessage(src,"§aExisting NBT value changed! You may have to reconnect.");
-                                    sendCheckedMessage(src,"§7-----------------------------------------------------");
-                                }
                             }
                         }
                     }

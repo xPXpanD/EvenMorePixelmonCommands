@@ -24,11 +24,11 @@ import rs.expand.pixelupgrade.commands.*;
 import rs.expand.pixelupgrade.utilities.ConfigMethods;
 import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicMessage;
 
-/*                                                              *\
+/*                                                               *\
        THE WHO-KNOWS-WHEN LIST OF POTENTIALLY AWESOME IDEAS
     TODO: Add new TODOs here. Cross off TODOs if they're done.
       NOTE: Stuff that's here will not necessarily get made.
-\*                                                              */
+\*                                                               */
 
 // New things:
 // TODO: Make a token redeeming command for shinies? Maybe make it a starter picker command, even. - Xenoyia
@@ -52,6 +52,7 @@ import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicMessage
 // TODO: Check for more header/footer inconsistency. Might combine well with the below: vvv
 // TODO: Move everything to lang files.
 // TODO: Add a level-showing message to /showstats and /checkstats.
+// TODO: Check if Kyurem fusion preserves custom tags.
 
 @Plugin
 (
@@ -154,9 +155,9 @@ public class PixelUpgrade
     public static ConfigurationLoader<CommentedConfigurationNode> upgradeIVsLoader =
             HoconConfigurationLoader.builder().setPath(upgradeIVsPath).build();
 
-    /*                       *\
+    /*                        *\
          Utility commands.
-    \*                       */
+    \*                        */
     public static CommandSpec reloadconfigs = CommandSpec.builder()
             .permission("pixelupgrade.command.staff.reload")
             .executor(new ReloadConfigs())
@@ -170,9 +171,9 @@ public class PixelUpgrade
                     GenericArguments.optional(GenericArguments.remainingJoinedStrings(Text.EMPTY)))
             .build();
 
-    /*                    *\
+    /*                     *\
          Main commands.
-    \*                    */
+    \*                     */
     public static CommandSpec checkegg = CommandSpec.builder()
             .permission("pixelupgrade.command.checkegg")
             .executor(new CheckEgg())

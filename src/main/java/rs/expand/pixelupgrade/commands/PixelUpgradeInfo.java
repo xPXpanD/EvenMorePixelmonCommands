@@ -138,7 +138,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                     printToLog(1, "§3/checktypes §bhas a malformed config, hiding from list.");
             }
 
-            if (!calledRemotely && src.hasPermission("pixelupgrade.command.dittofusion"))
+            /*if (!calledRemotely && src.hasPermission("pixelupgrade.command.dittofusion"))
             {
                 if (DittoFusion.commandAlias != null)
                 {
@@ -152,7 +152,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                 }
                 else
                     printToLog(1, "§3/dittofusion §bhas a malformed config, hiding from list.");
-            }
+            }*/
 
             if (calledRemotely || src.hasPermission("pixelupgrade.command.fixgenders"))
             {
@@ -214,7 +214,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                 permissionMessageList.add(Text.of("§f ➡ §eReload one or more PixelUpgrade configs on the fly."));
             }
 
-            if (!calledRemotely && src.hasPermission("pixelupgrade.command.staff.resetcount"))
+            /*if (!calledRemotely && src.hasPermission("pixelupgrade.command.staff.resetcount"))
             {
                 if (ResetCount.commandAlias != null)
                 {
@@ -223,7 +223,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                 }
                 else
                     printToLog(1, "§3/resetcount §bhas a malformed config, hiding from list.");
-            }
+            }*/
 
             if (!calledRemotely && src.hasPermission("pixelupgrade.command.resetevs"))
             {
@@ -358,7 +358,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                     printToLog(1, "§3/timedheal §bhas a malformed config, hiding from list.");
             }
 
-            if (!calledRemotely && src.hasPermission("pixelupgrade.command.upgradeivs"))
+            /*if (!calledRemotely && src.hasPermission("pixelupgrade.command.upgradeivs"))
             {
                 if (UpgradeIVs.commandAlias != null)
                 {
@@ -371,7 +371,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                 }
                 else
                     printToLog(1, "§3/upgradeivs §bhas a malformed config, hiding from list.");
-            }
+            }*/
 
             final PaginationList.Builder paginatedList = PaginationList.builder()
                         .title(Text.of(TextColors.DARK_PURPLE, "§dPixelUpgrade commands"))

@@ -370,7 +370,7 @@ public class TimedHatch implements CommandExecutor
                     {
                         if (nbt == null)
                         {
-                            printToLog(1, "No NBT data found in slot, probably empty. Exit.");
+                            printToLog(1, "No Pokémon data found in slot, probably empty. Exit.");
 
                             if (target != null)
                                 sendCheckedMessage(src,"§4Error: §cYour target does not have anything in that slot!");

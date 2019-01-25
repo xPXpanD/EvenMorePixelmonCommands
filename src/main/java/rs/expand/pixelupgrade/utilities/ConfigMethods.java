@@ -349,7 +349,7 @@ public class ConfigMethods
             {
                 try
                 {
-                    // Spaces added so it falls in line with startup/reload message spacing.
+                    // Create a new config since the file wasn't found. Add spaces to match startup/reload message spacing.
                     printBasicMessage("    §eNo primary configuration file found, creating...");
 
                     Files.copy(ConfigMethods.class.getResourceAsStream("/assets/PixelUpgradeMain.conf"),

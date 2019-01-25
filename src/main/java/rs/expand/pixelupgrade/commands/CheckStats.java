@@ -2,17 +2,19 @@
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
+import com.pixelmonmod.pixelmon.Pixelmon;
+import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
+import com.pixelmonmod.pixelmon.api.storage.PartyStorage;
 import com.pixelmonmod.pixelmon.config.PixelmonConfig;
-import com.pixelmonmod.pixelmon.config.PixelmonEntityList;
-import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
-import com.pixelmonmod.pixelmon.enums.EnumPokemon;
-import com.pixelmonmod.pixelmon.storage.NbtKeys;
-import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
-import com.pixelmonmod.pixelmon.storage.PlayerStorage;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.EVsStore;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.Stats;
+import com.pixelmonmod.pixelmon.enums.EnumGrowth;
+import com.pixelmonmod.pixelmon.enums.EnumNature;
+import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import org.spongepowered.api.block.tileentity.CommandBlock;
@@ -44,7 +46,7 @@ public class CheckStats implements CommandExecutor
     public static Integer commandCost;
 
     // Set up some more variables for internal use.
-    private boolean gotUpgradeError = false, gotFusionError = false, calledRemotely;
+    private boolean /*gotUpgradeError = false, gotFusionError = false, */calledRemotely;
 
     // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
     // If we're running from console, we need to swallow everything to avoid cluttering.
@@ -116,10 +118,10 @@ public class CheckStats implements CommandExecutor
 
                 boolean gotCheckEggError = false;
 
-                if (showDittoFusionHelper || showUpgradeHelper || enableCheckEggIntegration)
+                if (/*showDittoFusionHelper || showUpgradeHelper || */enableCheckEggIntegration)
                 {
                     printToLog(2, "Entering external config loading. Errors will be logged.");
-                    final List<String> upgradeErrorArray = new ArrayList<>();
+                    /*final List<String> upgradeErrorArray = new ArrayList<>();
                     final List<String> fusionErrorArray = new ArrayList<>();
 
                     if (showDittoFusionHelper)
@@ -144,7 +146,7 @@ public class CheckStats implements CommandExecutor
                             upgradeErrorArray.add("regularCap");
 
                         PrintingMethods.printPartialNodeError("CheckStats", "UpgradeIVs", upgradeErrorArray);
-                    }
+                    }*/
 
                     if (enableCheckEggIntegration && CheckEgg.commandAlias == null)
                     {
@@ -153,14 +155,14 @@ public class CheckStats implements CommandExecutor
                         gotCheckEggError = true;
                     }
 
-                    if (!fusionErrorArray.isEmpty() || !upgradeErrorArray.isEmpty() || gotCheckEggError)
+                    if (/*!fusionErrorArray.isEmpty() || !upgradeErrorArray.isEmpty() || */gotCheckEggError)
                     {
-                        printToLog(0, "Could not read one or more remote config nodes.");
+                        /*printToLog(0, "Could not read one or more remote config nodes.");*/
                         printToLog(0, "Disabling integration for now, please check this.");
 
-                        // Set up our "got an error" flags. Reset to false if we didn't, so we don't cause issues later.
+                        /*// Set up our "got an error" flags. Reset to false if we didn't, so we don't cause issues later.
                         gotFusionError = !fusionErrorArray.isEmpty();
-                        gotUpgradeError = !upgradeErrorArray.isEmpty();
+                        gotUpgradeError = !upgradeErrorArray.isEmpty();*/
                     }
                     else
                         printToLog(2, "External config loading is done. Moving on to argument parsing.");
@@ -330,150 +332,129 @@ public class CheckStats implements CommandExecutor
 
                 if (canContinue)
                 {
-                    final Optional<PlayerStorage> storage;
-                    if (target != null)
-                        storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) target));
-                    else
-                        storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
+                    // Get the player's party, and then get the Pokémon in the targeted slot.
+                    final PartyStorage party = Pixelmon.storageManager.getParty((EntityPlayerMP) src);
+                    final Pokemon pokemon = party.get(slot - 1);
 
-                    // Running from the console with no target? We'll already have hit an error and exited!
-                    if (!storage.isPresent())
+                    if (slot == 0 && (showTeamWhenSlotEmpty || calledRemotely))
+                        checkParty(src, target, party, calledRemotely);
+                    else if (pokemon == null)
                     {
                         if (target != null)
-                            printToLog(0, "§4" + target.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
+                        {
+                            printToLog(1, "No Pokémon was found in the provided target slot. Exit.");
+                            src.sendMessage(Text.of("§4Error: §cYour target has no Pokémon in that slot!"));
+                        }
                         else
-                            printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
+                        {
+                            printToLog(1, "No Pokémon was found in the provided slot. Exit.");
+                            src.sendMessage(Text.of("§4Error: §cThere's no Pokémon in that slot!"));
+                        }
+                    }
+                    else if (!calledRemotely && pokemon.isEgg()) // Allow egg checking for console!
+                    {
+                        final boolean hasEggPerm = src.hasPermission("pixelupgrade.command.checkegg");
 
-                        src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
+                        if (enableCheckEggIntegration && hasEggPerm && !gotCheckEggError)
+                        {
+                            printToLog(1, "Found an egg, recommended CheckEgg alias as per config. Exit.");
+                            src.sendMessage(Text.of("§4Error: §cThis command only checks hatched Pokémon. Try: §4/" +
+                                    CheckEgg.commandAlias + "§c."));
+                        }
+                        else
+                        {
+                            if (hasEggPerm)
+                                printToLog(1, "Found an egg, but player has no /checkegg perm. Exit.");
+                            else
+                                printToLog(1, "Found an egg. Erroring instead of recommending CheckEgg, as per config.");
+
+                            src.sendMessage(Text.of("§4Error: §cYou can only check hatched Pokémon."));
+                        }
+                    }
+                    else if (economyEnabled && !calledRemotely && commandCost > 0) // Don't use the economy for console!
+                    {
+                        // !calledRemotely already guarantees src is a Player.
+                        @SuppressWarnings("ConstantConditions")
+                        final Player player = (Player) src;
+
+                        final BigDecimal costToConfirm = new BigDecimal(commandCost);
+
+                        if (commandConfirmed)
+                        {
+                            final Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
+
+                            if (optionalAccount.isPresent())
+                            {
+                                final UniqueAccount uniqueAccount = optionalAccount.get();
+                                final TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
+                                            costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
+
+                                if (transactionResult.getResult() == ResultType.SUCCESS)
+                                {
+                                    boolean haveTarget = false;
+                                    if (target != null)
+                                        haveTarget = true;
+
+                                    printToLog(1, "Checked slot §3" + slot +
+                                            "§b, taking §3" + costToConfirm + "§b coins.");
+                                    checkSpecificSlot(src, target, pokemon, haveTarget);
+                                }
+                                else
+                                {
+                                    final BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
+
+                                    printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
+                                            "§b, and we're lacking §3" + balanceNeeded);
+                                    src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
+                                }
+                            }
+                            else
+                            {
+                                printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. Bug?");
+                                src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
+                            }
+                        }
+                        else
+                        {
+                            printToLog(1, "Got cost but no confirmation; end of the line.");
+
+                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
+
+                            // Is cost to confirm exactly one coin?
+                            if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
+                                src.sendMessage(Text.of("§6Warning: §eChecking a Pokémon's status costs §6one §ecoin."));
+                            else
+                            {
+                                src.sendMessage(Text.of("§6Warning: §eChecking a Pokémon's status costs §6" +
+                                        costToConfirm + "§e coins."));
+                            }
+
+                            src.sendMessage(Text.EMPTY);
+
+                            if (target != null)
+                            {
+                                src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " +
+                                        target.getName() + " " + slot + " -c"));
+                            }
+                            else
+                                src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
+
+                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                        }
                     }
                     else
                     {
-                        final PlayerStorage storageCompleted = storage.get();
-                        final NBTTagCompound nbt;
-                        if (slot != 0)
-                            nbt = storageCompleted.partyPokemon[slot - 1];
+                        boolean haveTarget = false;
+                        if (target != null)
+                            haveTarget = true;
+
+                        // Debug message gets swallowed if run from console, as usual.
+                        if (economyEnabled)
+                            printToLog(1, "Checked slot §3" + slot + "§b. Config price is §30§b, taking nothing.");
                         else
-                            nbt = null;
+                            printToLog(1, "Checked slot §3" + slot + "§b. No economy, so we skipped eco checks.");
 
-                        if (slot == 0 && (showTeamWhenSlotEmpty || calledRemotely))
-                            checkParty(src, target, storageCompleted, calledRemotely);
-                        else if (nbt == null)
-                        {
-                            if (target != null)
-                            {
-                                printToLog(1, "No Pokémon was found in the provided target slot. Exit.");
-                                src.sendMessage(Text.of("§4Error: §cYour target has no Pokémon in that slot!"));
-                            }
-                            else
-                            {
-                                printToLog(1, "No Pokémon was found in the provided slot. Exit.");
-                                src.sendMessage(Text.of("§4Error: §cThere's no Pokémon in that slot!"));
-                            }
-                        }
-                        else if (!calledRemotely && nbt.getBoolean(NbtKeys.IS_EGG)) // Allow egg checking for console!
-                        {
-                            final boolean hasEggPerm = src.hasPermission("pixelupgrade.command.checkegg");
-
-                            if (enableCheckEggIntegration && hasEggPerm && !gotCheckEggError)
-                            {
-                                printToLog(1, "Found an egg, recommended CheckEgg alias as per config. Exit.");
-                                src.sendMessage(Text.of("§4Error: §cThis command only checks hatched Pokémon. Try: §4/" +
-                                        CheckEgg.commandAlias + "§c."));
-                            }
-                            else
-                            {
-                                if (hasEggPerm)
-                                    printToLog(1, "Found an egg, but player has no /checkegg perm. Exit.");
-                                else
-                                    printToLog(1, "Found an egg. Erroring instead of recommending CheckEgg, as per config.");
-
-                                src.sendMessage(Text.of("§4Error: §cYou can only check hatched Pokémon."));
-                            }
-                        }
-                        else if (economyEnabled && !calledRemotely && commandCost > 0) // Don't use the economy for console!
-                        {
-                            @SuppressWarnings("ConstantConditions") final // !calledRemotely already guarantees src is a Player.
-                                Player player = (Player) src;
-
-                            final BigDecimal costToConfirm = new BigDecimal(commandCost);
-
-                            if (commandConfirmed)
-                            {
-                                final Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
-
-                                if (optionalAccount.isPresent())
-                                {
-                                    final UniqueAccount uniqueAccount = optionalAccount.get();
-                                    final TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
-                                                costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
-
-                                    if (transactionResult.getResult() == ResultType.SUCCESS)
-                                    {
-                                        boolean haveTarget = false;
-                                        if (target != null)
-                                            haveTarget = true;
-
-                                        printToLog(1, "Checked slot §3" + slot +
-                                                "§b, taking §3" + costToConfirm + "§b coins.");
-                                        checkSpecificSlot(src, target, nbt, haveTarget);
-                                    }
-                                    else
-                                    {
-                                        final BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-
-                                        printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
-                                                "§b, and we're lacking §3" + balanceNeeded);
-                                        src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this."));
-                                    }
-                                }
-                                else
-                                {
-                                    printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. Bug?");
-                                    src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
-                                }
-                            }
-                            else
-                            {
-                                printToLog(1, "Got cost but no confirmation; end of the line.");
-
-                                src.sendMessage(Text.of("§5-----------------------------------------------------"));
-
-                                // Is cost to confirm exactly one coin?
-                                if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
-                                    src.sendMessage(Text.of("§6Warning: §eChecking a Pokémon's status costs §6one §ecoin."));
-                                else
-                                {
-                                    src.sendMessage(Text.of("§6Warning: §eChecking a Pokémon's status costs §6" +
-                                            costToConfirm + "§e coins."));
-                                }
-
-                                src.sendMessage(Text.EMPTY);
-
-                                if (target != null)
-                                {
-                                    src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " +
-                                            target.getName() + " " + slot + " -c"));
-                                }
-                                else
-                                    src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
-
-                                src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                            }
-                        }
-                        else
-                        {
-                            boolean haveTarget = false;
-                            if (target != null)
-                                haveTarget = true;
-
-                            // Debug message gets swallowed if run from console, as usual.
-                            if (economyEnabled)
-                                printToLog(1, "Checked slot §3" + slot + "§b. Config price is §30§b, taking nothing.");
-                            else
-                                printToLog(1, "Checked slot §3" + slot + "§b. No economy, so we skipped eco checks.");
-
-                            checkSpecificSlot(src, target, nbt, haveTarget);
-                        }
+                        checkSpecificSlot(src, target, pokemon, haveTarget);
                     }
                 }
             }
@@ -509,7 +490,7 @@ public class CheckStats implements CommandExecutor
         }
     }
 
-    private void checkParty(final CommandSource src, final Player target, final PlayerStorage storageCompleted, final boolean calledRemotely)
+    private void checkParty(final CommandSource src, final Player target, final PartyStorage party, final boolean calledRemotely)
     {
         printToLog(1, "No target slot provided, printing team to chat as per config. Exit.");
 
@@ -518,27 +499,27 @@ public class CheckStats implements CommandExecutor
         src.sendMessage(Text.EMPTY);
 
         int slotTicker = 0;
-        for (final NBTTagCompound loopValue : storageCompleted.partyPokemon)
+        for (final Pokemon pokemon : party.getAll())
         {
             if (slotTicker > 5)
                 break;
 
             final String start = "§bSlot " + (slotTicker + 1) + "§f: ";
-            if (loopValue == null)
+            if (pokemon == null)
                 src.sendMessage(Text.of(start + "§2Empty§a."));
-            else if (loopValue.getBoolean("isEgg"))
+            else if (pokemon.isEgg())
                 src.sendMessage(Text.of(start + "§aAn §2egg§a."));
             else
             {
-                final String name = loopValue.getInteger("Level") + "§2 " + loopValue.getString("Name");
+                final String localizedName = pokemon.getLevel() + "§2 " + pokemon.getSpecies().getLocalizedName();
 
-                if (!loopValue.getString("Nickname").equals(""))
+                if (pokemon.getNickname() != null && !pokemon.getNickname().equals(localizedName))
                 {
-                    final String nickname = "§a, nicknamed §2" + loopValue.getString("Nickname");
-                    src.sendMessage(Text.of(start + "§aA level " + name + nickname + "§a."));
+                    src.sendMessage(Text.of(start + "§aA level " + localizedName +
+                            "§a, nicknamed §2" + pokemon.getNickname() + "§a."));
                 }
                 else
-                    src.sendMessage(Text.of(start + "§aA level " + name + "§a."));
+                    src.sendMessage(Text.of(start + "§aA level " + localizedName + "§a."));
             }
 
             slotTicker++;
@@ -564,118 +545,109 @@ public class CheckStats implements CommandExecutor
     }
 
     // Checks a slot's stats and prints them to chat in a neat list, with contents differing based on config flags.
-    private void checkSpecificSlot(final CommandSource src, final Player target, final NBTTagCompound nbt, final boolean haveTarget)
+    private void checkSpecificSlot(final CommandSource src, final Player target, final Pokemon pokemon, final boolean haveTarget)
     {
         // Set up IVs and matching math.
-        final int HPIV = nbt.getInteger(NbtKeys.IV_HP);
-        final int attackIV = nbt.getInteger(NbtKeys.IV_ATTACK);
-        final int defenseIV = nbt.getInteger(NbtKeys.IV_DEFENCE);
-        final int spAttIV = nbt.getInteger(NbtKeys.IV_SP_ATT);
-        final int spDefIV = nbt.getInteger(NbtKeys.IV_SP_DEF);
-        final int speedIV = nbt.getInteger(NbtKeys.IV_SPEED);
-        final BigDecimal totalIVs = BigDecimal.valueOf(HPIV + attackIV + defenseIV + spAttIV + spDefIV + speedIV);
-        final BigDecimal percentIVs = totalIVs.multiply(new BigDecimal("100")).divide(new BigDecimal("186"), 2, BigDecimal.ROUND_HALF_UP);
+        final Stats IVs = pokemon.getStats();
+        final int totalIVs = IVs.hp + IVs.attack + IVs.defence + IVs.specialAttack + IVs.specialDefence + IVs.speed;
+        final int percentIVs = totalIVs * 100 / 186;
 
         // Format the IVs for use later, so we can print them.
-        String ivs1 = String.valueOf(HPIV + " §2" + shortenedHP + statSeparator);
-        String ivs2 = String.valueOf(attackIV + " §2" + shortenedAttack + statSeparator);
-        String ivs3 = String.valueOf(defenseIV + " §2" + shortenedDefense + statSeparator);
-        String ivs4 = String.valueOf(spAttIV + " §2" + shortenedSpecialAttack + statSeparator);
-        String ivs5 = String.valueOf(spDefIV + " §2" + shortenedSpecialDefense + statSeparator);
-        String ivs6 = String.valueOf(speedIV + " §2" + shortenedSpeed);
+        String ivs1 = String.valueOf(IVs.hp + " §2" + shortenedHP + statSeparator);
+        String ivs2 = String.valueOf(IVs.attack + " §2" + shortenedAttack + statSeparator);
+        String ivs3 = String.valueOf(IVs.defence + " §2" + shortenedDefense + statSeparator);
+        String ivs4 = String.valueOf(IVs.specialAttack + " §2" + shortenedSpecialAttack + statSeparator);
+        String ivs5 = String.valueOf(IVs.specialDefence + " §2" + shortenedSpecialDefense + statSeparator);
+        String ivs6 = String.valueOf(IVs.speed + " §2" + shortenedSpeed);
 
-        if (HPIV > 30)
+        if (IVs.hp > 30)
             ivs1 = String.valueOf("§o") + ivs1;
-        if (attackIV > 30)
+        if (IVs.attack > 30)
             ivs2 = String.valueOf("§o") + ivs2;
-        if (defenseIV > 30)
+        if (IVs.defence > 30)
             ivs3 = String.valueOf("§o") + ivs3;
-        if (spAttIV > 30)
+        if (IVs.specialAttack > 30)
             ivs4 = String.valueOf("§o") + ivs4;
-        if (spDefIV > 30)
+        if (IVs.specialDefence > 30)
             ivs5 = String.valueOf("§o") + ivs5;
-        if (speedIV > 30)
+        if (IVs.speed > 30)
             ivs6 = String.valueOf("§o") + ivs6;
 
         // Rinse and repeat for EVs.
-        final int HPEV = nbt.getInteger(NbtKeys.EV_HP);
-        final int attackEV = nbt.getInteger(NbtKeys.EV_ATTACK);
-        final int defenseEV = nbt.getInteger(NbtKeys.EV_DEFENCE);
-        final int spAttEV = nbt.getInteger(NbtKeys.EV_SPECIAL_ATTACK);
-        final int spDefEV = nbt.getInteger(NbtKeys.EV_SPECIAL_DEFENCE);
-        final int speedEV = nbt.getInteger(NbtKeys.EV_SPEED);
-        final BigDecimal totalEVs = BigDecimal.valueOf(HPEV + attackEV + defenseEV + spAttEV + spDefEV + speedEV);
-        final BigDecimal percentEVs = totalEVs.multiply(new BigDecimal("100")).divide(new BigDecimal("510"), 2, BigDecimal.ROUND_HALF_UP);
+        final EVsStore EVs = pokemon.getEVs();
+        final int totalEVs = EVs.hp + EVs.attack + EVs.defence + EVs.specialAttack + EVs.specialDefence + EVs.speed;
+        final int percentEVs = totalEVs * 100 / 510;
 
         // Also format the strings for EVs.
-        String evs1 = String.valueOf(HPEV + " §2" + shortenedHP + statSeparator);
-        String evs2 = String.valueOf(attackEV + " §2" + shortenedAttack + statSeparator);
-        String evs3 = String.valueOf(defenseEV + " §2" + shortenedDefense + statSeparator);
-        String evs4 = String.valueOf(spAttEV + " §2" + shortenedSpecialAttack + statSeparator);
-        String evs5 = String.valueOf(spDefEV + " §2" + shortenedSpecialDefense + statSeparator);
-        String evs6 = String.valueOf(speedEV + " §2" + shortenedSpeed);
+        String evs1 = String.valueOf(EVs.hp + " §2" + shortenedHP + statSeparator);
+        String evs2 = String.valueOf(EVs.attack + " §2" + shortenedAttack + statSeparator);
+        String evs3 = String.valueOf(EVs.defence + " §2" + shortenedDefense + statSeparator);
+        String evs4 = String.valueOf(EVs.specialAttack + " §2" + shortenedSpecialAttack + statSeparator);
+        String evs5 = String.valueOf(EVs.specialDefence + " §2" + shortenedSpecialDefense + statSeparator);
+        String evs6 = String.valueOf(EVs.speed + " §2" + shortenedSpeed);
 
-        if (HPEV > 251)
+        if (EVs.hp > 251)
             evs1 = String.valueOf("§o") + evs1;
-        if (attackEV > 251)
+        if (EVs.attack > 251)
             evs2 = String.valueOf("§o") + evs2;
-        if (defenseEV > 251)
+        if (EVs.defence > 251)
             evs3 = String.valueOf("§o") + evs3;
-        if (spAttEV > 251)
+        if (EVs.specialAttack > 251)
             evs4 = String.valueOf("§o") + evs4;
-        if (spDefEV > 251)
+        if (EVs.specialDefence > 251)
             evs5 = String.valueOf("§o") + evs5;
-        if (speedEV > 251)
+        if (EVs.speed > 251)
             evs6 = String.valueOf("§o") + evs6;
 
-        // Get a bunch of data from our PokemonMethods utility class. Used for messages, later on.
-        final List<String> natureArray = PokemonMethods.getNatureStrings(nbt.getInteger(NbtKeys.NATURE));
-        final String natureName = natureArray.get(0);
-        final String plusVal = '+' + natureArray.get(1);
-        final String minusVal = '-' + natureArray.get(2);
-        final String growthName = PokemonMethods.getGrowthName(nbt.getInteger(NbtKeys.GROWTH));
+        // Get a bunch of important Pokémon stat data.
+        final EnumNature nature = pokemon.getNature();
+        final EnumGrowth growth = pokemon.getGrowth();
+        final String plusVal = '+' + pokemon.getNature().increasedStat.name();
+        final String minusVal = '-' + pokemon.getNature().decreasedStat.name();
 
         // Set up a gender character. Console doesn't like Unicode genders, so if src is not a Player we'll use M/F/-.
-        final char genderChar = PokemonMethods.getGenderCharacter(src, nbt.getInteger(NbtKeys.GENDER));
+        final char genderChar = PokemonMethods.getGenderCharacter(src, pokemon.getGender().getForm());
+
+        // Create a copy of the Pokémon's persistent data for extracting specific NBT info from.
+        final NBTTagCompound pokemonNBT = pokemon.getPersistentData();
 
         // Let's start printing some stuff! Mark the start of our output text box.
         src.sendMessage(Text.of("§7-----------------------------------------------------"));
 
-        // Make some easy Strings for the Pokémon's name and nickname, and make a few formatted Strings too.
-        final String name = nbt.getString("Name");
-        final String nickname = nbt.getString("Nickname");
+        // Make some easy Strings for the Pokémon's name, nickname and associated stuff.
+        final String localizedName = pokemon.getSpecies().getLocalizedName();
+        final String baseName = pokemon.getSpecies().getPokemonName();
+        final String nickname = pokemon.getNickname();
         final String nicknameString = ", nicknamed §6" + nickname;
+        final String startString;
 
-        // Set up some more Strings, that we keep either uninitialized or blank unless we need them.
-        String startString;
-
-        // Format the target Pokémon's name.
+        // Format the target Pokémon's name...
         if (haveTarget)
         {
-            if (nbt.getBoolean(NbtKeys.IS_EGG) && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
-                startString = "§eStats of §6" + target.getName() + "§e's §6§lshiny §r§6" + name + " §eegg";
-            else if (nbt.getBoolean(NbtKeys.IS_EGG))
-                startString = "§eStats of §6" + target.getName() + "§e's §6" + name + " §eegg";
-            else if (nbt.getInteger(NbtKeys.IS_SHINY) == 1)
-                startString = "§eStats of §6" + target.getName() + "§e's §6§lshiny §r§6" + name + "§e";
+            if (pokemon.isEgg() && pokemon.getIsShiny())
+                startString = "§eStats of §6" + target.getName() + "§e's §6§lshiny §r§6" + localizedName + " §eegg";
+            else if (pokemon.isEgg())
+                startString = "§eStats of §6" + target.getName() + "§e's §6" + localizedName + " §eegg";
+            else if (pokemon.getIsShiny())
+                startString = "§eStats of §6" + target.getName() + "§e's §6§lshiny §r§6" + localizedName + "§e";
             else
-                startString = "§eStats of §6" + target.getName() + "§e's §6" + name + "§e";
+                startString = "§eStats of §6" + target.getName() + "§e's §6" + localizedName + "§e";
         }
         else
         {
             // Some future-proofing, here. Probably won't hit the egg ones anytime soon.
-            if (nbt.getBoolean(NbtKeys.IS_EGG) && nbt.getInteger(NbtKeys.IS_SHINY) == 1)
-                startString = "§eStats of your §6§lshiny §r§6" + name + " §eegg";
-            else if (nbt.getBoolean(NbtKeys.IS_EGG))
-                startString = "§eStats of your §6" + name + " §eegg";
-            else if (nbt.getInteger(NbtKeys.IS_SHINY) == 1)
-                startString = "§eStats of your §6§lshiny §r§6" + name + "§e";
+            if (pokemon.isEgg() && pokemon.getIsShiny())
+                startString = "§eStats of your §6§lshiny §r§6" + localizedName + " §eegg";
+            else if (pokemon.isEgg())
+                startString = "§eStats of your §6" + localizedName + " §eegg";
+            else if (pokemon.getIsShiny())
+                startString = "§eStats of your §6§lshiny §r§6" + localizedName + "§e";
             else
-                startString = "§eStats of your §6" + name + "§e";
+                startString = "§eStats of your §6" + localizedName + "§e";
         }
 
         // ...and their nickname, too, if one exists.
-        if (!nickname.equals("") && !nickname.equals(name))
+        if (nickname != null && !nickname.equals(localizedName))
             src.sendMessage(Text.of(startString + nicknameString + "§e:"));
         else
             src.sendMessage(Text.of(startString + "§e:"));
@@ -694,36 +666,25 @@ public class CheckStats implements CommandExecutor
 
         // Show extra info, which we grabbed from PokemonMethods.
         final String extraInfo1 = String.valueOf("§bGender§f: " + genderChar +
-                "§f | §bSize§f: " + growthName + "§f | ");
-        final String extraInfo2 = String.valueOf("§bNature§f: " + natureName +
+                "§f | §bSize§f: " + growth.name() + "§f | ");
+        final String extraInfo2 = String.valueOf("§bNature§f: " + nature.name() +
                 "§f (§a" + plusVal + "§f/§c" + minusVal + "§f)");
         src.sendMessage(Text.of(extraInfo1 + extraInfo2));
 
         // Check and show whether the Pokémon can be upgraded/fused further, if enabled in config.
-        final boolean isDitto = name.equals("Ditto");
+        /*final boolean isDitto = pokemon.getSpecies().getPokemonName().equals("Ditto");
         if (isDitto && showDittoFusionHelper && !gotFusionError || !isDitto && showUpgradeHelper && !gotUpgradeError)
         {
-            // See which player we're running the command on.
-            final EntityPlayerMP playerEntity;
-            if (haveTarget)
-                playerEntity = (EntityPlayerMP) target;
-            else
-                playerEntity = (EntityPlayerMP) src;
-
-            // Create an entity so we can modify it? This stuff is confusing, still. Also, quick shinyness identifier.
-            final EntityPixelmon pokemon = (EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, playerEntity.getServerWorld());
-            final boolean isShiny = nbt.getInteger(NbtKeys.IS_SHINY) == 1;
-
             // Let's not forget to do this. Moves the count helper message to its own line, right at the bottom.
             src.sendMessage(Text.EMPTY);
 
             // Let's re-use the startString String. It's still relevant.
             if (isDitto)
             {
-                final int fuseCount = pokemon.getEntityData().getInteger("fuseCount");
+                final int fuseCount = pokemonNBT.getInteger("fuseCount");
                 final int fusionCap;
 
-                if (isShiny)
+                if (pokemon.getIsShiny())
                 {
                     startString = "§eThis §6§lshiny §r§6Ditto §e";
                     fusionCap = DittoFusion.shinyCap; // Shiny cap.
@@ -743,11 +704,11 @@ public class CheckStats implements CommandExecutor
             }
             else
             {
-                final int upgradeCount = pokemon.getEntityData().getInteger("upgradeCount");
+                final int upgradeCount = pokemonNBT.getInteger("upgradeCount");
                 final int upgradeCap;
-                final boolean isLegendary = EnumPokemon.legendaries.contains(name);
+                final boolean isLegendary = EnumSpecies.legendaries.contains(baseName);
 
-                if (isShiny && isLegendary)
+                if (pokemon.getIsShiny() && isLegendary)
                 {
                     startString = "§eThis §6§lshiny legendary §r§e";
                     upgradeCap = UpgradeIVs.legendaryAndShinyCap; // Legendary + shiny cap.
@@ -757,7 +718,7 @@ public class CheckStats implements CommandExecutor
                     startString = "§eThis §6§llegendary §r§ePokémon ";
                     upgradeCap = UpgradeIVs.legendaryCap; // Legendary cap.
                 }
-                else if (isShiny)
+                else if (pokemon.getIsShiny())
                 {
                     startString = "§eThis §6§lshiny §r§ePokémon ";
                     upgradeCap = UpgradeIVs.shinyCap; // Shiny cap.
@@ -778,29 +739,29 @@ public class CheckStats implements CommandExecutor
                 else
                     src.sendMessage(Text.of(startString + "has been fully upgraded!"));
             }
-        }
+        }*/
 
         // Mew-specific check for cloning counts. A bit cheap, but it'll work down here. Also, lake trio enchant check.
-        if (name.equals("Mew"))
+        if (baseName.equals("Mew"))
         {
             // If we haven't added a new line yet, do it now.
-            if (isDitto && !showDittoFusionHelper || !isDitto && !showUpgradeHelper)
+            /*if (isDitto && !showDittoFusionHelper || !isDitto && !showUpgradeHelper)*/
                 src.sendMessage(Text.EMPTY);
 
-            final int cloneCount = nbt.getInteger(NbtKeys.STATS_NUM_CLONED);
+            final int cloneCount = pokemonNBT.getInteger(NbtKeys.STATS_NUM_CLONED);
 
             if (cloneCount == 0)
                 src.sendMessage(Text.of("§eCloning has not yet been attempted."));
             else
                 src.sendMessage(Text.of("§eCloning has been attempted §6" + cloneCount + "§f/§63 §etimes."));
         }
-        else if (name.equals("Azelf") || name.equals("Mesprit") || name.equals("Uxie"))
+        else if (baseName.equals("Azelf") || baseName.equals("Mesprit") || baseName.equals("Uxie"))
         {
             // If we haven't added a new line yet, do it now.
-            if (isDitto && !showDittoFusionHelper || !isDitto && !showUpgradeHelper)
+            /*if (isDitto && !showDittoFusionHelper || !isDitto && !showUpgradeHelper)*/
                 src.sendMessage(Text.EMPTY);
 
-            final int enchantCount = nbt.getInteger(NbtKeys.STATS_NUM_ENCHANTED);
+            final int enchantCount = pokemonNBT.getInteger(NbtKeys.STATS_NUM_ENCHANTED);
             final int maxEnchants = PixelmonConfig.getConfig().getNode("General", "lakeTrioMaxEnchants").getInt();
 
             if (enchantCount == 0)

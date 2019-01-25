@@ -1,11 +1,11 @@
-// One of the first PU commands!
+/*// One of the first PU commands!
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
 import com.pixelmonmod.pixelmon.battles.BattleRegistry;
 import com.pixelmonmod.pixelmon.config.PixelmonEntityList;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
-import com.pixelmonmod.pixelmon.enums.EnumPokemon;
+import com.pixelmonmod.pixelmon.enums.EnumSpecies;
 import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
 import com.pixelmonmod.pixelmon.storage.PlayerStorage;
@@ -273,7 +273,7 @@ public class UpgradeIVs implements CommandExecutor
 
                         if (nbt == null)
                         {
-                            printToLog(1, "No NBT data found in slot, probably empty. Exit.");
+                            printToLog(1, "No Pokémon data found in slot, probably empty. Exit.");
                             src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
                         }
                         else if (nbt.getBoolean(NbtKeys.IS_EGG))
@@ -324,37 +324,11 @@ public class UpgradeIVs implements CommandExecutor
                                     printToLog(2, "Provided Pokémon is shiny.");
                                     isShiny = true;
                                 }
-                                if (EnumPokemon.legendaries.contains(nbt.getString("Name")))
+                                if (EnumSpecies.legendaries.contains(nbt.getString("Name")))
                                 {
                                     printToLog(2, "Provided Pokémon is legendary. Applying legendary config amounts.");
                                     isLegendary = true;
                                 }
-
-                                /* NOTE: Outdated, no longer needed as 6.2 put in gen 6 changes. Keeping it just in case.
-                                switch (nbt.getString("Name"))
-                                {
-                                    case "Pichu": case "Cleffa": case "Igglybuff": case "Togepi": case "Tyrogue":
-                                    case "Smoochum": case "Elekid": case "Magby": case "Azurill": case "Wynaut":
-                                    case "Budew": case "Chingling": case "Bonsly": case "Mime Jr.": case "Happiny":
-                                    case "Munchlax": case "Riolu": case "Mantyke":
-                                    {
-                                        printToLog(2, "Provided Pokémon is a known 3*31 IV baby.");
-                                        isBaby = true;
-                                        break;
-                                    }
-
-                                    case "Pickachu": case "Raichu": case "Clefairy": case "Clefable": case "Jigglypuff":
-                                    case "Wigglytuff": case "Togetic": case "Togekiss": case "Hitmonlee": case "Hitmonchan":
-                                    case "Hitmontop": case "Jynx": case "Electabuzz": case "Electivire": case "Magmar":
-                                    case "Magmortar": case "Marill": case "Azumarill": case "Wobbuffet":case "Roselia":
-                                    case "Roserade": case "Chimecho": case "Sudowoodo": case "Mr. Mime": case "Chansey":
-                                    case "Blissey": case "Snorlax": case "Lucario": case "Mantine":
-                                    {
-                                        printToLog(2, "Provided Pokémon is a known 3*31 IV baby evolution.");
-                                        isEvolvedBaby = true;
-                                        break;
-                                    }
-                                }*/
 
                                     if (isShiny && isLegendary && upgradeCount >= legendaryAndShinyCap)
                                     {
@@ -668,4 +642,4 @@ public class UpgradeIVs implements CommandExecutor
         src.sendMessage(Text.of("§eConfirming will immediately take your money, if you have enough!"));
         src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
-}
+}*/

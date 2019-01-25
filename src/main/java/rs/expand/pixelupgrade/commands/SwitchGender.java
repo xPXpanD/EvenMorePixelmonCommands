@@ -2,16 +2,15 @@
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
+import com.pixelmonmod.pixelmon.Pixelmon;
+import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.battles.BattleRegistry;
-import com.pixelmonmod.pixelmon.storage.NbtKeys;
-import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
-import com.pixelmonmod.pixelmon.storage.PlayerStorage;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.Gender;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
@@ -106,105 +105,99 @@ public class SwitchGender implements CommandExecutor
 
                 if (canContinue)
                 {
-                    final Optional<?> storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
+                    // Get the player's party, and then get the Pokémon in the targeted slot.
+                    final Pokemon pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot - 1);
 
-                    if (!storage.isPresent())
+                    if (pokemon == null)
                     {
-                        printToLog(0, "§4" + player.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
-                        src.sendMessage(Text.of("§4Error: §cNo Pixelmon storage found. Please contact staff!"));
+                        printToLog(1, "No Pokémon data found in slot, probably empty. Exit.");
+                        src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
+                    }
+                    else if (pokemon.isEgg())
+                    {
+                        printToLog(1, "Tried to switch gender on an egg. Exit.");
+                        src.sendMessage(Text.of("§4Error: §cThat's an egg! Go hatch it, first."));
+                    }
+                    else if (pokemon.getGender().equals(Gender.None))
+                    {
+                        printToLog(1, "Tried to switch gender on a genderless (or broken?) Pokémon. Exit.");
+                        src.sendMessage(Text.of("§4Error: §cYou can only switch genders on a gendered Pokémon!"));
                     }
                     else
                     {
-                        final PlayerStorage storageCompleted = (PlayerStorage) storage.get();
-                        final NBTTagCompound nbt = storageCompleted.partyPokemon[slot - 1];
+                        if (commandConfirmed)
+                        {
+                            printToLog(2, "Command was confirmed, checking balances.");
 
-                        if (nbt == null)
-                        {
-                            printToLog(1, "No NBT data found in slot, probably empty. Exit.");
-                            src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
-                        }
-                        else if (nbt.getBoolean(NbtKeys.IS_EGG))
-                        {
-                            printToLog(1, "Tried to switch gender on an egg. Exit.");
-                            src.sendMessage(Text.of("§4Error: §cThat's an egg! Go hatch it, first."));
-                        }
-                        else if (nbt.getInteger(NbtKeys.GENDER) != 0 && nbt.getInteger(NbtKeys.GENDER) != 1)
-                        {
-                            printToLog(1, "Tried to switch gender on a genderless (or broken?) Pokémon. Exit.");
-                            src.sendMessage(Text.of("§4Error: §cYou can only switch genders on a gendered Pokémon!"));
-                        }
-                        else
-                        {
-                            if (commandConfirmed)
+                            if (economyEnabled && commandCost > 0)
                             {
-                                printToLog(2, "Command was confirmed, checking balances.");
-                                final int gender = nbt.getInteger(NbtKeys.GENDER);
+                                final BigDecimal costToConfirm = new BigDecimal(commandCost);
+                                final Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
 
-                                if (economyEnabled && commandCost > 0)
+                                if (optionalAccount.isPresent())
                                 {
-                                    final BigDecimal costToConfirm = new BigDecimal(commandCost);
-                                    final Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(player.getUniqueId());
+                                    final UniqueAccount uniqueAccount = optionalAccount.get();
+                                    final TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
+                                                costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
 
-                                    if (optionalAccount.isPresent())
+                                    if (transactionResult.getResult() == ResultType.SUCCESS)
                                     {
-                                        final UniqueAccount uniqueAccount = optionalAccount.get();
-                                        final TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
-                                                    costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
+                                        printToLog(1, "Switched gender for slot §3" + slot +
+                                                "§b, taking §3" + costToConfirm + "§b coins.");
 
-                                        if (transactionResult.getResult() == ResultType.SUCCESS)
-                                        {
-                                            printToLog(1, "Switched gender for slot §3" + slot +
-                                                    "§b, taking §3" + costToConfirm + "§b coins.");
-                                            switchGenders(nbt, src, gender);
-                                            storageCompleted.sendUpdatedList();
-                                        }
-                                        else
-                                        {
-                                            final BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-                                            printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
-                                                    "§b, and we're lacking §3" + balanceNeeded);
+                                        switchGenders(pokemon, src);
 
-                                            src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded +
-                                                    "§c more coins to do this."));
-                                        }
+                                        // Update the player's sidebar with the new changes.
+                                        printToLog(0, "Yo, did it update? If not, TODO.");
                                     }
                                     else
                                     {
-                                        printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. Bug?");
-                                        src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
+                                        final BigDecimal balanceNeeded = uniqueAccount.getBalance(economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
+                                        printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
+                                                "§b, and we're lacking §3" + balanceNeeded);
+
+                                        src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded +
+                                                "§c more coins to do this."));
                                     }
                                 }
                                 else
                                 {
-                                    if (economyEnabled)
-                                    {
-                                        printToLog(1, "Switching gender for slot §3" + slot +
-                                                "§b. Config price is §30§b, taking nothing.");
-                                    }
-                                    else
-                                    {
-                                        printToLog(1, "Switching gender for slot §3" + slot +
-                                                "§b. No economy, so we skipped eco checks.");
-                                    }
-
-                                    switchGenders(nbt, src, gender);
-                                    storageCompleted.sendUpdatedList();
+                                    printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. Bug?");
+                                    src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
                                 }
                             }
                             else
                             {
-                                printToLog(1, "No confirmation provided, printing warning and aborting.");
+                                if (economyEnabled)
+                                {
+                                    printToLog(1, "Switching gender for slot §3" + slot +
+                                            "§b. Config price is §30§b, taking nothing.");
+                                }
+                                else
+                                {
+                                    printToLog(1, "Switching gender for slot §3" + slot +
+                                            "§b. No economy, so we skipped eco checks.");
+                                }
 
-                                src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                                src.sendMessage(Text.of("§6Warning: §eYou are about to switch this Pokémon's gender!"));
-                                src.sendMessage(Text.EMPTY);
+                                switchGenders(pokemon, src);
 
-                                if (economyEnabled && commandCost > 0)
-                                    src.sendMessage(Text.of("§eSwitching will cost §6" + commandCost + "§e coins!"));
-
-                                src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
-                                src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                                // Update the player's sidebar with the new changes.
+                                printToLog(0, "Yo, did it update? If not, TODO.");
                             }
+                        }
+                        else
+                        {
+                            printToLog(1, "No confirmation provided, printing warning and aborting.");
+
+                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                            src.sendMessage(Text.of("§6Warning: §eYou are about to switch this Pokémon's gender!"));
+                            src.sendMessage(Text.EMPTY);
+
+                            if (economyEnabled && commandCost > 0)
+                                src.sendMessage(Text.of("§eSwitching will cost §6" + commandCost + "§e coins!"));
+
+                            src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
+                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         }
                     }
                 }
@@ -216,22 +209,22 @@ public class SwitchGender implements CommandExecutor
         return CommandResult.success();
     }
 
-    private void switchGenders(final NBTTagCompound nbt, final CommandSource src, final int genderNum)
+    private void switchGenders(final Pokemon pokemon, final CommandSource src)
     {
         final String pokemonName;
         final String genderName;
-        if (nbt.getString("Nickname").equals(""))
-            pokemonName = nbt.getString("Name");
+        if (pokemon.getNickname() == null)
+            pokemonName = pokemon.getSpecies().getLocalizedName();
         else
-            pokemonName = nbt.getString("Nickname");
+            pokemonName = pokemon.getNickname();
 
-        switch (genderNum)
+        switch (pokemon.getGender())
         {
-            case 0: // male
-                nbt.setInteger(NbtKeys.GENDER, 1); // female
+            case Male: // male
+                pokemon.setGender(Gender.Female);
                 genderName = "female"; break;
             default: // female, no worries here as we check for non-binary Pokémon earlier
-                nbt.setInteger(NbtKeys.GENDER, 0); // male
+                pokemon.setGender(Gender.Male);
                 genderName = "male"; break;
         }
 
