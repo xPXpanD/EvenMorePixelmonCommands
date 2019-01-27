@@ -9,7 +9,8 @@ import java.util.Optional;
 
 import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.Stats;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.IVStore;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import com.pixelmonmod.pixelmon.enums.EnumGrowth;
 import com.pixelmonmod.pixelmon.enums.EnumNature;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -135,7 +136,7 @@ public class CheckEgg implements CommandExecutor
                 if (canContinue)
                 {
                     // Get the player's party, and then get the Pokémon in the targeted slot.
-                    final Pokemon pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot - 1);
+                    final Pokemon pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot);
 
                     if (pokemon == null || !pokemon.isEgg())
                     {
@@ -249,8 +250,10 @@ public class CheckEgg implements CommandExecutor
         printToLog(2, "We have entered the executing method. Checking stats now!");
 
         // Set up IVs and matching math.
-        final Stats IVs = pokemon.getStats();
-        final int totalIVs = IVs.hp + IVs.attack + IVs.defence + IVs.specialAttack + IVs.specialDefence + IVs.speed;
+        final IVStore IVs = pokemon.getIVs();
+        final int totalIVs =
+                IVs.get(StatsType.HP) + IVs.get(StatsType.Attack) + IVs.get(StatsType.Defence) +
+                IVs.get(StatsType.SpecialAttack) + IVs.get(StatsType.SpecialDefence) + IVs.get(StatsType.Speed);
         final int percentIVs = totalIVs * 100 / 186;
 
         src.sendMessage(Text.of("§7-----------------------------------------------------"));
@@ -266,24 +269,24 @@ public class CheckEgg implements CommandExecutor
             printToLog(2, "Explicit reveal enabled. Printing IVs, shiny-ness and other info.");
 
             // Format the IVs for use later, so we can print them.
-            String ivs1 = String.valueOf(IVs.hp + " §2" + shortenedHP + statSeparator);
-            String ivs2 = String.valueOf(IVs.attack + " §2" + shortenedAttack + statSeparator);
-            String ivs3 = String.valueOf(IVs.defence + " §2" + shortenedDefense + statSeparator);
-            String ivs4 = String.valueOf(IVs.specialAttack + " §2" + shortenedSpecialAttack + statSeparator);
-            String ivs5 = String.valueOf(IVs.specialDefence + " §2" + shortenedSpecialDefense + statSeparator);
-            String ivs6 = String.valueOf(IVs.speed + " §2" + shortenedSpeed);
+            String ivs1 = String.valueOf(IVs.get(StatsType.HP) + " §2" + shortenedHP + statSeparator);
+            String ivs2 = String.valueOf(IVs.get(StatsType.Attack) + " §2" + shortenedAttack + statSeparator);
+            String ivs3 = String.valueOf(IVs.get(StatsType.Defence) + " §2" + shortenedDefense + statSeparator);
+            String ivs4 = String.valueOf(IVs.get(StatsType.SpecialAttack) + " §2" + shortenedSpecialAttack + statSeparator);
+            String ivs5 = String.valueOf(IVs.get(StatsType.SpecialDefence) + " §2" + shortenedSpecialDefense + statSeparator);
+            String ivs6 = String.valueOf(IVs.get(StatsType.Speed) + " §2" + shortenedSpeed);
 
-            if (IVs.hp > 30)
+            if (IVs.get(StatsType.HP) > 30)
                 ivs1 = String.valueOf("§o") + ivs1;
-            if (IVs.attack > 30)
+            if (IVs.get(StatsType.Attack) > 30)
                 ivs2 = String.valueOf("§o") + ivs2;
-            if (IVs.defence > 30)
+            if (IVs.get(StatsType.Defence) > 30)
                 ivs3 = String.valueOf("§o") + ivs3;
-            if (IVs.specialAttack > 30)
+            if (IVs.get(StatsType.SpecialAttack) > 30)
                 ivs4 = String.valueOf("§o") + ivs4;
-            if (IVs.specialDefence > 30)
+            if (IVs.get(StatsType.SpecialDefence) > 30)
                 ivs5 = String.valueOf("§o") + ivs5;
-            if (IVs.speed > 30)
+            if (IVs.get(StatsType.Speed) > 30)
                 ivs6 = String.valueOf("§o") + ivs6;
 
             src.sendMessage(Text.of("§bTotal IVs§f: §a" + totalIVs + "§f/§a186§f (§a" + percentIVs + "%§f)"));

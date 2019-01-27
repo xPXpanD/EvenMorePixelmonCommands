@@ -110,7 +110,7 @@ public class ResetEVs implements CommandExecutor
                 if (canContinue)
                 {
                     // Get the player's party, and then get the Pokémon in the targeted slot.
-                    final Pokemon pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot - 1);
+                    final Pokemon pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot);
 
                     if (pokemon == null)
                     {
@@ -207,8 +207,11 @@ public class ResetEVs implements CommandExecutor
     {
         final EVsStore EVs = pokemon.getEVs();
 
-        printToLog(1, "Old EVS -- §3" + EVs.hp + "§b, §3" + EVs.attack + "§b, §3" + EVs.defence +
-                "§b, §3" + EVs.specialAttack + "§b, §3" + EVs.specialDefence + "§b, §3" + EVs.speed);
+        printToLog(1, "Old EVS -- §3" +
+                EVs.get(StatsType.HP) + "§b HP, §3" + EVs.get(StatsType.Attack) + "§b ATK, §3" +
+                EVs.get(StatsType.Defence) + "§b DEF, §3" + EVs.get(StatsType.SpecialAttack) + "§b SP. ATK, §3" +
+                EVs.get(StatsType.SpecialDefence) + "§b SP. DEF, §3" + EVs.get(StatsType.Speed) + "§b SPD"
+        );
 
         EVs.set(StatsType.HP, 0);
         EVs.set(StatsType.Attack, 0);

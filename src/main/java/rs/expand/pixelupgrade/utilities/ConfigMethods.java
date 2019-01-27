@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.plugin.PluginContainer;
 import java.util.List;
-import java.util.Scanner;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanObject;
 
@@ -37,7 +36,7 @@ public class ConfigMethods
             return null;
     }
 
-    // Do the same for doubles.
+    /*// Do the same for doubles.
     private static Double interpretDouble(final String input)
     {
         if (input != null)
@@ -49,7 +48,7 @@ public class ConfigMethods
 
         // Was the input null, or could we not find a double? Return null and let our commands show an error.
         return null;
-    }
+    }*/
 
     // Create a config directory if it doesn't exist. Silently swallow an error if it does. I/O is awkward.
     public static void checkConfigDir()
@@ -85,10 +84,10 @@ public class ConfigMethods
             else
                 Sponge.getCommandManager().register(puContainer, checktypes, "checktypes", "checktype");
 
-            if (DittoFusion.commandAlias != null && !DittoFusion.commandAlias.equals("dittofusion"))
+            /*if (DittoFusion.commandAlias != null && !DittoFusion.commandAlias.equals("dittofusion"))
                 Sponge.getCommandManager().register(puContainer, dittofusion, "dittofusion", DittoFusion.commandAlias);
             else
-                Sponge.getCommandManager().register(puContainer, dittofusion, "dittofusion");
+                Sponge.getCommandManager().register(puContainer, dittofusion, "dittofusion");*/
 
             if (FixGenders.commandAlias != null && !FixGenders.commandAlias.matches("fixgenders|fixgender"))
                 Sponge.getCommandManager().register(puContainer, fixgenders, "fixgenders", "fixgender", FixGenders.commandAlias);
@@ -112,10 +111,10 @@ public class ConfigMethods
 
             Sponge.getCommandManager().register(puContainer, reloadconfigs, "pureload", "pixelupgradereload");
 
-            if (ResetCount.commandAlias != null && !ResetCount.commandAlias.matches("resetcount|resetcounts"))
+            /*if (ResetCount.commandAlias != null && !ResetCount.commandAlias.matches("resetcount|resetcounts"))
                 Sponge.getCommandManager().register(puContainer, resetcount, "resetcount", "resetcounts", ResetCount.commandAlias);
             else
-                Sponge.getCommandManager().register(puContainer, resetcount, "resetcount", "resetcounts");
+                Sponge.getCommandManager().register(puContainer, resetcount, "resetcount", "resetcounts");*/
 
             if (ResetEVs.commandAlias != null && !ResetEVs.commandAlias.matches("resetevs|resetev"))
                 Sponge.getCommandManager().register(puContainer, resetevs, "resetevs", "resetev", ResetEVs.commandAlias);
@@ -147,10 +146,10 @@ public class ConfigMethods
             else
                 Sponge.getCommandManager().register(puContainer, timedheal, "timedheal", "timerheal");
 
-            if (UpgradeIVs.commandAlias != null && !UpgradeIVs.commandAlias.matches("upgradeivs|upgradeiv"))
+            /*if (UpgradeIVs.commandAlias != null && !UpgradeIVs.commandAlias.matches("upgradeivs|upgradeiv"))
                 Sponge.getCommandManager().register(puContainer, upgradeivs, "upgradeivs", "upgradeiv", UpgradeIVs.commandAlias);
             else
-                Sponge.getCommandManager().register(puContainer, upgradeivs, "upgradeivs", "upgradeiv");
+                Sponge.getCommandManager().register(puContainer, upgradeivs, "upgradeivs", "upgradeiv");*/
 
             return true;
         }
@@ -174,7 +173,7 @@ public class ConfigMethods
 
         // Format our commands and aliases and add them to the lists that we'll print in a bit.
         // TODO: If you add/remove a command, update this list and the numEntries counter!
-        final int numEntries = 17;
+        final int numEntries = 14;
         for (int i = 1; i <= numEntries; i++)
         {
             switch (i)
@@ -199,90 +198,90 @@ public class ConfigMethods
                     commandString = "/checktypes";
                     break;
                 }
-                case 4:
+                /*case 4:
                 {
                     commandAlias = DittoFusion.commandAlias;
                     commandString = "/dittofusion";
                     break;
-                }
-                case 5:
+                }*/
+                case 4:
                 {
                     commandAlias = FixGenders.commandAlias;
                     commandString = "/fixgenders";
                     break;
                 }
-                case 6:
+                case 5:
                 {
                     commandAlias = ForceHatch.commandAlias;
                     commandString = "/forcehatch";
                     break;
                 }
-                case 7:
+                case 6:
                 {
                     commandAlias = ForceStats.commandAlias;
                     commandString = "/forcestats";
                     break;
                 }
-                case 8:
+                case 7:
                 {
                     commandAlias = PixelUpgradeInfo.commandAlias;
                     commandString = "/pixelupgrade";
                     break;
                 }
-                case 9:
+                case 8:
                 {
                     commandAlias = "pureload"; // Alias gets omitted; there's a check for aliases matching base commands.
                     commandString = "/pureload";
                     break;
                 }
-                case 10:
+                /*case 10:
                 {
                     commandAlias = ResetCount.commandAlias;
                     commandString = "/resetcount";
                     break;
-                }
-                case 11:
+                }*/
+                case 9:
                 {
                     commandAlias = ResetEVs.commandAlias;
                     commandString = "/resetevs";
                     break;
                 }
-                case 12:
+                case 10:
                 {
                     commandAlias = ShowStats.commandAlias;
                     commandString = "/showstats";
                     break;
                 }
-                case 13:
+                case 11:
                 {
                     commandAlias = SpawnDex.commandAlias;
                     commandString = "/spawndex";
                     break;
                 }
-                case 14:
+                case 12:
                 {
                     commandAlias = SwitchGender.commandAlias;
                     commandString = "/switchgender";
                     break;
                 }
-                case 15:
+                case 13:
                 {
                     commandAlias = TimedHatch.commandAlias;
                     commandString = "/timedhatch";
                     break;
                 }
-                case 16:
+                case 14:
                 {
                     commandAlias = TimedHeal.commandAlias;
                     commandString = "/timedheal";
                     break;
                 }
-                case 17:
+                /*case 17:
                 {
                     commandAlias = UpgradeIVs.commandAlias;
                     commandString = "/upgradeivs";
                     break;
-                }
+                }*/
             }
 
             if (commandAlias != null)
@@ -394,19 +393,19 @@ public class ConfigMethods
         loadConfig("CheckEgg");
         loadConfig("CheckStats");
         loadConfig("CheckTypes");
-        loadConfig("DittoFusion");
+        /*loadConfig("DittoFusion");*/
         loadConfig("FixGenders");
         loadConfig("ForceHatch");
         loadConfig("ForceStats");
         loadConfig("PixelUpgradeInfo");
-        loadConfig("ResetCount");
+        /*loadConfig("ResetCount");*/
         loadConfig("ResetEVs");
         loadConfig("ShowStats");
         loadConfig("SpawnDex");
         loadConfig("SwitchGender");
         loadConfig("TimedHatch");
         loadConfig("TimedHeal");
-        loadConfig("UpgradeIVs");
+        /*loadConfig("UpgradeIVs");*/
     }
 
     // Grab a specified config, create/read its config file, then load all of the variables into the matching command
@@ -424,10 +423,8 @@ public class ConfigMethods
 
                     PixelUpgrade.configVersion =
                             interpretInteger(commandConfig.getNode("configVersion").getString());
-                    PixelUpgrade.debugVerbosityMode =
-                            interpretInteger(commandConfig.getNode("debugVerbosityMode").getString());
-                    PixelUpgrade.useBritishSpelling =
-                            toBooleanObject(commandConfig.getNode("useBritishSpelling").getString());
+                    PixelUpgrade.logImportantInfo =
+                            toBooleanObject(commandConfig.getNode("logImportantInfo").getString());
                     PixelUpgrade.shortenedHP =
                             commandConfig.getNode("shortenedHealth").getString();
                     PixelUpgrade.shortenedAttack =
@@ -440,29 +437,6 @@ public class ConfigMethods
                             commandConfig.getNode("shortenedSpecialDefense").getString();
                     PixelUpgrade.shortenedSpeed =
                             commandConfig.getNode("shortenedSpeed").getString();
-
-                    // Do some checks, these values are very important for other parts of the code.
-                    boolean gotIssue = false;
-
-                    if (debugVerbosityMode == null)
-                    {
-                        printBasicMessage("    §cValue of global setting §4debugVerbosityMode§c could not be read.");
-                        printBasicMessage("    §cEnabling high verbosity (mode 2) fallback for now...");
-
-                        debugVerbosityMode = 2;
-                        gotIssue = true;
-                    } // 1337 is the internal testing level, not used in releases.
-                    else if (debugVerbosityMode < 0 || debugVerbosityMode > 2 && debugVerbosityMode != 1337)
-                    {
-                        printBasicMessage("    §cValue of global setting §4debugVerbosityMode§c is out of bounds.");
-                        printBasicMessage("    §cEnabling high debug verbosity (mode §42§c) fallback for now...");
-
-                        debugVerbosityMode = 2;
-                        gotIssue = true;
-                    }
-
-                    if (gotIssue)
-                        printBasicMessage("    §cPlease check the main config carefully. Stuff may break.");
 
                     return null;
                 }
@@ -524,7 +498,7 @@ public class ConfigMethods
 
                     return CheckTypes.commandAlias;
                 }
-                case "DittoFusion":
+                /*case "DittoFusion":
                 {
                     tryCreateConfig("DittoFusion", dittoFusionPath);
                     final CommentedConfigurationNode commandConfig = PixelUpgrade.dittoFusionLoader.load();
@@ -559,7 +533,7 @@ public class ConfigMethods
                             interpretInteger(commandConfig.getNode("addFlatFee").getString());
 
                     return DittoFusion.commandAlias;
-                }
+                }*/
                 case "FixGenders":
                 {
                     tryCreateConfig("FixGenders", fixGendersPath);
@@ -606,7 +580,7 @@ public class ConfigMethods
 
                     return PixelUpgradeInfo.commandAlias;
                 }
-                case "ResetCount":
+                /*case "ResetCount":
                 {
                     tryCreateConfig("ResetCount", resetCountPath);
                     final CommentedConfigurationNode commandConfig = PixelUpgrade.resetCountLoader.load();
@@ -615,7 +589,7 @@ public class ConfigMethods
                             commandConfig.getNode("commandAlias").getString();
 
                     return ResetCount.commandAlias;
-                }
+                }*/
                 case "ResetEVs":
                 {
                     tryCreateConfig("ResetEVs", resetEVsPath);
@@ -720,7 +694,7 @@ public class ConfigMethods
 
                     return TimedHeal.commandAlias;
                 }
-                case "UpgradeIVs":
+                /*case "UpgradeIVs":
                 {
                     tryCreateConfig("UpgradeIVs", upgradeIVsPath);
                     final CommentedConfigurationNode commandConfig = PixelUpgrade.upgradeIVsLoader.load();
@@ -753,7 +727,7 @@ public class ConfigMethods
                             interpretInteger(commandConfig.getNode("addFlatFee").getString());
 
                     return UpgradeIVs.commandAlias;
-                }
+                }*/
                 default:
                 {
                     printBasicMessage("    §cConfig gathering failed; fell through the switch.");
@@ -779,19 +753,19 @@ public class ConfigMethods
                 case "CheckEgg": CheckEgg.commandAlias = null; break;
                 case "CheckStats": CheckStats.commandAlias = null; break;
                 case "CheckTypes": CheckTypes.commandAlias = null; break;
-                case "DittoFusion": DittoFusion.commandAlias = null; break;
+                /*case "DittoFusion": DittoFusion.commandAlias = null; break;*/
                 case "FixGenders": FixGenders.commandAlias = null; break;
                 case "ForceHatch": ForceHatch.commandAlias = null; break;
                 case "ForceStats": ForceStats.commandAlias = null; break;
                 case "PixelUpgradeInfo": PixelUpgradeInfo.commandAlias = null; break;
-                case "ResetCount": ResetCount.commandAlias = null; break;
+                /*case "ResetCount": ResetCount.commandAlias = null; break;*/
                 case "ResetEVs": ResetEVs.commandAlias = null; break;
                 case "ShowStats": ShowStats.commandAlias = null; break;
                 case "SpawnDex": SpawnDex.commandAlias = null; break;
                 case "SwitchGender": SwitchGender.commandAlias = null; break;
                 case "TimedHatch": TimedHatch.commandAlias = null; break;
                 case "TimedHeal": TimedHeal.commandAlias = null; break;
-                case "UpgradeIVs": UpgradeIVs.commandAlias = null; break;
+                /*case "UpgradeIVs": UpgradeIVs.commandAlias = null; break;*/
             }
         }
 

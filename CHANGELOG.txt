@@ -1,11 +1,16 @@
-4.2.0 for ???
+5.0.0 for 7.0
 Released ???
 
     Fixes and tweaks:
     * Bumped SpongeAPI to 7.1.0, Forge from 2655 to 2768 with the last pre-1.13 mappings. Might fix some issues?
+    * Readied everything for gen 7!
     * Removed the accidental double check for valid config folders when using /pureload all.
 
-4.1.0 for 6.3.0
+    Removals:
+    * Removed /upgradeivs, /dittofusion and /resetcounts. Coming soon to a new sidemod near you? They need work.
+    * Removed excessive logging, compacted everything into a single log setting that only shows important stuff.
+
+4.1.0 for 6.3
 Released June 6th, 2018.
 
     Additions:
@@ -25,7 +30,7 @@ Released June 6th, 2018.
     * Fixed some inconsistencies with the /pixelupgrade (command listing) command descriptions.
     * Removed a few unnecessary messages. Reworded a few others to convey the same info, where necessary.
 
-4.0.0 beta 1 for 6.2.0
+4.0.0 beta 1 for 6.2
 Released February 13th, 2018.
 
     Minor (non-breaking) config changes:
@@ -45,7 +50,7 @@ Released February 13th, 2018.
     * /timedhatch: Hatches eggs (slot or party) on a configurable cooldown, for a configurable cost.
     * /timedheal: Heals Pokémon (slot or party) on a configurable cooldown, for a configurable cost.
 
-    Removed commands:
+    Removals:
     * /fixevs: As of Reforged 6.2, EVs cap at 252 (gen 6+ cap) instead of 255, making this command obsolete.
     * /fixlevel: The bug it was made to fix (EVs not increasing when at the level cap) no longer exists.
 
@@ -95,7 +100,7 @@ Released February 13th, 2018.
     * Shortened many console messages to fit a standard Windows Command Prompt window. Work in progress.
     * Switched to a #.#.# versioning system again (major/minor/patch) and started keeping proper changelogs!
 
-3.0 for 6.0.0
+3.0 for 6.0
 Released December 28, 2017.
 
     * Added /showstats.

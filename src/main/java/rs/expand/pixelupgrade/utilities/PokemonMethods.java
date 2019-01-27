@@ -3,11 +3,6 @@ package rs.expand.pixelupgrade.utilities;
 // Remote imports.
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
-import java.util.ArrayList;
-import java.util.List;
-
-// Local imports.
-import static rs.expand.pixelupgrade.PixelUpgrade.*;
 
 // Big ol' list of Pokémon.
 public enum PokemonMethods
@@ -942,7 +937,7 @@ public enum PokemonMethods
         }
     }
 
-    public static String getGrowthName(final int growthNum)
+    /*public static String getGrowthName(final int growthNum)
     {
         switch (growthNum)
         {
@@ -1104,5 +1099,5 @@ public enum PokemonMethods
         returnString.add(plusVal);
         returnString.add(minusVal);
         return returnString;
-    }
+    }*/
 }

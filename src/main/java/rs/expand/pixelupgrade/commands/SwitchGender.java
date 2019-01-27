@@ -106,7 +106,7 @@ public class SwitchGender implements CommandExecutor
                 if (canContinue)
                 {
                     // Get the player's party, and then get the Pokémon in the targeted slot.
-                    final Pokemon pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot - 1);
+                    final Pokemon pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot);
 
                     if (pokemon == null)
                     {
@@ -148,7 +148,7 @@ public class SwitchGender implements CommandExecutor
                                         switchGenders(pokemon, src);
 
                                         // Update the player's sidebar with the new changes.
-                                        printToLog(0, "Yo, did it update? If not, TODO.");
+                                        printGenericError("Yo, did it update? If not, TODO.");
                                     }
                                     else
                                     {
@@ -182,7 +182,7 @@ public class SwitchGender implements CommandExecutor
                                 switchGenders(pokemon, src);
 
                                 // Update the player's sidebar with the new changes.
-                                printToLog(0, "Yo, did it update? If not, TODO.");
+                                printGenericError("Yo, did it update? If not, TODO.");
                             }
                         }
                         else

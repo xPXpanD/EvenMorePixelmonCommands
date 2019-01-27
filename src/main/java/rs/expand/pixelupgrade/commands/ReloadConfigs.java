@@ -150,14 +150,14 @@ public class ReloadConfigs implements CommandExecutor
                                 PixelUpgradeInfo.commandAlias + "§a.";
                         break;
                     }
-                    case "RESETCOUNT":
+                    /*case "RESETCOUNT":
                     {
                         printHeaderAndCheckFolder(src, false);
                         oldAlias = ResetCount.commandAlias;
                         newAlias = ConfigMethods.loadConfig("ResetCount");
                         returnString = "--> §aLoaded config for command §2/resetcount§a, alias §2/" + ResetCount.commandAlias + "§a.";
                         break;
-                    }
+                    }*/
                     case "RESETEVS":
                     {
                         printHeaderAndCheckFolder(src, false);

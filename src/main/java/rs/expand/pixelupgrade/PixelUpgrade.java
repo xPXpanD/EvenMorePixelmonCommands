@@ -86,8 +86,7 @@ public class PixelUpgrade
 
     // Load up a ton of variables for use by other commands. We'll fill these in during pre-init.
     public static Integer configVersion;
-    public static Integer debugVerbosityMode;
-    public static Boolean useBritishSpelling;
+    public static Boolean logImportantInfo;
     public static String shortenedHP;
     public static String shortenedAttack;
     public static String shortenedDefense;

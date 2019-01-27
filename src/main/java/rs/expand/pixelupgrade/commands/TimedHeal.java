@@ -362,7 +362,7 @@ public class TimedHeal implements CommandExecutor
                     final PlayerStorage storageCompleted = storage.get();
                     final NBTTagCompound nbt;
                     if (slot != 0)
-                        nbt = storageCompleted.partyPokemon[slot - 1];
+                        nbt = storageCompleted.partyPokemon[slot];
                     else
                         nbt = null;
 

@@ -88,12 +88,6 @@ public class ForceStats implements CommandExecutor
             printToLog(0, "This command's config could not be parsed. Exiting.");
             sendCheckedMessage(src,"§4Error: §cThis command's config is invalid! Please check the file.");
         }
-        else if (PixelUpgrade.useBritishSpelling == null)
-        {
-            printToLog(0, "Could not read remote node \"§4useBritishSpelling§c\".");
-            printToLog(0, "The main config contains invalid variables. Exiting.");
-            sendCheckedMessage(src,"§4Error: §cCould not parse main config. Please report to staff.");
-        }
         else
         {
             if (calledRemotely)
@@ -396,9 +390,9 @@ public class ForceStats implements CommandExecutor
                 // Get the player's party, and then get the Pokémon in the targeted slot.
                 final Pokemon pokemon;
                 if (target != null)
-                    pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) target).get(slot - 1);
+                    pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) target).get(slot);
                 else
-                    pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot - 1);
+                    pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot);
                     printToLog(2, "Checks completed, entering execution.");
 
                 if (pokemon == null)
@@ -473,7 +467,7 @@ public class ForceStats implements CommandExecutor
                             }
 
                             // Update the player's sidebar with the new changes.
-                            printToLog(0, "Yo, did it update? If not, TODO.");
+                            printGenericError("Yo, did it update? If not, TODO.");
 
                             sendCheckedMessage(src,"§aThe new value was written. You may have to reconnect.");
                             sendCheckedMessage(src,"§7-----------------------------------------------------");
@@ -519,7 +513,7 @@ public class ForceStats implements CommandExecutor
                                 pokemonNBT.setLong(stat, longValue);
 
                                 // Update the player's sidebar with the new changes.
-                                printToLog(0, "Yo, did it update? If not, TODO.");
+                                printGenericError("Yo, did it update? If not, TODO.");
 
                                 sendCheckedMessage(src,"§aExisting NBT value changed! You may have to reconnect.");
                                 sendCheckedMessage(src,"§7-----------------------------------------------------");

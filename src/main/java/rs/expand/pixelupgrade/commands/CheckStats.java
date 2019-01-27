@@ -11,7 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.EVsStore;
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.Stats;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.IVStore;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import com.pixelmonmod.pixelmon.enums.EnumGrowth;
 import com.pixelmonmod.pixelmon.enums.EnumNature;
 import com.pixelmonmod.pixelmon.storage.NbtKeys;
@@ -334,7 +335,7 @@ public class CheckStats implements CommandExecutor
                 {
                     // Get the player's party, and then get the Pokémon in the targeted slot.
                     final PartyStorage party = Pixelmon.storageManager.getParty((EntityPlayerMP) src);
-                    final Pokemon pokemon = party.get(slot - 1);
+                    final Pokemon pokemon = party.get(slot);
 
                     if (slot == 0 && (showTeamWhenSlotEmpty || calledRemotely))
                         checkParty(src, target, party, calledRemotely);
@@ -548,55 +549,59 @@ public class CheckStats implements CommandExecutor
     private void checkSpecificSlot(final CommandSource src, final Player target, final Pokemon pokemon, final boolean haveTarget)
     {
         // Set up IVs and matching math.
-        final Stats IVs = pokemon.getStats();
-        final int totalIVs = IVs.hp + IVs.attack + IVs.defence + IVs.specialAttack + IVs.specialDefence + IVs.speed;
+        final IVStore IVs = pokemon.getIVs();
+        final int totalIVs =
+                IVs.get(StatsType.HP) + IVs.get(StatsType.Attack) + IVs.get(StatsType.Defence) +
+                IVs.get(StatsType.SpecialAttack) + IVs.get(StatsType.SpecialDefence) + IVs.get(StatsType.Speed);
         final int percentIVs = totalIVs * 100 / 186;
 
         // Format the IVs for use later, so we can print them.
-        String ivs1 = String.valueOf(IVs.hp + " §2" + shortenedHP + statSeparator);
-        String ivs2 = String.valueOf(IVs.attack + " §2" + shortenedAttack + statSeparator);
-        String ivs3 = String.valueOf(IVs.defence + " §2" + shortenedDefense + statSeparator);
-        String ivs4 = String.valueOf(IVs.specialAttack + " §2" + shortenedSpecialAttack + statSeparator);
-        String ivs5 = String.valueOf(IVs.specialDefence + " §2" + shortenedSpecialDefense + statSeparator);
-        String ivs6 = String.valueOf(IVs.speed + " §2" + shortenedSpeed);
+        String ivs1 = String.valueOf(IVs.get(StatsType.HP) + " §2" + shortenedHP + statSeparator);
+        String ivs2 = String.valueOf(IVs.get(StatsType.Attack) + " §2" + shortenedAttack + statSeparator);
+        String ivs3 = String.valueOf(IVs.get(StatsType.Defence) + " §2" + shortenedDefense + statSeparator);
+        String ivs4 = String.valueOf(IVs.get(StatsType.SpecialAttack) + " §2" + shortenedSpecialAttack + statSeparator);
+        String ivs5 = String.valueOf(IVs.get(StatsType.SpecialDefence) + " §2" + shortenedSpecialDefense + statSeparator);
+        String ivs6 = String.valueOf(IVs.get(StatsType.Speed) + " §2" + shortenedSpeed);
 
-        if (IVs.hp > 30)
+        if (IVs.get(StatsType.HP) > 30)
             ivs1 = String.valueOf("§o") + ivs1;
-        if (IVs.attack > 30)
+        if (IVs.get(StatsType.Attack) > 30)
             ivs2 = String.valueOf("§o") + ivs2;
-        if (IVs.defence > 30)
+        if (IVs.get(StatsType.Defence) > 30)
             ivs3 = String.valueOf("§o") + ivs3;
-        if (IVs.specialAttack > 30)
+        if (IVs.get(StatsType.SpecialAttack) > 30)
             ivs4 = String.valueOf("§o") + ivs4;
-        if (IVs.specialDefence > 30)
+        if (IVs.get(StatsType.SpecialDefence) > 30)
             ivs5 = String.valueOf("§o") + ivs5;
-        if (IVs.speed > 30)
+        if (IVs.get(StatsType.Speed) > 30)
             ivs6 = String.valueOf("§o") + ivs6;
 
         // Rinse and repeat for EVs.
         final EVsStore EVs = pokemon.getEVs();
-        final int totalEVs = EVs.hp + EVs.attack + EVs.defence + EVs.specialAttack + EVs.specialDefence + EVs.speed;
+        final int totalEVs =
+                EVs.get(StatsType.HP) + EVs.get(StatsType.Attack) + EVs.get(StatsType.Defence) +
+                EVs.get(StatsType.SpecialAttack) + EVs.get(StatsType.SpecialDefence) + EVs.get(StatsType.Speed);
         final int percentEVs = totalEVs * 100 / 510;
 
         // Also format the strings for EVs.
-        String evs1 = String.valueOf(EVs.hp + " §2" + shortenedHP + statSeparator);
-        String evs2 = String.valueOf(EVs.attack + " §2" + shortenedAttack + statSeparator);
-        String evs3 = String.valueOf(EVs.defence + " §2" + shortenedDefense + statSeparator);
-        String evs4 = String.valueOf(EVs.specialAttack + " §2" + shortenedSpecialAttack + statSeparator);
-        String evs5 = String.valueOf(EVs.specialDefence + " §2" + shortenedSpecialDefense + statSeparator);
-        String evs6 = String.valueOf(EVs.speed + " §2" + shortenedSpeed);
+        String evs1 = String.valueOf(EVs.get(StatsType.HP) + " §2" + shortenedHP + statSeparator);
+        String evs2 = String.valueOf(EVs.get(StatsType.Attack) + " §2" + shortenedAttack + statSeparator);
+        String evs3 = String.valueOf(EVs.get(StatsType.Defence) + " §2" + shortenedDefense + statSeparator);
+        String evs4 = String.valueOf(EVs.get(StatsType.SpecialAttack) + " §2" + shortenedSpecialAttack + statSeparator);
+        String evs5 = String.valueOf(EVs.get(StatsType.SpecialDefence) + " §2" + shortenedSpecialDefense + statSeparator);
+        String evs6 = String.valueOf(EVs.get(StatsType.Speed) + " §2" + shortenedSpeed);
 
-        if (EVs.hp > 251)
+        if (EVs.get(StatsType.HP) > 251)
             evs1 = String.valueOf("§o") + evs1;
-        if (EVs.attack > 251)
+        if (EVs.get(StatsType.Attack) > 251)
             evs2 = String.valueOf("§o") + evs2;
-        if (EVs.defence > 251)
+        if (EVs.get(StatsType.Defence) > 251)
             evs3 = String.valueOf("§o") + evs3;
-        if (EVs.specialAttack > 251)
+        if (EVs.get(StatsType.SpecialAttack) > 251)
             evs4 = String.valueOf("§o") + evs4;
-        if (EVs.specialDefence > 251)
+        if (EVs.get(StatsType.SpecialDefence) > 251)
             evs5 = String.valueOf("§o") + evs5;
-        if (EVs.speed > 251)
+        if (EVs.get(StatsType.Speed) > 251)
             evs6 = String.valueOf("§o") + evs6;
 
         // Get a bunch of important Pokémon stat data.

@@ -24,40 +24,6 @@ public class PrintingMethods
             return Optional.empty();
     }
 
-    // Depending on the global debug level, decide whether or not to print debug messages here.
-    public static void printDebugMessage(final String callSource, final int debugNum, final String inputString)
-    {
-        if (PixelUpgrade.debugVerbosityMode != null && debugNum <= PixelUpgrade.debugVerbosityMode)
-        {
-            switch (debugNum)
-            {
-                case 0:
-                {
-                    getConsole().ifPresent(console ->
-                            console.sendMessage(Text.of("§4" + callSource + " error §f// §c" + inputString)));
-                    break;
-                }
-                case 1:
-                {
-                    getConsole().ifPresent(console ->
-                            console.sendMessage(Text.of("§3" + callSource + " info §f// §b" + inputString)));
-                    break;
-                }
-                default:
-                {
-                    getConsole().ifPresent(console ->
-                            console.sendMessage(Text.of("§2" + callSource + " debug §f// §a" + inputString)));
-                    break;
-                }
-            }
-        }
-        else if (debugNum == 1337) // Used for test logging, should go unused for release builds.
-        {
-            getConsole().ifPresent(console ->
-                    console.sendMessage(Text.of("§6" + callSource + " TEST §f// §e" + inputString)));
-        }
-    }
-
     // If we need to print something without any major formatting, do it here. Good for console lists.
     public static void printBasicMessage(final String inputString)
     {
@@ -65,27 +31,63 @@ public class PrintingMethods
                 console.sendMessage(Text.of("§f" + inputString)));
     }
 
-    // If we can't read a main config parameter, format and throw this error.
+    // If we need to print something originating from a specific command, do it here.
+    public static void printSourcedMessage(final String callSource, final String inputString)
+    {
+        if (PixelUpgrade.logImportantInfo == null || PixelUpgrade.logImportantInfo)
+        {
+            if (PixelUpgrade.logImportantInfo == null)
+                printGenericError("Could not determine logging status from main config! Falling back to defaults.");
+
+            getConsole().ifPresent(console ->
+                    console.sendMessage(Text.of("§3PU | " + callSource + " §f// §b" + inputString)));
+        }
+    }
+
+    // If we need to show a generic error with no specific source, do it here.
+    public static void printGenericError(final String inputString)
+    {
+        getConsole().ifPresent(console ->
+                console.sendMessage(Text.of("§4PU §f// §4Error: §c" + inputString)));
+    }
+
+    // Used to add existing lines onto a proper error, generally.
+    public static void printBasicError(final String inputString)
+    {
+        getConsole().ifPresent(console ->
+                console.sendMessage(Text.of("§f" + inputString)));
+    }
+
+    // If we need to print an error from a specific command, this is the one we go to.
+    public static void printSourcedError(final String callSource, final String inputString)
+    {
+        getConsole().ifPresent(console ->
+                console.sendMessage(Text.of("§4PU | " + callSource + " §f// §4Error: §c" + inputString)));
+    }
+
+    // If we can't read a main config parameter, get a bit clever and show everything that went wrong.
     public static void printMainNodeError(final String callSource, final List<String> nodes)
     {
-        for (final String node : nodes)
-            printDebugMessage(callSource, 0, "Could not read remote node \"§4" + node + "§c\".");
+        printSourcedError(callSource, "§cErrors were found in the main config. See below:");
 
-        printDebugMessage(callSource, 0, "The main config contains invalid variables. Exiting.");
-        printDebugMessage(callSource, 0, "Check the related config, and when fixed use §4/pureload§c.");
+        for (final String node : nodes)
+            printBasicError("Could not read remote node \"§4" + node + "§c\".");
+
+        printBasicError("§cCheck the main config, and when fixed use §4/pureload§c. Exiting.");
     }
 
-    // And here's one for the per-command configs.
+    // If we can't read a main config parameter, get a bit clever and show everything that went wrong.
     public static void printCommandNodeError(final String callSource, final List<String> nodes)
     {
-        for (final String node : nodes)
-            printDebugMessage(callSource, 0, "Could not read node \"§4" + node + "§c\".");
+        printSourcedError(callSource, "§cErrors were found in this command's config. See below:");
 
-        printDebugMessage(callSource, 0, "This command's config could not be parsed. Exiting.");
-        printDebugMessage(callSource, 0, "Check the related config, and when fixed use §4/pureload§c.");
+        for (final String node : nodes)
+            printBasicError("Could not read node \"§4" + node + "§c\".");
+
+        printBasicError("§cCheck the mentioned config, and when fixed use §4/pureload§c. Exiting.");
     }
 
-    // Use this one if we have to check multiple configs, then end with a separate message.
+    /*// Use this one if we have to check multiple configs, then end with a separate message.
     public static void printPartialNodeError(final String callSource, final String targetCommand, final List<String> nodes)
     {
         for (final String node : nodes)
@@ -93,7 +95,7 @@ public class PrintingMethods
             printDebugMessage(callSource, 0, "Could not read node \"§4" + node +
                     "§c\" for command \"§4/" + targetCommand.toLowerCase() + "§c\".");
         }
-    }
+    }*/
 
     // Adds a footer based on input and matching intent. Used so commonly it might as well be here.
     public static void checkAndAddFooter(final boolean requireConfirmation, final long cost, final CommandSource src)

@@ -402,7 +402,7 @@ public class FixGenders implements CommandExecutor
         else // We add another blank line here to create space between the fixing messages and the end message.
         {
             // Update the player's sidebar with the new changes.
-            printToLog(0, "Yo, did it update? If not, TODO.");
+            printGenericError("Yo, did it update? If not, TODO.");
 
             sendCheckedMessage(src, "");
             sendCheckedMessage(src, "§aWe're done! Glad to be of service.");

@@ -219,9 +219,9 @@ public class ForceHatch implements CommandExecutor
                 // Get the player's party, and then get the Pokémon in the targeted slot.
                 final Pokemon pokemon;
                 if (target != null)
-                    pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) target).get(slot - 1);
+                    pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) target).get(slot);
                 else
-                    pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot - 1);
+                    pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot);
 
                 if (pokemon == null)
                 {
@@ -239,7 +239,7 @@ public class ForceHatch implements CommandExecutor
                     pokemon.hatch();
 
                     // Update the player's sidebar with the new changes.
-                    printToLog(0, "Yo, did it update? If not, TODO.");
+                    printGenericError("Yo, did it update? If not, TODO.");
 
                     if (calledRemotely)
                     {
