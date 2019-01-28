@@ -1,20 +1,16 @@
-// The one and only. Accept no imitations.
+// Reloads EMPC's configs, aliases included.
 package rs.expand.evenmorepixelmoncommands.commands.subcommands;
 
 // Remote imports.
-import org.spongepowered.api.Game;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
 import rs.expand.evenmorepixelmoncommands.utilities.ConfigMethods;
-import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printBasicError;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printUnformattedMessage;
 
 // Note: printUnformattedMessage is a static import for a method from PrintingMethods, for convenience.
@@ -23,61 +19,53 @@ public class ReloadConfigs implements CommandExecutor
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)
     {
-        // Start printing with a header.
-        printUnformattedMessage("========================= P I X E L U P G R A D E =========================");
+        // Print some identifying stuff to console if a player started the command.
         if (src instanceof Player)
         {
-            src.sendMessage(Text.of("§5-----------------------------------------------------"));
-            printUnformattedMessage("--> §aPixelUpgrade config reload called by player §2" + src.getName() + "§a.");
+            printUnformattedMessage("§4EMPC §f// §dPlayer §5" + src.getName() + "§d reloaded the EMPC configs!");
+            printUnformattedMessage("");
         }
 
-        // Check to see if we have a config directory. If not, create one.
-        ConfigMethods.checkConfigDir();
+        // Load up configs and figure out the hub command alias. Start printing. Methods may insert errors as they go.
+        printUnformattedMessage("");
+        printUnformattedMessage("======== E V E N  M O R E  P I X E L M O N  C O M M A N D S ========");
 
-        // Notify.
-        printUnformattedMessage("--> §aReloading all configuration files...");
+        // Load up all configuration files. Creates new configs/folders if necessary. Commit settings to memory.
+        final boolean loadedCorrectly = ConfigMethods.tryCreateAndLoadConfigs();
 
-        // Start a config reload. The returned bool tells us what happened.
-        final boolean loadedConfigsCorrectly = ConfigMethods.tryLoadConfigs();
-        if (loadedConfigsCorrectly)
+        // If we got a good result from the config loading method, proceed to doing more stuff.
+        if (loadedCorrectly)
         {
-            // Print the fancy list of loaded commands and their aliases again.
-            ConfigMethods.printCommandsAndAliases();
+            // (re-)register the main command and alias. Use the result we get back to see if everything worked.
             printUnformattedMessage("--> §aRe-registering commands and known aliases with Sponge...");
 
-            // Re-register mappings with Sponge. This will update aliases and free up any old commands.
-            final Game game = Sponge.getGame();
-            final PluginContainer puContainer = Sponge.getPluginManager().getPlugin("evenmorepixelmoncommands").orElse(null);
+            // Print super fancy command + alias overview to console. Even uses colors to show errors!
+            ConfigMethods.printCommandsAndAliases();
 
-            if (puContainer != null)
-            {
-                game.getCommandManager().getOwnedBy(puContainer).forEach(game.getCommandManager()::removeMapping);
-                ConfigMethods.registerCommands();
-
-                printUnformattedMessage("--> §aAll done!");
-                src.sendMessage(Text.of("§7-----------------------------------------------------"));
-                src.sendMessage(Text.of("§3PU Reload: §bReloaded the provided config(s)!"));
-                src.sendMessage(Text.of("§3PU Reload: §bPlease check the console for any errors."));
-                src.sendMessage(Text.of("§7-----------------------------------------------------"));
-            }
-            else
-            {
-                printBasicError("    Plugin container is null! Please report this. Stuff will break.");
-                if (src instanceof Player)
-                    src.sendMessage(Text.of("§4Error: §cPlugin container could not be found! Please report this."));
-            }
+            // Finish up.
+            if (ConfigMethods.registerCommands())
+                printUnformattedMessage("--> §aReload completed. All systems nominal.");
         }
         else
-        {
-            printBasicError("    Something went wrong while loading configs. Please check for any errors.");
-            if (src instanceof Player)
-                src.sendMessage(Text.of("§4Error: §cConfig loading failed. Check console for any errors."));
-        }
+            printUnformattedMessage("--> §cLoad aborted due to critical errors.");
 
-        // Finish printing with a footer.
+        // We're done, one way or another. Add a footer, and a space to avoid clutter with other marginal'd mods.
+        printUnformattedMessage("====================================================================");
+        printUnformattedMessage("");
+
+        // Also notify our player, if an actual player.
         if (src instanceof Player)
-            src.sendMessage(Text.of("§5-----------------------------------------------------"));
-        printUnformattedMessage("===========================================================================");
+        {
+            src.sendMessage(Text.of("§7-----------------------------------------------------"));
+            src.sendMessage(Text.of("§3EMPC Reload: §bReloaded all EMPC configs!"));
+            src.sendMessage(Text.of("§3EMPC Reload: §bPlease check the console for any errors."));
+            src.sendMessage(Text.of("§7-----------------------------------------------------"));
+        }
+        else // ...or do this if console.
+        {
+            src.sendMessage(Text.of("§bReloaded the EMPC configs!"));
+            src.sendMessage(Text.of("§bPlease check the console for any errors."));
+        }
 
         return CommandResult.success();
     }

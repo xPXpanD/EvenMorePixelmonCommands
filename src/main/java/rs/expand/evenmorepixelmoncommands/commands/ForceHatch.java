@@ -39,7 +39,7 @@ public class ForceHatch implements CommandExecutor
     }
 
     // Set up a class name variable for internal use. We'll pass this to logging when showing a source is desired.
-    private String sourceName = this.getClass().getName();
+    private String sourceName = this.getClass().getSimpleName();
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)
@@ -165,9 +165,9 @@ public class ForceHatch implements CommandExecutor
                 // Get the player's party, and then get the Pokémon in the targeted slot.
                 final Pokemon pokemon;
                 if (target != null)
-                    pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) target).get(slot);
+                    pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) target).get(slot - 1);
                 else
-                    pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot);
+                    pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot - 1);
 
                 if (pokemon == null)
                     sendCheckedMessage(src, "§4Error: §cThere's nothing in that slot!");

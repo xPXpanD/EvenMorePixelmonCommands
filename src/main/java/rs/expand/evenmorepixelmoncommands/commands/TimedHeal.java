@@ -23,7 +23,7 @@ import org.spongepowered.api.text.Text;
 
 // Local imports.
 import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
-import static rs.expand.evenmorepixelmoncommands.PixelUpgrade.*;
+import static rs.expand.evenmorepixelmoncommands.EMPC.*;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printBasicError;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedMessage;
@@ -37,7 +37,7 @@ public class TimedHeal implements CommandExecutor
     public static Boolean healParty, sneakyMode;
 
     // Set up some more variables for internal use.
-    private String sourceName = this.getClass().getName();
+    private String sourceName = this.getClass().getSimpleName();
     private UUID playerUUID;
     private boolean calledRemotely;
     private HashMap<UUID, Long> cooldownMap = new HashMap<>();
@@ -118,9 +118,9 @@ public class TimedHeal implements CommandExecutor
                 player = (Player) src;
                 playerUUID = player.getUniqueId(); // why is the "d" in "Id" lowercase :(
 
-                if (!src.hasPermission("pixelupgrade.command.bypass.timedheal") && cooldownMap.containsKey(playerUUID))
+                if (!src.hasPermission("empc.command.bypass.timedheal") && cooldownMap.containsKey(playerUUID))
                 {
-                    final boolean hasAltPerm = src.hasPermission("pixelupgrade.command.altcooldown.timedheal");
+                    final boolean hasAltPerm = src.hasPermission("empc.command.altcooldown.timedheal");
                     final long timeDifference = currentTime - cooldownMap.get(playerUUID);
                     final long timeRemaining;
 
@@ -153,7 +153,7 @@ public class TimedHeal implements CommandExecutor
                         slot = Integer.parseInt(argString);
                     else if (argString.equalsIgnoreCase("-c") && commandCost != 0 && healParty) // ...or a confirmation flag?
                         commandConfirmed = true;
-                    else if (src.hasPermission("pixelupgrade.command.other.timedheal"))
+                    else if (src.hasPermission("empc.command.other.timedheal"))
                     {
                         if (Sponge.getServer().getPlayer(argString).isPresent()) // Do we have a valid online player?
                         {
@@ -225,7 +225,7 @@ public class TimedHeal implements CommandExecutor
                     party = Pixelmon.storageManager.getParty((EntityPlayerMP) src);
 
                 // Let's see if we have a specific Pokémon, and if so, where it's at. Prepare for a party check otherwise.
-                final Pokemon pokemon = slot != 0 ? party.get(slot) : null;
+                final Pokemon pokemon = slot != 0 ? party.get(slot - 1) : null;
 
                 if (!healParty)
                 {
@@ -274,7 +274,7 @@ public class TimedHeal implements CommandExecutor
                                                 "§b, and taking §3" + costToConfirm + "§b coins.");
 
                                         ///noinspection ConstantConditions
-                                        healPokemon(src, target, pokemon);
+                                        healPokemon(src, null, pokemon);
                                     }
                                 }
                                 else
@@ -374,22 +374,16 @@ public class TimedHeal implements CommandExecutor
                 {
                     if (!calledRemotely)
                     {
-                        final String priceNote;
-                        if (economyEnabled)
-                            priceNote = "Config price is §30§b, taking nothing.";
-                        else
-                            priceNote = "No economy, so we skipped eco checks.";
-
                         if (target == null)
                         {
                             if (healParty)
                             {
-                                printSourcedMessage(sourceName, "Healing player's party. " + priceNote);
+                                printSourcedMessage(sourceName, "Healing player's party.");
                                 healParty(src, null, party);
                             }
                             else
                             {
-                                printSourcedMessage(sourceName, "Healing slot §3" + slot + "§b. " + priceNote);
+                                printSourcedMessage(sourceName, "Healing slot §3" + slot + "§b.");
                                 healPokemon(src, null, pokemon);
                             }
                         }
@@ -398,13 +392,13 @@ public class TimedHeal implements CommandExecutor
                             if (healParty)
                             {
                                 printSourcedMessage(sourceName, "Healing §3" + target.getName() +
-                                        "§b's party. " + priceNote);
+                                        "§b's party. ");
                                 healParty(src, target, party);
                             }
                             else
                             {
                                 printSourcedMessage(sourceName, "Healing slot §3" + slot +
-                                        "§b for §3" + target.getName() + "§b. " + priceNote);
+                                        "§b for §3" + target.getName() + "§b. ");
                                 healPokemon(src, target, pokemon);
                             }
                         }
@@ -471,14 +465,14 @@ public class TimedHeal implements CommandExecutor
 
             if (healParty)
             {
-                if (src.hasPermission("pixelupgrade.command.other.timedheal"))
+                if (src.hasPermission("empc.command.other.timedheal"))
                     sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " [target?]" + confirmString);
                 else
                     sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " " + confirmString);
             }
             else
             {
-                if (src.hasPermission("pixelupgrade.command.other.timedheal"))
+                if (src.hasPermission("empc.command.other.timedheal"))
                     sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " [target?] <slot, 1-6>" + confirmString);
                 else
                     sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " <slot, 1-6>" + confirmString);

@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 // Local imports.
-import rs.expand.evenmorepixelmoncommands.PixelUpgrade;
+import rs.expand.evenmorepixelmoncommands.EMPC;
 
 // A collection of methods that are commonly used. One changed word or color here, and half the mod changes. Sweet.
 public class PrintingMethods
@@ -32,13 +32,13 @@ public class PrintingMethods
     // If we need to print something originating from a specific command, do it here.
     public static void printSourcedMessage(final String callSource, final String inputString)
     {
-        if (PixelUpgrade.logImportantInfo == null || PixelUpgrade.logImportantInfo)
+        if (EMPC.logImportantInfo == null || EMPC.logImportantInfo)
         {
-            if (PixelUpgrade.logImportantInfo == null)
+            if (EMPC.logImportantInfo == null)
                 printBasicError("Could not determine logging status from main config! Falling back to defaults.");
 
             getConsole().ifPresent(console ->
-                    console.sendMessage(Text.of("§3PU | " + callSource + " §f// §b" + inputString)));
+                    console.sendMessage(Text.of("§3EMPC | " + callSource + " §f// §b" + inputString)));
         }
     }
 
@@ -46,14 +46,14 @@ public class PrintingMethods
     public static void printBasicError(final String inputString)
     {
         getConsole().ifPresent(console ->
-                console.sendMessage(Text.of("§4PU §f// §4Error: §c" + inputString)));
+                console.sendMessage(Text.of("§4EMPC §f// §4Error: §c" + inputString)));
     }
 
     // If we need to print an error from a specific command, this is the one we go to.
     public static void printSourcedError(final String callSource, final String inputString)
     {
         getConsole().ifPresent(console ->
-                console.sendMessage(Text.of("§4PU | " + callSource + " §f// §4Error: §c" + inputString)));
+                console.sendMessage(Text.of("§4EMPC | " + callSource + " §f// §4Error: §c" + inputString)));
     }
 
     // If we can't read a main config parameter, get a bit clever and show everything that went wrong.
@@ -64,7 +64,7 @@ public class PrintingMethods
         for (final String node : nodes)
             printBasicError("Could not read remote node \"§4" + node + "§c\".");
 
-        printBasicError("§cCheck the main config, and when fixed use §4/pureload§c. Exiting.");
+        printBasicError("§cCheck the main config, and when fixed use §4/empc reload§c. Exiting.");
     }
 
     // If we can't read a command config parameter, get a bit clever and show everything that went wrong.
@@ -75,7 +75,7 @@ public class PrintingMethods
         for (final String node : nodes)
             printBasicError("Could not read node \"§4" + node + "§c\".");
 
-        printBasicError("§cCheck the mentioned config, and when fixed use §4/pureload§c. Exiting.");
+        printBasicError("§cCheck the mentioned config, and when fixed use §4/empc reload§c. Exiting.");
     }
 
     /*// Use this one if we have to check multiple configs, then end with a separate message.

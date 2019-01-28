@@ -54,11 +54,11 @@ import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.print
 
 @Plugin
 (
-        id = "pixelupgrade",
-        name = "PixelUpgrade",
+        id = "evenmorepixelmoncommands",
+        name = "Even more Pixelmon commands",
         version = "5.0.0",
         dependencies = @Dependency(id = "pixelmon"),
-        description = "Adds a whole bunch of utility commands to Pixelmon, with optional economy integration.",
+        description = "A sidemod for Pixelmon Reforged that adds a bunch of new commands, some with economy integration.",
         authors = "XpanD"
 
         // Not listed but certainly appreciated:
@@ -75,9 +75,10 @@ import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.print
 )
 
 // Note: printUnformattedMessage is a static import for a method from PrintingMethods, for convenience.
-public class PixelUpgrade
+public class EMPC
 {
-    // Some basic setup.
+    // Set up an internal variable so we can see if we loaded correctly.
+    private boolean loadedCorrectly = false;
     public static EconomyService economyService;
     public static boolean economyEnabled = false;
     public static String statSeparator = "§r, §a"; // Can be changed internally. Awaiting lang support for public tweaking.
@@ -94,10 +95,10 @@ public class PixelUpgrade
     // Set up our config paths, and grab an OS-specific file path separator. This will usually be a forward slash.
     private static String separator = FileSystems.getDefault().getSeparator();
     public static String primaryPath = "config" + separator;
-    public static String commandConfigPath = "config" + separator + "PixelUpgrade" + separator;
+    public static String commandConfigPath = "config" + separator + "EMPC" + separator;
 
     // Create the config paths.
-    public static Path primaryConfigPath = Paths.get(primaryPath, "PixelUpgrade.conf");
+    public static Path primaryConfigPath = Paths.get(primaryPath, "EvenMorePixelmonCommands.conf");
     public static Path checkStatsPath = Paths.get(commandConfigPath, "CheckStats.conf");
     public static Path checkTypesPath = Paths.get(commandConfigPath, "CheckTypes.conf");
     /*public static Path dittoFusionPath = Paths.get(commandConfigPath, "DittoFusion.conf");*/
@@ -149,8 +150,8 @@ public class PixelUpgrade
          Utility commands.
     \*                        */
 
-    public static CommandSpec reloadconfigs = CommandSpec.builder()
-            .permission("pixelupgrade.command.staff.reload")
+    private static CommandSpec reloadconfigs = CommandSpec.builder()
+            .permission("empc.command.staff.reload")
             .executor(new ReloadConfigs())
             .build();
 
@@ -169,7 +170,7 @@ public class PixelUpgrade
     \*                     */
 
     public static CommandSpec checkstats = CommandSpec.builder()
-            .permission("pixelupgrade.command.checkstats")
+            .permission("empc.command.checkstats")
             .executor(new CheckStats())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/slot"))),
@@ -178,7 +179,7 @@ public class PixelUpgrade
             .build();
 
     public static CommandSpec checktypes = CommandSpec.builder()
-            .permission("pixelupgrade.command.checktypes")
+            .permission("empc.command.checktypes")
             .executor(new CheckTypes())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("Pokémon name/ID"))),
@@ -186,7 +187,7 @@ public class PixelUpgrade
             .build();
 
     /*public static CommandSpec dittofusion = CommandSpec.builder()
-            .permission("pixelupgrade.command.dittofusion")
+            .permission("empc.command.dittofusion")
             .executor(new DittoFusion())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("main slot"))),
@@ -195,7 +196,7 @@ public class PixelUpgrade
             .build();*/
 
     public static CommandSpec fixgenders = CommandSpec.builder()
-            .permission("pixelupgrade.command.fixgenders")
+            .permission("empc.command.fixgenders")
             .executor(new FixGenders())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/confirmation"))),
@@ -203,7 +204,7 @@ public class PixelUpgrade
             .build();
 
     public static CommandSpec forcehatch = CommandSpec.builder()
-            .permission("pixelupgrade.command.staff.forcehatch")
+            .permission("empc.command.staff.forcehatch")
             .executor(new ForceHatch())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/slot"))),
@@ -211,7 +212,7 @@ public class PixelUpgrade
             .build();
 
     public static CommandSpec forcestats = CommandSpec.builder()
-            .permission("pixelupgrade.command.staff.forcestats")
+            .permission("empc.command.staff.forcestats")
             .executor(new ForceStats())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/slot"))),
@@ -222,7 +223,7 @@ public class PixelUpgrade
             .build();
 
     /*public static CommandSpec resetcount = CommandSpec.builder()
-            .permission("pixelupgrade.command.staff.resetcount")
+            .permission("empc.command.staff.resetcount")
             .executor(new ResetCount())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
@@ -231,7 +232,7 @@ public class PixelUpgrade
             .build();*/
 
     public static CommandSpec resetevs = CommandSpec.builder()
-            .permission("pixelupgrade.command.resetevs")
+            .permission("empc.command.resetevs")
             .executor(new ResetEVs())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
@@ -239,7 +240,7 @@ public class PixelUpgrade
             .build();
 
     public static CommandSpec showstats = CommandSpec.builder()
-            .permission("pixelupgrade.command.showstats")
+            .permission("empc.command.showstats")
             .executor(new ShowStats())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
@@ -247,7 +248,7 @@ public class PixelUpgrade
             .build();
 
     public static CommandSpec spawndex = CommandSpec.builder()
-            .permission("pixelupgrade.command.staff.spawndex")
+            .permission("empc.command.staff.spawndex")
             .executor(new SpawnDex())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("Pokémon name/ID"))),
@@ -256,7 +257,7 @@ public class PixelUpgrade
             .build();
 
     public static CommandSpec switchgender = CommandSpec.builder()
-            .permission("pixelupgrade.command.switchgender")
+            .permission("empc.command.switchgender")
             .executor(new SwitchGender())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
@@ -264,7 +265,7 @@ public class PixelUpgrade
             .build();
 
     public static CommandSpec timedhatch = CommandSpec.builder()
-            .permission("pixelupgrade.command.timedhatch")
+            .permission("empc.command.timedhatch")
             .executor(new TimedHatch())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/slot/confirmation"))),
@@ -273,7 +274,7 @@ public class PixelUpgrade
             .build();
 
     public static CommandSpec timedheal = CommandSpec.builder()
-            .permission("pixelupgrade.command.timedheal")
+            .permission("empc.command.timedheal")
             .executor(new TimedHeal())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/slot/confirmation"))),
@@ -282,7 +283,7 @@ public class PixelUpgrade
             .build();
 
     /*public static CommandSpec upgradeivs = CommandSpec.builder()
-            .permission("pixelupgrade.command.upgradeivs")
+            .permission("empc.command.upgradeivs")
             .executor(new UpgradeIVs())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
@@ -290,63 +291,72 @@ public class PixelUpgrade
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("quantity"))),
                     GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
             .build();*/
-
+    
     @Listener
-    public void onPreInitEvent(final GamePreInitializationEvent event)
+    public void onGamePreInitEvent(final GamePreInitializationEvent event)
     {
-        // Load up the primary config and the info command config, and figure out the info alias.
-        // We start printing stuff, here. If any warnings/errors pop up they'll be shown here.
+        // Load up configs and figure out the hub command alias. Start printing. Methods may insert errors as they go.
         printUnformattedMessage("");
-        printUnformattedMessage("========================= P I X E L U P G R A D E =========================");
+        printUnformattedMessage("======== E V E N  M O R E  P I X E L M O N  C O M M A N D S ========");
 
-        // Create a config directory if it doesn't exist. Silently swallow an error if it does. I/O is awkward.
-        ConfigMethods.checkConfigDir();
+        // Load up all configuration files. Creates new configs/folders if necessary. Commit settings to memory.
+        // Store whether we actually loaded things up correctly in this bool, which we can check again later.
+        loadedCorrectly = ConfigMethods.tryCreateAndLoadConfigs();
 
-        printUnformattedMessage("--> §aLoading and validating configs...");
-        ConfigMethods.tryLoadConfigs();
-
-        // Print super fancy command + alias overview to console. Even uses colors to show errors!
-        ConfigMethods.printCommandsAndAliases();
-
-        printUnformattedMessage("--> §aRegistering commands and known aliases with Sponge...");
-        final boolean registrationCompleted = ConfigMethods.registerCommands();
-
-        if (registrationCompleted)
-            printUnformattedMessage("--> §aPre-init completed.  All systems nominal.");
-        printUnformattedMessage("===========================================================================");
-        printUnformattedMessage("");
-    }
-
-    @Listener
-    public void onPostInitEvent(final GamePostInitializationEvent event)
-    {
-        printUnformattedMessage("");
-        printUnformattedMessage("========================= P I X E L U P G R A D E =========================");
-        printUnformattedMessage("--> §aChecking whether an economy plugin is present...");
-
-        final Optional<EconomyService> potentialEconomyService = Sponge.getServiceManager().provide(EconomyService.class);
-        if (potentialEconomyService.isPresent())
+        // If we got a good result from the config loading method, proceed to initializing more stuff.
+        if (loadedCorrectly)
         {
-            printUnformattedMessage("--> §aAn economy plugin was detected. Enabling integration!");
-            economyEnabled = true;
-            economyService = potentialEconomyService.get();
+            // (re-)register the main command and alias. Use the result we get back to see if everything worked.
+            printUnformattedMessage("--> §aRegistering commands and known aliases with Sponge...");
+
+            // Print super fancy command + alias overview to console. Even uses colors to show errors!
+            ConfigMethods.printCommandsAndAliases();
+
+            // Finish up.
+            if (ConfigMethods.registerCommands())
+                printUnformattedMessage("--> §aPre-init completed. All systems nominal.");
         }
         else
-            printUnformattedMessage("--> §eNo economy plugin was found. Proceeding with integration disabled!");
+            printUnformattedMessage("--> §cLoad aborted due to critical errors.");
 
-        printUnformattedMessage("--> §aAll systems nominal.");
-        printUnformattedMessage("===========================================================================");
+        // We're done, one way or another. Add a footer, and a space to avoid clutter with other marginal'd mods.
+        printUnformattedMessage("====================================================================");
         printUnformattedMessage("");
     }
 
     @Listener
+    public void onGamePostInitEvent(final GamePostInitializationEvent event)
+    {
+        if (loadedCorrectly)
+        {
+            printUnformattedMessage("");
+            printUnformattedMessage("======== E V E N  M O R E  P I X E L M O N  C O M M A N D S ========");
+            printUnformattedMessage("--> §aChecking whether an economy plugin is present...");
+
+            final Optional<EconomyService> potentialEconomyService = Sponge.getServiceManager().provide(EconomyService.class);
+            if (potentialEconomyService.isPresent())
+            {
+                printUnformattedMessage("--> §aAn economy plugin was detected. Enabling integration!");
+                economyEnabled = true;
+                economyService = potentialEconomyService.get();
+            }
+            else
+                printUnformattedMessage("--> §eNo economy plugin was found. Proceeding with integration disabled!");
+
+            printUnformattedMessage("--> §aWe are good to go.");
+            printUnformattedMessage("====================================================================");
+            printUnformattedMessage("");
+        }
+    }
+
+    /*@Listener
     public void onServerStartedEvent(final GameStartedServerEvent event)
     {
         // Shown when we're running a config that is too outdated. Not shown on 4.0.0 configs, since they're fine.
-        if (PixelUpgrade.configVersion != null && PixelUpgrade.configVersion < 400)
+        if (EMPC.configVersion != null && EMPC.configVersion < 400)
         {
             printUnformattedMessage("");
-            printUnformattedMessage("========================= P I X E L U P G R A D E =========================");
+            printUnformattedMessage("======== E V E N  M O R E  P I X E L M O N  C O M M A N D S ========");
             printUnformattedMessage("§4PixelUpgrade §clikely has an outdated main config.");
             printUnformattedMessage("");
             printUnformattedMessage("§6Please follow these steps to fix this:");
@@ -359,8 +369,8 @@ public class PixelUpgrade
             printUnformattedMessage("§67. §eIf so desired, manually recover old settings and §6/pureload all §eagain.");
             printUnformattedMessage("");
             printUnformattedMessage("§cUntil this is done, §4/showstats §cwill have reduced functionality!");
-            printUnformattedMessage("===========================================================================");
+            printUnformattedMessage("====================================================================");
             printUnformattedMessage("");
         }
-    }
+    }*/
 }

@@ -25,7 +25,7 @@ import org.spongepowered.api.text.Text;
 
 // Local imports.
 import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
-import static rs.expand.evenmorepixelmoncommands.PixelUpgrade.*;
+import static rs.expand.evenmorepixelmoncommands.EMPC.*;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedMessage;
 
@@ -38,7 +38,7 @@ public class ResetEVs implements CommandExecutor
     public static Integer commandCost;
 
     // Set up a class name variable for internal use. We'll pass this to logging when showing a source is desired.
-    private String sourceName = this.getClass().getName();
+    private String sourceName = this.getClass().getSimpleName();
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)
@@ -87,7 +87,7 @@ public class ResetEVs implements CommandExecutor
                     commandConfirmed = true;
 
                 // Get the player's party, and then get the Pokémon in the targeted slot.
-                final Pokemon pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot);
+                final Pokemon pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot - 1);
 
                 if (pokemon == null)
                     src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
@@ -127,20 +127,7 @@ public class ResetEVs implements CommandExecutor
                         }
                     }
                     else
-                    {
-                        if (economyEnabled)
-                        {
-                            printSourcedMessage(sourceName, "Resetting EVs for slot §3" + slot +
-                                    "§b. Config price is §30§b, taking nothing.");
-                        }
-                        else
-                        {
-                            printSourcedMessage(sourceName, "Resetting EVs for slot §3" + slot +
-                                    "§b. No economy, so we skipped eco checks.");
-                        }
-
                         resetPlayerEVs(pokemon, src);
-                    }
                 }
                 else
                 {

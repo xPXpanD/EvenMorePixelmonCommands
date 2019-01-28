@@ -1,4 +1,4 @@
-/*// One of the first PU commands!
+/*// One of the first PU/EMPC commands!
 package rs.expand.evenmorepixelmoncommands.commands;
 
 // Remote imports.

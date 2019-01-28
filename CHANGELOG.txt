@@ -2,22 +2,22 @@
 Released January 28th, 2019.
 
     Major (breaking) config changes:
-    * The main config and info command config have been merged.
-    * Many things have been simplified or otherwise streamlined in the command configs. Generate new files.
+    * RENAMED THE MOD! We're now "Even more Pixelmon commands", and we've shed some weight. Original, I know.
+    * (regenerate ALL configs, copy back old data manually if necessary)
 
     Additions:
     * Added the showing of levels to /checkstats and /showstats (hover only, there).
 
     Changes:
     * Bumped SpongeAPI to 7.1.0, Forge from 2655 to 2768 with the last pre-1.13 mappings. Might fix some issues?
-    * Merged the command listing and /pureload into /pixelupgrade, using a child command setup.
+    * Merged the command listing and /pureload into /empc, using a child command setup. (just like PB)
     * Reload now reloads everything, always.
     * Readied everything for gen 7!
     * Reworded /showstats anticheat wording to be a bit less paranoid.
 
     Fixes and tweaks:
     * Fixed some inconsistencies with shown command parameters.
-    * Removed the accidental double check for valid config folders when using /pureload all.
+    * Removed the accidental double check for valid config folders when reloading configs.
 
     Removals:
     * Removed /checkegg, and merged its settings and features into /checkstats. No point having two commands.

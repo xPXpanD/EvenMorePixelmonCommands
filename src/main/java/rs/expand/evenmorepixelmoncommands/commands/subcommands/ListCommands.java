@@ -12,11 +12,12 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.format.TextColors;
+import rs.expand.evenmorepixelmoncommands.EMPC;
 import rs.expand.evenmorepixelmoncommands.commands.*;
 
 // Local imports.
-import static rs.expand.evenmorepixelmoncommands.PixelUpgrade.economyEnabled;
-import static rs.expand.evenmorepixelmoncommands.PixelUpgrade.numLinesPerPage;
+import static rs.expand.evenmorepixelmoncommands.EMPC.economyEnabled;
+import static rs.expand.evenmorepixelmoncommands.EMPC.numLinesPerPage;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printBasicError;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;
 
@@ -43,31 +44,30 @@ public class ListCommands implements CommandExecutor
             // Make an uninitialized String for command confirmation flags. We fill this in when people need to know a flag.
             String flagString;
 
-            // Validate the data we get from the command's main config. Revert to safe values if necessary.
+            // Create a fresh list to store messages in for every permitted command. We'll iterate over this at the end.
             final java.util.List<Text> permissionMessageList = new ArrayList<>();
-            boolean gotConfigError = false;
-            final int sanitizedNumLinesPerPage;
 
-            if (commandAlias == null)
-            {
-                printSourcedError(sourceName, "Could not read node \"§4commandAlias§c\".");
-                gotConfigError = true;
-            }
+            // Validate the data we get from the command's main config. Revert to safe values if necessary.
+            final int sanitizedNumLinesPerPage;
 
             if (numLinesPerPage == null)
             {
                 printSourcedError(sourceName, "Could not read node \"§4numLinesPerPage§c\".");
-                gotConfigError = true;
                 sanitizedNumLinesPerPage = 20;
+                printBasicError("We'll proceed with safe defaults. Please fix this.");
             }
             else
                 sanitizedNumLinesPerPage = numLinesPerPage;
 
-            // We got an error. Safe defaults were already loaded earlier, and specific errors printed.
-            if (gotConfigError)
-                printBasicError("We'll proceed with safe defaults. Please fix this.");
+            if (EMPC.commandAlias != null)
+            {
+                permissionMessageList.add(Text.of("§6/" + EMPC.commandAlias + " [option?]"));
+                permissionMessageList.add(Text.of("§f ➡ §eShows core mod commands such as this very list! Clickable."));
+            }
+            else
+                printSourcedError(sourceName, "§3The main config is malformed! Hiding from list.");
 
-            if (calledRemotely || src.hasPermission("pixelupgrade.command.checkstats"))
+            if (calledRemotely || src.hasPermission("empc.command.checkstats"))
             {
                 if (CheckStats.commandCost != null && CheckStats.commandAlias != null && CheckStats.showTeamWhenSlotEmpty != null)
                 {
@@ -80,12 +80,12 @@ public class ListCommands implements CommandExecutor
                         else
                             flagString = "";
 
-                        if (src.hasPermission("pixelupgrade.command.other.checkstats") && CheckStats.showTeamWhenSlotEmpty)
+                        if (src.hasPermission("empc.command.other.checkstats") && CheckStats.showTeamWhenSlotEmpty)
                         {
                             permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
                                     " [target?] [slot? 1-6]" + flagString));
                         }
-                        else if (src.hasPermission("pixelupgrade.command.other.checkstats"))
+                        else if (src.hasPermission("empc.command.other.checkstats"))
                         {
                             permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias +
                                     " [target?] <slot, 1-6>" + flagString));
@@ -103,7 +103,7 @@ public class ListCommands implements CommandExecutor
                     printSourcedError(sourceName, "§3/checkstats §bhas a malformed config, hiding from list.");
             }
 
-            if (calledRemotely || src.hasPermission("pixelupgrade.command.checktypes"))
+            if (calledRemotely || src.hasPermission("empc.command.checktypes"))
             {
                 if (CheckTypes.commandAlias != null)
                 {
@@ -114,7 +114,7 @@ public class ListCommands implements CommandExecutor
                     printSourcedError(sourceName, "§3/checktypes §bhas a malformed config, hiding from list.");
             }
 
-            /*if (!calledRemotely && src.hasPermission("pixelupgrade.command.dittofusion"))
+            /*if (!calledRemotely && src.hasPermission("empc.command.dittofusion"))
             {
                 if (DittoFusion.commandAlias != null)
                 {
@@ -130,7 +130,7 @@ public class ListCommands implements CommandExecutor
                     printSourcedError(sourceName, "§3/dittofusion §bhas a malformed config, hiding from list.");
             }*/
 
-            if (calledRemotely || src.hasPermission("pixelupgrade.command.fixgenders"))
+            if (calledRemotely || src.hasPermission("empc.command.fixgenders"))
             {
                 if (FixGenders.commandAlias != null)
                 {
@@ -138,9 +138,9 @@ public class ListCommands implements CommandExecutor
                         permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " <target>"));
                     else
                     {
-                        if (src.hasPermission("pixelupgrade.command.staff.fixgenders") && FixGenders.requireConfirmation)
+                        if (src.hasPermission("empc.command.staff.fixgenders") && FixGenders.requireConfirmation)
                             permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " [target?] {confirm flag}"));
-                        else if (src.hasPermission("pixelupgrade.command.staff.fixgenders"))
+                        else if (src.hasPermission("empc.command.staff.fixgenders"))
                             permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " [target?]"));
                         else if (FixGenders.requireConfirmation)
                             permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " {confirm flag}"));
@@ -154,7 +154,7 @@ public class ListCommands implements CommandExecutor
                     printSourcedError(sourceName, "§3/fixgenders §bhas a malformed config, hiding from list.");
             }
 
-            if (calledRemotely || src.hasPermission("pixelupgrade.command.staff.forcehatch"))
+            if (calledRemotely || src.hasPermission("empc.command.staff.forcehatch"))
             {
                 if (ForceHatch.commandAlias != null)
                 {
@@ -169,7 +169,7 @@ public class ListCommands implements CommandExecutor
                     printSourcedError(sourceName, "§3/forcehatch §bhas a malformed config, hiding from list.");
             }
 
-            if (calledRemotely || src.hasPermission("pixelupgrade.command.staff.forcestats"))
+            if (calledRemotely || src.hasPermission("empc.command.staff.forcestats"))
             {
                 if (ForceStats.commandAlias != null)
                 {
@@ -184,13 +184,7 @@ public class ListCommands implements CommandExecutor
                     printSourcedError(sourceName, "§3/forcestats §bhas a malformed config, hiding from list.");
             }
 
-            if (calledRemotely || src.hasPermission("pixelupgrade.command.staff.reload"))
-            {
-                permissionMessageList.add(Text.of("§6/pureload <config>"));
-                permissionMessageList.add(Text.of("§f ➡ §eReload one or more PixelUpgrade configs on the fly."));
-            }
-
-            /*if (!calledRemotely && src.hasPermission("pixelupgrade.command.staff.resetcount"))
+            /*if (!calledRemotely && src.hasPermission("empc.command.staff.resetcount"))
             {
                 if (ResetCount.commandAlias != null)
                 {
@@ -201,7 +195,7 @@ public class ListCommands implements CommandExecutor
                     printSourcedError(sourceName, "§3/resetcount §bhas a malformed config, hiding from list.");
             }*/
 
-            if (!calledRemotely && src.hasPermission("pixelupgrade.command.resetevs"))
+            if (!calledRemotely && src.hasPermission("empc.command.resetevs"))
             {
                 if (ResetEVs.commandCost != null && ResetEVs.commandAlias != null)
                 {
@@ -212,7 +206,7 @@ public class ListCommands implements CommandExecutor
                     printSourcedError(sourceName, "§3/resetevs §bhas a malformed config, hiding from list.");
             }
 
-            if (!calledRemotely && src.hasPermission("pixelupgrade.command.showstats"))
+            if (!calledRemotely && src.hasPermission("empc.command.showstats"))
             {
                 if (ShowStats.commandCost != null && ShowStats.commandAlias != null)
                 {
@@ -227,7 +221,7 @@ public class ListCommands implements CommandExecutor
                     printSourcedError(sourceName, "§3/showstats §bhas a malformed config, hiding from list.");
             }
 
-            if (!calledRemotely && src.hasPermission("pixelupgrade.command.staff.spawndex"))
+            if (!calledRemotely && src.hasPermission("empc.command.staff.spawndex"))
             {
                 if (SpawnDex.commandAlias != null)
                 {
@@ -239,7 +233,7 @@ public class ListCommands implements CommandExecutor
                     printSourcedError(sourceName, "§3/spawndex §bhas a malformed config, hiding from list.");
             }
 
-            if (!calledRemotely && src.hasPermission("pixelupgrade.command.switchgender"))
+            if (!calledRemotely && src.hasPermission("empc.command.switchgender"))
             {
                 if (SwitchGender.commandCost != null && SwitchGender.commandAlias != null)
                 {
@@ -250,7 +244,7 @@ public class ListCommands implements CommandExecutor
                     printSourcedError(sourceName, "§3/switchgender §bhas a malformed config, hiding from list.");
             }
 
-            if (calledRemotely || src.hasPermission("pixelupgrade.command.timedhatch"))
+            if (calledRemotely || src.hasPermission("empc.command.timedhatch"))
             {
                 if (TimedHatch.commandCost != null && TimedHatch.commandAlias != null && TimedHatch.hatchParty != null)
                 {
@@ -265,25 +259,25 @@ public class ListCommands implements CommandExecutor
 
                         if (TimedHatch.hatchParty)
                         {
-                            if (src.hasPermission("pixelupgrade.command.other.timedhatch"))
+                            if (src.hasPermission("empc.command.other.timedhatch"))
                                 permissionMessageList.add(Text.of("§6/" + TimedHatch.commandAlias + " [target?]" + flagString));
                             else
                                 permissionMessageList.add(Text.of("§6/" + TimedHatch.commandAlias + " " + flagString));
                         }
                         else
                         {
-                            if (src.hasPermission("pixelupgrade.command.other.timedhatch"))
+                            if (src.hasPermission("empc.command.other.timedhatch"))
                                 permissionMessageList.add(Text.of("§6/" + TimedHatch.commandAlias + " [target?] <slot, 1-6>" + flagString));
                             else
                                 permissionMessageList.add(Text.of("§6/" + TimedHatch.commandAlias + " <slot, 1-6>" + flagString));
                         }
                     }
 
-                    if (src.hasPermission("pixelupgrade.command.other.timedhatch") && TimedHatch.hatchParty)
+                    if (src.hasPermission("empc.command.other.timedhatch") && TimedHatch.hatchParty)
                         permissionMessageList.add(Text.of("§f ➡ §eImmediately hatches all targeted eggs."));
                     else if (TimedHatch.hatchParty)
                         permissionMessageList.add(Text.of("§f ➡ §eImmediately hatches all your eggs."));
-                    else if (src.hasPermission("pixelupgrade.command.other.timedhatch"))
+                    else if (src.hasPermission("empc.command.other.timedhatch"))
                         permissionMessageList.add(Text.of("§f ➡ §eImmediately hatches the targeted egg."));
                     else
                         permissionMessageList.add(Text.of("§f ➡ §eImmediately hatches a egg."));
@@ -292,7 +286,7 @@ public class ListCommands implements CommandExecutor
                     printSourcedError(sourceName, "§3/timedhatch §bhas a malformed config, hiding from list.");
             }
 
-            if (calledRemotely || src.hasPermission("pixelupgrade.command.timedheal"))
+            if (calledRemotely || src.hasPermission("empc.command.timedheal"))
             {
                 if (TimedHeal.commandCost != null && TimedHeal.commandAlias != null && TimedHeal.healParty != null)
                 {
@@ -307,25 +301,25 @@ public class ListCommands implements CommandExecutor
 
                         if (TimedHeal.healParty)
                         {
-                            if (src.hasPermission("pixelupgrade.command.other.timedheal"))
+                            if (src.hasPermission("empc.command.other.timedheal"))
                                 permissionMessageList.add(Text.of("§6/" + TimedHeal.commandAlias + " [target?]" + flagString));
                             else
                                 permissionMessageList.add(Text.of("§6/" + TimedHeal.commandAlias + " " + flagString));
                         }
                         else
                         {
-                            if (src.hasPermission("pixelupgrade.command.other.timedheal"))
+                            if (src.hasPermission("empc.command.other.timedheal"))
                                 permissionMessageList.add(Text.of("§6/" + TimedHeal.commandAlias + " [target?] <slot, 1-6>" + flagString));
                             else
                                 permissionMessageList.add(Text.of("§6/" + TimedHeal.commandAlias + " <slot, 1-6>" + flagString));
                         }
                     }
 
-                    if (src.hasPermission("pixelupgrade.command.other.timedheal") && TimedHeal.healParty)
+                    if (src.hasPermission("empc.command.other.timedheal") && TimedHeal.healParty)
                         permissionMessageList.add(Text.of("§f ➡ §eHeals all targeted Pokémon, also curing ailments."));
                     else if (TimedHeal.healParty)
                         permissionMessageList.add(Text.of("§f ➡ §eHeals all your Pokémon, and cures status ailments."));
-                    else if (src.hasPermission("pixelupgrade.command.other.timedheal"))
+                    else if (src.hasPermission("empc.command.other.timedheal"))
                         permissionMessageList.add(Text.of("§f ➡ §eHeals the targeted Pokémon, also curing ailments."));
                     else
                         permissionMessageList.add(Text.of("§f ➡ §eHeals a Pokémon, also curing status ailments."));
@@ -334,7 +328,7 @@ public class ListCommands implements CommandExecutor
                     printSourcedError(sourceName, "§3/timedheal §bhas a malformed config, hiding from list.");
             }
 
-            /*if (!calledRemotely && src.hasPermission("pixelupgrade.command.upgradeivs"))
+            /*if (!calledRemotely && src.hasPermission("empc.command.upgradeivs"))
             {
                 if (UpgradeIVs.commandAlias != null)
                 {
@@ -350,13 +344,13 @@ public class ListCommands implements CommandExecutor
             }*/
 
             final PaginationList.Builder paginatedList = PaginationList.builder()
-                        .title(Text.of(TextColors.DARK_PURPLE, "§dPixelUpgrade commands"))
+                        .title(Text.of(TextColors.DARK_PURPLE, "§dEMPC commands"))
                         .contents(permissionMessageList)
                         .padding(Text.of(TextColors.DARK_PURPLE, '='));
 
             if (permissionMessageList.isEmpty())
             {
-                permissionMessageList.add(Text.of("§cYou have no permissions for any PixelUpgrade commands."));
+                permissionMessageList.add(Text.of("§cYou have no permissions for any EMPC commands."));
                 permissionMessageList.add(Text.of("§cPlease contact staff if you believe this to be in error."));
             }
             else

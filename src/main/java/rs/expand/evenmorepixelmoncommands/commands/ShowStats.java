@@ -10,6 +10,8 @@ import com.pixelmonmod.pixelmon.entities.pixelmon.stats.IVStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import com.pixelmonmod.pixelmon.enums.EnumGrowth;
 import com.pixelmonmod.pixelmon.enums.EnumNature;
+import com.pixelmonmod.pixelmon.enums.EnumType;
+import com.pixelmonmod.pixelmon.enums.forms.EnumAlolan;
 import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import java.math.BigDecimal;
 import java.util.*;
@@ -30,7 +32,9 @@ import org.spongepowered.api.text.channel.MessageChannel;
 
 // Local imports.
 import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
-import static rs.expand.evenmorepixelmoncommands.PixelUpgrade.*;
+import static rs.expand.evenmorepixelmoncommands.EMPC.*;
+import static rs.expand.evenmorepixelmoncommands.utilities.PokemonMethods.getShorthand;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printBasicError;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedMessage;
 
@@ -44,7 +48,7 @@ public class ShowStats implements CommandExecutor
     public static Boolean showNicknames, showEVs, showExtraInfo, showCounts, clampBadNicknames, notifyBadNicknames;
 
     // Set up some more variables for internal use.
-    private String sourceName = this.getClass().getName();
+    private String sourceName = this.getClass().getSimpleName();
     private HashMap<UUID, Long> cooldownMap = new HashMap<>();
     /*private boolean gotExternalConfigError = false;*/
 
@@ -76,7 +80,7 @@ public class ShowStats implements CommandExecutor
             if (commandCost == null)
                 nativeErrorArray.add("commandCost");
 
-            // Also get some stuff from PixelUpgrade.conf.
+            // Also get some stuff from EvenMorePixelmonCommands.conf.
             final List<String> mainConfigErrorArray = new ArrayList<>();
             if (shortenedHP == null)
                 mainConfigErrorArray.add("shortenedHP");
@@ -164,7 +168,7 @@ public class ShowStats implements CommandExecutor
                     commandConfirmed = true;
 
                 // Get the player's party, and then get the Pokémon in the targeted slot.
-                final Pokemon pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot);
+                final Pokemon pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot - 1);
 
                 if (pokemon == null)
                 {
@@ -178,12 +182,11 @@ public class ShowStats implements CommandExecutor
                 }
                 else
                 {
-                    // TODO: Pull this whole thing's position in-line with /timedheal and /timedhatch?
                     final UUID playerUUID = ((Player) src).getUniqueId(); // why is the "d" in "Id" lowercase :(
 
-                    if (!src.hasPermission("pixelupgrade.command.bypass.showstats") && cooldownMap.containsKey(playerUUID))
+                    if (!src.hasPermission("empc.command.bypass.showstats") && cooldownMap.containsKey(playerUUID))
                     {
-                        final boolean hasAltPerm = src.hasPermission("pixelupgrade.command.altcooldown.showstats");
+                        final boolean hasAltPerm = src.hasPermission("empc.command.altcooldown.showstats");
                         final long timeDifference = currentTime - cooldownMap.get(playerUUID);
                         final long timeRemaining;
 
@@ -260,17 +263,6 @@ public class ShowStats implements CommandExecutor
                     }
                     else
                     {
-                        if (economyEnabled)
-                        {
-                            printSourcedMessage(sourceName, "Showing off slot §3" + slot +
-                                    "§b. Config price is §30§b, taking nothing.");
-                        }
-                        else
-                        {
-                            printSourcedMessage(sourceName, "Showing off slot §3" + slot +
-                                    "§b. No economy, so we skipped eco checks.");
-                        }
-
                         cooldownMap.put(playerUUID, currentTime);
                         checkAndShowStats(pokemon, (Player) src);
                     }
@@ -346,8 +338,8 @@ public class ShowStats implements CommandExecutor
         // Get a bunch of important Pokémon stat data.
         final EnumNature nature = pokemon.getNature();
         final EnumGrowth growth = pokemon.getGrowth();
-        final String plusVal = '+' + pokemon.getNature().increasedStat.name();
-        final String minusVal = '-' + pokemon.getNature().decreasedStat.name();
+        final String plusVal = '+' + getShorthand(nature.increasedStat);
+        final String minusVal = '-' + getShorthand(nature.decreasedStat);
 
         // Create a copy of the Pokémon's persistent data for extracting specific NBT info from.
         final NBTTagCompound pokemonNBT = pokemon.getPersistentData();
@@ -400,7 +392,7 @@ public class ShowStats implements CommandExecutor
         String nickname = pokemon.getNickname();
 
         // Do the first of two cheating checks. Might catch some less clever cheat tools.
-        if (nickname.length() > 11)
+        if (nickname != null && !nickname.isEmpty() && nickname.length() > 11)
         {
             printSourcedMessage(sourceName,
                     "Found a nickname over the 11-char limit. Player " + player.getName() + " may be cheating?");
@@ -432,12 +424,14 @@ public class ShowStats implements CommandExecutor
         // Populate our ArrayList. Every entry will be its own line. May be a bit hacky, but it'll do.
         // TODO: Maybe use a StringBuilder setup here as well. (see /checkstats)
         final List<String> hovers = new ArrayList<>();
-        hovers.add("§eStats of §6" + player.getName() + "§e's level §6" + pokemon.getLevel() + " " +
+        hovers.add("§eStats of §6" + player.getName() + "§e's level " + pokemon.getLevel() + " " +
                 shinyString + formattedName + nameAdditionString);
         hovers.add("");
         hovers.add("§bCurrent IVs§f:");
         hovers.add("➡ §a" + totalIVs + "§f/§a186§f (§a" + percentIVs + "%§f)");
         hovers.add("➡ §a" + ivs1 + ivs2 + ivs3 + ivs4 + ivs5 + ivs6);
+
+        printBasicError("DEBUG -- Form suffix: " + EnumAlolan.valueOf(baseName).getFormSuffix());
 
         if (showEVs)
         {
@@ -575,14 +569,14 @@ public class ShowStats implements CommandExecutor
         if (notifyBadNicknames && nicknameTooLong)
         {
             // Add a space to avoid clutter.
-            MessageChannel.permission("pixelupgrade.notify.staff.showstats").send(Text.EMPTY);
+            MessageChannel.permission("empc.notify.staff.showstats").send(Text.EMPTY);
 
             // Print our warnings.
-            MessageChannel.permission("pixelupgrade.notify.staff.showstats").send(Text.of(
+            MessageChannel.permission("empc.notify.staff.showstats").send(Text.of(
                     "§4Staff only: §cPokémon's nickname exceeds the 11 character limit."));
-            MessageChannel.permission("pixelupgrade.notify.staff.showstats").send(Text.of(
+            MessageChannel.permission("empc.notify.staff.showstats").send(Text.of(
                     "§cSome Pixelmon cheat mods enable longer names, often silently."));
-            MessageChannel.permission("pixelupgrade.notify.staff.showstats").send(Text.of(
+            MessageChannel.permission("empc.notify.staff.showstats").send(Text.of(
                     "§cSidemods and plugins can also do this, but keep an eye out."));
         }
 

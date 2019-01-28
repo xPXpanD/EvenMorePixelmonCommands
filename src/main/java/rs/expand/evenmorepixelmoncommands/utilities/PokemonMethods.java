@@ -1,8 +1,12 @@
 package rs.expand.evenmorepixelmoncommands.utilities;
 
 // Remote imports.
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
+
+// Local imports.
+import static rs.expand.evenmorepixelmoncommands.EMPC.*;
 
 // Big ol' list of Pokémon.
 public enum PokemonMethods
@@ -910,6 +914,27 @@ public enum PokemonMethods
 
         // If the loop does not find and return a Pokémon, do this.
         return null;
+    }
+
+    public static String getShorthand(final StatsType stat)
+    {
+        switch (stat)
+        {
+            case HP:
+                return (shortenedHP == null) ? "ERROR" : shortenedHP;
+            case Attack:
+                return (shortenedAttack == null) ? "ERROR" : shortenedAttack;
+            case Defence:
+                return (shortenedDefense == null) ? "ERROR" : shortenedDefense;
+            case SpecialAttack:
+                return (shortenedSpecialAttack == null) ? "ERROR" : shortenedSpecialAttack;
+            case SpecialDefence:
+                return (shortenedSpecialDefense == null) ? "ERROR" : shortenedSpecialDefense;
+            case Speed:
+                return (shortenedSpeed == null) ? "ERROR" : shortenedSpeed;
+            default:
+                return "None"; // Hit when we have a neutral nature.
+        }
     }
 
     public static String getGenderCharacter(final CommandSource src, final int genderNum)

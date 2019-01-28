@@ -40,7 +40,7 @@ public class SpawnDex implements CommandExecutor
     public static String commandAlias, fakeMessage;
 
     // Set up a class name variable for internal use. We'll pass this to logging when showing a source is desired.
-    private String sourceName = this.getClass().getName();
+    private String sourceName = this.getClass().getSimpleName();
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)

@@ -1,9 +1,9 @@
-# PixelUpgrade
-A sidemod for Pixelmon Reforged that adds a bunch of new commands, some with economy integration.
+# Even more Pixelmon commands
+A sidemod for Pixelmon Reforged that adds a bunch of new commands with extensive configuration options.
 
 For more details, check:
 
-http://pixelmonmod.com/wiki/index.php?title=PixelUpgrade
+http://pixelmonmod.com/wiki/index.php?title=Even_More_Pixelmon_Commands
 
 Latest sources will be here for the time being, most likely in a broken state. Check releases for runnable code.
 

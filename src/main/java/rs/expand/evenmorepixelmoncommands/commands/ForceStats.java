@@ -1,4 +1,4 @@
-// The second PixelUpgrade command. It's so helpful to have your own NBT editor!
+// The second PixelUpgrade/EMPC command. It's so helpful to have your own NBT editor!
 package rs.expand.evenmorepixelmoncommands.commands;
 
 // Remote imports.
@@ -275,9 +275,9 @@ public class ForceStats implements CommandExecutor
             // Start by getting the player's party, and then the Pokémon in the given slot.
             final Pokemon pokemon;
             if (target != null)
-                pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) target).get(slot);
+                pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) target).get(slot - 1);
             else
-                pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot);
+                pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot - 1);
 
             if (pokemon == null)
             {
@@ -333,6 +333,9 @@ public class ForceStats implements CommandExecutor
                                 pokemonNBT.setString(stat, arg4Optional.get());
                         }
 
+                        // Write changed data to the Pokémon.
+                        pokemon.writeToNBT(pokemonNBT);
+
                         // Update the player's sidebar with the new changes.
                         printBasicError("Yo, did it update? If not, TODO.");
 
@@ -360,13 +363,13 @@ public class ForceStats implements CommandExecutor
                             }
 
                             // Write to player's chat, or console if running from command block.
-                            sendCheckedMessage(src, "Writing value... Stat is §3" + stat + "§b, old value was §3" +
+                            sendCheckedMessage(src, "§bWriting value... Stat is §3" + stat + "§b, old value was §3" +
                                     pokemonNBT.getLong(stat) + "§b, new is §3" + longValue + "§b.");
 
                             // Also write to console specifically when called by a player. Let's make sure this is logged!
                             if (src instanceof Player)
                             {
-                                printSourcedMessage(this.getClass().getName(), "Writing value... Stat is §3" + stat +
+                                printSourcedMessage(this.getClass().getSimpleName(), "Writing value... Stat is §3" + stat +
                                         "§b, old value was §3" + pokemonNBT.getLong(stat) + "§b, new is §3" + longValue + "§b.");
                             }
 

@@ -47,7 +47,7 @@ public class FixGenders implements CommandExecutor
     }
 
     // Set up a class name variable for internal use. We'll pass this to logging when showing a source is desired.
-    private String sourceName = this.getClass().getName();
+    private String sourceName = this.getClass().getSimpleName();
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)
@@ -72,7 +72,7 @@ public class FixGenders implements CommandExecutor
         else
         {
             boolean targetedSelf = false, targetIsValid = false, commandConfirmed = false;
-            final boolean hasStaffPerm = src.hasPermission("pixelupgrade.command.staff.fixgenders");
+            final boolean hasStaffPerm = src.hasPermission("empc.command.staff.fixgenders");
             final Optional<String> arg1Optional = args.getOne("target/confirmation");
             final Optional<String> arg2Optional = args.getOne("confirmation");
             Player target;
@@ -152,12 +152,12 @@ public class FixGenders implements CommandExecutor
                     if (sneakyMode)
                     {
                         printSourcedMessage(sourceName, "Silently fixing genders for player §3" + target.getName() +
-                                "§b as per config.");
+                                "§b. Any changes will be logged.");
                     }
                     else
                     {
                         printSourcedMessage(sourceName, "Fixing genders for player §3" + target.getName() +
-                                "§b, informing if need be.");
+                                "§b. Any changes will be logged.");
                     }
 
                     sendCheckedMessage(src, "§7-----------------------------------------------------");
@@ -265,7 +265,7 @@ public class FixGenders implements CommandExecutor
                     if (RandomHelper.rand.nextInt(100) < malePercent)
                     {
                         printSourcedMessage(sourceName, "§bSlot §3" + slotTicker +
-                            " §bshould be gendered. Rerolled, now §3male§b.");
+                            " §bshould be gendered. Rerolled, now §3male§b!");
 
                         pokemon.setGender(Gender.Male);
 
@@ -280,7 +280,7 @@ public class FixGenders implements CommandExecutor
                     else
                     {
                         printSourcedMessage(sourceName, "§bSlot §2" + slotTicker +
-                            " §bshould be gendered. Rerolled, now §5female§b.");
+                            " §bshould be gendered. Rerolled, now §5female§b!");
 
                         pokemon.setGender(Gender.Female);
 
@@ -300,7 +300,7 @@ public class FixGenders implements CommandExecutor
                     fixCount++;
 
                     printSourcedMessage(sourceName, "§bSlot §2" + slotTicker +
-                            " §bis male, should be female. Fixing.");
+                            " §bis male, should be female. Fixing!");
 
                     pokemon.setGender(Gender.Female);
 
@@ -319,7 +319,7 @@ public class FixGenders implements CommandExecutor
                     fixCount++;
 
                     printSourcedMessage(sourceName, "§bSlot §2" + slotTicker +
-                                                " §bis female, should be male. Fixing.");
+                                                " §bis female, should be male. Fixing!");
 
                     pokemon.setGender(Gender.Male);
 

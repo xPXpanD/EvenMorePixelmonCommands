@@ -24,8 +24,8 @@ import org.spongepowered.api.text.Text;
 
 // Local imports.
 import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
-import static rs.expand.evenmorepixelmoncommands.PixelUpgrade.economyEnabled;
-import static rs.expand.evenmorepixelmoncommands.PixelUpgrade.economyService;
+import static rs.expand.evenmorepixelmoncommands.EMPC.economyEnabled;
+import static rs.expand.evenmorepixelmoncommands.EMPC.economyService;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printBasicError;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedMessage;
@@ -38,7 +38,7 @@ public class SwitchGender implements CommandExecutor
     public static Integer commandCost;
 
     // Set up a class name variable for internal use. We'll pass this to logging when showing a source is desired.
-    private String sourceName = this.getClass().getName();
+    private String sourceName = this.getClass().getSimpleName();
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)
@@ -87,7 +87,7 @@ public class SwitchGender implements CommandExecutor
                     commandConfirmed = true;
 
                 // Get the player's party, and then get the Pokémon in the targeted slot.
-                final Pokemon pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot);
+                final Pokemon pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot - 1);
 
                 if (pokemon == null)
                     src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
@@ -137,17 +137,6 @@ public class SwitchGender implements CommandExecutor
                         }
                         else
                         {
-                            if (economyEnabled)
-                            {
-                                printSourcedMessage(sourceName, "Switching gender for slot §3" + slot +
-                                        "§b. Config price is §30§b, taking nothing.");
-                            }
-                            else
-                            {
-                                printSourcedMessage(sourceName, "Switching gender for slot §3" + slot +
-                                        "§b. No economy, so we skipped eco checks.");
-                            }
-
                             switchGenders(pokemon, src);
 
                             // Update the player's sidebar with the new changes.
@@ -199,9 +188,13 @@ public class SwitchGender implements CommandExecutor
 
     private void switchGenders(final Pokemon pokemon, final CommandSource src)
     {
+        // Set up some variables we'll need.
         final String pokemonName;
         final String genderName;
-        if (pokemon.getNickname() == null)
+        final String nickname = pokemon.getNickname();
+
+        // Do we have an actual nickname? Use that over the localized name if it's there.
+        if (nickname == null || nickname.isEmpty())
             pokemonName = pokemon.getSpecies().getLocalizedName();
         else
             pokemonName = pokemon.getNickname();
