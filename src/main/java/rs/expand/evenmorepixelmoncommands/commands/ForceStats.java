@@ -1,5 +1,5 @@
 // The second PixelUpgrade command. It's so helpful to have your own NBT editor!
-package rs.expand.pixelupgrade.commands;
+package rs.expand.evenmorepixelmoncommands.commands;
 
 // Remote imports.
 import com.pixelmonmod.pixelmon.Pixelmon;
@@ -20,10 +20,10 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.PrintingMethods;
+import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
 
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicError;
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printSourcedMessage;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printBasicError;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedMessage;
 
 // FIXME: Long numberic inputs cause a NumberFormatException.
 public class ForceStats implements CommandExecutor

@@ -1,5 +1,5 @@
 // Forget berries!
-package rs.expand.pixelupgrade.commands;
+package rs.expand.evenmorepixelmoncommands.commands;
 
 // Remote imports.
 import com.pixelmonmod.pixelmon.Pixelmon;
@@ -24,10 +24,10 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.PrintingMethods;
-import static rs.expand.pixelupgrade.PixelUpgrade.*;
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printSourcedError;
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printSourcedMessage;
+import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
+import static rs.expand.evenmorepixelmoncommands.PixelUpgrade.*;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedMessage;
 
 // TODO: Update the economy setup to be in line with most other economy-using commands.
 public class ResetEVs implements CommandExecutor

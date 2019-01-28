@@ -1,5 +1,5 @@
-// Seemed like a good thing to have, and now it exists! Fancier than the PE version, but also heavier.
-package rs.expand.pixelupgrade.commands;
+// heal pls
+package rs.expand.evenmorepixelmoncommands.commands;
 
 // Remote imports.
 import com.pixelmonmod.pixelmon.Pixelmon;
@@ -22,19 +22,19 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.PrintingMethods;
-import static rs.expand.pixelupgrade.PixelUpgrade.*;
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicError;
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printSourcedError;
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printSourcedMessage;
+import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
+import static rs.expand.evenmorepixelmoncommands.PixelUpgrade.*;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printBasicError;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedMessage;
 
-public class TimedHatch implements CommandExecutor
+public class TimedHeal implements CommandExecutor
 {
     // Declare some variables. We'll load stuff into these when we call the config loader.
     // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
     public static Integer cooldownInSeconds, altCooldownInSeconds, commandCost;
-    public static Boolean hatchParty, sneakyMode;
+    public static Boolean healParty, sneakyMode;
 
     // Set up some more variables for internal use.
     private String sourceName = this.getClass().getName();
@@ -118,9 +118,9 @@ public class TimedHatch implements CommandExecutor
                 player = (Player) src;
                 playerUUID = player.getUniqueId(); // why is the "d" in "Id" lowercase :(
 
-                if (!src.hasPermission("pixelupgrade.command.bypass.timedhatch") && cooldownMap.containsKey(playerUUID))
+                if (!src.hasPermission("pixelupgrade.command.bypass.timedheal") && cooldownMap.containsKey(playerUUID))
                 {
-                    final boolean hasAltPerm = src.hasPermission("pixelupgrade.command.altcooldown.timedhatch");
+                    final boolean hasAltPerm = src.hasPermission("pixelupgrade.command.altcooldown.timedheal");
                     final long timeDifference = currentTime - cooldownMap.get(playerUUID);
                     final long timeRemaining;
 
@@ -151,9 +151,9 @@ public class TimedHatch implements CommandExecutor
 
                     if (argString.matches("^[1-6]")) // Do we have a valid slot?
                         slot = Integer.parseInt(argString);
-                    else if (argString.equalsIgnoreCase("-c") && commandCost != 0 && hatchParty) // ...or a confirmation flag?
+                    else if (argString.equalsIgnoreCase("-c") && commandCost != 0 && healParty) // ...or a confirmation flag?
                         commandConfirmed = true;
-                    else if (src.hasPermission("pixelupgrade.command.other.timedhatch"))
+                    else if (src.hasPermission("pixelupgrade.command.other.timedheal"))
                     {
                         if (Sponge.getServer().getPlayer(argString).isPresent()) // Do we have a valid online player?
                         {
@@ -173,9 +173,9 @@ public class TimedHatch implements CommandExecutor
                         return CommandResult.empty();
                     }
                 }
-                // We have no arguments. This could be valid if party hatching is on and no cost is associated, so check.
+                // We have no arguments. This could be valid if party healing is on and no cost is associated, so check.
                 // (cost stuff gets sorted later, let's get the syntax valid first)
-                else if (!hatchParty)
+                else if (!healParty)
                 {
                     printLocalError(src, "§4Error: §cNo arguments found. See below.", false);
                     return CommandResult.empty();
@@ -190,7 +190,7 @@ public class TimedHatch implements CommandExecutor
                     {
                         if (argString.matches("^[1-6]")) // Do we have a valid slot?
                             slot = Integer.parseInt(argString);
-                        else if (argString.equalsIgnoreCase("-c") && commandCost != 0 && hatchParty)
+                        else if (argString.equalsIgnoreCase("-c") && commandCost != 0 && healParty)
                             commandConfirmed = true;
                         else
                         {
@@ -227,7 +227,7 @@ public class TimedHatch implements CommandExecutor
                 // Let's see if we have a specific Pokémon, and if so, where it's at. Prepare for a party check otherwise.
                 final Pokemon pokemon = slot != 0 ? party.get(slot) : null;
 
-                if (!hatchParty)
+                if (!healParty)
                 {
                     if (pokemon == null) // Did we actually get a specific Pokémon from the slot/our checks? If not, end.
                     {
@@ -236,11 +236,6 @@ public class TimedHatch implements CommandExecutor
                         else
                             sendCheckedMessage(src,"§4Error: §cYou don't have anything in that slot!");
 
-                        return CommandResult.empty();
-                    }
-                    else if (!pokemon.isEgg()) // Is the Pokémon we got not an egg?
-                    {
-                        sendCheckedMessage(src,"§4Error: §cThat's not an egg. Don't hatch actual Pokémon, kids!");
                         return CommandResult.empty();
                     }
                 }
@@ -266,38 +261,38 @@ public class TimedHatch implements CommandExecutor
 
                                 if (target == null)
                                 {
-                                    if (hatchParty)
+                                    if (healParty)
                                     {
-                                        printSourcedMessage(sourceName, "Hatching player's party, and taking §3" +
+                                        printSourcedMessage(sourceName, "Healing player's party, and taking §3" +
                                                 costToConfirm + "§b coins.");
 
-                                        hatchParty(src, null, party);
+                                        healParty(src, null, party);
                                     }
                                     else
                                     {
-                                        printSourcedMessage(sourceName, "Hatching player slot §3" + slot +
+                                        printSourcedMessage(sourceName, "Healing player slot §3" + slot +
                                                 "§b, and taking §3" + costToConfirm + "§b coins.");
 
                                         ///noinspection ConstantConditions
-                                        hatchEgg(src, target, pokemon);
+                                        healPokemon(src, target, pokemon);
                                     }
                                 }
                                 else
                                 {
-                                    if (hatchParty)
+                                    if (healParty)
                                     {
-                                        printSourcedMessage(sourceName, "Hatching §3" + target.getName() +
+                                        printSourcedMessage(sourceName, "Healing §3" + target.getName() +
                                                 "§b's party, and taking §3" + costToConfirm + "§b coins.");
 
-                                        hatchParty(src, target, party);
+                                        healParty(src, target, party);
                                     }
                                     else
                                     {
-                                        printSourcedMessage(sourceName, "Hatching slot §3" + slot + "§b for §3" +
+                                        printSourcedMessage(sourceName, "Healing slot §3" + slot + "§b for §3" +
                                                 target.getName() + "§b. Taking §3" + costToConfirm + "§b coins.");
 
                                         ///noinspection ConstantConditions
-                                        hatchEgg(src, target, pokemon);
+                                        healPokemon(src, target, pokemon);
                                     }
                                 }
                             }
@@ -319,16 +314,16 @@ public class TimedHatch implements CommandExecutor
                     {
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
 
-                        if (hatchParty)
+                        if (healParty)
                         {
                             // Is cost to confirm exactly one coin?
                             if (target == null)
                             {
                                 if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
-                                    sendCheckedMessage(src,"§6Warning: §eHatching your team costs §6one §ecoin.");
+                                    sendCheckedMessage(src,"§6Warning: §eHealing your team costs §6one §ecoin.");
                                 else
                                 {
-                                    sendCheckedMessage(src,"§6Warning: §eHatching your team costs §6" +
+                                    sendCheckedMessage(src,"§6Warning: §eHealing your team costs §6" +
                                             costToConfirm + "§e coins.");
                                 }
 
@@ -337,11 +332,11 @@ public class TimedHatch implements CommandExecutor
                             else
                             {
                                 if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
-                                    sendCheckedMessage(src,"§6Warning: §eHatching §6" + target.getName() +
+                                    sendCheckedMessage(src,"§6Warning: §eHealing §6" + target.getName() +
                                             "§e's team costs §6one §ecoin.");
                                 else
                                 {
-                                    sendCheckedMessage(src,"§6Warning: §eHatching §6" + target.getName() +
+                                    sendCheckedMessage(src,"§6Warning: §eHealing §6" + target.getName() +
                                             "§e's team costs §6" + costToConfirm + "§e coins.");
                                 }
 
@@ -353,10 +348,10 @@ public class TimedHatch implements CommandExecutor
                         {
                             // Is cost to confirm exactly one coin?
                             if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
-                                sendCheckedMessage(src,"§6Warning: §eHatching this egg costs §6one §ecoin.");
+                                sendCheckedMessage(src,"§6Warning: §eHealing this Pokémon costs §6one §ecoin.");
                             else
                             {
-                                sendCheckedMessage(src,"§6Warning: §eHatching this egg costs §6" +
+                                sendCheckedMessage(src,"§6Warning: §eHealing this Pokémon costs §6" +
                                         costToConfirm + "§e coins.");
                             }
 
@@ -387,30 +382,30 @@ public class TimedHatch implements CommandExecutor
 
                         if (target == null)
                         {
-                            if (hatchParty)
+                            if (healParty)
                             {
-                                printSourcedMessage(sourceName, "Hatching player's party. " + priceNote);
-                                hatchParty(src, null, party);
+                                printSourcedMessage(sourceName, "Healing player's party. " + priceNote);
+                                healParty(src, null, party);
                             }
                             else
                             {
-                                printSourcedMessage(sourceName, "Hatching slot §3" + slot + "§b. " + priceNote);
-                                hatchEgg(src, null, pokemon);
+                                printSourcedMessage(sourceName, "Healing slot §3" + slot + "§b. " + priceNote);
+                                healPokemon(src, null, pokemon);
                             }
                         }
                         else
                         {
-                            if (hatchParty)
+                            if (healParty)
                             {
-                                printSourcedMessage(sourceName, "Hatching §3" + target.getName() +
+                                printSourcedMessage(sourceName, "Healing §3" + target.getName() +
                                         "§b's party. " + priceNote);
-                                hatchParty(src, target, party);
+                                healParty(src, target, party);
                             }
                             else
                             {
-                                printSourcedMessage(sourceName, "Hatching slot §3" + slot +
+                                printSourcedMessage(sourceName, "Healing slot §3" + slot +
                                         "§b for §3" + target.getName() + "§b. " + priceNote);
-                                hatchEgg(src, target, pokemon);
+                                healPokemon(src, target, pokemon);
                             }
                         }
 
@@ -419,9 +414,9 @@ public class TimedHatch implements CommandExecutor
                     else
                     {
                         if (slot == 0)
-                            hatchParty(src, target, party);
+                            healParty(src, target, party);
                         else
-                            hatchEgg(src, target, pokemon);
+                            healPokemon(src, target, pokemon);
                     }
                 }
             }
@@ -474,16 +469,16 @@ public class TimedHatch implements CommandExecutor
             else
                 confirmString = "";
 
-            if (hatchParty)
+            if (healParty)
             {
-                if (src.hasPermission("pixelupgrade.command.other.timedhatch"))
+                if (src.hasPermission("pixelupgrade.command.other.timedheal"))
                     sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " [target?]" + confirmString);
                 else
                     sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " " + confirmString);
             }
             else
             {
-                if (src.hasPermission("pixelupgrade.command.other.timedhatch"))
+                if (src.hasPermission("pixelupgrade.command.other.timedheal"))
                     sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " [target?] <slot, 1-6>" + confirmString);
                 else
                     sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " <slot, 1-6>" + confirmString);
@@ -491,32 +486,32 @@ public class TimedHatch implements CommandExecutor
         }
     }
 
-    // Hatch us an egg! Also, show the right messages.
-    private void hatchEgg(final CommandSource src, final Player target, final Pokemon pokemon)
+    // Heal us a Pokémon! Also, show the right messages.
+    private void healPokemon(final CommandSource src, final Player target, final Pokemon pokemon)
     {
-        pokemon.hatchEgg();
+        pokemon.heal();
         printBasicError("Yo, did it update? If not, TODO.");
 
         if (target != null)
         {
             if (calledRemotely && sneakyMode)
             {
-                sendCheckedMessage(src,"§aThe targeted egg has been silently hatched!");
-                target.sendMessage(Text.of("§aThe targeted egg was hatched remotely!"));
+                sendCheckedMessage(src,"§aThe targeted Pokémon has been silently healed!");
+                target.sendMessage(Text.of("§aThe targeted Pokémon was healed remotely!"));
             }
             else
             {
-                sendCheckedMessage(src,"§aThe targeted egg has been hatched!");
+                sendCheckedMessage(src,"§aThe targeted Pokémon has been healed!");
                 if (!calledRemotely)
-                    target.sendMessage(Text.of("§aThe targeted egg was hatched by §2" + src.getName() + "§a!"));
+                    target.sendMessage(Text.of("§aThe targeted Pokémon was healed by §2" + src.getName() + "§a!"));
             }
         }
         else
-            sendCheckedMessage(src,"§aThe chosen egg has been hatched!");
+            sendCheckedMessage(src,"§aThe chosen Pokémon has been healed!");
     }
 
-    // Hatch us a whole party of eggs! Possibly. Check before you wreck.
-    private void hatchParty(final CommandSource src, final Player target, final PartyStorage storage)
+    // Heal us a whole party!
+    private void healParty(final CommandSource src, final Player target, final PartyStorage storage)
     {
         // Create a Pokemon object that we can fill in with party slot data when we get it.
         Pokemon pokemon;
@@ -524,23 +519,23 @@ public class TimedHatch implements CommandExecutor
         {
             pokemon = storage.get(i);
             if (pokemon != null)
-                pokemon.hatchEgg();
+                pokemon.heal();
         }
         printBasicError("Yo, did it update? If not, TODO.");
 
         if (target == null)
-            sendCheckedMessage(src,"§aAll eggs in your party have been hatched!");
+            sendCheckedMessage(src,"§aAll Pokémon in your party have been healed!");
         else
         {
             if (calledRemotely && sneakyMode)
-                sendCheckedMessage(src,"§aAll eggs in the target's party have been silently hatched!");
+                sendCheckedMessage(src,"§aAll Pokémon in the target's party have been silently healed!");
             else
-                sendCheckedMessage(src,"§aAll eggs in the target's party have been hatched!");
+                sendCheckedMessage(src,"§aAll Pokémon in the target's party have been healed!");
 
             if (calledRemotely && !sneakyMode)
-                target.sendMessage(Text.of("§aYour party's eggs were hatched remotely!"));
+                target.sendMessage(Text.of("§aYour party's Pokémon were healed remotely!"));
             else if (!calledRemotely)
-                target.sendMessage(Text.of("§aYour party's eggs were hatched by §2" + src.getName() + "§a!"));
+                target.sendMessage(Text.of("§aYour party's Pokémon were healed by §2" + src.getName() + "§a!"));
         }
     }
 }

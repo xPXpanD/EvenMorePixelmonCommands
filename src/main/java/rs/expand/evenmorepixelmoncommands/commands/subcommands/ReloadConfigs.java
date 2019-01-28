@@ -1,5 +1,5 @@
 // The one and only. Accept no imitations.
-package rs.expand.pixelupgrade.commands.subcommands;
+package rs.expand.evenmorepixelmoncommands.commands.subcommands;
 
 // Remote imports.
 import org.spongepowered.api.Game;
@@ -13,9 +13,9 @@ import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.ConfigMethods;
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicError;
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printUnformattedMessage;
+import rs.expand.evenmorepixelmoncommands.utilities.ConfigMethods;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printBasicError;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printUnformattedMessage;
 
 // Note: printUnformattedMessage is a static import for a method from PrintingMethods, for convenience.
 public class ReloadConfigs implements CommandExecutor
@@ -47,7 +47,7 @@ public class ReloadConfigs implements CommandExecutor
 
             // Re-register mappings with Sponge. This will update aliases and free up any old commands.
             final Game game = Sponge.getGame();
-            final PluginContainer puContainer = Sponge.getPluginManager().getPlugin("pixelupgrade").orElse(null);
+            final PluginContainer puContainer = Sponge.getPluginManager().getPlugin("evenmorepixelmoncommands").orElse(null);
 
             if (puContainer != null)
             {

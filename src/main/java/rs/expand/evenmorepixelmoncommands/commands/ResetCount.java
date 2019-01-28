@@ -1,5 +1,5 @@
 /*// Made for testing, but probably useful on a public server too.
-package rs.expand.pixelupgrade.commands;
+package rs.expand.evenmorepixelmoncommands.commands;
 
 // Remote imports.
 import com.pixelmonmod.pixelmon.config.PixelmonEntityList;
@@ -18,7 +18,7 @@ import org.spongepowered.api.text.Text;
 import java.util.Optional;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.PrintingMethods;
+import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
 
 // TODO: Add target support.
 public class ResetCount implements CommandExecutor

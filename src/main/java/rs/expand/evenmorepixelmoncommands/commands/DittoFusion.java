@@ -1,5 +1,5 @@
 /*// What have I done?
-package rs.expand.pixelupgrade.commands;
+package rs.expand.evenmorepixelmoncommands.commands;
 
 // Remote imports.
 import com.pixelmonmod.pixelmon.battles.BattleRegistry;
@@ -27,8 +27,8 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.PrintingMethods;
-import static rs.expand.pixelupgrade.PixelUpgrade.*;
+import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
+import static rs.expand.evenmorepixelmoncommands.PixelUpgrade.*;
 
 // TODO: Turn /dittofusion into a generic /fuse that works on everything?
 public class DittoFusion implements CommandExecutor

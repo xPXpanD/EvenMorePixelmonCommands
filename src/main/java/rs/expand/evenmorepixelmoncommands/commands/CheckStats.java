@@ -1,5 +1,5 @@
 // PixelUpgrade's very first command. Originally /upgrade stats, then /getstats, and then finally this.
-package rs.expand.pixelupgrade.commands;
+package rs.expand.evenmorepixelmoncommands.commands;
 
 // Remote imports.
 import com.pixelmonmod.pixelmon.Pixelmon;
@@ -31,10 +31,10 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.PrintingMethods;
-import rs.expand.pixelupgrade.utilities.PokemonMethods;
-import static rs.expand.pixelupgrade.PixelUpgrade.*;
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.*;
+import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
+import rs.expand.evenmorepixelmoncommands.utilities.PokemonMethods;
+import static rs.expand.evenmorepixelmoncommands.PixelUpgrade.*;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.*;
 
 public class CheckStats implements CommandExecutor
 {

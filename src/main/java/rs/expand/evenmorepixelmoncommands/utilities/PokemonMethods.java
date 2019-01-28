@@ -1,4 +1,4 @@
-package rs.expand.pixelupgrade.utilities;
+package rs.expand.evenmorepixelmoncommands.utilities;
 
 // Remote imports.
 import org.spongepowered.api.command.CommandSource;

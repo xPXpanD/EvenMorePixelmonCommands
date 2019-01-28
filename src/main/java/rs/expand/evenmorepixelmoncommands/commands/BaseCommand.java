@@ -1,5 +1,5 @@
 // The one and only. Accept no imitations.
-package rs.expand.pixelupgrade.commands;
+package rs.expand.evenmorepixelmoncommands.commands;
 
 // Remote imports.
 import org.spongepowered.api.block.tileentity.CommandBlock;
@@ -12,8 +12,8 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 
 // Local imports.
-import static rs.expand.pixelupgrade.PixelUpgrade.commandAlias;
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicError;
+import static rs.expand.evenmorepixelmoncommands.PixelUpgrade.commandAlias;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printBasicError;
 
 public class BaseCommand implements CommandExecutor
 {

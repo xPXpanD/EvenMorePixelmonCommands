@@ -1,5 +1,5 @@
 // Written for Pixelmon Reforged. Running this on Gens is unsupported and ill-advised, just like Gens itself.
-package rs.expand.pixelupgrade;
+package rs.expand.evenmorepixelmoncommands;
 
 // Remote imports.
 import java.nio.file.FileSystems;
@@ -20,11 +20,11 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
-import rs.expand.pixelupgrade.commands.*;
-import rs.expand.pixelupgrade.commands.subcommands.ListCommands;
-import rs.expand.pixelupgrade.commands.subcommands.ReloadConfigs;
-import rs.expand.pixelupgrade.utilities.ConfigMethods;
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printUnformattedMessage;
+import rs.expand.evenmorepixelmoncommands.commands.*;
+import rs.expand.evenmorepixelmoncommands.commands.subcommands.ListCommands;
+import rs.expand.evenmorepixelmoncommands.commands.subcommands.ReloadConfigs;
+import rs.expand.evenmorepixelmoncommands.utilities.ConfigMethods;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printUnformattedMessage;
 
 /*                                                               *\
        THE WHO-KNOWS-WHEN LIST OF POTENTIALLY AWESOME IDEAS

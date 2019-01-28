@@ -1,5 +1,5 @@
 // This was a pain. Nice to have, though.
-package rs.expand.pixelupgrade.commands;
+package rs.expand.evenmorepixelmoncommands.commands;
 
 // Remote imports.
 import com.pixelmonmod.pixelmon.Pixelmon;
@@ -29,10 +29,10 @@ import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.channel.MessageChannel;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.PrintingMethods;
-import static rs.expand.pixelupgrade.PixelUpgrade.*;
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printSourcedError;
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printSourcedMessage;
+import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
+import static rs.expand.evenmorepixelmoncommands.PixelUpgrade.*;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedMessage;
 
 // TODO: Add ability showing. Thanks for the idea, Mikirae.
 public class ShowStats implements CommandExecutor

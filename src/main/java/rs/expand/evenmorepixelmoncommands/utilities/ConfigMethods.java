@@ -1,6 +1,6 @@
 // The enormous and rather complicated config handler, version two. Could use some work still, but it'll do for now.
 // Version one was just n classes, where n was the number of commands there were minus /pureload. We've come a long way.
-package rs.expand.pixelupgrade.utilities;
+package rs.expand.evenmorepixelmoncommands.utilities;
 
 // Remote imports.
 import java.io.IOException;
@@ -15,10 +15,10 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanObject;
 
 // Local imports.
-import rs.expand.pixelupgrade.PixelUpgrade;
-import rs.expand.pixelupgrade.commands.*;
-import static rs.expand.pixelupgrade.PixelUpgrade.*;
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printUnformattedMessage;
+import rs.expand.evenmorepixelmoncommands.PixelUpgrade;
+import rs.expand.evenmorepixelmoncommands.commands.*;
+import static rs.expand.evenmorepixelmoncommands.PixelUpgrade.*;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printUnformattedMessage;
 
 // Note: printUnformattedMessage is a static import for a method from PrintingMethods, for convenience.
 // Also, PixelUpgrade class variables are loaded in the same way. Used in loadConfig and registerCommands.
@@ -64,7 +64,7 @@ public class ConfigMethods
     // Registers all known PixelUpgrade commands and their aliases.
     public static boolean registerCommands()
     {
-        final PluginContainer puContainer = Sponge.getPluginManager().getPlugin("pixelupgrade").orElse(null);
+        final PluginContainer puContainer = Sponge.getPluginManager().getPlugin("evenmorepixelmoncommands").orElse(null);
 
         // Contains base commands and common (?) mistakes, as well as interchangeable alternatives.
         if (puContainer != null)
@@ -73,7 +73,7 @@ public class ConfigMethods
             if (PixelUpgrade.commandAlias != null && !PixelUpgrade.commandAlias.matches("pixelupgrade"))
                 Sponge.getCommandManager().register(puContainer, basecommand, "pixelupgrade", "pixelupgradeinfo", PixelUpgrade.commandAlias);
             else
-                Sponge.getCommandManager().register(puContainer, basecommand, "pixelupgrade", "pixelupgradeinfo");
+                Sponge.getCommandManager().register(puContainer, basecommand, "evenmorepixelmoncommands", "pixelupgradeinfo");
 
             // Register all other commands.
             if (CheckStats.commandAlias != null && !CheckStats.commandAlias.matches("checkstats|getstats|checkegg"))

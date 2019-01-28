@@ -1,5 +1,5 @@
 // Originally created for testing things for the Pixelmon Wiki, after which it slowly morphed into this crazy thing.
-package rs.expand.pixelupgrade.commands;
+package rs.expand.evenmorepixelmoncommands.commands;
 
 // Remote imports.
 import com.pixelmonmod.pixelmon.RandomHelper;
@@ -26,10 +26,10 @@ import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.PrintingMethods;
-import rs.expand.pixelupgrade.utilities.PokemonMethods;
+import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
+import rs.expand.evenmorepixelmoncommands.utilities.PokemonMethods;
 
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printSourcedError;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;
 
 // TODO: Add target and console support.
 // TODO: Add more flags, like scale/special texture/IVs/EnumBossMode. Needs testing with 7.0 stuff.

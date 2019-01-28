@@ -1,5 +1,5 @@
 // The command listing. Only shows console-accessible commands if used from there.
-package rs.expand.pixelupgrade.commands.subcommands;
+package rs.expand.evenmorepixelmoncommands.commands.subcommands;
 
 // Remote imports.
 import java.util.ArrayList;
@@ -12,13 +12,13 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.format.TextColors;
-import rs.expand.pixelupgrade.commands.*;
+import rs.expand.evenmorepixelmoncommands.commands.*;
 
 // Local imports.
-import static rs.expand.pixelupgrade.PixelUpgrade.economyEnabled;
-import static rs.expand.pixelupgrade.PixelUpgrade.numLinesPerPage;
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicError;
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printSourcedError;
+import static rs.expand.evenmorepixelmoncommands.PixelUpgrade.economyEnabled;
+import static rs.expand.evenmorepixelmoncommands.PixelUpgrade.numLinesPerPage;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printBasicError;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;
 
 // Command format helper! Use this format if you want to add your own stuff.
 // [] = optional, {} = flag, <> = required, () = add comment here

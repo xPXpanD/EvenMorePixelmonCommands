@@ -1,4 +1,4 @@
-package rs.expand.pixelupgrade.utilities;
+package rs.expand.evenmorepixelmoncommands.utilities;
 
 // Remote imports.
 import org.spongepowered.api.Sponge;
@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 // Local imports.
-import rs.expand.pixelupgrade.PixelUpgrade;
+import rs.expand.evenmorepixelmoncommands.PixelUpgrade;
 
 // A collection of methods that are commonly used. One changed word or color here, and half the mod changes. Sweet.
 public class PrintingMethods

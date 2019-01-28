@@ -1,5 +1,5 @@
 // Ohhhh, the cheeky jokes I could make here.
-package rs.expand.pixelupgrade.commands;
+package rs.expand.evenmorepixelmoncommands.commands;
 
 // Remote imports.
 import com.pixelmonmod.pixelmon.Pixelmon;
@@ -23,12 +23,12 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.PrintingMethods;
-import static rs.expand.pixelupgrade.PixelUpgrade.economyEnabled;
-import static rs.expand.pixelupgrade.PixelUpgrade.economyService;
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicError;
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printSourcedError;
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printSourcedMessage;
+import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
+import static rs.expand.evenmorepixelmoncommands.PixelUpgrade.economyEnabled;
+import static rs.expand.evenmorepixelmoncommands.PixelUpgrade.economyService;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printBasicError;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedMessage;
 
 public class SwitchGender implements CommandExecutor
 {

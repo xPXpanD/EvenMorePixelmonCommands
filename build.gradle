@@ -51,11 +51,14 @@ repositories {
     }
 }
 
-// Allows Sponge stuff to load up correctly.
-// Remember to also import Pixelmon as a library! Couldn't get it to sort that automatically.
+// Allows Sponge and Pixelmon stuff to load up correctly.
 dependencies
 {
+    // Grab and include Sponge.
     compile 'org.spongepowered:spongeapi:7.1.0'
+
+    // Automatically grabs libraries from the libs folder and adds them to the project. Thanks, CraftSteamG!
+    compileOnly fileTree(dir: 'libs', include: ['*.jar'])
 }
 
 // Sets up the access transformer needed to access biome names. I think.
@@ -63,7 +66,7 @@ jar
 {
 	manifest
     {
-	    attributes 'FMLAT': 'pixelupgrade_at.cfg'
+	    attributes 'FMLAT': 'pixelmon_at.cfg_Pixelmon-1.12.2-7.0.0-universal-pipe2316_at.cfg'
 	}
 }
 

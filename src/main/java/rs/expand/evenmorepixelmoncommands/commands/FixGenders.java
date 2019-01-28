@@ -1,5 +1,5 @@
 // Created to fix the aftermath of a Pixelmon bug where Pokémon could inherit Ditto's lack of a gender.
-package rs.expand.pixelupgrade.commands;
+package rs.expand.evenmorepixelmoncommands.commands;
 
 // Remote imports.
 import com.pixelmonmod.pixelmon.Pixelmon;
@@ -22,10 +22,10 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.PrintingMethods;
+import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
 
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicError;
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printSourcedMessage;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printBasicError;
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedMessage;
 
 // TODO: Add a -s flag to allow silent messages even if sneakyMode is off?
 public class FixGenders implements CommandExecutor

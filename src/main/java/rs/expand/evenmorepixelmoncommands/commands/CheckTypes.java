@@ -1,5 +1,5 @@
 // Thanks for the command idea, MageFX!
-package rs.expand.pixelupgrade.commands;
+package rs.expand.evenmorepixelmoncommands.commands;
 
 // Remote imports.
 import com.pixelmonmod.pixelmon.enums.EnumType;
@@ -16,8 +16,8 @@ import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.PrintingMethods;
-import rs.expand.pixelupgrade.utilities.PokemonMethods;
+import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
+import rs.expand.evenmorepixelmoncommands.utilities.PokemonMethods;
 
 // FIXME: Fix some super long lists like /checktypes 599 causing minor visual issues. Nice polish.
 // TODO: Maybe look into paginated lists that you can move through. Lots of work, but would be real neat for evolutions.
