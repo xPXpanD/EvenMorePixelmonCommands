@@ -912,27 +912,27 @@ public enum PokemonMethods
         return null;
     }
 
-    public static char getGenderCharacter(final CommandSource src, final int genderNum)
+    public static String getGenderCharacter(final CommandSource src, final int genderNum)
     {
         // Console doesn't like these characters, so use letters.
         if (!(src instanceof Player))
         {
             switch (genderNum)
             {
-                case 0: return 'M';
-                case 1: return 'F';
-                case 2: return '-';
-                default: return '?';
+                case 0: return "§3M";
+                case 1: return "§5F";
+                case 2: return "§7-";
+                default: return "§8???";
             }
         }
         else
         {
             switch (genderNum)
             {
-                case 0: return '♂';
-                case 1: return '♀';
-                case 2: return '⚥';
-                default: return '?';
+                case 0: return "§3♂";
+                case 1: return "§5♀";
+                case 2: return "§7⚥";
+                default: return "§8???";
             }
         }
     }

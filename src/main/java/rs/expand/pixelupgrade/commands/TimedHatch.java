@@ -24,8 +24,8 @@ import org.spongepowered.api.text.Text;
 // Local imports.
 import rs.expand.pixelupgrade.utilities.PrintingMethods;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
-import static rs.expand.pixelupgrade.commands.FixGenders.requireConfirmation;
-import static rs.expand.pixelupgrade.utilities.PrintingMethods.printGenericError;
+import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicError;
+import static rs.expand.pixelupgrade.utilities.PrintingMethods.printSourcedError;
 import static rs.expand.pixelupgrade.utilities.PrintingMethods.printSourcedMessage;
 
 public class TimedHatch implements CommandExecutor
@@ -37,6 +37,8 @@ public class TimedHatch implements CommandExecutor
     public static Boolean hatchParty, sneakyMode;
 
     // Set up some more variables for internal use.
+    private String sourceName = this.getClass().getName();
+    private UUID playerUUID;
     private boolean calledRemotely;
     private HashMap<UUID, Long> cooldownMap = new HashMap<>();
 
@@ -61,7 +63,7 @@ public class TimedHatch implements CommandExecutor
 
         if (!nativeErrorArray.isEmpty())
         {
-            PrintingMethods.printCommandNodeError("TimedHatch", nativeErrorArray);
+            PrintingMethods.printCommandNodeError(sourceName, nativeErrorArray);
             sendCheckedMessage(src,"§4Error: §cThis command's config is invalid! Please report to staff.");
         }
         else
@@ -71,7 +73,7 @@ public class TimedHatch implements CommandExecutor
             boolean commandConfirmed = false;
             final Optional<String> arg1Optional = args.getOne("target/slot/confirmation");
             final Optional<String> arg2Optional = args.getOne("slot/confirmation");
-            Player target = null, player = null;
+            Player target = null, player;
 
             if (calledRemotely)
             {
@@ -85,13 +87,13 @@ public class TimedHatch implements CommandExecutor
                         target = Sponge.getServer().getPlayer(arg1String).get();
                     else
                     {
-                        printError(src, "§4Error: §cInvalid target on first argument. See below.", false);
+                        printLocalError(src, "§4Error: §cInvalid target on first argument. See below.", false);
                         return CommandResult.success();
                     }
                 }
                 else
                 {
-                    printError(src, "§4Error: §cNo arguments found. See below.", false);
+                    printLocalError(src, "§4Error: §cNo arguments found. See below.", false);
                     return CommandResult.success();
                 }
 
@@ -105,7 +107,7 @@ public class TimedHatch implements CommandExecutor
                         slot = Integer.parseInt(arg2String);
                     else
                     {
-                        printError(src, "§4Error: §cInvalid slot on optional second argument. See below.", false);
+                        printLocalError(src, "§4Error: §cInvalid slot on optional second argument. See below.", false);
                         return CommandResult.success();
                     }
                 }
@@ -114,7 +116,7 @@ public class TimedHatch implements CommandExecutor
             {
                 //noinspection ConstantConditions - safe, we've already verified we're not console/a command block...
                 player = (Player) src;
-                final UUID playerUUID = player.getUniqueId(); // why is the "d" in "Id" lowercase :(
+                playerUUID = player.getUniqueId(); // why is the "d" in "Id" lowercase :(
 
                 if (!src.hasPermission("pixelupgrade.command.bypass.timedhatch") && cooldownMap.containsKey(playerUUID))
                 {
@@ -131,22 +133,15 @@ public class TimedHatch implements CommandExecutor
                             !hasAltPerm && cooldownMap.get(playerUUID) > currentTime - cooldownInSeconds)
                     {
                         if (timeRemaining == 1)
-                            printError(src, "§4Error: §cYou must wait §4one §cmore second. You can do this!", true);
+                            printLocalError(src, "§4Error: §cYou must wait §4one §cmore second. You can do this!", true);
                         else if (timeRemaining > 60)
-                            printError(src, "§4Error: §cYou must wait another §4" + ((timeRemaining / 60) + 1) + "§c minutes.", true);
+                            printLocalError(src, "§4Error: §cYou must wait another §4" + ((timeRemaining / 60) + 1) + "§c minutes.", true);
                         else
-                            printError(src, "§4Error: §cYou must wait another §4" + timeRemaining + "§c seconds.", true);
+                            printLocalError(src, "§4Error: §cYou must wait another §4" + timeRemaining + "§c seconds.", true);
 
                         return CommandResult.success();
                     }
                 }
-
-                // Ugly, but it'll do for now... Doesn't seem like my usual way of getting flags will work here.
-                final Optional<String> arg3Optional = args.getOne("confirmation");
-                if (arg2Optional.isPresent() && arg2Optional.get().equalsIgnoreCase("-c"))
-                    commandConfirmed = true;
-                else if (arg3Optional.isPresent() && arg3Optional.get().equalsIgnoreCase("-c"))
-                    commandConfirmed = true;
 
                 // Do we have an argument in the first argument slot?
                 // This can be a Pokémon slot, a player name, a confirmation flag or nothing.
@@ -156,7 +151,7 @@ public class TimedHatch implements CommandExecutor
 
                     if (argString.matches("^[1-6]")) // Do we have a valid slot?
                         slot = Integer.parseInt(argString);
-                    else if (argString.equalsIgnoreCase("-c") && hatchParty)
+                    else if (argString.equalsIgnoreCase("-c") && commandCost != 0 && hatchParty) // ...or a confirmation flag?
                         commandConfirmed = true;
                     else if (src.hasPermission("pixelupgrade.command.other.timedhatch"))
                     {
@@ -168,13 +163,13 @@ public class TimedHatch implements CommandExecutor
                         }
                         else
                         {
-                            printError(src, "§4Error: §cInvalid target or slot on first argument. See below.", false);
+                            printLocalError(src, "§4Error: §cInvalid target or slot on first argument. See below.", false);
                             return CommandResult.empty();
                         }
                     }
                     else
                     {
-                        printError(src, "§4Error: §cInvalid slot on first argument. See below.", false);
+                        printLocalError(src, "§4Error: §cInvalid slot on first argument. See below.", false);
                         return CommandResult.empty();
                     }
                 }
@@ -182,7 +177,7 @@ public class TimedHatch implements CommandExecutor
                 // (cost stuff gets sorted later, let's get the syntax valid first)
                 else if (!hatchParty)
                 {
-                    printError(src, "§4Error: §cNo arguments found. See below.", false);
+                    printLocalError(src, "§4Error: §cNo arguments found. See below.", false);
                     return CommandResult.empty();
                 }
 
@@ -195,83 +190,22 @@ public class TimedHatch implements CommandExecutor
                     {
                         if (argString.matches("^[1-6]")) // Do we have a valid slot?
                             slot = Integer.parseInt(argString);
-                        else if (argString.equalsIgnoreCase("-c"))
+                        else if (argString.equalsIgnoreCase("-c") && commandCost != 0 && hatchParty)
                             commandConfirmed = true;
+                        else
+                        {
+                            printLocalError(src, "§4Error: §cInvalid slot on second argument. See below.", false);
+                            return CommandResult.empty();
+                        }
                     }
                     else if (argString.equalsIgnoreCase("-c"))
-                    {
                         commandConfirmed = true;
-                    }
                 }
 
-
-                // TODO: Player-side logic.
-                if (hatchParty)
-                {
-                    // Do we have an argument in the first argument slot?
-                    if (arg1Optional.isPresent())
-                    {
-                        final String arg1String = arg1Optional.get();
-
-                        if (arg1String.matches("^[1-6]")) // Do we have a valid slot?
-                            slot = Integer.parseInt(arg1String);
-                        else if (src.hasPermission("pixelupgrade.command.other.timedhatch"))
-                        {
-                            if (Sponge.getServer().getPlayer(arg1String).isPresent()) // Do we have a valid online player?
-                            {
-                                // Check if the player is targeting themselves. (if they are, just let target stay null)
-                                if (!arg1String.equalsIgnoreCase(player.getName()))
-                                    target = Sponge.getServer().getPlayer(arg1String).get();
-                            }
-                            else
-                            {
-                                printError(src, "§4Error: §cInvalid target or slot on first argument. See below.", false);
-                                return CommandResult.success();
-                            }
-                        }
-                        else
-                        {
-                            printError(src, "§4Error: §cInvalid slot on first argument. See below.", false);
-                            return CommandResult.success();
-                        }
-                    }
-
-                    // Do we have an argument in the second argument slot, and have we not received a Pokémon slot yet?
-                    if (arg2Optional.isPresent() && slot == 0)
-                    {
-                        final String arg2String = arg2Optional.get();
-
-                        // Do we have a Pokémon slot?
-                        if (arg2String.matches("^[1-6]"))
-                            slot = Integer.parseInt(arg2String);
-                        else
-                        {
-                            printError(src, "§4Error: §cInvalid slot on optional second argument. See below.", false);
-                            return CommandResult.success();
-                        }
-                    }
-                }
-                else
-                {
-                    // Do we have an argument in the first slot?
-                    if (arg1Optional.isPresent())
-                    {
-                        final String arg1String = arg1Optional.get();
-
-                        // Do we have a valid online player?
-                        if (Sponge.getServer().getPlayer(arg1String).isPresent())
-                        {
-                            // Check if the player is targeting themselves. (if they are, just let target stay null)
-                            if (!arg1String.equalsIgnoreCase(player.getName()))
-                                target = Sponge.getServer().getPlayer(arg1String).get();
-                        }
-                    }
-                    else
-                    {
-                        printError(src, "§4Error: §cNo arguments found. See below.", false);
-                        return CommandResult.success();
-                    }
-                }
+                // Do we have an argument in the third slot? A bit ugly, but it'll do.
+                final Optional<String> arg3Optional = args.getOne("confirmation");
+                if (arg3Optional.isPresent() && arg3Optional.get().equalsIgnoreCase("-c"))
+                    commandConfirmed = true;
             }
 
             // Is the player in a battle?
@@ -284,21 +218,14 @@ public class TimedHatch implements CommandExecutor
             {
                 // At this point we should always have a valid input. Now we just need confirmation, if applicable.
                 // See whose storage we need to access.
-                PartyStorage storage;
+                final PartyStorage party;
                 if (target != null)
-                    storage = Pixelmon.storageManager.getParty((EntityPlayerMP) target);
+                    party = Pixelmon.storageManager.getParty((EntityPlayerMP) target);
                 else
-                    storage = Pixelmon.storageManager.getParty((EntityPlayerMP) src);
+                    party = Pixelmon.storageManager.getParty((EntityPlayerMP) src);
 
                 // Let's see if we have a specific Pokémon, and if so, where it's at. Prepare for a party check otherwise.
-                Pokemon pokemon = null;
-                if (slot != 0)
-                {
-                    if (target != null)
-                        pokemon = storage.get(slot);
-                    else
-                        pokemon = storage.get(slot);
-                }
+                final Pokemon pokemon = slot != 0 ? party.get(slot) : null;
 
                 if (!hatchParty)
                 {
@@ -309,12 +236,12 @@ public class TimedHatch implements CommandExecutor
                         else
                             sendCheckedMessage(src,"§4Error: §cYou don't have anything in that slot!");
 
-                        return CommandResult.success();
+                        return CommandResult.empty();
                     }
                     else if (!pokemon.isEgg()) // Is the Pokémon we got not an egg?
                     {
                         sendCheckedMessage(src,"§4Error: §cThat's not an egg. Don't hatch actual Pokémon, kids!");
-                        return CommandResult.success();
+                        return CommandResult.empty();
                     }
                 }
 
@@ -325,7 +252,6 @@ public class TimedHatch implements CommandExecutor
                     if (commandConfirmed)
                     {
                         final Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(playerUUID);
-                        final Player player = (Player) src;
 
                         if (optionalAccount.isPresent())
                         {
@@ -342,17 +268,17 @@ public class TimedHatch implements CommandExecutor
                                 {
                                     if (hatchParty)
                                     {
-                                        printSourcedMessage("TimedHatch", "Hatching player's party, and taking §3" +
+                                        printSourcedMessage(sourceName, "Hatching player's party, and taking §3" +
                                                 costToConfirm + "§b coins.");
 
-                                        hatchParty(src, null, storage);
+                                        hatchParty(src, null, party);
                                     }
                                     else
                                     {
-                                        printSourcedMessage("TimedHatch", "Hatching player slot §3" + slot +
+                                        printSourcedMessage(sourceName, "Hatching player slot §3" + slot +
                                                 "§b, and taking §3" + costToConfirm + "§b coins.");
 
-                                        //noinspection ConstantConditions
+                                        ///noinspection ConstantConditions
                                         hatchEgg(src, target, pokemon);
                                     }
                                 }
@@ -360,17 +286,17 @@ public class TimedHatch implements CommandExecutor
                                 {
                                     if (hatchParty)
                                     {
-                                        printSourcedMessage("TimedHatch", "Hatching §3" + target.getName() +
+                                        printSourcedMessage(sourceName, "Hatching §3" + target.getName() +
                                                 "§b's party, and taking §3" + costToConfirm + "§b coins.");
 
-                                        hatchParty(src, target, storage);
+                                        hatchParty(src, target, party);
                                     }
                                     else
                                     {
-                                        printToLog(1, "Hatching slot §3" + slot + "§b for §3" +
+                                        printSourcedMessage(sourceName, "Hatching slot §3" + slot + "§b for §3" +
                                                 target.getName() + "§b. Taking §3" + costToConfirm + "§b coins.");
 
-                                        //noinspection ConstantConditions
+                                        ///noinspection ConstantConditions
                                         hatchEgg(src, target, pokemon);
                                     }
                                 }
@@ -380,21 +306,17 @@ public class TimedHatch implements CommandExecutor
                                 final BigDecimal balanceNeeded = uniqueAccount.getBalance(
                                         economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
 
-                                printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
-                                        "§b, and we're lacking §3" + balanceNeeded);
                                 sendCheckedMessage(src,"§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this.");
                             }
                         }
                         else
                         {
-                            printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. Bug?");
+                            printSourcedError(sourceName, "§4" + src.getName() + "§c does not have an economy account, aborting. Bug?");
                             sendCheckedMessage(src,"§4Error: §cNo economy account found. Please contact staff!");
                         }
                     }
                     else
                     {
-                        printToLog(1, "Got cost but no confirmation; end of the line.");
-
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
 
                         if (hatchParty)
@@ -466,28 +388,41 @@ public class TimedHatch implements CommandExecutor
                         if (target == null)
                         {
                             if (hatchParty)
-                                printToLog(1, "Hatching player's party. " + priceNote);
+                            {
+                                printSourcedMessage(sourceName, "Hatching player's party. " + priceNote);
+                                hatchParty(src, null, party);
+                            }
                             else
-                                printToLog(1, "Hatching slot §3" + slot + "§b. " + priceNote);
+                            {
+                                printSourcedMessage(sourceName, "Hatching slot §3" + slot + "§b. " + priceNote);
+                                hatchEgg(src, null, pokemon);
+                            }
                         }
                         else
                         {
                             if (hatchParty)
                             {
-                                printToLog(1, "Hatching §3" + target.getName() +
+                                printSourcedMessage(sourceName, "Hatching §3" + target.getName() +
                                         "§b's party. " + priceNote);
+                                hatchParty(src, target, party);
                             }
                             else
                             {
-                                printToLog(1, "Hatching slot §3" + slot +
+                                printSourcedMessage(sourceName, "Hatching slot §3" + slot +
                                         "§b for §3" + target.getName() + "§b. " + priceNote);
+                                hatchEgg(src, target, pokemon);
                             }
                         }
 
                         cooldownMap.put(playerUUID, currentTime);
                     }
-
-                    hatchEgg(src, target, slot, pokemon);
+                    else
+                    {
+                        if (slot == 0)
+                            hatchParty(src, target, party);
+                        else
+                            hatchEgg(src, target, pokemon);
+                    }
                 }
             }
         }
@@ -499,13 +434,13 @@ public class TimedHatch implements CommandExecutor
     private void sendCheckedMessage(final CommandSource src, final String input)
     {
         if (src instanceof CommandBlock) // Redirect to console, respecting existing formatting.
-            PrintingMethods.printBasicMessage(input);
+            PrintingMethods.printUnformattedMessage(input);
         else // Print normally.
             src.sendMessage(Text.of(input));
     }
 
     // Create and print a command-specific error box that shows a provided String as the actual error.
-    private void printError(final CommandSource src, final String input, final boolean hitCooldown)
+    private void printLocalError(final CommandSource src, final String input, final boolean hitCooldown)
     {
         sendCheckedMessage(src, "§5-----------------------------------------------------");
         sendCheckedMessage(src, input);
@@ -515,14 +450,10 @@ public class TimedHatch implements CommandExecutor
 
         if (!calledRemotely && economyEnabled && commandCost > 0)
         {
-            if (requireConfirmation)
-            {
-                src.sendMessage(Text.EMPTY);
-                src.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're sure!"));
-            }
+            sendCheckedMessage(src, "");
 
             if (commandCost == 1)
-                src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coin."));
+                src.sendMessage(Text.of("§eConfirming will cost you §6one §ecoin."));
             else
                 src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coins."));
         }
@@ -563,8 +494,8 @@ public class TimedHatch implements CommandExecutor
     // Hatch us an egg! Also, show the right messages.
     private void hatchEgg(final CommandSource src, final Player target, final Pokemon pokemon)
     {
-        pokemon.hatch();
-        printGenericError("Yo, did it update? If not, TODO.");
+        pokemon.hatchEgg();
+        printBasicError("Yo, did it update? If not, TODO.");
 
         if (target != null)
         {
@@ -593,9 +524,9 @@ public class TimedHatch implements CommandExecutor
         {
             pokemon = storage.get(i);
             if (pokemon != null)
-                pokemon.hatch();
+                pokemon.hatchEgg();
         }
-        printGenericError("Yo, did it update? If not, TODO.");
+        printBasicError("Yo, did it update? If not, TODO.");
 
         if (target == null)
             sendCheckedMessage(src,"§aAll eggs in your party have been hatched!");

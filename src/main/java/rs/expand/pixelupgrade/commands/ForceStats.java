@@ -20,8 +20,10 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
-import rs.expand.pixelupgrade.PixelUpgrade;
 import rs.expand.pixelupgrade.utilities.PrintingMethods;
+
+import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicError;
+import static rs.expand.pixelupgrade.utilities.PrintingMethods.printSourcedMessage;
 
 // FIXME: Long numberic inputs cause a NumberFormatException.
 public class ForceStats implements CommandExecutor
@@ -37,16 +39,9 @@ public class ForceStats implements CommandExecutor
     private void sendCheckedMessage(final CommandSource src, final String input)
     {
         if (src instanceof CommandBlock) // Redirect to console, respecting existing formatting.
-            PrintingMethods.printBasicMessage(input);
+            PrintingMethods.printUnformattedMessage(input);
         else // Print normally.
             src.sendMessage(Text.of(input));
-    }
-
-    // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
-    private void printToLog (final int debugNum, final String inputString)
-    {
-        if (!calledRemotely)
-            PrintingMethods.printDebugMessage("ForceStats", debugNum, inputString);
     }
 
     // Create a few sets of Strings that we query during input checking.
@@ -83,30 +78,10 @@ public class ForceStats implements CommandExecutor
         calledRemotely = !(src instanceof Player);
 
         if (commandAlias == null)
-        {
-            printToLog(0, "Could not read node \"§4commandAlias§c\".");
-            printToLog(0, "This command's config could not be parsed. Exiting.");
             sendCheckedMessage(src,"§4Error: §cThis command's config is invalid! Please check the file.");
-        }
         else
         {
-            if (calledRemotely)
-            {
-                if (src instanceof CommandBlock)
-                {
-                    PrintingMethods.printDebugMessage("ForceStats", 1,
-                            "Called by command block, starting. Silencing logger messages.");
-                }
-                else
-                {
-                    PrintingMethods.printDebugMessage("ForceStats", 1,
-                            "Called by console, starting. Silencing further log messages.");
-                }
-            }
-            else
-                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
-
-            boolean canContinue = true, forceValue = false, valueIsNumeric = false;
+            boolean forceValue = false, valueIsNumeric = false;
             final Optional<String> arg1Optional = args.getOne("target/slot");
             final Optional<String> arg2Optional = args.getOne("slot/stat");
             final Optional<String> arg3Optional = args.getOne("stat/value");
@@ -119,15 +94,9 @@ public class ForceStats implements CommandExecutor
 
             // Ugly, but it'll do for now... Doesn't seem like my usual way of getting flags will work here.
             if (arg4Optional.isPresent() && arg4Optional.get().equalsIgnoreCase("-f"))
-            {
-                printToLog(2, "Discovered a force flag in argument slot 4.");
                 forceValue = true;
-            }
             else if (arg5Optional.isPresent() && arg5Optional.get().equalsIgnoreCase("-f"))
-            {
-                printToLog(2, "Discovered a force flag in argument slot 5.");
                 forceValue = true;
-            }
 
             if (arg1Optional.isPresent()) // Target or slot.
             {
@@ -136,211 +105,142 @@ public class ForceStats implements CommandExecutor
                 if (calledRemotely)
                 {
                     if (Sponge.getServer().getPlayer(arg1String).isPresent())
-                    {
                         target = Sponge.getServer().getPlayer(arg1String).get();
-
-                        if (!src.getName().equalsIgnoreCase(arg1String))
-                            printToLog(2, "Found a valid target in argument 1.");
-                        else
-                            printToLog(2, "Player targeted self. Continuing.");
-                    }
                     else
                     {
-                        printToLog(1, "Invalid target on first argument. Exit.");
-                        printError(src, "§4Error: §cInvalid target on first argument. See below.");
-                        canContinue = false;
+                        printLocalError(src, "§4Error: §cInvalid target on first argument. See below.");
+                        return CommandResult.empty();
                     }
                 }
                 else
                 {
                     if (arg1String.matches("^[1-6]"))
-                    {
-                        printToLog(2, "Slot was a valid slot number. Let's move on!");
                         slot = Integer.parseInt(arg1String);
-                    }
                     else if (Sponge.getServer().getPlayer(arg1String).isPresent())
-                    {
                         target = Sponge.getServer().getPlayer(arg1String).get();
-
-                        if (!src.getName().equalsIgnoreCase(arg1String))
-                            printToLog(2, "Found a valid target in argument 1.");
-                        else
-                            printToLog(2, "Player targeted self. Continuing.");
-                    }
                     else
                     {
-                        printToLog(1, "Invalid target or slot on first argument. Exit.");
-                        printError(src, "§4Error: §cInvalid target or slot on first argument. See below.");
-                        canContinue = false;
+                        printLocalError(src, "§4Error: §cInvalid target or slot on first argument. See below.");
+                        return CommandResult.empty();
                     }
                 }
             }
             else
             {
-                printToLog(1, "No arguments were found. Exit.");
-                printError(src, "§4Error: §cNo arguments found. See below.");
-                canContinue = false;
+                printLocalError(src, "§4Error: §cNo arguments found. See below.");
+                return CommandResult.empty();
             }
 
-            if (canContinue)
+            if (arg2Optional.isPresent()) // Slot or stat.
             {
-                if (arg2Optional.isPresent()) // Slot or stat.
-                {
-                    final String arg2String = arg2Optional.get();
+                final String arg2String = arg2Optional.get();
 
-                    if (target != null)
-                    {
-                        if (arg2String.matches("^[1-6]"))
-                        {
-                            printToLog(2, "Slot was a valid slot number. Let's move on!");
-                            slot = Integer.parseInt(arg2String);
-                        }
-                        else
-                        {
-                            printToLog(1, "Invalid slot on second argument. Exit.");
-                            printError(src, "§4Error: §cInvalid slot on second argument. See below.");
-                            canContinue = false;
-                        }
-                    }
+                if (target != null)
+                {
+                    if (arg2String.matches("^[1-6]"))
+                        slot = Integer.parseInt(arg2String);
                     else
                     {
-                        if (validIVsEVs.contains(arg2String) || validOtherStats.contains(arg2String))
-                        {
-                            printToLog(2, "Provided stat was valid, proceeding without adjustment.");
-                            stat = arg2String;
-                        }
+                        printLocalError(src, "§4Error: §cInvalid slot on second argument. See below.");
+                        return CommandResult.empty();
+                    }
+                }
+                else
+                {
+                    if (validIVsEVs.contains(arg2String) || validOtherStats.contains(arg2String))
+                        stat = arg2String;
+                    else
+                    {
+                        stat = checkForUpgradeStats(arg2String);
+
+                        if (!stat.equals(arg2String))
+                            fixMessageString = "§eFound Upgrade-style stat, adjusting to \"§6" + stat + "§e\"...";
                         else
                         {
-                            stat = checkForUpgradeStats(arg2String);
+                            stat = checkForOtherStats(arg2String);
 
                             if (!stat.equals(arg2String))
-                            {
-                                printToLog(2, "Found a known Upgrade-style stat. Fixing...");
-                                fixMessageString = "§eFound Upgrade-style stat, adjusting to \"§6" + stat + "§e\"...";
-                            }
-                            else
-                            {
-                                stat = checkForOtherStats(arg2String);
+                                fixMessageString = "§eFound known bad stat, adjusting to \"§6" + stat + "§e\"...";
+                        }
 
-                                if (!stat.equals(arg2String))
-                                {
-                                    printToLog(2, "Found a known bad stat. Fixing...");
-                                    fixMessageString = "§eFound known bad stat, adjusting to \"§6" + stat + "§e\"...";
-                                }
-                            }
-
-                            if (fixMessageString == null) // No message means we didn't fix anything.
+                        if (fixMessageString == null) // No message means we didn't fix anything.
+                        {
+                            if (!forceValue)
                             {
-                                if (!forceValue)
-                                {
-                                    printToLog(1, "Invalid and unfixable stat on arg 2, not in force mode. Exit.");
-                                    printError(src, "§4Error: §cInvalid stat on second argument. See below.");
-                                    canContinue = false;
-                                }
-                                else
-                                    printToLog(2, "No valid stat found, but force mode is on. Proceeding...");
+                                printLocalError(src, "§4Error: §cInvalid stat on second argument. See below.");
+                                return CommandResult.empty();
                             }
-                            else
-                                printToLog(2, "Managed to fix it, let's continue.");
                         }
                     }
                 }
+            }
+            else
+            {
+                if (calledRemotely)
+                {
+                    printLocalError(src, "§4Error: §cMissing slot on second argument. See below.");
+                    return CommandResult.empty();
+                }
                 else
                 {
-                    if (calledRemotely)
-                    {
-                        printToLog(1, "No slot on second argument. Exit.");
-                        printError(src, "§4Error: §cMissing slot on second argument. See below.");
-                    }
-                    else
-                    {
-                        printToLog(1, "No slot or stat on second argument. Exit.");
-                        printError(src, "§4Error: §cMissing slot or stat on second argument. See below.");
-                    }
-
-                    canContinue = false;
+                    printLocalError(src, "§4Error: §cMissing slot or stat on second argument. See below.");
+                    return CommandResult.empty();
                 }
             }
 
-            if (canContinue)
+            if (arg3Optional.isPresent()) // Stat or value.
             {
-                if (arg3Optional.isPresent()) // Stat or value.
+                final String arg3String = arg3Optional.get();
+
+                if (target != null)
                 {
-                    final String arg3String = arg3Optional.get();
-
-                    if (target != null)
-                    {
-                        if (validIVsEVs.contains(arg3String) || validOtherStats.contains(arg3String))
-                        {
-                            printToLog(2, "Provided stat was valid, proceeding without adjustment.");
-                            stat = arg3String;
-                        }
-                        else
-                        {
-                            stat = checkForUpgradeStats(arg3String);
-
-                            if (!stat.equals(arg3String))
-                            {
-                                printToLog(2, "Found a known Upgrade-style stat. Fixing...");
-                                fixMessageString = "§eFound Upgrade-style stat, adjusting to \"§6" + stat + "§e\"...";
-                            }
-                            else
-                            {
-                                stat = checkForOtherStats(arg3String);
-
-                                if (!stat.equals(arg3String))
-                                {
-                                    printToLog(2, "Found a known bad stat. Fixing...");
-                                    fixMessageString = "§eFound known bad stat, adjusting to \"§6" + stat + "§e\"...";
-                                }
-                            }
-
-                            if (fixMessageString == null) // No message means we didn't fix anything.
-                            {
-                                if (!forceValue)
-                                {
-                                    printToLog(1, "Invalid and unfixable stat on arg 3, not in force mode. Exit.");
-                                    printError(src, "§4Error: §cInvalid stat on third argument. See below.");
-                                    canContinue = false;
-                                }
-                                else
-                                    printToLog(2, "No valid stat found, but force mode is on. Proceeding...");
-                            }
-                            else
-                                printToLog(2, "Managed to fix it, let's continue.");
-                        }
-                    }
+                    if (validIVsEVs.contains(arg3String) || validOtherStats.contains(arg3String))
+                        stat = arg3String;
                     else
                     {
-                        if (arg3String.matches("-?[1-9]\\d*|0"))
-                        {
-                            printToLog(2, "Checked value, and found out it's numeric. Setting flag.");
-                            longValue = Long.parseLong(arg3String);
-                            valueIsNumeric = true;
-                        }
+                        stat = checkForUpgradeStats(arg3String);
+
+                        if (!stat.equals(arg3String))
+                            fixMessageString = "§eFound Upgrade-style stat, adjusting to \"§6" + stat + "§e\"...";
                         else
-                            printToLog(2, "Value is not numeric, so treating it as a String.");
+                        {
+                            stat = checkForOtherStats(arg3String);
+
+                            if (!stat.equals(arg3String))
+                                fixMessageString = "§eFound known bad stat, adjusting to \"§6" + stat + "§e\"...";
+                        }
+
+                        if (fixMessageString == null) // No message means we didn't fix anything.
+                        {
+                            if (!forceValue)
+                            {
+                                printLocalError(src, "§4Error: §cInvalid stat on third argument. See below.");
+                                return CommandResult.empty();
+                            }
+                        }
                     }
                 }
                 else
                 {
-                    if (calledRemotely)
+                    if (arg3String.matches("-?[1-9]\\d*|0"))
                     {
-                        printToLog(1, "No stat on third argument. Exit.");
-                        printError(src, "§4Error: §cMissing stat on third argument. See below.");
+                        longValue = Long.parseLong(arg3String);
+                        valueIsNumeric = true;
                     }
-                    else
-                    {
-                        printToLog(1, "No stat or value on third argument. Exit.");
-                        printError(src, "§4Error: §cMissing stat or value on third argument. See below.");
-                    }
-
-                    canContinue = false;
                 }
+            }
+            else
+            {
+                if (calledRemotely)
+                    printLocalError(src, "§4Error: §cMissing stat on third argument. See below.");
+                else
+                    printLocalError(src, "§4Error: §cMissing stat or value on third argument. See below.");
+
+                return CommandResult.empty();
             }
 
             // Every argument shifts up by one if we have a target. Run this to finalize args if we're shifted.
-            if (canContinue && target != null)
+            if (target != null)
             {
                 if (arg4Optional.isPresent() && !arg4Optional.get().equalsIgnoreCase("-f")) // Value or force flag.
                 {
@@ -348,75 +248,108 @@ public class ForceStats implements CommandExecutor
 
                     if (arg4String.matches("-?[1-9]\\d*|0"))
                     {
-                        printToLog(2, "Checked value, and found out it's numeric. Setting flag.");
                         longValue = Long.parseLong(arg4String);
                         valueIsNumeric = true;
                     }
-                    else
-                        printToLog(2, "Value is not numeric, so treating it as a String.");
                 }
                 else
                 {
-                    printToLog(1, "Missing or invalid value on fourth argument. Exit.");
-                    printError(src, "§4Error: §cMissing or invalid value on fourth argument. See below.");
-
-                    canContinue = false;
+                    printLocalError(src, "§4Error: §cMissing or invalid value on fourth argument. See below.");
+                    return CommandResult.empty();
                 }
             }
 
-            // Do in-battle checks.
-            if (canContinue)
+            // Do in-battle checks. This first one is only hittable if we got called by an actual Player.
+            if (target == null && BattleRegistry.getBattle((EntityPlayerMP) src) != null)
             {
-                // Only hittable if we got called by an actual Player.
-                if (target == null && BattleRegistry.getBattle((EntityPlayerMP) src) != null)
-                {
-                    printToLog(0, "Player tried to set stats on own Pokémon while in a battle. Exit.");
-                    sendCheckedMessage(src, "§4Error: §cYou can't use this command while in a battle!");
-
-                    canContinue = false;
-                }
-                else if (target != null && BattleRegistry.getBattle((EntityPlayerMP) target) != null)
-                {
-                    printToLog(0, "Target was in a battle, cannot proceed. Exit."); // Swallowed if console.
-                    sendCheckedMessage(src, "§4Error: §cTarget is battling, changes wouldn't stick. Exiting.");
-
-                    canContinue = false;
-                }
+                sendCheckedMessage(src, "§4Error: §cYou can't use this command while in a battle!");
+                return CommandResult.empty();
+            }
+            else if (target != null && BattleRegistry.getBattle((EntityPlayerMP) target) != null)
+            {
+                sendCheckedMessage(src, "§4Error: §cTarget is battling, changes wouldn't stick. Exiting.");
+                return CommandResult.empty();
             }
 
             // Did we pass ALL those checks? Go go go!
-            if (canContinue)
+            // Start by getting the player's party, and then the Pokémon in the given slot.
+            final Pokemon pokemon;
+            if (target != null)
+                pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) target).get(slot);
+            else
+                pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot);
+
+            if (pokemon == null)
             {
-                // Get the player's party, and then get the Pokémon in the targeted slot.
-                final Pokemon pokemon;
                 if (target != null)
-                    pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) target).get(slot);
+                    sendCheckedMessage(src,"§4Error: §cYour target does not have anything in that slot!");
                 else
-                    pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot);
-                    printToLog(2, "Checks completed, entering execution.");
-
-                if (pokemon == null)
+                    sendCheckedMessage(src,"§4Error: §cYou don't have anything in that slot!");
+            }
+            else
+            {
+                if (!forceValue && !valueIsNumeric)
+                    printLocalError(src, "§4Error: §cGot a non-numeric value, but no flag. Try a number.");
+                else // ok we good
                 {
-                    printToLog(1, "No Pokémon data found in slot, probably empty. Exit.");
+                    // Create a copy of the Pokémon's persistent data for extracting specific NBT info from.
+                    final NBTTagCompound pokemonNBT = pokemon.getPersistentData();
 
-                    if (target != null)
-                        sendCheckedMessage(src,"§4Error: §cYour target does not have anything in that slot!");
-                    else
-                        sendCheckedMessage(src,"§4Error: §cYou don't have anything in that slot!");
-                }
-                else
-                {
-                    if (!forceValue && !valueIsNumeric)
+                    if (forceValue)
                     {
-                        printToLog(1, "We support Strings only in force mode. Exit.");
-                        printError(src, "§4Error: §cGot a non-numeric value, but no flag. Try a number.");
+                        sendCheckedMessage(src,"§7-----------------------------------------------------");
+
+                        if (fixMessageString != null)
+                        {
+                            sendCheckedMessage(src,fixMessageString);
+                            sendCheckedMessage(src,"");
+                        }
+
+                        if (!pokemonNBT.getString(stat).isEmpty())
+                        {
+                            sendCheckedMessage(src,"§aForcing value! Old String value: §2" +
+                                    pokemonNBT.getString(stat));
+                        }
+                        else if (pokemonNBT.getLong(stat) != 0)
+                        {
+                            sendCheckedMessage(src,"§aForcing value! Old numeric value: §2" +
+                                    pokemonNBT.getLong(stat));
+                        }
+                        else
+                        {
+                            // Slightly awkward, we'll have to make an assumption here.
+                            // getLong returns 0 both if something isn't present or if it is actually 0.
+                            sendCheckedMessage(src, "§eForcing value! Tried to grab old value, but couldn't. Stuff may break.");
+                        }
+
+                        if (valueIsNumeric)
+                            pokemonNBT.setLong(stat, longValue);
+                        else
+                        {
+                            // All the arguments shift by one to accomodate for arg1 being a target, if it is one.
+                            if (target == null)
+                                pokemonNBT.setString(stat, arg3Optional.get());
+                            else
+                                pokemonNBT.setString(stat, arg4Optional.get());
+                        }
+
+                        // Update the player's sidebar with the new changes.
+                        printBasicError("Yo, did it update? If not, TODO.");
+
+                        sendCheckedMessage(src,"§aThe new value was written. You may have to reconnect.");
+                        sendCheckedMessage(src,"§7-----------------------------------------------------");
                     }
-                    else // ok we good
+                    else
                     {
-                        // Create a copy of the Pokémon's persistent data for extracting specific NBT info from.
-                        final NBTTagCompound pokemonNBT = pokemon.getPersistentData();
-
-                        if (forceValue)
+                        if (stat.equals("Gender") && longValue > 2 || stat.equals("Gender") && longValue < 0)
+                            sendCheckedMessage(src,"§4Error: §cSize value out of bounds. Valid range: 0 ~ 2");
+                        else if (stat.equals("Growth") && longValue > 8 || stat.equals("Growth") && longValue < 0)
+                            sendCheckedMessage(src,"§4Error: §cSize value out of bounds. Valid range: 0 ~ 8");
+                        else if (stat.equals("IsShiny") && longValue != 0 && longValue != 1)
+                            sendCheckedMessage(src,"§4Error: §cInvalid boolean value. Valid values: 0 (=false) or 1 (=true)");
+                        else if (stat.equals("Nature") && longValue > 24 || stat.equals("Nature") && longValue < 0)
+                            sendCheckedMessage(src,"§4Error: §cNature value out of bounds. Valid range: 0 ~ 24");
+                        else
                         {
                             sendCheckedMessage(src,"§7-----------------------------------------------------");
 
@@ -426,98 +359,24 @@ public class ForceStats implements CommandExecutor
                                 sendCheckedMessage(src,"");
                             }
 
-                            if (!pokemonNBT.getString(stat).isEmpty())
+                            // Write to player's chat, or console if running from command block.
+                            sendCheckedMessage(src, "Writing value... Stat is §3" + stat + "§b, old value was §3" +
+                                    pokemonNBT.getLong(stat) + "§b, new is §3" + longValue + "§b.");
+
+                            // Also write to console specifically when called by a player. Let's make sure this is logged!
+                            if (src instanceof Player)
                             {
-                                printToLog(1, "Value is being forced! Old String value: §3" +
-                                        pokemonNBT.getString(stat));
-                                sendCheckedMessage(src,"§aForcing value! Old String value: §2" +
-                                        pokemonNBT.getString(stat));
-                            }
-                            else if (pokemonNBT.getLong(stat) != 0)
-                            {
-                                printToLog(1, "Value is being forced! Old numeric value: §3" +
-                                        pokemonNBT.getLong(stat));
-                                sendCheckedMessage(src,"§aForcing value! Old numeric value: §2" +
-                                        pokemonNBT.getLong(stat));
-                            }
-                            else
-                            {
-                                // Slightly awkward, we'll have to make an assumption here.
-                                // getLong returns 0 both if something isn't present or if it is actually 0.
-                                printToLog(1,
-                                        "Value is being forced! Tried to grab old value, but couldn't.");
-                                sendCheckedMessage(src,
-                                        "§eForcing value! Tried to grab old value, but couldn't.");
+                                printSourcedMessage(this.getClass().getName(), "Writing value... Stat is §3" + stat +
+                                        "§b, old value was §3" + pokemonNBT.getLong(stat) + "§b, new is §3" + longValue + "§b.");
                             }
 
-                            if (valueIsNumeric)
-                            {
-                                printToLog(1, "Numeric value written. Glad to be of service.");
-                                pokemonNBT.setLong(stat, longValue);
-                            }
-                            else
-                            {
-                                printToLog(1, "Non-numeric value written... Glad to be of service?");
-
-                                // All the arguments shift by one to accomodate for arg1 being a target, if it is one.
-                                if (target == null)
-                                    pokemonNBT.setString(stat, arg3Optional.get());
-                                else
-                                    pokemonNBT.setString(stat, arg4Optional.get());
-                            }
+                            pokemonNBT.setLong(stat, longValue);
 
                             // Update the player's sidebar with the new changes.
-                            printGenericError("Yo, did it update? If not, TODO.");
+                            printBasicError("Yo, did it update? If not, TODO.");
 
-                            sendCheckedMessage(src,"§aThe new value was written. You may have to reconnect.");
+                            sendCheckedMessage(src,"§aExisting NBT value changed! You may have to reconnect.");
                             sendCheckedMessage(src,"§7-----------------------------------------------------");
-                        }
-                        else
-                        {
-                            printToLog(2, "Found valid non-forced input, testing against limits.");
-
-                            if (stat.equals("Gender") && longValue > 2 || stat.equals("Gender") && longValue < 0)
-                            {
-                                printToLog(1, "Found a Gender value above 2 or below 0; out of bounds. Exit.");
-                                sendCheckedMessage(src,"§4Error: §cSize value out of bounds. Valid range: 0 ~ 2");
-                            }
-                            else if (stat.equals("Growth") && longValue > 8 || stat.equals("Growth") && longValue < 0)
-                            {
-                                printToLog(1, "Found a Growth value above 8 or below 0; out of bounds. Exit.");
-                                sendCheckedMessage(src,"§4Error: §cSize value out of bounds. Valid range: 0 ~ 8");
-                            }
-                            else if (stat.equals("IsShiny") && longValue != 0 && longValue != 1)
-                            {
-                                printToLog(1, "Invalid shiny status value detected. Exit.");
-                                sendCheckedMessage(src,"§4Error: §cInvalid boolean value. Valid values: 0 (=false) or 1 (=true)");
-                            }
-                            else if (stat.equals("Nature") && longValue > 24 || stat.equals("Nature") && longValue < 0)
-                            {
-                                printToLog(1, "Found a Nature value above 24 or below 0; out of bounds. Exit.");
-                                sendCheckedMessage(src,"§4Error: §cNature value out of bounds. Valid range: 0 ~ 24");
-                            }
-                            else
-                            {
-                                sendCheckedMessage(src,"§7-----------------------------------------------------");
-
-                                if (fixMessageString != null)
-                                {
-                                    sendCheckedMessage(src,fixMessageString);
-                                    sendCheckedMessage(src,"");
-                                }
-
-                                printToLog(1, "Setting... Stat is §3" + stat + "§b, old value was §3" +
-                                        pokemonNBT.getLong(stat) + "§b, new is §3" + longValue + "§b.");
-
-                                sendCheckedMessage(src,"§aWriting value...");
-                                pokemonNBT.setLong(stat, longValue);
-
-                                // Update the player's sidebar with the new changes.
-                                printGenericError("Yo, did it update? If not, TODO.");
-
-                                sendCheckedMessage(src,"§aExisting NBT value changed! You may have to reconnect.");
-                                sendCheckedMessage(src,"§7-----------------------------------------------------");
-                            }
                         }
                     }
                 }
@@ -591,7 +450,7 @@ public class ForceStats implements CommandExecutor
         }
     }
 
-	private void printError(final CommandSource src, final String errorString)
+	private void printLocalError(final CommandSource src, final String errorString)
     {
         sendCheckedMessage(src,"§5-----------------------------------------------------");
         sendCheckedMessage(src,errorString);

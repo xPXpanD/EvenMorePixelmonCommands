@@ -46,7 +46,7 @@ public class ResetCount implements CommandExecutor
                 printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
 
                 final Player player = (Player) src;
-                boolean canContinue = true, commandConfirmed = false, printError = false;
+                boolean canContinue = true, commandConfirmed = false, printLocalError = false;
                 String fixedCount = "";
                 int slot = 0;
 
@@ -97,12 +97,12 @@ public class ResetCount implements CommandExecutor
                             fixedCount = "All";
                             break;
                         default:
-                            printError = true;
+                            printLocalError = true;
                     }
                 }
-                else if (canContinue) printError = true;
+                else if (canContinue) printLocalError = true;
 
-                if (printError)
+                if (printLocalError)
                 {
                     printToLog(1, "Could not find a valid count to reset. Exit.");
 

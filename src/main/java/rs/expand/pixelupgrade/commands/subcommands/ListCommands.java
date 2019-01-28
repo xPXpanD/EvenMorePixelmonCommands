@@ -1,9 +1,8 @@
 // The command listing. Only shows console-accessible commands if used from there.
-package rs.expand.pixelupgrade.commands;
+package rs.expand.pixelupgrade.commands.subcommands;
 
 // Remote imports.
 import java.util.ArrayList;
-import java.util.List;
 import org.spongepowered.api.block.tileentity.CommandBlock;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -13,53 +12,51 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.format.TextColors;
+import rs.expand.pixelupgrade.commands.*;
 
 // Local imports.
-import rs.expand.pixelupgrade.utilities.PrintingMethods;
 import static rs.expand.pixelupgrade.PixelUpgrade.economyEnabled;
+import static rs.expand.pixelupgrade.PixelUpgrade.numLinesPerPage;
+import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicError;
+import static rs.expand.pixelupgrade.utilities.PrintingMethods.printSourcedError;
 
 // Command format helper! Use this format if you want to add your own stuff.
 // [] = optional, {} = flag, <> = required, () = add comment here
 // Make comments gray (color 7) so they don't look like part of the syntax. Useful for showing missing arg perms.
-public class PixelUpgradeInfo implements CommandExecutor
+public class ListCommands implements CommandExecutor
 {
     // Declare some variables. We'll load stuff into these when we call the config loader.
     // Other config variables are loaded in from their respective classes.
     public static String commandAlias;
-    public static Integer numLinesPerPage;
-
-    // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
-    private void printToLog (final int debugNum, final String inputString)
-    { PrintingMethods.printDebugMessage("PU list", debugNum, inputString); }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)
 	{
 	    if (!(src instanceof CommandBlock))
         {
+            // Set up a class name variable for internal use. We'll pass this to logging when showing a source is desired.
+            final String sourceName = "PU Command List";
+
             // Running from console? Let's tell our code that. If "src" is not a Player, this becomes true.
             final boolean calledRemotely = !(src instanceof Player);
 
             // Make an uninitialized String for command confirmation flags. We fill this in when people need to know a flag.
             String flagString;
 
-            if (!calledRemotely)
-                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
-
             // Validate the data we get from the command's main config. Revert to safe values if necessary.
-            final List<Text> permissionMessageList = new ArrayList<>();
+            final java.util.List<Text> permissionMessageList = new ArrayList<>();
             boolean gotConfigError = false;
             final int sanitizedNumLinesPerPage;
 
             if (commandAlias == null)
             {
-                printToLog(0, "Could not read node \"§4commandAlias§c\".");
+                printSourcedError(sourceName, "Could not read node \"§4commandAlias§c\".");
                 gotConfigError = true;
             }
 
             if (numLinesPerPage == null)
             {
-                printToLog(0, "Could not read node \"§4numLinesPerPage§c\".");
+                printSourcedError(sourceName, "Could not read node \"§4numLinesPerPage§c\".");
                 gotConfigError = true;
                 sanitizedNumLinesPerPage = 20;
             }
@@ -68,28 +65,7 @@ public class PixelUpgradeInfo implements CommandExecutor
 
             // We got an error. Safe defaults were already loaded earlier, and specific errors printed.
             if (gotConfigError)
-                printToLog(0, "We'll proceed with safe defaults. Please fix this.");
-
-            if (!calledRemotely && src.hasPermission("pixelupgrade.command.checkegg"))
-            {
-                if (CheckEgg.commandCost != null && CheckEgg.commandAlias != null)
-                {
-                    if (economyEnabled && CheckEgg.commandCost > 0)
-                    {
-                        permissionMessageList.add(Text.of("§6/" + CheckEgg.commandAlias +
-                                " <slot, 1-6> {confirm flag}"));
-                    }
-                    else
-                    {
-                        permissionMessageList.add(Text.of("§6/" + CheckEgg.commandAlias +
-                                " <slot, 1-6>"));
-                    }
-
-                    permissionMessageList.add(Text.of("§f ➡ §eChecks an egg to see what's inside."));
-                }
-                else
-                    printToLog(1, "§3/checkegg §bhas a malformed config, hiding from list.");
-            }
+                printBasicError("We'll proceed with safe defaults. Please fix this.");
 
             if (calledRemotely || src.hasPermission("pixelupgrade.command.checkstats"))
             {
@@ -124,7 +100,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                     permissionMessageList.add(Text.of("§f ➡ §eLists a Pokémon's IVs, nature, size and more."));
                 }
                 else
-                    printToLog(1, "§3/checkstats §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§3/checkstats §bhas a malformed config, hiding from list.");
             }
 
             if (calledRemotely || src.hasPermission("pixelupgrade.command.checktypes"))
@@ -135,7 +111,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                     permissionMessageList.add(Text.of("§f ➡ §eShows a Pokémon's resistances, weaknesses and more."));
                 }
                 else
-                    printToLog(1, "§3/checktypes §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§3/checktypes §bhas a malformed config, hiding from list.");
             }
 
             /*if (!calledRemotely && src.hasPermission("pixelupgrade.command.dittofusion"))
@@ -151,7 +127,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                         permissionMessageList.add(Text.of("§f ➡ §eSacrifice one Ditto to improve another."));
                 }
                 else
-                    printToLog(1, "§3/dittofusion §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§3/dittofusion §bhas a malformed config, hiding from list.");
             }*/
 
             if (calledRemotely || src.hasPermission("pixelupgrade.command.fixgenders"))
@@ -175,7 +151,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                     permissionMessageList.add(Text.of("§f ➡ §eFixes genders broken by commands or bugs."));
                 }
                 else
-                    printToLog(1, "§3/fixgenders §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§3/fixgenders §bhas a malformed config, hiding from list.");
             }
 
             if (calledRemotely || src.hasPermission("pixelupgrade.command.staff.forcehatch"))
@@ -190,7 +166,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                     permissionMessageList.add(Text.of("§f ➡ §eHatches any eggs instantly."));
                 }
                 else
-                    printToLog(1, "§3/forcehatch §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§3/forcehatch §bhas a malformed config, hiding from list.");
             }
 
             if (calledRemotely || src.hasPermission("pixelupgrade.command.staff.forcestats"))
@@ -205,7 +181,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                     permissionMessageList.add(Text.of("§f ➡ §eChanges stats freely, with an optional safety bypass."));
                 }
                 else
-                    printToLog(1, "§3/forcestats §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§3/forcestats §bhas a malformed config, hiding from list.");
             }
 
             if (calledRemotely || src.hasPermission("pixelupgrade.command.staff.reload"))
@@ -222,7 +198,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                     permissionMessageList.add(Text.of("§f ➡ §eResets fusion/upgrade counts on maxed-out Pokémon."));
                 }
                 else
-                    printToLog(1, "§3/resetcount §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§3/resetcount §bhas a malformed config, hiding from list.");
             }*/
 
             if (!calledRemotely && src.hasPermission("pixelupgrade.command.resetevs"))
@@ -233,7 +209,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                     permissionMessageList.add(Text.of("§f ➡ §eWipes all EVs. Use if you're unhappy with your spread."));
                 }
                 else
-                    printToLog(1, "§3/resetevs §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§3/resetevs §bhas a malformed config, hiding from list.");
             }
 
             if (!calledRemotely && src.hasPermission("pixelupgrade.command.showstats"))
@@ -248,7 +224,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                     permissionMessageList.add(Text.of("§f ➡ §eShows off a Pokémon of choice to the server."));
                 }
                 else
-                    printToLog(1, "§3/showstats §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§3/showstats §bhas a malformed config, hiding from list.");
             }
 
             if (!calledRemotely && src.hasPermission("pixelupgrade.command.staff.spawndex"))
@@ -260,7 +236,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                     permissionMessageList.add(Text.of("§f ➡ §eSpawns a heavily customizable Pokémon at the cursor."));
                 }
                 else
-                    printToLog(1, "§3/spawndex §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§3/spawndex §bhas a malformed config, hiding from list.");
             }
 
             if (!calledRemotely && src.hasPermission("pixelupgrade.command.switchgender"))
@@ -271,7 +247,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                     permissionMessageList.add(Text.of("§f ➡ §eTurns a Pokémon into the other gender, if possible."));
                 }
                 else
-                    printToLog(1, "§3/switchgender §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§3/switchgender §bhas a malformed config, hiding from list.");
             }
 
             if (calledRemotely || src.hasPermission("pixelupgrade.command.timedhatch"))
@@ -313,7 +289,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                         permissionMessageList.add(Text.of("§f ➡ §eImmediately hatches a egg."));
                 }
                 else
-                    printToLog(1, "§3/timedhatch §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§3/timedhatch §bhas a malformed config, hiding from list.");
             }
 
             if (calledRemotely || src.hasPermission("pixelupgrade.command.timedheal"))
@@ -355,7 +331,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                         permissionMessageList.add(Text.of("§f ➡ §eHeals a Pokémon, also curing status ailments."));
                 }
                 else
-                    printToLog(1, "§3/timedheal §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§3/timedheal §bhas a malformed config, hiding from list.");
             }
 
             /*if (!calledRemotely && src.hasPermission("pixelupgrade.command.upgradeivs"))
@@ -370,7 +346,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                         permissionMessageList.add(Text.of("§f ➡ §eUpgrades a Pokémon's IVs."));
                 }
                 else
-                    printToLog(1, "§3/upgradeivs §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§3/upgradeivs §bhas a malformed config, hiding from list.");
             }*/
 
             final PaginationList.Builder paginatedList = PaginationList.builder()
@@ -380,7 +356,6 @@ public class PixelUpgradeInfo implements CommandExecutor
 
             if (permissionMessageList.isEmpty())
             {
-                printToLog(1, "Player has no permissions. Letting them know, and exiting.");
                 permissionMessageList.add(Text.of("§cYou have no permissions for any PixelUpgrade commands."));
                 permissionMessageList.add(Text.of("§cPlease contact staff if you believe this to be in error."));
             }
@@ -394,10 +369,7 @@ public class PixelUpgradeInfo implements CommandExecutor
                     paginatedList.linesPerPage(permissionMessageList.size() + 2);
                 }
                 else
-                {
-                    printToLog(1, "Player was shown a list of accessible commands. Exit.");
                     paginatedList.linesPerPage(sanitizedNumLinesPerPage);
-                }
             }
 
             paginatedList.sendTo(src);

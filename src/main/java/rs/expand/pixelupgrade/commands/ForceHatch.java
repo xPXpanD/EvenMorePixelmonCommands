@@ -18,6 +18,8 @@ import org.spongepowered.api.text.Text;
 
 // Local imports.
 import rs.expand.pixelupgrade.utilities.PrintingMethods;
+import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicError;
+import static rs.expand.pixelupgrade.utilities.PrintingMethods.printSourcedError;
 
 public class ForceHatch implements CommandExecutor
 {
@@ -31,18 +33,13 @@ public class ForceHatch implements CommandExecutor
     private void sendCheckedMessage(final CommandSource src, final String input)
     {
         if (src instanceof CommandBlock) // Redirect to console, respecting existing formatting.
-            PrintingMethods.printBasicMessage(input);
+            PrintingMethods.printUnformattedMessage(input);
         else // Print normally.
             src.sendMessage(Text.of(input));
     }
 
-    // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
-    // If we're running from console or blocks, we need to swallow everything to avoid cluttering.
-    private void printToLog (final int debugNum, final String inputString)
-    {
-        if (!calledRemotely)
-            PrintingMethods.printDebugMessage("ForceHatch", debugNum, inputString);
-    }
+    // Set up a class name variable for internal use. We'll pass this to logging when showing a source is desired.
+    private String sourceName = this.getClass().getName();
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)
@@ -52,32 +49,13 @@ public class ForceHatch implements CommandExecutor
 
         if (commandAlias == null)
         {
-            printToLog(0, "Could not read node \"§4commandAlias§c\".");
-            printToLog(0, "This command's config could not be parsed. Exiting.");
+            printSourcedError(sourceName, "Could not read node \"§4commandAlias§c\".");
             sendCheckedMessage(src, "§4Error: §cThis command's config is invalid! Please check the file.");
         }
         else
         {
-            if (calledRemotely)
-            {
-                if (src instanceof CommandBlock)
-                {
-                    PrintingMethods.printDebugMessage("ForceHatch", 1,
-                            "Called by command block, starting. Silencing logger messages.");
-                }
-                else
-                {
-                    PrintingMethods.printDebugMessage("ForceHatch", 1,
-                            "Called by console, starting. Silencing further log messages.");
-                }
-            }
-            else
-                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
-
-            boolean canContinue = false;
             final Optional<String> arg1Optional = args.getOne("target/slot");
             final Optional<String> arg2Optional = args.getOne("slot");
-            String errorString = "§4There's an error message missing, please report this!";
             Player target = null;
             int slot = 0;
 
@@ -90,130 +68,98 @@ public class ForceHatch implements CommandExecutor
 
                     // Do we have a valid online player?
                     if (Sponge.getServer().getPlayer(arg1String).isPresent())
-                    {
                         target = Sponge.getServer().getPlayer(arg1String).get();
-                        canContinue = true;
-                    }
                     else
-                        errorString = "§4Error: §cInvalid target on first argument. See below.";
+                    {
+                        printLocalError(src, "§4Error: §cInvalid target on first argument. See below.");
+                        return CommandResult.empty();
+                    }
                 }
                 else
-                    errorString = "§4Error: §cNo arguments found. See below.";
-
-                // Did we survive the argument 1 check?
-                // Keep in mind: canContinue is now inverted, so we have to explicitly set false on hitting an error.
-                if (canContinue)
                 {
-                    // Is argument 2 present?
-                    if (arg2Optional.isPresent())
-                    {
-                        final String arg2String = arg2Optional.get();
+                    printLocalError(src, "§4Error: §cNo arguments found. See below.");
+                    return CommandResult.empty();
+                }
 
-                        // Do we have a slot?
-                        if (arg2String.matches("^[1-6]"))
-                            slot = Integer.parseInt(arg2String);
-                        else
-                        {
-                            canContinue = false;
-                            errorString = "§4Error: §cInvalid slot on second argument. See below.";
-                        }
-                    }
+                // Did we survive the argument 1 check? Is argument 2 present?
+                if (arg2Optional.isPresent())
+                {
+                    final String arg2String = arg2Optional.get();
+
+                    // Do we have a slot?
+                    if (arg2String.matches("^[1-6]"))
+                        slot = Integer.parseInt(arg2String);
                     else
                     {
-                        canContinue = false;
-                        errorString = "§4Error: §cMissing slot on second argument. See below.";
+                        printLocalError(src, "§4Error: §cInvalid slot on second argument. See below.");
+                        return CommandResult.empty();
                     }
+                }
+                else
+                {
+                    printLocalError(src, "§4Error: §cMissing slot on second argument. See below.");
+                    return CommandResult.empty();
                 }
             }
             else
             {
-                printToLog(2, "Starting argument check for player's input.");
-
                 // Start checking arguments for non-flag contents. First up: argument 1.
                 if (arg1Optional.isPresent())
                 {
-                    printToLog(2, "There's something in the first argument slot!");
                     final String arg1String = arg1Optional.get();
 
                     // Do we have a slot?
                     if (arg1String.matches("^[1-6]"))
-                    {
-                        printToLog(2, "Found a valid slot in argument 1.");
                         slot = Integer.parseInt(arg1String);
-                        canContinue = true;
-                    }
                     // Failing that, do we have a target?
                     else if (Sponge.getServer().getPlayer(arg1String).isPresent())
                     {
+                        // Check if the player is targeting themselves. (if they are, just let target stay null)
                         if (!src.getName().equalsIgnoreCase(arg1String))
-                        {
-                            printToLog(2, "Found a valid target in argument 1.");
                             target = Sponge.getServer().getPlayer(arg1String).get();
-                        }
-                        else
-                            printToLog(2, "Player targeted self. Continuing.");
-
-                        canContinue = true;
                     }
                     else
                     {
-                        printToLog(1, "Invalid target or slot on first argument. Exit.");
-                        errorString = "§4Error: §cInvalid target or slot on first argument. See below.";
+                        printLocalError(src, "§4Error: §cInvalid target or slot on first argument. See below.");
+                        return CommandResult.empty();
                     }
                 }
                 else
                 {
-                    printToLog(1, "No arguments were found. Exit.");
-                    errorString = "§4Error: §cNo arguments found. See below.";
+                    printLocalError(src, "§4Error: §cNo arguments found. See below.");
+                    return CommandResult.empty();
                 }
 
                 // Can we continue, and do we not have a slot already? Check arg 2 for one.
                 // Keep in mind: canContinue is now inverted, so we have to explicitly set false on hitting an error.
-                if (canContinue && slot == 0)
+                if (slot == 0)
                 {
                     if (arg2Optional.isPresent())
                     {
-                        printToLog(2, "There's something in the second argument slot!");
                         final String arg2String = arg2Optional.get();
 
                         // Do we have a slot, and was the slot not set yet?
                         if (arg2String.matches("^[1-6]"))
-                        {
-                            printToLog(2, "Found a valid slot in argument 2. Moving to execution.");
                             slot = Integer.parseInt(arg2String);
-                        }
                         else
                         {
-                            printToLog(1, "Invalid slot on second argument. Exit.");
-                            errorString = "§4Error: §cInvalid slot on second argument. See below.";
-                            canContinue = false;
+                            printLocalError(src, "§4Error: §cInvalid slot on second argument. See below.");
+                            return CommandResult.empty();
                         }
                     }
                     else
                     {
-                        printToLog(1, "Missing slot on second argument. Exit.");
-                        errorString = "§4Error: §cMissing slot on second argument. See below.";
-                        canContinue = false;
+                        printLocalError(src, "§4Error: §cMissing slot on second argument. See below.");
+                        return CommandResult.empty();
                     }
                 }
             }
 
-            if (!canContinue)
-            {
-                sendCheckedMessage(src, errorString);
-                printSyntaxHelper(src);
-            }
             // Do some battle checks. Only hittable if we got called by an actual Player.
-            else if (target == null && BattleRegistry.getBattle((EntityPlayerMP) src) != null)
-            {
-                printToLog(0, "Player tried to hatch own Pokémon while in a battle. Exit.");
+            if (target == null && BattleRegistry.getBattle((EntityPlayerMP) src) != null)
                 sendCheckedMessage(src, "§4Error: §cYou can't use this command while in a battle!");
-            }
             else if (target != null && BattleRegistry.getBattle((EntityPlayerMP) target) != null)
-            {
-                printToLog(0, "Target was in a battle, cannot proceed. Exit."); // Swallowed if console.
                 sendCheckedMessage(src, "§4Error: §cTarget is battling, changes wouldn't stick. Exiting.");
-            }
             else
             {
                 // Get the player's party, and then get the Pokémon in the targeted slot.
@@ -224,22 +170,16 @@ public class ForceHatch implements CommandExecutor
                     pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot);
 
                 if (pokemon == null)
-                {
-                    printToLog(1, "No Pokémon was found in the provided slot. Abort, abort!");
                     sendCheckedMessage(src, "§4Error: §cThere's nothing in that slot!");
-                }
                 else if (!pokemon.isEgg())
-                {
-                    printToLog(1, "Tried to hatch an actual Pokémon. That's too brutal; let's exit.");
                     sendCheckedMessage(src, "§4Error: §cThat's not an egg. Don't hatch actual Pokémon, kids!");
-                }
                 else
                 {
-                    printToLog(1, "Passed all checks, hatching us an egg!");
-                    pokemon.hatch();
+                    // Hatch us an egg!
+                    pokemon.hatchEgg();
 
                     // Update the player's sidebar with the new changes.
-                    printGenericError("Yo, did it update? If not, TODO.");
+                    printBasicError("Yo, did it update? If not, TODO.");
 
                     if (calledRemotely)
                     {
@@ -258,13 +198,15 @@ public class ForceHatch implements CommandExecutor
 
         return CommandResult.success();
     }
-
-    // Called when it's necessary to figure out the right perm message, or when it's just convenient. Saves typing!
-    private void printSyntaxHelper(final CommandSource src)
+    // Create and print a command-specific error box that shows a provided String as the actual error.
+    private void printLocalError(final CommandSource src, final String input)
     {
+        src.sendMessage(Text.of("§5-----------------------------------------------------"));
+        src.sendMessage(Text.of(input));
         if (calledRemotely)
             sendCheckedMessage(src, "§4Usage: §c/" + commandAlias + " <target> <slot, 1-6>");
         else
             sendCheckedMessage(src, "§4Usage: §c/" + commandAlias + " [target?] <slot, 1-6>");
+        src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
 }

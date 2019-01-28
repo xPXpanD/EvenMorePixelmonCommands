@@ -5,7 +5,7 @@ package rs.expand.pixelupgrade.commands;
 import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.config.PixelmonConfig;
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.EVsStore;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.EVStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.IVStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import com.pixelmonmod.pixelmon.enums.EnumGrowth;
@@ -31,6 +31,8 @@ import org.spongepowered.api.text.channel.MessageChannel;
 // Local imports.
 import rs.expand.pixelupgrade.utilities.PrintingMethods;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
+import static rs.expand.pixelupgrade.utilities.PrintingMethods.printSourcedError;
+import static rs.expand.pixelupgrade.utilities.PrintingMethods.printSourcedMessage;
 
 // TODO: Add ability showing. Thanks for the idea, Mikirae.
 public class ShowStats implements CommandExecutor
@@ -42,12 +44,9 @@ public class ShowStats implements CommandExecutor
     public static Boolean showNicknames, showEVs, showExtraInfo, showCounts, clampBadNicknames, notifyBadNicknames;
 
     // Set up some more variables for internal use.
-    private boolean /*gotExternalConfigError = false, */outdatedAltCooldownInSeconds = false;
+    private String sourceName = this.getClass().getName();
     private HashMap<UUID, Long> cooldownMap = new HashMap<>();
-
-    // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
-    private void printToLog (final int debugNum, final String inputString)
-    { PrintingMethods.printDebugMessage("ShowStats", debugNum, inputString); }
+    /*private boolean gotExternalConfigError = false;*/
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)
@@ -60,7 +59,7 @@ public class ShowStats implements CommandExecutor
                 nativeErrorArray.add("commandAlias");
             if (cooldownInSeconds == null)
                 nativeErrorArray.add("cooldownInSeconds");
-            if (altCooldownInSeconds == null && configVersion != null && configVersion >= 400)
+            if (altCooldownInSeconds == null)
                 nativeErrorArray.add("altCooldownInSeconds");
             if (showNicknames == null)
                 nativeErrorArray.add("showNicknames");
@@ -79,8 +78,6 @@ public class ShowStats implements CommandExecutor
 
             // Also get some stuff from PixelUpgrade.conf.
             final List<String> mainConfigErrorArray = new ArrayList<>();
-            if (configVersion == null)
-                mainConfigErrorArray.add("configVersion");
             if (shortenedHP == null)
                 mainConfigErrorArray.add("shortenedHP");
             if (shortenedAttack == null)
@@ -106,17 +103,6 @@ public class ShowStats implements CommandExecutor
             }
             else
             {
-                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
-                boolean canContinue = true;
-
-                if (altCooldownInSeconds == null)
-                {
-                    outdatedAltCooldownInSeconds = true;
-
-                    printToLog(0, "Outdated §4/showstats§c config! Check §4latest.log§c startup for help.");
-                    printToLog(0, "Running in safe mode. Stuff will work similarly to 3.0.");
-                }
-
                 /*if (showCounts)
                 {
                     final List<String> upgradeErrorArray = new ArrayList<>();
@@ -153,206 +139,175 @@ public class ShowStats implements CommandExecutor
                 }*/
 
                 boolean commandConfirmed = false;
-                int slot = 0;
+                final int slot;
                 final long currentTime = System.currentTimeMillis() / 1000; // Grab seconds.
 
                 if (!args.<String>getOne("slot").isPresent())
                 {
-                    printToLog(1, "No arguments provided. Exit.");
-
-                    src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                    src.sendMessage(Text.of("§4Error: §cNo arguments found. Please provide a slot."));
-
-                    printSyntaxHelper(src);
-                    PrintingMethods.checkAndAddFooter(false, commandCost, src);
-
-                    canContinue = false;
+                    printLocalError(src, "§4Error: §cNo arguments found. Please provide a slot.", false);
+                    return CommandResult.empty();
                 }
                 else
                 {
                     final String slotString = args.<String>getOne("slot").get();
 
                     if (slotString.matches("^[1-6]"))
-                    {
-                        printToLog(2, "Slot was a valid slot number. Let's move on!");
                         slot = Integer.parseInt(args.<String>getOne("slot").get());
-                    }
                     else
                     {
-                        printToLog(1, "Invalid slot provided. Exit.");
-
-                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                        src.sendMessage(Text.of("§4Error: §cInvalid slot value. Valid values are 1-6."));
-
-                        printSyntaxHelper(src);
-                        PrintingMethods.checkAndAddFooter(false, commandCost, src);
-
-                        canContinue = false;
+                        printLocalError(src, "§4Error: §cInvalid slot value. Valid values are 1-6.", false);
+                        return CommandResult.empty();
                     }
                 }
 
                 if (args.hasAny("c"))
                     commandConfirmed = true;
 
-                if (canContinue)
-                {
-                    // Get the player's party, and then get the Pokémon in the targeted slot.
-                    final Pokemon pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot);
+                // Get the player's party, and then get the Pokémon in the targeted slot.
+                final Pokemon pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot);
 
-                    if (pokemon == null)
+                if (pokemon == null)
+                {
+                    src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
+                    return CommandResult.empty();
+                }
+                else if (pokemon.isEgg())
+                {
+                    src.sendMessage(Text.of("§4Error: §cThat's an egg! Go hatch it, first."));
+                    return CommandResult.empty();
+                }
+                else
+                {
+                    // TODO: Pull this whole thing's position in-line with /timedheal and /timedhatch?
+                    final UUID playerUUID = ((Player) src).getUniqueId(); // why is the "d" in "Id" lowercase :(
+
+                    if (!src.hasPermission("pixelupgrade.command.bypass.showstats") && cooldownMap.containsKey(playerUUID))
                     {
-                        printToLog(1, "No Pokémon data found in slot, probably empty. Exit.");
-                        src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
+                        final boolean hasAltPerm = src.hasPermission("pixelupgrade.command.altcooldown.showstats");
+                        final long timeDifference = currentTime - cooldownMap.get(playerUUID);
+                        final long timeRemaining;
+
+                        if (hasAltPerm)
+                            timeRemaining = altCooldownInSeconds - timeDifference;
+                        else
+                            timeRemaining = cooldownInSeconds - timeDifference;
+
+                        if (hasAltPerm && cooldownMap.get(playerUUID) > currentTime - altCooldownInSeconds ||
+                                !hasAltPerm && cooldownMap.get(playerUUID) > currentTime - cooldownInSeconds)
+                        {
+                            if (timeRemaining == 1)
+                                printLocalError(src, "§4Error: §cYou must wait §4one §cmore second. You can do this!", true);
+                            else if (timeRemaining > 60)
+                                printLocalError(src, "§4Error: §cYou must wait another §4" + ((timeRemaining / 60) + 1) + "§c minutes.", true);
+                            else
+                                printLocalError(src, "§4Error: §cYou must wait another §4" + timeRemaining + "§c seconds.", true);
+
+                            return CommandResult.success();
+                        }
                     }
-                    else if (pokemon.isEgg())
+
+                    if (economyEnabled && commandCost > 0)
                     {
-                        printToLog(1, "Tried to show off an egg. Exit.");
-                        src.sendMessage(Text.of("§4Error: §cThat's an egg! Go hatch it, first."));
+                        final BigDecimal costToConfirm = new BigDecimal(commandCost);
+
+                        if (commandConfirmed)
+                        {
+                            final Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(playerUUID);
+
+                            if (optionalAccount.isPresent())
+                            {
+                                final UniqueAccount uniqueAccount = optionalAccount.get();
+                                final TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
+                                            costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
+
+                                if (transactionResult.getResult() == ResultType.SUCCESS)
+                                {
+                                    printSourcedMessage(sourceName, "Showing off slot §3" + slot +
+                                            "§b, and taking §3" + costToConfirm + "§b coins.");
+
+                                    cooldownMap.put(playerUUID, currentTime);
+                                    checkAndShowStats(pokemon, (Player) src);
+                                }
+                                else
+                                {
+                                    final BigDecimal balanceNeeded = uniqueAccount.getBalance(
+                                            economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
+
+                                    src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded +
+                                            "§c more coins to do this."));
+                                }
+                            }
+                            else
+                            {
+                                printSourcedError(sourceName, "§4" + src.getName() + "§c does not have an economy account, aborting. Bug?");
+                                src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
+                            }
+                        }
+                        else
+                        {
+                            // Is cost to confirm exactly one coin?
+                            if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
+                                src.sendMessage(Text.of("§6Warning: §eShowing off a Pokémon's stats costs §6one §ecoin."));
+                            else
+                            {
+                                src.sendMessage(Text.of("§6Warning: §eShowing off a Pokémon's stats costs §6" +
+                                        costToConfirm + "§e coins."));
+                            }
+
+                            src.sendMessage(Text.EMPTY);
+                            src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
+                        }
                     }
                     else
                     {
-                        // TODO: Pull this whole thing's position in-line with /timedheal and /timedhatch?
-                        printToLog(2, "Checking if player is (still?) on a cooldown.");
-
-                        final UUID playerUUID = ((Player) src).getUniqueId(); // why is the "d" in "Id" lowercase :(
-
-                        if (!src.hasPermission("pixelupgrade.command.bypass.showstats") && cooldownMap.containsKey(playerUUID))
+                        if (economyEnabled)
                         {
-                            final boolean hasAltPerm = src.hasPermission("pixelupgrade.command.altcooldown.showstats");
-                            final long timeDifference = currentTime - cooldownMap.get(playerUUID);
-                            final long timeRemaining;
-
-                            if (!outdatedAltCooldownInSeconds && hasAltPerm)
-                            {
-                                printToLog(2, "Player has the alternate cooldown permission.");
-                                timeRemaining = altCooldownInSeconds - timeDifference;
-                            }
-                            else
-                            {
-                                printToLog(2, "Player has the normal cooldown permission.");
-                                timeRemaining = cooldownInSeconds - timeDifference;
-                            }
-
-                            if (!outdatedAltCooldownInSeconds && hasAltPerm && cooldownMap.get(playerUUID) > currentTime - altCooldownInSeconds ||
-                                    !hasAltPerm && cooldownMap.get(playerUUID) > currentTime - cooldownInSeconds)
-                            {
-                                if (timeRemaining == 1)
-                                {
-                                    printToLog(1, "§3" + src.getName() + "§b has to wait §3one §bmore second. Exit.");
-                                    src.sendMessage(Text.of("§4Error: §cYou must wait §4one §cmore second. You can do this!"));
-                                }
-                                else
-                                {
-                                    printToLog(1, "§3" + src.getName() + "§b has to wait another §3" +
-                                            timeRemaining + "§b seconds. Exit.");
-
-                                    if (timeRemaining > 60)
-                                    {
-                                        src.sendMessage(Text.of("§4Error: §cYou must wait another §4" +
-                                                ((timeRemaining / 60) + 1) + "§c minutes."));
-                                    }
-                                    else
-                                    {
-                                        src.sendMessage(Text.of("§4Error: §cYou must wait another §4" +
-                                                timeRemaining + "§c seconds."));
-                                    }
-                                }
-
-                                canContinue = false;
-                            }
+                            printSourcedMessage(sourceName, "Showing off slot §3" + slot +
+                                    "§b. Config price is §30§b, taking nothing.");
+                        }
+                        else
+                        {
+                            printSourcedMessage(sourceName, "Showing off slot §3" + slot +
+                                    "§b. No economy, so we skipped eco checks.");
                         }
 
-                        if (canContinue)
-                        {
-                            if (economyEnabled && commandCost > 0)
-                            {
-                                final BigDecimal costToConfirm = new BigDecimal(commandCost);
-
-                                if (commandConfirmed)
-                                {
-                                    final Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(playerUUID);
-
-                                    if (optionalAccount.isPresent())
-                                    {
-                                        final UniqueAccount uniqueAccount = optionalAccount.get();
-                                        final TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
-                                                    costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
-
-                                        if (transactionResult.getResult() == ResultType.SUCCESS)
-                                        {
-                                            printToLog(1, "Showing off slot §3" + slot +
-                                                    "§b, and taking §3" + costToConfirm + "§b coins.");
-
-                                            cooldownMap.put(playerUUID, currentTime);
-                                            checkAndShowStats(pokemon, (Player) src);
-                                        }
-                                        else
-                                        {
-                                            final BigDecimal balanceNeeded = uniqueAccount.getBalance(
-                                                    economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-
-                                            printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
-                                                    "§b, and we're lacking §3" + balanceNeeded);
-                                            src.sendMessage(Text.of("§4Error: §cYou need §4" + balanceNeeded +
-                                                    "§c more coins to do this."));
-                                        }
-                                    }
-                                    else
-                                    {
-                                        printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. Bug?");
-                                        src.sendMessage(Text.of("§4Error: §cNo economy account found. Please contact staff!"));
-                                    }
-                                }
-                                else
-                                {
-                                    printToLog(1, "Got cost but no confirmation; end of the line.");
-
-                                    // Is cost to confirm exactly one coin?
-                                    if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
-                                        src.sendMessage(Text.of("§6Warning: §eShowing off a Pokémon's stats costs §6one §ecoin."));
-                                    else
-                                    {
-                                        src.sendMessage(Text.of("§6Warning: §eShowing off a Pokémon's stats costs §6" +
-                                                costToConfirm + "§e coins."));
-                                    }
-
-                                    src.sendMessage(Text.EMPTY);
-                                    src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
-                                }
-                            }
-                            else
-                            {
-                                if (economyEnabled)
-                                {
-                                    printToLog(1, "Showing off slot §3" + slot +
-                                            "§b. Config price is §30§b, taking nothing.");
-                                }
-                                else
-                                {
-                                    printToLog(1, "Showing off slot §3" + slot +
-                                            "§b. No economy, so we skipped eco checks.");
-                                }
-
-                                cooldownMap.put(playerUUID, currentTime);
-                                checkAndShowStats(pokemon, (Player) src);
-                            }
-                        }
+                        cooldownMap.put(playerUUID, currentTime);
+                        checkAndShowStats(pokemon, (Player) src);
                     }
                 }
             }
         }
         else
-            printToLog(0,"This command cannot run from the console or command blocks.");
+            printSourcedError(sourceName,"This command cannot run from the console or command blocks.");
 
         return CommandResult.success();
     }
 
-    private void printSyntaxHelper(final CommandSource src)
+    // Create and print a command-specific error box that shows a provided String as the actual error.
+    private void printLocalError(final CommandSource src, final String input, final boolean hitCooldown)
     {
-        if (economyEnabled && commandCost != 0)
-            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> {-c to confirm}"));
-        else
-            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6>"));
+        src.sendMessage(Text.of("§5-----------------------------------------------------"));
+        src.sendMessage(Text.of(input));
+
+        if (!hitCooldown)
+        {
+            if (economyEnabled && commandCost != 0)
+                src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> {-c to confirm}"));
+            else
+                src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6>"));
+        }
+
+        if (economyEnabled && commandCost > 0)
+        {
+            src.sendMessage(Text.EMPTY);
+
+            if (commandCost == 1)
+                src.sendMessage(Text.of("§eConfirming will cost you §6one §ecoin."));
+            else
+                src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coins."));
+        }
+
+        src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
 
     private void checkAndShowStats(final Pokemon pokemon, final Player player)
@@ -441,13 +396,14 @@ public class ShowStats implements CommandExecutor
         // Set up name-related stuff.
         final String localizedName = pokemon.getSpecies().getLocalizedName();
         final String baseName = pokemon.getSpecies().getPokemonName();
-        String nickname = pokemon.getNickname();
         final String formattedName = "§6" + localizedName;
+        String nickname = pokemon.getNickname();
 
         // Do the first of two cheating checks. Might catch some less clever cheat tools.
         if (nickname.length() > 11)
         {
-            printToLog(1, "Found a nickname over the 11-char limit. Player may be cheating?");
+            printSourcedMessage(sourceName,
+                    "Found a nickname over the 11-char limit. Player " + player.getName() + " may be cheating?");
 
             if (clampBadNicknames)
                 nickname = nickname.substring(0, 11);
@@ -456,7 +412,7 @@ public class ShowStats implements CommandExecutor
         }
 
         // Alter our earlier strings if necessary.
-        if (pokemon.getIsShiny())
+        if (pokemon.isShiny())
             shinyString = "§6§lshiny §r";
         if (showNicknames)
         {
@@ -474,8 +430,10 @@ public class ShowStats implements CommandExecutor
             natureString = "is §2" + nature.name() + "§a, boosting §2" + plusVal + " §aand cutting §2" + minusVal + "§a.";
 
         // Populate our ArrayList. Every entry will be its own line. May be a bit hacky, but it'll do.
+        // TODO: Maybe use a StringBuilder setup here as well. (see /checkstats)
         final List<String> hovers = new ArrayList<>();
-        hovers.add("§eStats of §6" + player.getName() + "§e's " + shinyString + formattedName + nameAdditionString);
+        hovers.add("§eStats of §6" + player.getName() + "§e's level §6" + pokemon.getLevel() + " " +
+                shinyString + formattedName + nameAdditionString);
         hovers.add("");
         hovers.add("§bCurrent IVs§f:");
         hovers.add("➡ §a" + totalIVs + "§f/§a186§f (§a" + percentIVs + "%§f)");
@@ -484,7 +442,7 @@ public class ShowStats implements CommandExecutor
         if (showEVs)
         {
             // Rinse and repeat the earlier IV code for EVs, sort of.
-            final EVsStore EVs = pokemon.getEVs();
+            final EVStore EVs = pokemon.getEVs();
             final int totalEVs =
                     EVs.get(StatsType.HP) + EVs.get(StatsType.Attack) + EVs.get(StatsType.Defence) +
                     EVs.get(StatsType.SpecialAttack) + EVs.get(StatsType.SpecialDefence) + EVs.get(StatsType.Speed);
@@ -625,7 +583,7 @@ public class ShowStats implements CommandExecutor
             MessageChannel.permission("pixelupgrade.notify.staff.showstats").send(Text.of(
                     "§cSome Pixelmon cheat mods enable longer names, often silently."));
             MessageChannel.permission("pixelupgrade.notify.staff.showstats").send(Text.of(
-                    "§cIf sidemods aren't responsible, this player may be cheating!"));
+                    "§cSidemods and plugins can also do this, but keep an eye out."));
         }
 
         MessageChannel.TO_PLAYERS.send(Text.of("§7-----------------------------------------------------"));

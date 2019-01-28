@@ -6,14 +6,12 @@ import com.pixelmonmod.pixelmon.enums.EnumType;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import org.spongepowered.api.block.tileentity.CommandBlock;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.Text;
 
@@ -56,17 +54,12 @@ public class CheckTypes implements CommandExecutor
     }
      */
 
-    // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
-    // If we're running from console, we need to swallow everything to avoid cluttering.
-    private void printToLog (final int debugNum, final String inputString)
-    {
-        if (!calledRemotely)
-            PrintingMethods.printDebugMessage("CheckTypes", debugNum, inputString);
-    }
-
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)
     {
+        // Were we called by a player? Used to get the correct characters to display, console doesn't like some.
+        calledRemotely = !(src instanceof CommandBlock);
+
         if (!(src instanceof CommandBlock))
         {
             // Validate the data we get from the command's main config.
@@ -85,48 +78,33 @@ public class CheckTypes implements CommandExecutor
             }
             else
             {
-                if (!(src instanceof Player))
-                {
-                    PrintingMethods.printDebugMessage("CheckTypes", 1,
-                            "Called by console, starting. Silencing further log messages.");
-
-                    // Running from console? Let's tell our code that. If "src" is not a Player, this becomes true.
-                    calledRemotely = true;
-                }
-                else
-                    printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
-
-                PokemonMethods returnedPokemon = null;
-                boolean canContinue = true, inputIsInteger = false, inputWasEdited = false;
-                String arg1String = null, arg2String = "", errorString = "§4There's an error message missing, please report this!";
+                final PokemonMethods returnedPokemon;
+                boolean inputIsInteger = false;
+                String arg1String;
+                final String arg2String;
                 final int inputInteger;
 
                 // Do we have an argument in the first slot?
                 if (args.<String>getOne("Pokémon name/ID").isPresent())
                 {
-                    printToLog(2, "Starting argument check for player's input.");
                     arg1String = args.<String>getOne("Pokémon name/ID").get();
                     final Optional<String> arg2Optional = args.getOne("optional second word");
 
                     if (arg1String.matches("-?\\d+"))
                     {
-                        printToLog(2, "Got a number, converting input into Dex ID and checking.");
-
                         inputIsInteger = true;
                         inputInteger = Integer.parseInt(arg1String);
 
                         if (inputInteger > 807 || inputInteger < 1)
                         {
-                            printToLog(1, "Dex ID \"§3" + inputInteger + "§b\" was out of range. Exit.");
-                            errorString = "§4Error: §cInvalid Pokédex number! Valid range is 1-807.";
-                            canContinue = false;
+                            printLocalError(src, "§4Error: §cInvalid Pokédex number! Valid range is 1-807.");
+                            return CommandResult.empty();
                         }
                         else
                             returnedPokemon = PokemonMethods.getPokemonFromID(inputInteger);
                     }
                     else
                     {
-                        printToLog(2, "Input not numeric, checking if it's a valid name.");
                         String updatedString = arg1String;
 
                         switch (arg1String.toUpperCase())
@@ -158,13 +136,8 @@ public class CheckTypes implements CommandExecutor
 
                         if (arg2Optional.isPresent())
                         {
-                            // Used purely so we don't show extraneous input.
-                            boolean isFixed = true;
-
+                            // Get the contents of the second argument, if provided. Validate.
                             arg2String = arg2Optional.get();
-                            printToLog(2, "Found second arg \"§2" + arg2String +
-                                    "§a\", checking if it's part of a name.");
-
                             switch (arg2String.toUpperCase())
                             {
                                 // Alolan variants.
@@ -247,27 +220,7 @@ public class CheckTypes implements CommandExecutor
 
                                     break;
                                 }
-                                default:
-                                {
-                                    printToLog(2, "Nope, nothing here. Let's just check the first argument.");
-                                    isFixed = false; // Flag as false so we don't show the second arg in our debug messages.
-                                }
                             }
-
-                            if (isFixed && !Objects.equals(updatedString, arg1String))
-                            {
-                                printToLog(2, "Fixable input found! Was \"§2" + arg1String + " " +
-                                        arg2String + "§a\", now \"§2" + updatedString + "§a\"");
-
-                                inputWasEdited = true;
-                            }
-                        }
-                        else if (!Objects.equals(updatedString, arg1String))
-                        {
-                            printToLog(2, "Fixable input found! Was \"§2" + arg1String +
-                                    "§a\", now \"§2" + updatedString + "§a\"");
-
-                            inputWasEdited = true;
                         }
 
                         arg1String = updatedString;
@@ -275,43 +228,34 @@ public class CheckTypes implements CommandExecutor
 
                         if (returnedPokemon == null)
                         {
-                            // arg2String is initialized as "", so we'll only get a blank space if it's not there.
-                            printToLog(1, "Could not find a Pokémon. Exit. Input was: §3" + arg1String +
-                                    " " + arg2String);
-
-                            errorString = "§4Error: §cInvalid Pokémon! Check your spelling, or try a number.";
-                            canContinue = false;
+                            printLocalError(src, "§4Error: §cInvalid Pokémon! Check your spelling, or try a number.");
+                            return CommandResult.empty();
                         }
                     }
                 }
                 else
                 {
-                    printToLog(1, "No arguments provided. Exit.");
-
-                    errorString = "§4Error: §cNo arguments found. Provide a Pokémon or Dex ID.";
-                    canContinue = false;
+                    printLocalError(src, "§4Error: §cNo arguments found. Provide a Pokémon or Dex ID.");
+                    return CommandResult.empty();
                 }
 
-                if (!canContinue)
-                {
-                    src.sendMessage(Text.of(errorString));
-                    src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <Pokémon name/number>"));
-                }
-                else
-                {
-                    if (inputWasEdited)
-                        printToLog(2, "Moving to execution with previously-fixed input.");
-                    else
-                        printToLog(2, "Moving to execution with input \"§2" + arg1String + "§a\".");
-
-                    checkTypes(returnedPokemon, inputIsInteger, arg1String, src);
-                }
+                // Let's do this thing!
+                checkTypes(returnedPokemon, inputIsInteger, arg1String, src);
             }
         }
         else
             src.sendMessage(Text.of("§cThis command cannot run from command blocks."));
 
         return CommandResult.success();
+    }
+
+    // Create and print a command-specific error box that shows a provided String as the actual error.
+    private void printLocalError(final CommandSource src, final String input)
+    {
+        src.sendMessage(Text.of("§5-----------------------------------------------------"));
+        src.sendMessage(Text.of(input));
+        src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <Pokémon name/number>"));
+        src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
 
     private void checkTypes(final PokemonMethods returnedPokemon, final boolean inputIsInteger, final String arg1String, final CommandSource src)
@@ -398,7 +342,6 @@ public class CheckTypes implements CommandExecutor
         final int indexType2;
         if (type2Present)
         {
-            printToLog(2, "Found two types on provided Pokémon.");
             foundTypes.add(type2);
             indexType2 = Arrays.asList(unformattedTypeList).indexOf(String.valueOf(type2));
 
@@ -406,10 +349,7 @@ public class CheckTypes implements CommandExecutor
             typeMessage = " §f(" + typeList[indexType1] + "§f, " + typeList[indexType2] + "§f)";
         }
         else
-        {
-            printToLog(2, "Found one type on provided Pokémon.");
             typeMessage = " §f(" + typeList[indexType1] + "§f)";
-        }
 
         // Run through the big list of Pokémon and check the target's type(s).
         final StringBuilder weaknessBuilder2x = new StringBuilder();
@@ -418,7 +358,6 @@ public class CheckTypes implements CommandExecutor
         final StringBuilder strengthBuilder25p = new StringBuilder();
         final StringBuilder immunityBuilder = new StringBuilder();
 
-        printToLog(2, "Building the type list... Loop is go!");
         for (int i = 1; i < 19; i++)
         {
             final EnumType typeToTest = EnumType.parseType(unformattedTypeList[i - 1]);
@@ -443,7 +382,6 @@ public class CheckTypes implements CommandExecutor
         }
 
         // Fix the Pokémon's name, if necessary.
-        printToLog(2, "Checking whether the Pokémon needs its shown name adjusted.");
         src.sendMessage(Text.of("§7-----------------------------------------------------"));
         switch (pName)
         {
@@ -549,10 +487,7 @@ public class CheckTypes implements CommandExecutor
 
             // Pokémon is not special, print defaults.
             default:
-            {
                 nameMessage = "§1(§9#" + pNumber + "§1) §6" + pName;
-                printToLog(2, "Name did not need to be fixed, showing straight from the list.");
-            }
         }
 
         src.sendMessage(Text.of(nameMessage + typeMessage));
@@ -591,7 +526,6 @@ public class CheckTypes implements CommandExecutor
 
         // Find and format a Pokémon's type-relevant abilities.
         src.sendMessage(Text.of("§bImmunities§f:"));
-        printToLog(2, "Grabbing immunities and turning them into a fancy overview.");
 
         // Abilities/hovers are linked. If one has two entries, the other will have two, too!
         final List<String> abilities = new ArrayList<>();
@@ -815,7 +749,6 @@ public class CheckTypes implements CommandExecutor
         // Print messages if differently typed forms or Alolan forms are available.
         if (hasForms && showFormMessage)
         {
-            printToLog(2, "Showing forms is enabled, and we can show one! Doing it.");
             final String commandHelper = "§cCheck out: §6/" + commandAlias + " ";
 
             src.sendMessage(Text.EMPTY);
@@ -844,7 +777,6 @@ public class CheckTypes implements CommandExecutor
         }
         else if (hasAlolanVariants && showAlolanMessage)
         {
-            printToLog(2, "Showing Alolan variants is enabled, and we've got one! Showing.");
             final String commandHelper = "§cCheck out: §6/" + commandAlias + " ";
 
             src.sendMessage(Text.EMPTY);
@@ -892,7 +824,6 @@ public class CheckTypes implements CommandExecutor
             }
         }
 
-        printToLog(1, "Went through lists, and put together a type overview. Done!");
         src.sendMessage(Text.of("§7-----------------------------------------------------"));
     }
 }

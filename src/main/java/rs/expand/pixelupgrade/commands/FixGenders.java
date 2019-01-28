@@ -24,6 +24,9 @@ import org.spongepowered.api.text.Text;
 // Local imports.
 import rs.expand.pixelupgrade.utilities.PrintingMethods;
 
+import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicError;
+import static rs.expand.pixelupgrade.utilities.PrintingMethods.printSourcedMessage;
+
 // TODO: Add a -s flag to allow silent messages even if sneakyMode is off?
 public class FixGenders implements CommandExecutor
 {
@@ -38,18 +41,13 @@ public class FixGenders implements CommandExecutor
     private void sendCheckedMessage(final CommandSource src, final String input)
     {
         if (src instanceof CommandBlock) // Redirect to console, respecting existing formatting.
-            PrintingMethods.printBasicMessage(input);
+            PrintingMethods.printUnformattedMessage(input);
         else // Print normally.
             src.sendMessage(Text.of(input));
     }
 
-    // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
-    // If we're running from console or blocks, we need to swallow everything to avoid cluttering.
-    private void printToLog (final int debugNum, final String inputString)
-    {
-        if (!calledRemotely)
-            PrintingMethods.printDebugMessage("FixGenders", debugNum, inputString);
-    }
+    // Set up a class name variable for internal use. We'll pass this to logging when showing a source is desired.
+    private String sourceName = this.getClass().getName();
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)
@@ -73,28 +71,11 @@ public class FixGenders implements CommandExecutor
         }
         else
         {
-            if (calledRemotely)
-            {
-                if (src instanceof CommandBlock)
-                {
-                    PrintingMethods.printDebugMessage("FixGenders", 1,
-                            "Called by command block, starting. Silencing logger messages.");
-                }
-                else
-                {
-                    PrintingMethods.printDebugMessage("FixGenders", 1,
-                            "Called by console, starting. Silencing further log messages.");
-                }
-            }
-            else
-                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
-
-            boolean canContinue = true, targetedSelf = false, targetIsValid = false, commandConfirmed = false;
+            boolean targetedSelf = false, targetIsValid = false, commandConfirmed = false;
             final boolean hasStaffPerm = src.hasPermission("pixelupgrade.command.staff.fixgenders");
             final Optional<String> arg1Optional = args.getOne("target/confirmation");
             final Optional<String> arg2Optional = args.getOne("confirmation");
-            String errorString = "§4There's an error message missing, please report this!";
-            Player target = null;
+            Player target;
 
             if (calledRemotely)
             {
@@ -111,109 +92,56 @@ public class FixGenders implements CommandExecutor
                     }
                     else
                     {
-                        errorString = "§4Error: §cInvalid target on first argument. See below.";
-                        canContinue = false;
+                        printLocalError(src, "§4Error: §cInvalid target on first argument. See below.");
+                        return CommandResult.empty();
                     }
                 }
                 else
                 {
-                    errorString = "§4Error: §cNo target found. See below.";
-                    canContinue = false;
+                    printLocalError(src, "§4Error: §cNo target found. See below.");
+                    return CommandResult.empty();
                 }
             }
             else
             {
-                printToLog(2, "Starting argument check for player's input.");
-
                 //noinspection ConstantConditions - safe, we've already guaranteed we're not running from console/blocks.
                 target = (Player) src;
 
                 if (arg1Optional.isPresent() && arg1Optional.get().equalsIgnoreCase("-c"))
-                {
-                    printToLog(2, "Discovered a confirmation flag in argument slot 1.");
                     commandConfirmed = true;
-                }
                 else if (arg2Optional.isPresent() && arg2Optional.get().equalsIgnoreCase("-c"))
-                {
-                    printToLog(2, "Discovered a confirmation flag in argument slot 2.");
                     commandConfirmed = true;
-                }
 
                 // Start checking argument 1 for non-flag contents if our calling player has the right permissions.
                 if (hasStaffPerm)
                 {
-                    printToLog(2, "Player has target permissions. Checking for target.");
-
                     if (arg1Optional.isPresent() && !arg1Optional.get().equalsIgnoreCase("-c"))
                     {
-                        printToLog(2, "There's something in the first argument slot!");
-
                         final String arg1String = arg1Optional.get();
                         if (Sponge.getServer().getPlayer(arg1String).isPresent())
                         {
                             if (src.getName().equalsIgnoreCase(arg1String))
-                            {
-                                printToLog(2, "Player targeted self. Continuing.");
                                 targetedSelf = true;
-                            }
                             else
                             {
-                                printToLog(2, "Found a valid target in argument 1.");
                                 targetIsValid = true;
                                 target = Sponge.getServer().getPlayer(arg1String).get();
                             }
                         }
                         else
                         {
-                            printToLog(1, "Invalid target. Printing error and exiting for safety.");
-                            errorString = "§4Error: §cInvalid target on first argument. See below.";
-
-                            canContinue = false;
+                            printLocalError(src, "§4Error: §cInvalid target on first argument. See below.");
+                            return CommandResult.empty();
                         }
                     }
-                    else
-                        printToLog(2, "No target argument was found, targeting source player.");
                 }
-                else
-                    printToLog(2, "Player does not have staff permissions, skipping to execution.");
             }
 
-            if (!canContinue)
-            {
-                sendCheckedMessage(src, "§5-----------------------------------------------------");
-                sendCheckedMessage(src, errorString);
-
-                if (calledRemotely)
-                    sendCheckedMessage(src, "§4Usage: §c/" + commandAlias + " <target>");
-                else if (requireConfirmation)
-                    sendCheckedMessage(src, "§4Usage: §c/" + commandAlias + " [target?] [-c to confirm]");
-                else
-                    sendCheckedMessage(src, "§4Usage: §c/" + commandAlias + " [target?]");
-
-                // Specifically print our error to the block, altered a bit to make more sense. Kinda awkward, but hey.
-                if (src instanceof CommandBlock)
-                {
-                    errorString = errorString.replaceAll(" See below\\.", " See console.");
-                    src.sendMessage(Text.of(errorString));
-                }
-
-                sendCheckedMessage(src, "");
-                sendCheckedMessage(src, "§5Please note: §dAny broken genders will be immediately rerolled.");
-                sendCheckedMessage(src, "§5-----------------------------------------------------");
-            }
-            // Do some battle checks. Only hittable if we got called by an actual Player.
-            else if (!targetIsValid && BattleRegistry.getBattle((EntityPlayerMP) src) != null)
-            {
-                printToLog(0, "Player tried to fix own team while in a battle. Exit.");
+            // Do in-battle checks. This first one is only hittable if we got called by an actual Player.
+            if (!targetIsValid && BattleRegistry.getBattle((EntityPlayerMP) src) != null)
                 src.sendMessage(Text.of("§4Error: §cYou can't use this command while in a battle!"));
-            }
             else if (targetIsValid && BattleRegistry.getBattle((EntityPlayerMP) target) != null)
-            {
-                if (!calledRemotely)
-                    printToLog(0, "Target was in a battle, cannot proceed. Exit.");
-
                 sendCheckedMessage(src, "§4Error: §cTarget is battling, changes wouldn't stick. Exiting.");
-            }
             else
             {
                 if (calledRemotely || !requireConfirmation || commandConfirmed)
@@ -223,12 +151,12 @@ public class FixGenders implements CommandExecutor
 
                     if (sneakyMode)
                     {
-                        printToLog(1, "Silently fixing genders for player §3" + target.getName() +
+                        printSourcedMessage(sourceName, "Silently fixing genders for player §3" + target.getName() +
                                 "§b as per config.");
                     }
                     else
                     {
-                        printToLog(1, "Fixing genders for player §3" + target.getName() +
+                        printSourcedMessage(sourceName, "Fixing genders for player §3" + target.getName() +
                                 "§b, informing if need be.");
                     }
 
@@ -245,8 +173,6 @@ public class FixGenders implements CommandExecutor
                 }
                 else
                 {
-                    printToLog(1, "No confirmation provided, printing warning and aborting.");
-
                     sendCheckedMessage(src, "§5-----------------------------------------------------");
                     sendCheckedMessage(src, "§4Error: §cNo confirmation was found. Please confirm to proceed.");
 
@@ -273,6 +199,24 @@ public class FixGenders implements CommandExecutor
 
         return CommandResult.success();
 	}
+
+    // Create and print a command-specific error box that shows a provided String as the actual error.
+    private void printLocalError(final CommandSource src, final String input)
+    {
+        src.sendMessage(Text.of("§5-----------------------------------------------------"));
+        src.sendMessage(Text.of(input));
+
+        if (calledRemotely)
+            sendCheckedMessage(src, "§4Usage: §c/" + commandAlias + " <target>");
+        else if (requireConfirmation)
+            sendCheckedMessage(src, "§4Usage: §c/" + commandAlias + " [target?] {-c to confirm}");
+        else
+            sendCheckedMessage(src, "§4Usage: §c/" + commandAlias + " [target?]");
+
+        sendCheckedMessage(src, "");
+        sendCheckedMessage(src, "§5Please note: §dAny broken genders will be immediately rerolled.");
+        src.sendMessage(Text.of("§5-----------------------------------------------------"));
+    }
 
 	private void fixParty(final CommandSource src, final Player target, final PartyStorage party, final boolean targetIsValid)
     {
@@ -320,7 +264,7 @@ public class FixGenders implements CommandExecutor
                     // Roll the dice! Do we chop, or do we plop?
                     if (RandomHelper.rand.nextInt(100) < malePercent)
                     {
-                        printToLog(1, "§bSlot §3" + slotTicker +
+                        printSourcedMessage(sourceName, "§bSlot §3" + slotTicker +
                             " §bshould be gendered. Rerolled, now §3male§b.");
 
                         pokemon.setGender(Gender.Male);
@@ -335,7 +279,7 @@ public class FixGenders implements CommandExecutor
                     }
                     else
                     {
-                        printToLog(1, "§bSlot §2" + slotTicker +
+                        printSourcedMessage(sourceName, "§bSlot §2" + slotTicker +
                             " §bshould be gendered. Rerolled, now §5female§b.");
 
                         pokemon.setGender(Gender.Female);
@@ -355,7 +299,7 @@ public class FixGenders implements CommandExecutor
                     // Increment our fix count, since we had to fix something.
                     fixCount++;
 
-                    printToLog(1, "§bSlot §2" + slotTicker +
+                    printSourcedMessage(sourceName, "§bSlot §2" + slotTicker +
                             " §bis male, should be female. Fixing.");
 
                     pokemon.setGender(Gender.Female);
@@ -374,7 +318,7 @@ public class FixGenders implements CommandExecutor
                     // Increment our fix count, since we had to fix something.
                     fixCount++;
 
-                    printToLog(1, "§bSlot §2" + slotTicker +
+                    printSourcedMessage(sourceName, "§bSlot §2" + slotTicker +
                                                 " §bis female, should be male. Fixing.");
 
                     pokemon.setGender(Gender.Male);
@@ -402,7 +346,7 @@ public class FixGenders implements CommandExecutor
         else // We add another blank line here to create space between the fixing messages and the end message.
         {
             // Update the player's sidebar with the new changes.
-            printGenericError("Yo, did it update? If not, TODO.");
+            printBasicError("Yo, did it update? If not, TODO.");
 
             sendCheckedMessage(src, "");
             sendCheckedMessage(src, "§aWe're done! Glad to be of service.");

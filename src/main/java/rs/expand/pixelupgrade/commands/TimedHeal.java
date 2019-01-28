@@ -2,14 +2,13 @@
 package rs.expand.pixelupgrade.commands;
 
 // Remote imports.
+import com.pixelmonmod.pixelmon.Pixelmon;
+import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
+import com.pixelmonmod.pixelmon.api.storage.PartyStorage;
 import com.pixelmonmod.pixelmon.battles.BattleRegistry;
-import com.pixelmonmod.pixelmon.storage.NbtKeys;
-import com.pixelmonmod.pixelmon.storage.PixelmonStorage;
-import com.pixelmonmod.pixelmon.storage.PlayerStorage;
 import java.math.BigDecimal;
 import java.util.*;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.tileentity.CommandBlock;
 import org.spongepowered.api.command.args.CommandContext;
@@ -25,6 +24,9 @@ import org.spongepowered.api.text.Text;
 // Local imports.
 import rs.expand.pixelupgrade.utilities.PrintingMethods;
 import static rs.expand.pixelupgrade.PixelUpgrade.*;
+import static rs.expand.pixelupgrade.utilities.PrintingMethods.printBasicError;
+import static rs.expand.pixelupgrade.utilities.PrintingMethods.printSourcedError;
+import static rs.expand.pixelupgrade.utilities.PrintingMethods.printSourcedMessage;
 
 public class TimedHeal implements CommandExecutor
 {
@@ -35,24 +37,10 @@ public class TimedHeal implements CommandExecutor
     public static Boolean healParty, sneakyMode;
 
     // Set up some more variables for internal use.
+    private String sourceName = this.getClass().getName();
+    private UUID playerUUID;
     private boolean calledRemotely;
     private HashMap<UUID, Long> cooldownMap = new HashMap<>();
-
-    // Allows us to redirect printed messages away from command blocks, and into the console if need be.
-    private void sendCheckedMessage(final CommandSource src, final String input)
-    {
-        if (src instanceof CommandBlock) // Redirect to console, respecting existing formatting.
-            PrintingMethods.printBasicMessage(input);
-        else // Print normally.
-            src.sendMessage(Text.of(input));
-    }
-
-    // Pass any debug messages onto final printing, where we will decide whether to show or swallow them.
-    private void printToLog (final int debugNum, final String inputString)
-    {
-        if (!calledRemotely)
-            PrintingMethods.printDebugMessage("TimedHeal", debugNum, inputString);
-    }
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)
@@ -68,8 +56,6 @@ public class TimedHeal implements CommandExecutor
             nativeErrorArray.add("cooldownInSeconds");
         if (altCooldownInSeconds == null)
             nativeErrorArray.add("altCooldownInSeconds");
-        if (healParty == null)
-            nativeErrorArray.add("healParty");
         if (sneakyMode == null)
             nativeErrorArray.add("sneakyMode");
         if (commandCost == null)
@@ -77,36 +63,17 @@ public class TimedHeal implements CommandExecutor
 
         if (!nativeErrorArray.isEmpty())
         {
-            PrintingMethods.printCommandNodeError("TimedHeal", nativeErrorArray);
+            PrintingMethods.printCommandNodeError(sourceName, nativeErrorArray);
             sendCheckedMessage(src,"§4Error: §cThis command's config is invalid! Please report to staff.");
         }
         else
         {
-            if (calledRemotely)
-            {
-                if (src instanceof CommandBlock)
-                {
-                    PrintingMethods.printDebugMessage("TimedHeal", 1,
-                            "Called by command block, starting. Silencing logger messages.");
-                }
-                else
-                {
-                    PrintingMethods.printDebugMessage("TimedHeal", 1,
-                            "Called by console, starting. Silencing further log messages.");
-                }
-            }
-            else
-                printToLog(1, "Called by player §3" + src.getName() + "§b. Starting!");
-
             int slot = 0;
             final long currentTime = System.currentTimeMillis() / 1000; // Grab seconds.
-            boolean canContinue = true, commandConfirmed = false, hitCooldown = false;
-            final boolean hasOtherPerm = src.hasPermission("pixelupgrade.command.other.timedheal");
+            boolean commandConfirmed = false;
             final Optional<String> arg1Optional = args.getOne("target/slot/confirmation");
             final Optional<String> arg2Optional = args.getOne("slot/confirmation");
-            String errorString = "§4There's an error message missing, please report this!";
-            UUID playerUUID = null;
-            Player target = null;
+            Player target = null, player;
 
             if (calledRemotely)
             {
@@ -120,37 +87,36 @@ public class TimedHeal implements CommandExecutor
                         target = Sponge.getServer().getPlayer(arg1String).get();
                     else
                     {
-                        errorString = "§4Error: §cInvalid target on first argument. See below.";
-                        canContinue = false;
+                        printLocalError(src, "§4Error: §cInvalid target on first argument. See below.", false);
+                        return CommandResult.success();
                     }
                 }
                 else
                 {
-                    errorString = "§4Error: §cNo arguments found. See below.";
-                    canContinue = false;
+                    printLocalError(src, "§4Error: §cNo arguments found. See below.", false);
+                    return CommandResult.success();
                 }
 
-                if (canContinue && arg2Optional.isPresent())
+                // Do we have an argument in the second slot?
+                if (arg2Optional.isPresent())
                 {
                     final String arg2String = arg2Optional.get();
 
-                    // Do we have a slot?
+                    // Do we have a Pokémon slot?
                     if (arg2String.matches("^[1-6]"))
                         slot = Integer.parseInt(arg2String);
                     else
                     {
-                        errorString = "§4Error: §cInvalid slot on optional second argument. See below.";
-                        canContinue = false;
+                        printLocalError(src, "§4Error: §cInvalid slot on optional second argument. See below.", false);
+                        return CommandResult.success();
                     }
                 }
             }
             else
             {
-                // Run this logic first, so we can avoid wasting resources on argument checks if they're not necessary.
-                printToLog(2, "Checking if player is (still?) on a cooldown.");
-
-                //noinspection ConstantConditions - safe to do, we've already verified we're not console/a command block.
-                playerUUID = ((Player) src).getUniqueId(); // why is the "d" in "Id" lowercase :(
+                //noinspection ConstantConditions - safe, we've already verified we're not console/a command block...
+                player = (Player) src;
+                playerUUID = player.getUniqueId(); // why is the "d" in "Id" lowercase :(
 
                 if (!src.hasPermission("pixelupgrade.command.bypass.timedheal") && cooldownMap.containsKey(playerUUID))
                 {
@@ -159,396 +125,298 @@ public class TimedHeal implements CommandExecutor
                     final long timeRemaining;
 
                     if (hasAltPerm)
-                    {
-                        printToLog(2, "Player has the alternate cooldown permission.");
                         timeRemaining = altCooldownInSeconds - timeDifference;
-                    }
                     else
-                    {
-                        printToLog(2, "Player has the normal cooldown permission.");
                         timeRemaining = cooldownInSeconds - timeDifference;
-                    }
 
                     if (hasAltPerm && cooldownMap.get(playerUUID) > currentTime - altCooldownInSeconds ||
                             !hasAltPerm && cooldownMap.get(playerUUID) > currentTime - cooldownInSeconds)
                     {
                         if (timeRemaining == 1)
-                        {
-                            printToLog(1, "§3" + src.getName() + "§b has to wait §3one §bmore second. Exit.");
-                            errorString = "§4Error: §cYou must wait §4one §cmore second. You can do this!";
-                        }
+                            printLocalError(src, "§4Error: §cYou must wait §4one §cmore second. You can do this!", true);
+                        else if (timeRemaining > 60)
+                            printLocalError(src, "§4Error: §cYou must wait another §4" + ((timeRemaining / 60) + 1) + "§c minutes.", true);
                         else
-                        {
-                            printToLog(1, "§3" + src.getName() + "§b has to wait another §3" +
-                                    timeRemaining + "§b seconds. Exit.");
+                            printLocalError(src, "§4Error: §cYou must wait another §4" + timeRemaining + "§c seconds.", true);
 
-                            if (timeRemaining > 60)
-                                errorString = "§4Error: §cYou must wait another §4" + ((timeRemaining / 60) + 1) + "§c minutes.";
-                            else
-                                errorString = "§4Error: §cYou must wait another §4" + timeRemaining + "§c seconds.";
-                        }
-
-                        hitCooldown = true;
-                        canContinue = false;
+                        return CommandResult.success();
                     }
                 }
-                else if (src.hasPermission("pixelupgrade.command.bypass.timedheal"))
-                    printToLog(2, "Player has the bypass permission. Moving on.");
 
-                if (canContinue)
+                // Do we have an argument in the first argument slot?
+                // This can be a Pokémon slot, a player name, a confirmation flag or nothing.
+                if (arg1Optional.isPresent())
                 {
-                    printToLog(2, "Starting argument check for player's input.");
+                    final String argString = arg1Optional.get();
 
-                    // Ugly, but it'll do for now... Doesn't seem like my usual way of getting flags will work here.
-                    final Optional<String> arg3Optional = args.getOne("confirmation");
-
-                    if (arg1Optional.isPresent() && arg1Optional.get().equalsIgnoreCase("-c"))
-                    {
-                        printToLog(2, "Discovered a confirmation flag in argument slot 1.");
+                    if (argString.matches("^[1-6]")) // Do we have a valid slot?
+                        slot = Integer.parseInt(argString);
+                    else if (argString.equalsIgnoreCase("-c") && commandCost != 0 && healParty) // ...or a confirmation flag?
                         commandConfirmed = true;
-                    }
-                    else if (arg2Optional.isPresent() && arg2Optional.get().equalsIgnoreCase("-c"))
+                    else if (src.hasPermission("pixelupgrade.command.other.timedheal"))
                     {
-                        printToLog(2, "Discovered a confirmation flag in argument slot 2.");
-                        commandConfirmed = true;
-                    }
-                    else if (arg3Optional.isPresent() && arg3Optional.get().equalsIgnoreCase("-c"))
-                    {
-                        printToLog(2, "Discovered a confirmation flag in argument slot 3.");
-                        commandConfirmed = true;
-                    }
-
-                    if (healParty)
-                    {
-                        if (hasOtherPerm)
-                            printToLog(2, "Party healing is on. Checking if we have a target and the perm.");
-                        else
-                            printToLog(2, "Party healing is on. No other perm, so let's skip.");
-
-                        if (arg1Optional.isPresent() && !arg1Optional.get().equalsIgnoreCase("-c"))
+                        if (Sponge.getServer().getPlayer(argString).isPresent()) // Do we have a valid online player?
                         {
-                            final String arg1String = arg1Optional.get();
-
-                            if (hasOtherPerm)
-                            {
-                                if (Sponge.getServer().getPlayer(arg1String).isPresent())
-                                {
-                                    if (!src.getName().equalsIgnoreCase(arg1String))
-                                    {
-                                        printToLog(2, "Found a valid target in argument 1.");
-                                        target = Sponge.getServer().getPlayer(arg1String).get();
-                                    }
-                                    else
-                                        printToLog(2, "Player targeted self. Continuing.");
-                                }
-                                else
-                                {
-                                    printToLog(1, "Invalid target on first argument. Exit.");
-                                    errorString = "§4Error: §cYour target could not be found. See below.";
-                                    canContinue = false;
-                                }
-                            }
+                            // Check if the player is targeting themselves. (if they are, just let target stay null)
+                            if (!argString.equalsIgnoreCase(player.getName()))
+                                target = Sponge.getServer().getPlayer(argString).get();
+                        }
+                        else
+                        {
+                            printLocalError(src, "§4Error: §cInvalid target or slot on first argument. See below.", false);
+                            return CommandResult.empty();
                         }
                     }
                     else
                     {
-                        if (arg1Optional.isPresent() && !arg1Optional.get().equalsIgnoreCase("-c"))
-                        {
-                            final String arg1String = arg1Optional.get();
-
-                            if (arg1String.matches("^[1-6]"))
-                            {
-                                printToLog(2, "Found a valid slot in argument 1.");
-                                slot = Integer.parseInt(arg1String);
-                            }
-                            // Is our calling player allowed to check other people's Pokémon, and is arg 1 a valid target?
-                            else if (hasOtherPerm && Sponge.getServer().getPlayer(arg1String).isPresent())
-                            {
-                                if (!src.getName().equalsIgnoreCase(arg1String))
-                                {
-                                    printToLog(2, "Found a valid target in argument 1.");
-                                    target = Sponge.getServer().getPlayer(arg1String).get();
-                                }
-                                else
-                                    printToLog(2, "Player targeted self. Continuing.");
-                            }
-                            else
-                            {
-                                printToLog(1, "Invalid slot (or target?) on first argument. Exit.");
-
-                                if (hasOtherPerm)
-                                    errorString = "§4Error: §cInvalid target or slot. See below.";
-                                else
-                                    errorString = "§4Error: §cInvalid slot. See below.";
-
-                                canContinue = false;
-                            }
-                        }
-
-                        // Can we continue, and do we not have a slot already? Check arg 2 for one.
-                        if (canContinue && slot == 0)
-                        {
-                            if (arg2Optional.isPresent() && !arg2Optional.get().equalsIgnoreCase("-c"))
-                            {
-                                printToLog(2, "There's something in the second argument slot, and we need it!");
-                                final String arg2String = arg2Optional.get();
-
-                                // Do we have a slot?
-                                if (arg2String.matches("^[1-6]"))
-                                {
-                                    printToLog(2, "Found a valid slot in argument 2. Moving to execution.");
-                                    slot = Integer.parseInt(arg2String);
-                                }
-                                else
-                                {
-                                    printToLog(1, "Invalid slot on second argument. Exit.");
-                                    errorString = "§4Error: §cInvalid slot on second argument. See below.";
-                                    canContinue = false;
-                                }
-                            }
-                            else
-                            {
-                                printToLog(1, "Missing slot on second argument. Exit.");
-                                errorString = "§4Error: §cPlease provide a slot. See below.";
-                                canContinue = false;
-                            }
-                        }
+                        printLocalError(src, "§4Error: §cInvalid slot on first argument. See below.", false);
+                        return CommandResult.empty();
                     }
                 }
+                // We have no arguments. This could be valid if party healing is on and no cost is associated, so check.
+                // (cost stuff gets sorted later, let's get the syntax valid first)
+                else if (!healParty)
+                {
+                    printLocalError(src, "§4Error: §cNo arguments found. See below.", false);
+                    return CommandResult.empty();
+                }
+
+                // Do we have an argument in the second argument slot, and has no Pokémon slot been defined yet?
+                if (arg2Optional.isPresent())
+                {
+                    final String argString = arg2Optional.get();
+
+                    if (slot == 0)
+                    {
+                        if (argString.matches("^[1-6]")) // Do we have a valid slot?
+                            slot = Integer.parseInt(argString);
+                        else if (argString.equalsIgnoreCase("-c") && commandCost != 0 && healParty)
+                            commandConfirmed = true;
+                        else
+                        {
+                            printLocalError(src, "§4Error: §cInvalid slot on second argument. See below.", false);
+                            return CommandResult.empty();
+                        }
+                    }
+                    else if (argString.equalsIgnoreCase("-c"))
+                        commandConfirmed = true;
+                }
+
+                // Do we have an argument in the third slot? A bit ugly, but it'll do.
+                final Optional<String> arg3Optional = args.getOne("confirmation");
+                if (arg3Optional.isPresent() && arg3Optional.get().equalsIgnoreCase("-c"))
+                    commandConfirmed = true;
             }
 
-            if (!canContinue)
-            {
-                sendCheckedMessage(src, "§5-----------------------------------------------------");
-                sendCheckedMessage(src, errorString);
-
-                if (!hitCooldown)
-                    printSyntaxHelper(src, hasOtherPerm);
-
-                PrintingMethods.checkAndAddFooter(false, commandCost, src);
-            }
-            // Do some battle checks. Only hittable if we got called by an actual Player.
-            else if (target == null && BattleRegistry.getBattle((EntityPlayerMP) src) != null)
-            {
-                printToLog(0, "Player tried to heal own Pokémon while in a battle. Exit.");
+            // Is the player in a battle?
+            if (target == null && !calledRemotely && BattleRegistry.getBattle((EntityPlayerMP) src) != null)
                 sendCheckedMessage(src, "§4Error: §cYou can't use this command while in a battle!");
-            }
+            // Is the chosen target in a battle?
             else if (target != null && BattleRegistry.getBattle((EntityPlayerMP) target) != null)
-            {
-                printToLog(0, "Target was in a battle, cannot proceed. Exit."); // Swallowed if console.
                 sendCheckedMessage(src, "§4Error: §cTarget is battling, changes wouldn't stick. Exiting.");
-            }
             else
             {
-                // At this point we should always have a valid input, whatever the settings may be.
-                // The only thing we'll require now is confirmation, if applicable.
-                final Optional<PlayerStorage> storage;
+                // At this point we should always have a valid input. Now we just need confirmation, if applicable.
+                // See whose storage we need to access.
+                final PartyStorage party;
                 if (target != null)
-                    storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) target));
+                    party = Pixelmon.storageManager.getParty((EntityPlayerMP) target);
                 else
-                    storage = PixelmonStorage.pokeBallManager.getPlayerStorage(((EntityPlayerMP) src));
+                    party = Pixelmon.storageManager.getParty((EntityPlayerMP) src);
 
-                if (!storage.isPresent())
+                // Let's see if we have a specific Pokémon, and if so, where it's at. Prepare for a party check otherwise.
+                final Pokemon pokemon = slot != 0 ? party.get(slot) : null;
+
+                if (!healParty)
                 {
-                    if (target != null)
-                        printToLog(0, "§4" + target.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
-                    else
-                        printToLog(0, "§4" + src.getName() + "§c does not have a Pixelmon storage, aborting. Bug?");
-
-                    sendCheckedMessage(src,"§4Error: §cNo Pixelmon storage found. Please contact staff!");
-                }
-                else
-                {
-                    final PlayerStorage storageCompleted = storage.get();
-                    final NBTTagCompound nbt;
-                    if (slot != 0)
-                        nbt = storageCompleted.partyPokemon[slot];
-                    else
-                        nbt = null;
-
-                    if (!calledRemotely && !healParty || calledRemotely && slot != 0)
+                    if (pokemon == null) // Did we actually get a specific Pokémon from the slot/our checks? If not, end.
                     {
-                        if (nbt == null)
-                        {
-                            printToLog(1, "No Pokémon data found in slot, probably empty. Exit.");
-
-                            if (target != null)
-                                sendCheckedMessage(src,"§4Error: §cYour target does not have anything in that slot!");
-                            else
-                                sendCheckedMessage(src,"§4Error: §cYou don't have anything in that slot!");
-
-                            canContinue = false;
-                        }
-                        else if (nbt.getBoolean(NbtKeys.IS_EGG))
-                        {
-                            printToLog(1, "Tried to show off an egg. Exit.");
-                            sendCheckedMessage(src,"§4Error: §cThat's an egg! You won't need to heal that.");
-                            canContinue = false;
-                        }
-                    }
-
-                    if (canContinue)
-                    {
-                        if (economyEnabled && !calledRemotely && commandCost > 0)
-                        {
-                            final BigDecimal costToConfirm = new BigDecimal(commandCost);
-
-                            if (commandConfirmed)
-                            {
-                                final Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(playerUUID);
-
-                                if (optionalAccount.isPresent())
-                                {
-                                    final UniqueAccount uniqueAccount = optionalAccount.get();
-                                    final TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
-                                            costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
-
-                                    if (transactionResult.getResult() == ResultType.SUCCESS)
-                                    {
-                                        if (target == null)
-                                        {
-                                            if (healParty)
-                                            {
-                                                printToLog(1, "Healing player's party, and taking §3" +
-                                                        costToConfirm + "§b coins.");
-                                            }
-                                            else
-                                            {
-                                                printToLog(1, "Healing player slot §3" + slot +
-                                                        "§b, and taking §3" + costToConfirm + "§b coins.");
-                                            }
-                                        }
-                                        else
-                                        {
-                                            if (healParty)
-                                            {
-                                                printToLog(1, "Healing §3" + target.getName() +
-                                                        "§b's party, and taking §3" + costToConfirm + "§b coins.");
-                                            }
-                                            else
-                                            {
-                                                printToLog(1, "Healing slot §3" + slot + "§b for §3" +
-                                                        target.getName() + "§b. Taking §3" + costToConfirm + "§b coins.");
-                                            }
-                                        }
-
-                                        cooldownMap.put(playerUUID, currentTime);
-                                        doHeal(src, target, slot, storageCompleted, nbt);
-                                    }
-                                    else
-                                    {
-                                        final BigDecimal balanceNeeded = uniqueAccount.getBalance(
-                                                economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
-
-                                        printToLog(1, "Not enough coins! Cost is §3" + costToConfirm +
-                                                "§b, and we're lacking §3" + balanceNeeded);
-                                        sendCheckedMessage(src,"§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this.");
-                                    }
-                                }
-                                else
-                                {
-                                    printToLog(0, "§4" + src.getName() + "§c does not have an economy account, aborting. Bug?");
-                                    sendCheckedMessage(src,"§4Error: §cNo economy account found. Please contact staff!");
-                                }
-                            }
-                            else
-                            {
-                                printToLog(1, "Got cost but no confirmation; end of the line.");
-
-                                src.sendMessage(Text.of("§5-----------------------------------------------------"));
-
-                                if (healParty)
-                                {
-                                    // Is cost to confirm exactly one coin?
-                                    if (target == null)
-                                    {
-                                        if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
-                                            sendCheckedMessage(src,"§6Warning: §eHealing your team costs §6one §ecoin.");
-                                        else
-                                        {
-                                            sendCheckedMessage(src,"§6Warning: §eHealing your team costs §6" +
-                                                    costToConfirm + "§e coins.");
-                                        }
-
-                                        sendCheckedMessage(src,"§2Ready? Type: §a/" + commandAlias + " -c");
-                                    }
-                                    else
-                                    {
-                                        if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
-                                            sendCheckedMessage(src,"§6Warning: §eHealing §6" + target.getName() +
-                                                    "§e's team costs §6one §ecoin.");
-                                        else
-                                        {
-                                            sendCheckedMessage(src,"§6Warning: §eHealing §6" + target.getName() +
-                                                    "§e's team costs §6" + costToConfirm + "§e coins.");
-                                        }
-
-                                        sendCheckedMessage(src,"§2Ready? Type: §a/" + commandAlias + " " +
-                                                target.getName() + " -c");
-                                    }
-                                }
-                                else
-                                {
-                                    // Is cost to confirm exactly one coin?
-                                    if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
-                                        sendCheckedMessage(src,"§6Warning: §eHealing this Pokémon costs §6one §ecoin.");
-                                    else
-                                    {
-                                        sendCheckedMessage(src,"§6Warning: §eHealing this Pokémon costs §6" +
-                                                costToConfirm + "§e coins.");
-                                    }
-
-                                    if (target == null)
-                                    {
-                                        sendCheckedMessage(src,"§2Ready? Type: §a/" + commandAlias + " " +
-                                                slot + " -c");
-                                    }
-                                    else
-                                    {
-                                        sendCheckedMessage(src,"§2Ready? Type: §a/" + commandAlias + " " +
-                                                target.getName() + " " + slot + " -c");
-                                    }
-                                }
-
-                                src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                            }
-                        }
+                        if (target != null)
+                            sendCheckedMessage(src,"§4Error: §cYour target does not have anything in that slot!");
                         else
+                            sendCheckedMessage(src,"§4Error: §cYou don't have anything in that slot!");
+
+                        return CommandResult.empty();
+                    }
+                }
+
+                if (economyEnabled && !calledRemotely && commandCost > 0)
+                {
+                    final BigDecimal costToConfirm = new BigDecimal(commandCost);
+
+                    if (commandConfirmed)
+                    {
+                        final Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(playerUUID);
+
+                        if (optionalAccount.isPresent())
                         {
-                            if (!calledRemotely)
+                            final UniqueAccount uniqueAccount = optionalAccount.get();
+                            final TransactionResult transactionResult = uniqueAccount.withdraw(economyService.getDefaultCurrency(),
+                                    costToConfirm, Sponge.getCauseStackManager().getCurrentCause());
+
+                            if (transactionResult.getResult() == ResultType.SUCCESS)
                             {
-                                final String priceNote;
-                                if (economyEnabled)
-                                    priceNote = "Config price is §30§b, taking nothing.";
-                                else
-                                    priceNote = "No economy, so we skipped eco checks.";
+                                // Create a cooldown for the calling player.
+                                cooldownMap.put(playerUUID, currentTime);
 
                                 if (target == null)
                                 {
                                     if (healParty)
-                                        printToLog(1, "Healing player's party. " + priceNote);
+                                    {
+                                        printSourcedMessage(sourceName, "Healing player's party, and taking §3" +
+                                                costToConfirm + "§b coins.");
+
+                                        healParty(src, null, party);
+                                    }
                                     else
-                                        printToLog(1, "Healing slot §3" + slot + "§b. " + priceNote);
+                                    {
+                                        printSourcedMessage(sourceName, "Healing player slot §3" + slot +
+                                                "§b, and taking §3" + costToConfirm + "§b coins.");
+
+                                        ///noinspection ConstantConditions
+                                        healPokemon(src, target, pokemon);
+                                    }
                                 }
                                 else
                                 {
                                     if (healParty)
                                     {
-                                        printToLog(1, "Healing §3" + target.getName() +
-                                                "§b's party. " + priceNote);
+                                        printSourcedMessage(sourceName, "Healing §3" + target.getName() +
+                                                "§b's party, and taking §3" + costToConfirm + "§b coins.");
+
+                                        healParty(src, target, party);
                                     }
                                     else
                                     {
-                                        printToLog(1, "Healing slot §3" + slot +
-                                                "§b for §3" + target.getName() + "§b. " + priceNote);
+                                        printSourcedMessage(sourceName, "Healing slot §3" + slot + "§b for §3" +
+                                                target.getName() + "§b. Taking §3" + costToConfirm + "§b coins.");
+
+                                        ///noinspection ConstantConditions
+                                        healPokemon(src, target, pokemon);
                                     }
                                 }
+                            }
+                            else
+                            {
+                                final BigDecimal balanceNeeded = uniqueAccount.getBalance(
+                                        economyService.getDefaultCurrency()).subtract(costToConfirm).abs();
 
-                                cooldownMap.put(playerUUID, currentTime);
+                                sendCheckedMessage(src,"§4Error: §cYou need §4" + balanceNeeded + "§c more coins to do this.");
+                            }
+                        }
+                        else
+                        {
+                            printSourcedError(sourceName, "§4" + src.getName() + "§c does not have an economy account, aborting. Bug?");
+                            sendCheckedMessage(src,"§4Error: §cNo economy account found. Please contact staff!");
+                        }
+                    }
+                    else
+                    {
+                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
+
+                        if (healParty)
+                        {
+                            // Is cost to confirm exactly one coin?
+                            if (target == null)
+                            {
+                                if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
+                                    sendCheckedMessage(src,"§6Warning: §eHealing your team costs §6one §ecoin.");
+                                else
+                                {
+                                    sendCheckedMessage(src,"§6Warning: §eHealing your team costs §6" +
+                                            costToConfirm + "§e coins.");
+                                }
+
+                                sendCheckedMessage(src,"§2Ready? Type: §a/" + commandAlias + " -c");
+                            }
+                            else
+                            {
+                                if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
+                                    sendCheckedMessage(src,"§6Warning: §eHealing §6" + target.getName() +
+                                            "§e's team costs §6one §ecoin.");
+                                else
+                                {
+                                    sendCheckedMessage(src,"§6Warning: §eHealing §6" + target.getName() +
+                                            "§e's team costs §6" + costToConfirm + "§e coins.");
+                                }
+
+                                sendCheckedMessage(src,"§2Ready? Type: §a/" + commandAlias + " " +
+                                        target.getName() + " -c");
+                            }
+                        }
+                        else
+                        {
+                            // Is cost to confirm exactly one coin?
+                            if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
+                                sendCheckedMessage(src,"§6Warning: §eHealing this Pokémon costs §6one §ecoin.");
+                            else
+                            {
+                                sendCheckedMessage(src,"§6Warning: §eHealing this Pokémon costs §6" +
+                                        costToConfirm + "§e coins.");
                             }
 
-                            doHeal(src, target, slot, storageCompleted, nbt);
+                            if (target == null)
+                            {
+                                sendCheckedMessage(src,"§2Ready? Type: §a/" + commandAlias + " " +
+                                        slot + " -c");
+                            }
+                            else
+                            {
+                                sendCheckedMessage(src,"§2Ready? Type: §a/" + commandAlias + " " +
+                                        target.getName() + " " + slot + " -c");
+                            }
                         }
+
+                        src.sendMessage(Text.of("§5-----------------------------------------------------"));
+                    }
+                }
+                else
+                {
+                    if (!calledRemotely)
+                    {
+                        final String priceNote;
+                        if (economyEnabled)
+                            priceNote = "Config price is §30§b, taking nothing.";
+                        else
+                            priceNote = "No economy, so we skipped eco checks.";
+
+                        if (target == null)
+                        {
+                            if (healParty)
+                            {
+                                printSourcedMessage(sourceName, "Healing player's party. " + priceNote);
+                                healParty(src, null, party);
+                            }
+                            else
+                            {
+                                printSourcedMessage(sourceName, "Healing slot §3" + slot + "§b. " + priceNote);
+                                healPokemon(src, null, pokemon);
+                            }
+                        }
+                        else
+                        {
+                            if (healParty)
+                            {
+                                printSourcedMessage(sourceName, "Healing §3" + target.getName() +
+                                        "§b's party. " + priceNote);
+                                healParty(src, target, party);
+                            }
+                            else
+                            {
+                                printSourcedMessage(sourceName, "Healing slot §3" + slot +
+                                        "§b for §3" + target.getName() + "§b. " + priceNote);
+                                healPokemon(src, target, pokemon);
+                            }
+                        }
+
+                        cooldownMap.put(playerUUID, currentTime);
+                    }
+                    else
+                    {
+                        if (slot == 0)
+                            healParty(src, target, party);
+                        else
+                            healPokemon(src, target, pokemon);
                     }
                 }
             }
@@ -557,8 +425,39 @@ public class TimedHeal implements CommandExecutor
         return CommandResult.success();
     }
 
+    // Redirect messages away from command blocks and into the console if need be. Prevents useless spam in the block UI.
+    private void sendCheckedMessage(final CommandSource src, final String input)
+    {
+        if (src instanceof CommandBlock) // Redirect to console, respecting existing formatting.
+            PrintingMethods.printUnformattedMessage(input);
+        else // Print normally.
+            src.sendMessage(Text.of(input));
+    }
+
+    // Create and print a command-specific error box that shows a provided String as the actual error.
+    private void printLocalError(final CommandSource src, final String input, final boolean hitCooldown)
+    {
+        sendCheckedMessage(src, "§5-----------------------------------------------------");
+        sendCheckedMessage(src, input);
+
+        if (!hitCooldown)
+            printSyntaxHelper(src);
+
+        if (!calledRemotely && economyEnabled && commandCost > 0)
+        {
+            sendCheckedMessage(src, "");
+
+            if (commandCost == 1)
+                src.sendMessage(Text.of("§eConfirming will cost you §6one §ecoin."));
+            else
+                src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coins."));
+        }
+
+        src.sendMessage(Text.of("§5-----------------------------------------------------"));
+    }
+
     // Called when it's necessary to figure out the right perm message, or when it's just convenient. Saves typing!
-    private void printSyntaxHelper(final CommandSource src, final boolean hasOtherPerm)
+    private void printSyntaxHelper(final CommandSource src)
     {
         if (calledRemotely)
             sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " <target> [slot? 1-6]");
@@ -572,14 +471,14 @@ public class TimedHeal implements CommandExecutor
 
             if (healParty)
             {
-                if (hasOtherPerm)
+                if (src.hasPermission("pixelupgrade.command.other.timedheal"))
                     sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " [target?]" + confirmString);
                 else
                     sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " " + confirmString);
             }
             else
             {
-                if (hasOtherPerm)
+                if (src.hasPermission("pixelupgrade.command.other.timedheal"))
                     sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " [target?] <slot, 1-6>" + confirmString);
                 else
                     sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " <slot, 1-6>" + confirmString);
@@ -587,57 +486,56 @@ public class TimedHeal implements CommandExecutor
         }
     }
 
-    private void doHeal(final CommandSource src, final Player target, final int slot, final PlayerStorage storage, final NBTTagCompound nbt)
+    // Heal us a Pokémon! Also, show the right messages.
+    private void healPokemon(final CommandSource src, final Player target, final Pokemon pokemon)
     {
-        if (healParty && target == null)
-        {
-            final EntityPlayerMP playerEntity = (EntityPlayerMP) src;
-            storage.healAllPokemon(playerEntity.getServerWorld());
+        pokemon.heal();
+        printBasicError("Yo, did it update? If not, TODO.");
 
-            sendCheckedMessage(src,"§aYour party has been healed!");
-        }
-        else if (calledRemotely && slot == 0 || !calledRemotely && healParty)
+        if (target != null)
         {
-            final EntityPlayerMP playerEntity = (EntityPlayerMP) target;
-            storage.healAllPokemon(playerEntity.getServerWorld());
-
             if (calledRemotely && sneakyMode)
-                sendCheckedMessage(src,"§aThe target's party has been silently healed!");
-            else
-                sendCheckedMessage(src,"§aThe target's party has been healed!");
-
-            if (calledRemotely && !sneakyMode)
-                target.sendMessage(Text.of("§aYour party was healed remotely!"));
-            else if (!calledRemotely)
-                target.sendMessage(Text.of("§aYour party was healed by §2" + src.getName() + "§a!"));
-        }
-        else
-        {
-            // Partially nicked from the "heal" method in Pixelmon, as that's private.
-            nbt.setFloat(NbtKeys.HEALTH, (float) nbt.getInteger(NbtKeys.STATS_HP));
-            nbt.setBoolean(NbtKeys.IS_FAINTED, false);
-            nbt.removeTag("Status");
-
-            final int numberOfMoves = nbt.getInteger(NbtKeys.PIXELMON_NUMBER_MOVES);
-            for (int i = 0; i < numberOfMoves; i++)
-                nbt.setInteger(NbtKeys.PIXELMON_MOVE_PP + i, nbt.getInteger(NbtKeys.PIXELMON_MOVE_PPBASE + i));
-
-            storage.sendUpdatedList();
-
-            if (target != null)
             {
-                if (calledRemotely && sneakyMode)
-                    sendCheckedMessage(src,"§aThe target's slot §2" + slot + " §aPokémon has been silently healed!");
-                else
-                    sendCheckedMessage(src,"§aThe target's slot §2" + slot + " §aPokémon has been healed!");
-
-                if (calledRemotely && !sneakyMode)
-                    target.sendMessage(Text.of("§aThe Pokémon in slot §2" + slot + "§a was healed remotely!"));
-                else if (!calledRemotely)
-                    target.sendMessage(Text.of("§aThe Pokémon in slot §2" + slot + "§a was healed by §2" + src.getName() + "§a!"));
+                sendCheckedMessage(src,"§aThe targeted Pokémon has been silently healed!");
+                target.sendMessage(Text.of("§aThe targeted Pokémon was healed remotely!"));
             }
             else
-                sendCheckedMessage(src,"§aThe Pokémon in slot §2" + slot + " §ahas been healed!");
+            {
+                sendCheckedMessage(src,"§aThe targeted Pokémon has been healed!");
+                if (!calledRemotely)
+                    target.sendMessage(Text.of("§aThe targeted Pokémon was healed by §2" + src.getName() + "§a!"));
+            }
+        }
+        else
+            sendCheckedMessage(src,"§aThe chosen Pokémon has been healed!");
+    }
+
+    // Heal us a whole party!
+    private void healParty(final CommandSource src, final Player target, final PartyStorage storage)
+    {
+        // Create a Pokemon object that we can fill in with party slot data when we get it.
+        Pokemon pokemon;
+        for (int i = 1; i <= 6; i++)
+        {
+            pokemon = storage.get(i);
+            if (pokemon != null)
+                pokemon.heal();
+        }
+        printBasicError("Yo, did it update? If not, TODO.");
+
+        if (target == null)
+            sendCheckedMessage(src,"§aAll Pokémon in your party have been healed!");
+        else
+        {
+            if (calledRemotely && sneakyMode)
+                sendCheckedMessage(src,"§aAll Pokémon in the target's party have been silently healed!");
+            else
+                sendCheckedMessage(src,"§aAll Pokémon in the target's party have been healed!");
+
+            if (calledRemotely && !sneakyMode)
+                target.sendMessage(Text.of("§aYour party's Pokémon were healed remotely!"));
+            else if (!calledRemotely)
+                target.sendMessage(Text.of("§aYour party's Pokémon were healed by §2" + src.getName() + "§a!"));
         }
     }
 }

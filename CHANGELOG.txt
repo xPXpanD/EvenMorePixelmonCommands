@@ -1,14 +1,29 @@
-5.0.0 for 7.0
-Released ???
+5.0 for 7.0
+Released January 28th, 2019.
+
+    Major (breaking) config changes:
+    * The main config and info command config have been merged.
+    * Many things have been simplified or otherwise streamlined in the command configs. Generate new files.
+
+    Additions:
+    * Added the showing of levels to /checkstats and /showstats (hover only, there).
+
+    Changes:
+    * Bumped SpongeAPI to 7.1.0, Forge from 2655 to 2768 with the last pre-1.13 mappings. Might fix some issues?
+    * Merged the command listing and /pureload into /pixelupgrade, using a child command setup.
+    * Reload now reloads everything, always.
+    * Readied everything for gen 7!
+    * Reworded /showstats anticheat wording to be a bit less paranoid.
 
     Fixes and tweaks:
-    * Bumped SpongeAPI to 7.1.0, Forge from 2655 to 2768 with the last pre-1.13 mappings. Might fix some issues?
-    * Readied everything for gen 7!
+    * Fixed some inconsistencies with shown command parameters.
     * Removed the accidental double check for valid config folders when using /pureload all.
 
     Removals:
-    * Removed /upgradeivs, /dittofusion and /resetcounts. Coming soon to a new sidemod near you? They need work.
+    * Removed /checkegg, and merged its settings and features into /checkstats. No point having two commands.
+    * Removed /upgradeivs + /dittofusion + /resetcounts. They need a LOT of work. May become a separate sidemod.
     * Removed excessive logging, compacted everything into a single log setting that only shows important stuff.
+    * Removed the "pure black" option from /spawndex as it seems to no longer be supported.
 
 4.1.0 for 6.3
 Released June 6th, 2018.

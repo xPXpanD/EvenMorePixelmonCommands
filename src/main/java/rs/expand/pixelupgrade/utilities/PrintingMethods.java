@@ -2,7 +2,6 @@ package rs.expand.pixelupgrade.utilities;
 
 // Remote imports.
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.source.ConsoleSource;
 import org.spongepowered.api.text.Text;
 import java.util.List;
@@ -10,7 +9,6 @@ import java.util.Optional;
 
 // Local imports.
 import rs.expand.pixelupgrade.PixelUpgrade;
-import static rs.expand.pixelupgrade.PixelUpgrade.economyEnabled;
 
 // A collection of methods that are commonly used. One changed word or color here, and half the mod changes. Sweet.
 public class PrintingMethods
@@ -25,7 +23,7 @@ public class PrintingMethods
     }
 
     // If we need to print something without any major formatting, do it here. Good for console lists.
-    public static void printBasicMessage(final String inputString)
+    public static void printUnformattedMessage(final String inputString)
     {
         getConsole().ifPresent(console ->
                 console.sendMessage(Text.of("§f" + inputString)));
@@ -37,7 +35,7 @@ public class PrintingMethods
         if (PixelUpgrade.logImportantInfo == null || PixelUpgrade.logImportantInfo)
         {
             if (PixelUpgrade.logImportantInfo == null)
-                printGenericError("Could not determine logging status from main config! Falling back to defaults.");
+                printBasicError("Could not determine logging status from main config! Falling back to defaults.");
 
             getConsole().ifPresent(console ->
                     console.sendMessage(Text.of("§3PU | " + callSource + " §f// §b" + inputString)));
@@ -45,17 +43,10 @@ public class PrintingMethods
     }
 
     // If we need to show a generic error with no specific source, do it here.
-    public static void printGenericError(final String inputString)
-    {
-        getConsole().ifPresent(console ->
-                console.sendMessage(Text.of("§4PU §f// §4Error: §c" + inputString)));
-    }
-
-    // Used to add existing lines onto a proper error, generally.
     public static void printBasicError(final String inputString)
     {
         getConsole().ifPresent(console ->
-                console.sendMessage(Text.of("§f" + inputString)));
+                console.sendMessage(Text.of("§4PU §f// §4Error: §c" + inputString)));
     }
 
     // If we need to print an error from a specific command, this is the one we go to.
@@ -76,7 +67,7 @@ public class PrintingMethods
         printBasicError("§cCheck the main config, and when fixed use §4/pureload§c. Exiting.");
     }
 
-    // If we can't read a main config parameter, get a bit clever and show everything that went wrong.
+    // If we can't read a command config parameter, get a bit clever and show everything that went wrong.
     public static void printCommandNodeError(final String callSource, final List<String> nodes)
     {
         printSourcedError(callSource, "§cErrors were found in this command's config. See below:");
@@ -96,24 +87,4 @@ public class PrintingMethods
                     "§c\" for command \"§4/" + targetCommand.toLowerCase() + "§c\".");
         }
     }*/
-
-    // Adds a footer based on input and matching intent. Used so commonly it might as well be here.
-    public static void checkAndAddFooter(final boolean requireConfirmation, final long cost, final CommandSource src)
-    {
-        if (requireConfirmation || economyEnabled && cost > 0)
-        {
-            src.sendMessage(Text.EMPTY);
-            src.sendMessage(Text.of("§6Warning: §eAdd the -c flag only if you're sure!"));
-        }
-
-        if (economyEnabled && cost > 0)
-        {
-            if (cost == 1)
-                src.sendMessage(Text.of("§eConfirming will cost you §6" + cost + "§e coin."));
-            else
-                src.sendMessage(Text.of("§eConfirming will cost you §6" + cost + "§e coins."));
-        }
-
-        src.sendMessage(Text.of("§5-----------------------------------------------------"));
-    }
 }
