@@ -48,15 +48,15 @@ public class SpawnDex implements CommandExecutor
         if (src instanceof Player)
         {
             // Validate the data we get from the command's main config.
-            final List<String> nativeErrorArray = new ArrayList<>();
+            final List<String> commandErrorList = new ArrayList<>();
             if (commandAlias == null)
-                nativeErrorArray.add("commandAlias");
+                commandErrorList.add("commandAlias");
             if (fakeMessage == null)
-                nativeErrorArray.add("fakeMessage");
+                commandErrorList.add("fakeMessage");
 
-            if (!nativeErrorArray.isEmpty())
+            if (!commandErrorList.isEmpty())
             {
-                PrintingMethods.printCommandNodeError("SpawnDex", nativeErrorArray);
+                PrintingMethods.printCommandNodeError("SpawnDex", commandErrorList);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else

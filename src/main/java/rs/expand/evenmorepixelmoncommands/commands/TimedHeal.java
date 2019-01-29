@@ -1,10 +1,9 @@
-// heal pls
+// Seemed like a good thing to have, and now it exists! Fancier than the PE version, but also heavier.
 package rs.expand.evenmorepixelmoncommands.commands;
 
 // Remote imports.
 import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
-import com.pixelmonmod.pixelmon.api.storage.PartyStorage;
 import com.pixelmonmod.pixelmon.battles.BattleRegistry;
 import java.math.BigDecimal;
 import java.util.*;
@@ -24,7 +23,6 @@ import org.spongepowered.api.text.Text;
 // Local imports.
 import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
 import static rs.expand.evenmorepixelmoncommands.EMPC.*;
-import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printBasicError;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedMessage;
 
@@ -34,7 +32,7 @@ public class TimedHeal implements CommandExecutor
     // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
     public static Integer cooldownInSeconds, altCooldownInSeconds, commandCost;
-    public static Boolean healParty, sneakyMode;
+    public static Boolean sneakyMode;
 
     // Set up some more variables for internal use.
     private String sourceName = this.getClass().getSimpleName();
@@ -49,21 +47,21 @@ public class TimedHeal implements CommandExecutor
         calledRemotely = !(src instanceof Player);
 
         // Validate the data we get from the command's main config.
-        final List<String> nativeErrorArray = new ArrayList<>();
+        final List<String> commandErrorList = new ArrayList<>();
         if (commandAlias == null)
-            nativeErrorArray.add("commandAlias");
+            commandErrorList.add("commandAlias");
         if (cooldownInSeconds == null)
-            nativeErrorArray.add("cooldownInSeconds");
+            commandErrorList.add("cooldownInSeconds");
         if (altCooldownInSeconds == null)
-            nativeErrorArray.add("altCooldownInSeconds");
+            commandErrorList.add("altCooldownInSeconds");
         if (sneakyMode == null)
-            nativeErrorArray.add("sneakyMode");
+            commandErrorList.add("sneakyMode");
         if (commandCost == null)
-            nativeErrorArray.add("commandCost");
+            commandErrorList.add("commandCost");
 
-        if (!nativeErrorArray.isEmpty())
+        if (!commandErrorList.isEmpty())
         {
-            PrintingMethods.printCommandNodeError(sourceName, nativeErrorArray);
+            PrintingMethods.printCommandNodeError(sourceName, commandErrorList);
             sendCheckedMessage(src,"§4Error: §cThis command's config is invalid! Please report to staff.");
         }
         else
@@ -71,9 +69,9 @@ public class TimedHeal implements CommandExecutor
             int slot = 0;
             final long currentTime = System.currentTimeMillis() / 1000; // Grab seconds.
             boolean commandConfirmed = false;
-            final Optional<String> arg1Optional = args.getOne("target/slot/confirmation");
+            final Optional<String> arg1Optional = args.getOne("target/slot");
             final Optional<String> arg2Optional = args.getOne("slot/confirmation");
-            Player target = null, player;
+            Player target = null, player = null;
 
             if (calledRemotely)
             {
@@ -88,13 +86,13 @@ public class TimedHeal implements CommandExecutor
                     else
                     {
                         printLocalError(src, "§4Error: §cInvalid target on first argument. See below.", false);
-                        return CommandResult.success();
+                        return CommandResult.empty();
                     }
                 }
                 else
                 {
                     printLocalError(src, "§4Error: §cNo arguments found. See below.", false);
-                    return CommandResult.success();
+                    return CommandResult.empty();
                 }
 
                 // Do we have an argument in the second slot?
@@ -108,8 +106,13 @@ public class TimedHeal implements CommandExecutor
                     else
                     {
                         printLocalError(src, "§4Error: §cInvalid slot on optional second argument. See below.", false);
-                        return CommandResult.success();
+                        return CommandResult.empty();
                     }
+                }
+                else
+                {
+                    printLocalError(src, "§4Error: §cNo slot found. See below.", false);
+                    return CommandResult.empty();
                 }
             }
             else
@@ -144,15 +147,13 @@ public class TimedHeal implements CommandExecutor
                 }
 
                 // Do we have an argument in the first argument slot?
-                // This can be a Pokémon slot, a player name, a confirmation flag or nothing.
+                // This can be a Pokémon slot, a player name or nothing.
                 if (arg1Optional.isPresent())
                 {
                     final String argString = arg1Optional.get();
 
                     if (argString.matches("^[1-6]")) // Do we have a valid slot?
                         slot = Integer.parseInt(argString);
-                    else if (argString.equalsIgnoreCase("-c") && commandCost != 0 && healParty) // ...or a confirmation flag?
-                        commandConfirmed = true;
                     else if (src.hasPermission("empc.command.other.timedheal"))
                     {
                         if (Sponge.getServer().getPlayer(argString).isPresent()) // Do we have a valid online player?
@@ -173,25 +174,22 @@ public class TimedHeal implements CommandExecutor
                         return CommandResult.empty();
                     }
                 }
-                // We have no arguments. This could be valid if party healing is on and no cost is associated, so check.
-                // (cost stuff gets sorted later, let's get the syntax valid first)
-                else if (!healParty)
+                else
                 {
                     printLocalError(src, "§4Error: §cNo arguments found. See below.", false);
                     return CommandResult.empty();
                 }
 
-                // Do we have an argument in the second argument slot, and has no Pokémon slot been defined yet?
+                // Do we have an argument in the second argument slot?
                 if (arg2Optional.isPresent())
                 {
                     final String argString = arg2Optional.get();
 
+                    // Has no slot been defined yet?
                     if (slot == 0)
                     {
                         if (argString.matches("^[1-6]")) // Do we have a valid slot?
                             slot = Integer.parseInt(argString);
-                        else if (argString.equalsIgnoreCase("-c") && commandCost != 0 && healParty)
-                            commandConfirmed = true;
                         else
                         {
                             printLocalError(src, "§4Error: §cInvalid slot on second argument. See below.", false);
@@ -200,6 +198,11 @@ public class TimedHeal implements CommandExecutor
                     }
                     else if (argString.equalsIgnoreCase("-c"))
                         commandConfirmed = true;
+                }
+                else if (slot == 0)
+                {
+                    printLocalError(src, "§4Error: §cNo slot found. See below.", false);
+                    return CommandResult.empty();
                 }
 
                 // Do we have an argument in the third slot? A bit ugly, but it'll do.
@@ -218,26 +221,21 @@ public class TimedHeal implements CommandExecutor
             {
                 // At this point we should always have a valid input. Now we just need confirmation, if applicable.
                 // See whose storage we need to access.
-                final PartyStorage party;
+                final Pokemon pokemon;
                 if (target != null)
-                    party = Pixelmon.storageManager.getParty((EntityPlayerMP) target);
+                    pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) target).get(slot - 1);
                 else
-                    party = Pixelmon.storageManager.getParty((EntityPlayerMP) src);
+                    pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot - 1);
 
-                // Let's see if we have a specific Pokémon, and if so, where it's at. Prepare for a party check otherwise.
-                final Pokemon pokemon = slot != 0 ? party.get(slot - 1) : null;
-
-                if (!healParty)
+                if (pokemon == null) // Check if there's actually a Pokémon in the provided slot.
                 {
-                    if (pokemon == null) // Did we actually get a specific Pokémon from the slot/our checks? If not, end.
-                    {
-                        if (target != null)
-                            sendCheckedMessage(src,"§4Error: §cYour target does not have anything in that slot!");
-                        else
-                            sendCheckedMessage(src,"§4Error: §cYou don't have anything in that slot!");
-
-                        return CommandResult.empty();
-                    }
+                    sendCheckedMessage(src,"§4Error: §cThe specified slot is empty!");
+                    return CommandResult.empty();
+                }
+                else if (pokemon.isEgg()) // Check if the Pokémon is in an egg.
+                {
+                    sendCheckedMessage(src,"§4Error: §cThat's an egg. Go hatch it, first.");
+                    return CommandResult.empty();
                 }
 
                 if (economyEnabled && !calledRemotely && commandCost > 0)
@@ -247,7 +245,6 @@ public class TimedHeal implements CommandExecutor
                     if (commandConfirmed)
                     {
                         final Optional<UniqueAccount> optionalAccount = economyService.getOrCreateAccount(playerUUID);
-
                         if (optionalAccount.isPresent())
                         {
                             final UniqueAccount uniqueAccount = optionalAccount.get();
@@ -259,41 +256,24 @@ public class TimedHeal implements CommandExecutor
                                 // Create a cooldown for the calling player.
                                 cooldownMap.put(playerUUID, currentTime);
 
+                                // Heal!
+                                healPokemon(src, target, pokemon, slot);
+
                                 if (target == null)
                                 {
-                                    if (healParty)
-                                    {
-                                        printSourcedMessage(sourceName, "Healing player's party, and taking §3" +
-                                                costToConfirm + "§b coins.");
-
-                                        healParty(src, null, party);
-                                    }
-                                    else
-                                    {
-                                        printSourcedMessage(sourceName, "Healing player slot §3" + slot +
-                                                "§b, and taking §3" + costToConfirm + "§b coins.");
-
-                                        ///noinspection ConstantConditions
-                                        healPokemon(src, null, pokemon);
-                                    }
+                                    printSourcedMessage(sourceName, "Healing calling player §3" + player.getName() +
+                                            "§b slot §3" + slot + "§b and taking §3" + costToConfirm + "§b coins.");
                                 }
                                 else
                                 {
-                                    if (healParty)
-                                    {
-                                        printSourcedMessage(sourceName, "Healing §3" + target.getName() +
-                                                "§b's party, and taking §3" + costToConfirm + "§b coins.");
+                                    printSourcedMessage(sourceName, "Player §3" + player.getName() +
+                                            "§b is healing slot §3" + slot + "§b for §3" + target.getName() +
+                                            "§b. Taking §3" + costToConfirm + "§b coins.");
 
-                                        healParty(src, target, party);
-                                    }
-                                    else
-                                    {
-                                        printSourcedMessage(sourceName, "Healing slot §3" + slot + "§b for §3" +
-                                                target.getName() + "§b. Taking §3" + costToConfirm + "§b coins.");
-
-                                        ///noinspection ConstantConditions
-                                        healPokemon(src, target, pokemon);
-                                    }
+                                    target.sendMessage(Text.of("§aYou've successfully healed §2" + src.getName() +
+                                            "§a's slot §2" + slot + "§a Pokémon!"));
+                                    target.sendMessage(Text.of("§aThe Pokémon in slot §2" + slot +
+                                                "§a was healed by §2" + src.getName() + "§a!"));
                                 }
                             }
                             else
@@ -314,57 +294,21 @@ public class TimedHeal implements CommandExecutor
                     {
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
 
-                        if (healParty)
-                        {
-                            // Is cost to confirm exactly one coin?
-                            if (target == null)
-                            {
-                                if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
-                                    sendCheckedMessage(src,"§6Warning: §eHealing your team costs §6one §ecoin.");
-                                else
-                                {
-                                    sendCheckedMessage(src,"§6Warning: §eHealing your team costs §6" +
-                                            costToConfirm + "§e coins.");
-                                }
-
-                                sendCheckedMessage(src,"§2Ready? Type: §a/" + commandAlias + " -c");
-                            }
-                            else
-                            {
-                                if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
-                                    sendCheckedMessage(src,"§6Warning: §eHealing §6" + target.getName() +
-                                            "§e's team costs §6one §ecoin.");
-                                else
-                                {
-                                    sendCheckedMessage(src,"§6Warning: §eHealing §6" + target.getName() +
-                                            "§e's team costs §6" + costToConfirm + "§e coins.");
-                                }
-
-                                sendCheckedMessage(src,"§2Ready? Type: §a/" + commandAlias + " " +
-                                        target.getName() + " -c");
-                            }
-                        }
+                        // Is cost to confirm exactly one coin?
+                        if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
+                            sendCheckedMessage(src,"§6Warning: §eHealing this Pokémon costs §6one §ecoin.");
                         else
                         {
-                            // Is cost to confirm exactly one coin?
-                            if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
-                                sendCheckedMessage(src,"§6Warning: §eHealing this Pokémon costs §6one §ecoin.");
-                            else
-                            {
-                                sendCheckedMessage(src,"§6Warning: §eHealing this Pokémon costs §6" +
-                                        costToConfirm + "§e coins.");
-                            }
+                            sendCheckedMessage(src,"§6Warning: §eHealing this Pokémon costs §6" + costToConfirm +
+                                    "§e coins.");
+                        }
 
-                            if (target == null)
-                            {
-                                sendCheckedMessage(src,"§2Ready? Type: §a/" + commandAlias + " " +
-                                        slot + " -c");
-                            }
-                            else
-                            {
-                                sendCheckedMessage(src,"§2Ready? Type: §a/" + commandAlias + " " +
-                                        target.getName() + " " + slot + " -c");
-                            }
+                        if (target == null)
+                            sendCheckedMessage(src,"§2Ready? Type: §a/" + commandAlias + " " + slot + " -c");
+                        else
+                        {
+                            sendCheckedMessage(src,"§2Ready? Type: §a/" + commandAlias + " " +
+                                    target.getName() + " " + slot + " -c");
                         }
 
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
@@ -372,45 +316,34 @@ public class TimedHeal implements CommandExecutor
                 }
                 else
                 {
+                    // Heal!
+                    healPokemon(src, target, pokemon, slot);
+
                     if (!calledRemotely)
                     {
-                        if (target == null)
+                        if (target != null)
                         {
-                            if (healParty)
-                            {
-                                printSourcedMessage(sourceName, "Healing player's party.");
-                                healParty(src, null, party);
-                            }
-                            else
-                            {
-                                printSourcedMessage(sourceName, "Healing slot §3" + slot + "§b.");
-                                healPokemon(src, null, pokemon);
-                            }
-                        }
-                        else
-                        {
-                            if (healParty)
-                            {
-                                printSourcedMessage(sourceName, "Healing §3" + target.getName() +
-                                        "§b's party. ");
-                                healParty(src, target, party);
-                            }
-                            else
-                            {
-                                printSourcedMessage(sourceName, "Healing slot §3" + slot +
-                                        "§b for §3" + target.getName() + "§b. ");
-                                healPokemon(src, target, pokemon);
-                            }
+                            //noinspection ConstantConditions - calledRemotely guarantees this is safe
+                            printSourcedMessage(sourceName, "Called by §3" + player.getName() +
+                                    "§b, hatching slot §3" +  slot + "§b for §3" + target.getName() + "§b.");
+
+                            target.sendMessage(Text.of("§aYou've successfully healed §2" + src.getName() +
+                                    "§a's slot §2" + slot + "§a Pokémon!"));
+
+                            target.sendMessage(Text.of("§aThe Pokémon in slot §2" + slot +
+                                        "§a was healed by §2" + src.getName() + "§a!"));
                         }
 
                         cooldownMap.put(playerUUID, currentTime);
                     }
                     else
                     {
-                        if (slot == 0)
-                            healParty(src, target, party);
-                        else
-                            healPokemon(src, target, pokemon);
+                        //noinspection ConstantConditions - safe, just too complicated
+                        printSourcedMessage(sourceName, "Called from remote source, healing §3" +
+                                target.getName() + "§b's slot §3" + slot + "§b Pokémon.");
+
+                        if (!sneakyMode)
+                            target.sendMessage(Text.of("§aThe Pokémon in slot §2" + slot + "§a was healed remotely!"));
                     }
                 }
             }
@@ -439,7 +372,7 @@ public class TimedHeal implements CommandExecutor
 
         if (!calledRemotely && economyEnabled && commandCost > 0)
         {
-            sendCheckedMessage(src, "");
+            src.sendMessage(Text.EMPTY);
 
             if (commandCost == 1)
                 src.sendMessage(Text.of("§eConfirming will cost you §6one §ecoin."));
@@ -457,79 +390,37 @@ public class TimedHeal implements CommandExecutor
             sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " <target> [slot? 1-6]");
         else
         {
-            final String confirmString;
-            if (economyEnabled && commandCost != 0)
-                confirmString = " {-c to confirm}";
-            else
-                confirmString = "";
+            final String confirmString = economyEnabled && commandCost != 0 ? " {-c to confirm}" : "";
 
-            if (healParty)
-            {
-                if (src.hasPermission("empc.command.other.timedheal"))
-                    sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " [target?]" + confirmString);
-                else
-                    sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " " + confirmString);
-            }
+            if (src.hasPermission("empc.command.other.timedheal"))
+                sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " [target?] <slot, 1-6>" + confirmString);
             else
-            {
-                if (src.hasPermission("empc.command.other.timedheal"))
-                    sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " [target?] <slot, 1-6>" + confirmString);
-                else
-                    sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " <slot, 1-6>" + confirmString);
-            }
+                sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " <slot, 1-6>" + confirmString);
         }
     }
 
     // Heal us a Pokémon! Also, show the right messages.
-    private void healPokemon(final CommandSource src, final Player target, final Pokemon pokemon)
+    private void healPokemon(final CommandSource src, final Player target, final Pokemon pokemon, final int slot)
     {
         pokemon.heal();
-        printBasicError("Yo, did it update? If not, TODO.");
 
         if (target != null)
         {
             if (calledRemotely && sneakyMode)
-            {
                 sendCheckedMessage(src,"§aThe targeted Pokémon has been silently healed!");
-                target.sendMessage(Text.of("§aThe targeted Pokémon was healed remotely!"));
-            }
             else
             {
                 sendCheckedMessage(src,"§aThe targeted Pokémon has been healed!");
                 if (!calledRemotely)
-                    target.sendMessage(Text.of("§aThe targeted Pokémon was healed by §2" + src.getName() + "§a!"));
+                {
+                    target.sendMessage(Text.of("§aThe Pokémon in slot §2" + slot + "§a was healed by §2" +
+                            src.getName() + "§a!"));
+                }
+                else
+                    target.sendMessage(Text.of("§aThe Pokémon in slot §2" + slot + "§a was healed remotely!"));
             }
         }
         else
-            sendCheckedMessage(src,"§aThe chosen Pokémon has been healed!");
-    }
-
-    // Heal us a whole party!
-    private void healParty(final CommandSource src, final Player target, final PartyStorage storage)
-    {
-        // Create a Pokemon object that we can fill in with party slot data when we get it.
-        Pokemon pokemon;
-        for (int i = 1; i <= 6; i++)
-        {
-            pokemon = storage.get(i);
-            if (pokemon != null)
-                pokemon.heal();
-        }
-        printBasicError("Yo, did it update? If not, TODO.");
-
-        if (target == null)
-            sendCheckedMessage(src,"§aAll Pokémon in your party have been healed!");
-        else
-        {
-            if (calledRemotely && sneakyMode)
-                sendCheckedMessage(src,"§aAll Pokémon in the target's party have been silently healed!");
-            else
-                sendCheckedMessage(src,"§aAll Pokémon in the target's party have been healed!");
-
-            if (calledRemotely && !sneakyMode)
-                target.sendMessage(Text.of("§aYour party's Pokémon were healed remotely!"));
-            else if (!calledRemotely)
-                target.sendMessage(Text.of("§aYour party's Pokémon were healed by §2" + src.getName() + "§a!"));
-        }
+            sendCheckedMessage(src,"§aThe targeted Pokémon has been healed!");
     }
 }

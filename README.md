@@ -1,4 +1,4 @@
-# Even more Pixelmon commands
+# Even More Pixelmon Commands
 A sidemod for Pixelmon Reforged that adds a bunch of new commands with extensive configuration options.
 
 For more details, check:

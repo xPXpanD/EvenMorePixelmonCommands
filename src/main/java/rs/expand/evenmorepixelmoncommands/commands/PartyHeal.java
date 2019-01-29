@@ -1,32 +1,33 @@
-// Seemed like a good thing to have, and now it exists! Fancier than the PE version, but also heavier.
+// The party version of /timedheal, broken off due to the insane complexity of cramming that all into a single class.
 package rs.expand.evenmorepixelmoncommands.commands;
 
 // Remote imports.
 import com.pixelmonmod.pixelmon.Pixelmon;
-import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
+import com.pixelmonmod.pixelmon.api.storage.PartyStorage;
 import com.pixelmonmod.pixelmon.battles.BattleRegistry;
-import java.math.BigDecimal;
-import java.util.*;
 import net.minecraft.entity.player.EntityPlayerMP;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.tileentity.CommandBlock;
-import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
+import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
+import java.math.BigDecimal;
+import java.util.*;
 
 // Local imports.
-import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
-import static rs.expand.evenmorepixelmoncommands.EMPC.*;
+import static rs.expand.evenmorepixelmoncommands.EMPC.economyEnabled;
+import static rs.expand.evenmorepixelmoncommands.EMPC.economyService;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedMessage;
 
-public class TimedHatch implements CommandExecutor
+public class PartyHeal implements CommandExecutor
 {
     // Declare some variables. We'll load stuff into these when we call the config loader.
     // Other config variables are loaded in from their respective classes. Check the imports.
@@ -36,7 +37,6 @@ public class TimedHatch implements CommandExecutor
 
     // Set up some more variables for internal use.
     private String sourceName = this.getClass().getSimpleName();
-    private UUID playerUUID;
     private boolean calledRemotely;
     private HashMap<UUID, Long> cooldownMap = new HashMap<>();
 
@@ -66,12 +66,12 @@ public class TimedHatch implements CommandExecutor
         }
         else
         {
-            int slot = 0;
             final long currentTime = System.currentTimeMillis() / 1000; // Grab seconds.
             boolean commandConfirmed = false;
-            final Optional<String> arg1Optional = args.getOne("target/slot");
-            final Optional<String> arg2Optional = args.getOne("slot/confirmation");
+            final Optional<String> arg1Optional = args.getOne("target/confirmation");
+            final Optional<String> arg2Optional = args.getOne("confirmation");
             Player target = null, player = null;
+            UUID playerUUID = null;
 
             if (calledRemotely)
             {
@@ -94,26 +94,6 @@ public class TimedHatch implements CommandExecutor
                     printLocalError(src, "§4Error: §cNo arguments found. See below.", false);
                     return CommandResult.empty();
                 }
-
-                // Do we have an argument in the second slot?
-                if (arg2Optional.isPresent())
-                {
-                    final String arg2String = arg2Optional.get();
-
-                    // Do we have a Pokémon slot?
-                    if (arg2String.matches("^[1-6]"))
-                        slot = Integer.parseInt(arg2String);
-                    else
-                    {
-                        printLocalError(src, "§4Error: §cInvalid slot on optional second argument. See below.", false);
-                        return CommandResult.empty();
-                    }
-                }
-                else
-                {
-                    printLocalError(src, "§4Error: §cNo slot found. See below.", false);
-                    return CommandResult.empty();
-                }
             }
             else
             {
@@ -121,9 +101,9 @@ public class TimedHatch implements CommandExecutor
                 player = (Player) src;
                 playerUUID = player.getUniqueId(); // why is the "d" in "Id" lowercase :(
 
-                if (!src.hasPermission("empc.command.bypass.timedhatch") && cooldownMap.containsKey(playerUUID))
+                if (!src.hasPermission("empc.command.bypass.partyheal") && cooldownMap.containsKey(playerUUID))
                 {
-                    final boolean hasAltPerm = src.hasPermission("empc.command.altcooldown.timedhatch");
+                    final boolean hasAltPerm = src.hasPermission("empc.command.altcooldown.partyheal");
                     final long timeDifference = currentTime - cooldownMap.get(playerUUID);
                     final long timeRemaining;
 
@@ -147,14 +127,15 @@ public class TimedHatch implements CommandExecutor
                 }
 
                 // Do we have an argument in the first argument slot?
-                // This can be a Pokémon slot, a player name or nothing.
+                // This can be a player name, a confirmation flag or nothing.
                 if (arg1Optional.isPresent())
                 {
                     final String argString = arg1Optional.get();
 
-                    if (argString.matches("^[1-6]")) // Do we have a valid slot?
-                        slot = Integer.parseInt(argString);
-                    else if (src.hasPermission("empc.command.other.timedhatch"))
+                    // Do we have a confirmation flag?
+                    if (argString.equalsIgnoreCase("-c") && commandCost != 0)
+                        commandConfirmed = true;
+                    else if (src.hasPermission("empc.command.other.partyheal"))
                     {
                         if (Sponge.getServer().getPlayer(argString).isPresent()) // Do we have a valid online player?
                         {
@@ -164,50 +145,14 @@ public class TimedHatch implements CommandExecutor
                         }
                         else
                         {
-                            printLocalError(src, "§4Error: §cInvalid target or slot on first argument. See below.", false);
+                            printLocalError(src, "§4Error: §cInvalid target on first argument. See below.", false);
                             return CommandResult.empty();
                         }
                     }
-                    else
-                    {
-                        printLocalError(src, "§4Error: §cInvalid slot on first argument. See below.", false);
-                        return CommandResult.empty();
-                    }
-                }
-                else
-                {
-                    printLocalError(src, "§4Error: §cNo arguments found. See below.", false);
-                    return CommandResult.empty();
                 }
 
-                // Do we have an argument in the second argument slot?
-                if (arg2Optional.isPresent())
-                {
-                    final String argString = arg2Optional.get();
-
-                    // Has no slot been defined yet?
-                    if (slot == 0)
-                    {
-                        if (argString.matches("^[1-6]")) // Do we have a valid slot?
-                            slot = Integer.parseInt(argString);
-                        else
-                        {
-                            printLocalError(src, "§4Error: §cInvalid slot on second argument. See below.", false);
-                            return CommandResult.empty();
-                        }
-                    }
-                    else if (argString.equalsIgnoreCase("-c"))
-                        commandConfirmed = true;
-                }
-                else if (slot == 0)
-                {
-                    printLocalError(src, "§4Error: §cNo slot found. See below.", false);
-                    return CommandResult.empty();
-                }
-
-                // Do we have an argument in the third slot? A bit ugly, but it'll do.
-                final Optional<String> arg3Optional = args.getOne("confirmation");
-                if (arg3Optional.isPresent() && arg3Optional.get().equalsIgnoreCase("-c"))
+                // Do we have an argument in the second argument slot, and is it a flag?
+                if (arg2Optional.isPresent() && arg2Optional.get().equalsIgnoreCase("-c"))
                     commandConfirmed = true;
             }
 
@@ -221,22 +166,11 @@ public class TimedHatch implements CommandExecutor
             {
                 // At this point we should always have a valid input. Now we just need confirmation, if applicable.
                 // See whose storage we need to access.
-                final Pokemon pokemon;
+                final PartyStorage party;
                 if (target != null)
-                    pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) target).get(slot - 1);
+                    party = Pixelmon.storageManager.getParty((EntityPlayerMP) target);
                 else
-                    pokemon = Pixelmon.storageManager.getParty((EntityPlayerMP) src).get(slot - 1);
-
-                if (pokemon == null) // Check if there's actually a Pokémon in the provided slot.
-                {
-                    sendCheckedMessage(src,"§4Error: §cThe specified slot is empty!");
-                    return CommandResult.empty();
-                }
-                else if (!pokemon.isEgg()) // Check if the Pokémon is actually in an egg.
-                {
-                    sendCheckedMessage(src,"§4Error: §cThat's not an egg. Don't hatch actual Pokémon, kids!");
-                    return CommandResult.empty();
-                }
+                    party = Pixelmon.storageManager.getParty((EntityPlayerMP) src);
 
                 if (economyEnabled && !calledRemotely && commandCost > 0)
                 {
@@ -256,24 +190,21 @@ public class TimedHatch implements CommandExecutor
                                 // Create a cooldown for the calling player.
                                 cooldownMap.put(playerUUID, currentTime);
 
-                                // Hatch!
-                                hatchEgg(src, target, pokemon);
+                                // Heal!
+                                party.heal();
 
                                 if (target == null)
                                 {
-                                    printSourcedMessage(sourceName, "Hatching calling player §3" + player.getName() +
-                                            "§b slot §3" + slot + "§b and taking §3" + costToConfirm + "§b coins.");
+                                    printSourcedMessage(sourceName, "Healing calling player §3" + player.getName() +
+                                            "§b's party and taking §3" + costToConfirm + "§b coins.");
                                 }
                                 else
                                 {
-                                    printSourcedMessage(sourceName, "Player §3" + player.getName() +
-                                            "§b is hatching slot §3" + slot + "§b for §3" + target.getName() +
-                                            "§b. Taking §3" + costToConfirm + "§b coins.");
+                                    printSourcedMessage(sourceName, "Player §3" + player.getName() + " §bis healing §3" +
+                                            target.getName() + "§b's party. Taking §3" + costToConfirm + "§b coins.");
 
-                                    target.sendMessage(Text.of("§aYou've successfully hatched §2" + src.getName() +
-                                            "§a's slot §2" + slot + "§a egg!"));
-                                    target.sendMessage(Text.of("§aThe egg in slot §2" + slot + "§a was hatched by §2" +
-                                            src.getName() + "§a!"));
+                                    src.sendMessage(Text.of("§aYou've successfully healed §2" + src.getName() + "§a's Pokémon."));
+                                    target.sendMessage(Text.of("§aYour party's Pokémon were healed by §2" + src.getName() + "§a!"));
                                 }
                             }
                             else
@@ -295,20 +226,31 @@ public class TimedHatch implements CommandExecutor
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
 
                         // Is cost to confirm exactly one coin?
-                        if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
-                            sendCheckedMessage(src,"§6Warning: §eHatching this egg costs §6one §ecoin.");
-                        else
-                        {
-                            sendCheckedMessage(src,"§6Warning: §eHatching this egg costs §6" + costToConfirm +
-                                    "§e coins.");
-                        }
-
                         if (target == null)
-                            sendCheckedMessage(src,"§2Ready? Type: §a/" + commandAlias + " " + slot + " -c");
+                        {
+                            if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
+                                sendCheckedMessage(src,"§6Warning: §eHealing your team costs §6one §ecoin.");
+                            else
+                            {
+                                sendCheckedMessage(src,"§6Warning: §eHealing your team costs §6" + costToConfirm +
+                                        "§e coins.");
+                            }
+
+                            sendCheckedMessage(src,"§2Ready? Type: §a/" + commandAlias + " -c");
+                        }
                         else
                         {
+                            if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
+                                sendCheckedMessage(src,"§6Warning: §eHealing §6" + target.getName() +
+                                        "§e's team costs §6one §ecoin.");
+                            else
+                            {
+                                sendCheckedMessage(src,"§6Warning: §eHealing §6" + target.getName() +
+                                        "§e's team costs §6" + costToConfirm + "§e coins.");
+                            }
+
                             sendCheckedMessage(src,"§2Ready? Type: §a/" + commandAlias + " " +
-                                    target.getName() + " " + slot + " -c");
+                                    target.getName() + " -c");
                         }
 
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
@@ -316,21 +258,20 @@ public class TimedHatch implements CommandExecutor
                 }
                 else
                 {
-                    // Hatch!
-                    hatchEgg(src, target, pokemon);
+                    // Heal!
+                    party.heal();
 
                     if (!calledRemotely)
                     {
+                        // Rely on Pixelmon's messages here.
                         if (target != null)
                         {
-                            //noinspection ConstantConditions - calledRemotely guarantees this is safe
+                            //noinspection ConstantConditions - !calledRemotely guarantees this is safe
                             printSourcedMessage(sourceName, "Called by §3" + player.getName() +
-                                    "§b, hatching slot §3" +  slot + "§b for §3" + target.getName() + "§b.");
+                                    "§b, healing §3" + target.getName() + "§b's party.");
 
-                            target.sendMessage(Text.of("§aYou've successfully hatched §2" + src.getName() +
-                                    "§a's slot §2" + slot + "§a egg!"));
-                            target.sendMessage(Text.of("§aThe egg in slot §2" + slot + "§a was hatched by §2" +
-                                    src.getName() + "§a!"));
+                            src.sendMessage(Text.of("§aYou've successfully healed §2" + src.getName() + "§a's Pokémon."));
+                            target.sendMessage(Text.of("§aYour party's Pokémon were healed by §2" + src.getName() + "§a!"));
                         }
 
                         cooldownMap.put(playerUUID, currentTime);
@@ -338,11 +279,11 @@ public class TimedHatch implements CommandExecutor
                     else
                     {
                         //noinspection ConstantConditions - safe, just too complicated
-                        printSourcedMessage(sourceName, "Called from remote source, hatching §3" +
+                        printSourcedMessage(sourceName, "Called from remote source, healing §3" +
                                 target.getName() + "§b's party if available.");
 
                         if (!sneakyMode)
-                            target.sendMessage(Text.of("§aThe egg in slot §2" + slot + "§a was hatched remotely!"));
+                            target.sendMessage(Text.of("§aYour party's Pokémon were healed remotely!"));
                     }
                 }
             }
@@ -386,37 +327,15 @@ public class TimedHatch implements CommandExecutor
     private void printSyntaxHelper(final CommandSource src)
     {
         if (calledRemotely)
-            sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " <target> [slot? 1-6]");
+            sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " <target>");
         else
         {
             final String confirmString = economyEnabled && commandCost != 0 ? " {-c to confirm}" : "";
 
-            if (src.hasPermission("empc.command.other.timedhatch"))
-                sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " [target?] <slot, 1-6>" + confirmString);
+            if (src.hasPermission("empc.command.other.partyheal"))
+                sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " [target?]" + confirmString);
             else
-                sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " <slot, 1-6>" + confirmString);
+                sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " " + confirmString);
         }
-    }
-
-    // Hatch us an egg! Also, show the right messages.
-    private void hatchEgg(final CommandSource src, final Player target, final Pokemon pokemon)
-    {
-        pokemon.hatchEgg();
-
-        if (target != null)
-        {
-            if (calledRemotely && sneakyMode)
-                sendCheckedMessage(src,"§aThe targeted egg has been silently hatched!");
-            else
-            {
-                sendCheckedMessage(src,"§aThe targeted egg has been hatched!");
-                if (!calledRemotely)
-                    target.sendMessage(Text.of("§aOne of your eggs was hatched by §2" + src.getName() + "§a!"));
-                else
-                    target.sendMessage(Text.of("§aOne of your eggs was hatched remotely!"));
-            }
-        }
-        else
-            sendCheckedMessage(src,"§aThe chosen egg has been hatched!");
     }
 }

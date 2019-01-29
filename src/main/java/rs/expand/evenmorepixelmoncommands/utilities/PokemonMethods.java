@@ -6,6 +6,9 @@ import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
 
 // Local imports.
+import java.util.Arrays;
+import java.util.stream.Stream;
+
 import static rs.expand.evenmorepixelmoncommands.EMPC.*;
 
 // Big ol' list of Pokémon.

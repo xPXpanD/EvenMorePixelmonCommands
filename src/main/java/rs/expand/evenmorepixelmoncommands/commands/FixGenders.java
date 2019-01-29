@@ -56,17 +56,17 @@ public class FixGenders implements CommandExecutor
         calledRemotely = !(src instanceof Player);
 
         // Validate the data we get from the command's main config.
-        final List<String> nativeErrorArray = new ArrayList<>();
+        final List<String> commandErrorList = new ArrayList<>();
         if (commandAlias == null)
-            nativeErrorArray.add("commandAlias");
+            commandErrorList.add("commandAlias");
         if (sneakyMode == null)
-            nativeErrorArray.add("sneakyMode");
+            commandErrorList.add("sneakyMode");
         if (requireConfirmation == null)
-            nativeErrorArray.add("requireConfirmation");
+            commandErrorList.add("requireConfirmation");
 
-        if (!nativeErrorArray.isEmpty())
+        if (!commandErrorList.isEmpty())
         {
-            PrintingMethods.printCommandNodeError("FixGenders", nativeErrorArray);
+            PrintingMethods.printCommandNodeError("FixGenders", commandErrorList);
             sendCheckedMessage(src, "§4Error: §cThis command's config is invalid! Please report to staff.");
         }
         else
@@ -345,9 +345,6 @@ public class FixGenders implements CommandExecutor
         }
         else // We add another blank line here to create space between the fixing messages and the end message.
         {
-            // Update the player's sidebar with the new changes.
-            printBasicError("Yo, did it update? If not, TODO.");
-
             sendCheckedMessage(src, "");
             sendCheckedMessage(src, "§aWe're done! Glad to be of service.");
 

@@ -1,3 +1,4 @@
+/*
 // The second PixelUpgrade/EMPC command. It's so helpful to have your own NBT editor!
 package rs.expand.evenmorepixelmoncommands.commands;
 
@@ -8,6 +9,8 @@ import com.pixelmonmod.pixelmon.battles.BattleRegistry;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+
+import com.pixelmonmod.pixelmon.comm.EnumUpdateType;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import org.spongepowered.api.Sponge;
@@ -335,6 +338,7 @@ public class ForceStats implements CommandExecutor
 
                         // Write changed data to the Pokémon.
                         pokemon.writeToNBT(pokemonNBT);
+                        pokemon.markDirty(EnumUpdateType.ALL);
 
                         // Update the player's sidebar with the new changes.
                         printBasicError("Yo, did it update? If not, TODO.");
@@ -373,7 +377,10 @@ public class ForceStats implements CommandExecutor
                                         "§b, old value was §3" + pokemonNBT.getLong(stat) + "§b, new is §3" + longValue + "§b.");
                             }
 
-                            pokemonNBT.setLong(stat, longValue);
+                            // Write changed data to the Pokémon.
+                            //writeToNBT result: CRASH
+                            //readFromNBT result: CORRUPTED PK
+                            pokemon.markDirty(EnumUpdateType.ALL);
 
                             // Update the player's sidebar with the new changes.
                             printBasicError("Yo, did it update? If not, TODO.");
@@ -473,4 +480,4 @@ public class ForceStats implements CommandExecutor
         sendCheckedMessage(src,"§dMay lead to crashes or even corruption, handle with care!");
         sendCheckedMessage(src,"§5-----------------------------------------------------");
     }
-}
+}*/

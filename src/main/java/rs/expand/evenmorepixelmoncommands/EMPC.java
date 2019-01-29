@@ -35,7 +35,6 @@ import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.print
 // New things:
 // TODO: Make a token redeeming command for shinies? Maybe make it a starter picker command, even. - Xenoyia
 // TODO: Make a /pokesell, maybe one that sells based on ball worth.
-// TODO: See if a cooldown on trading machines is possible? - FrostEffects
 // TODO: Look into name colors, or make a full-on rename command with color support. Maybe make it set a tag, and check.
 // TODO: Make a Pokéball changing command, get it to write the old ball to the Pokémon for ball sale purposes.
 // TODO: Do something with setPixelmonScale. Maybe a /spawnboss for super big high HP IV bosses with custom loot?
@@ -51,12 +50,13 @@ import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.print
 // TODO: Check for more header/footer inconsistency. Might combine well with the below: vvv
 // TODO: Move everything to lang files.
 // TODO: Check if Kyurem fusion preserves custom tags.
+// TODO: Dive into fixing ForceStats for 7.0.
 
 @Plugin
 (
         id = "evenmorepixelmoncommands",
-        name = "Even more Pixelmon commands",
-        version = "5.0.0",
+        name = "Even More Pixelmon Commands",
+        version = "4.2.0",
         dependencies = @Dependency(id = "pixelmon"),
         description = "A sidemod for Pixelmon Reforged that adds a bunch of new commands, some with economy integration.",
         authors = "XpanD"
@@ -101,18 +101,16 @@ public class EMPC
     public static Path primaryConfigPath = Paths.get(primaryPath, "EvenMorePixelmonCommands.conf");
     public static Path checkStatsPath = Paths.get(commandConfigPath, "CheckStats.conf");
     public static Path checkTypesPath = Paths.get(commandConfigPath, "CheckTypes.conf");
-    /*public static Path dittoFusionPath = Paths.get(commandConfigPath, "DittoFusion.conf");*/
     public static Path fixGendersPath = Paths.get(commandConfigPath, "FixGenders.conf");
-    public static Path forceHatchPath = Paths.get(commandConfigPath, "ForceHatch.conf");
-    public static Path forceStatsPath = Paths.get(commandConfigPath, "ForceStats.conf");
-    /*public static Path resetCountPath = Paths.get(commandConfigPath, "ResetCount.conf");*/
+    /*public static Path forceStatsPath = Paths.get(commandConfigPath, "ForceStats.conf");*/
+    public static Path partyHatchPath = Paths.get(commandConfigPath, "PartyHatch.conf");
+    public static Path partyHealPath = Paths.get(commandConfigPath, "PartyHeal.conf");
     public static Path resetEVsPath = Paths.get(commandConfigPath, "ResetEVs.conf");
     public static Path showStatsPath = Paths.get(commandConfigPath, "ShowStats.conf");
     public static Path spawnDexPath = Paths.get(commandConfigPath, "SpawnDex.conf");
     public static Path switchGenderPath = Paths.get(commandConfigPath, "SwitchGender.conf");
     public static Path timedHatchPath = Paths.get(commandConfigPath, "TimedHatch.conf");
     public static Path timedHealPath = Paths.get(commandConfigPath, "TimedHeal.conf");
-    /*public static Path upgradeIVsPath = Paths.get(commandConfigPath, "UpgradeIVs.conf");*/
 
     // Set up said paths.
     public static ConfigurationLoader<CommentedConfigurationNode> primaryConfigLoader =
@@ -121,16 +119,14 @@ public class EMPC
             HoconConfigurationLoader.builder().setPath(checkStatsPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> checkTypesLoader =
             HoconConfigurationLoader.builder().setPath(checkTypesPath).build();
-    /*public static ConfigurationLoader<CommentedConfigurationNode> dittoFusionLoader =
-            HoconConfigurationLoader.builder().setPath(dittoFusionPath).build();*/
     public static ConfigurationLoader<CommentedConfigurationNode> fixGendersLoader =
             HoconConfigurationLoader.builder().setPath(fixGendersPath).build();
-    public static ConfigurationLoader<CommentedConfigurationNode> forceHatchLoader =
-            HoconConfigurationLoader.builder().setPath(forceHatchPath).build();
-    public static ConfigurationLoader<CommentedConfigurationNode> forceStatsLoader =
-            HoconConfigurationLoader.builder().setPath(forceStatsPath).build();
-    /*public static ConfigurationLoader<CommentedConfigurationNode> resetCountLoader =
-            HoconConfigurationLoader.builder().setPath(resetCountPath).build();*/
+    /*public static ConfigurationLoader<CommentedConfigurationNode> forceStatsLoader =
+            HoconConfigurationLoader.builder().setPath(forceStatsPath).build();*/
+    public static ConfigurationLoader<CommentedConfigurationNode> partyHatchLoader =
+            HoconConfigurationLoader.builder().setPath(partyHatchPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> partyHealLoader =
+            HoconConfigurationLoader.builder().setPath(partyHealPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> resetEVsLoader =
             HoconConfigurationLoader.builder().setPath(resetEVsPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> showStatsLoader =
@@ -143,8 +139,6 @@ public class EMPC
             HoconConfigurationLoader.builder().setPath(timedHatchPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> timedHealLoader =
             HoconConfigurationLoader.builder().setPath(timedHealPath).build();
-    /*public static ConfigurationLoader<CommentedConfigurationNode> upgradeIVsLoader =
-            HoconConfigurationLoader.builder().setPath(upgradeIVsPath).build();*/
 
     /*                        *\
          Utility commands.
@@ -186,15 +180,6 @@ public class EMPC
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("optional second word"))))
             .build();
 
-    /*public static CommandSpec dittofusion = CommandSpec.builder()
-            .permission("empc.command.dittofusion")
-            .executor(new DittoFusion())
-            .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("main slot"))),
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("sacrifice slot"))),
-                    GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
-            .build();*/
-
     public static CommandSpec fixgenders = CommandSpec.builder()
             .permission("empc.command.fixgenders")
             .executor(new FixGenders())
@@ -203,15 +188,7 @@ public class EMPC
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("confirmation"))))
             .build();
 
-    public static CommandSpec forcehatch = CommandSpec.builder()
-            .permission("empc.command.staff.forcehatch")
-            .executor(new ForceHatch())
-            .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/slot"))),
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))))
-            .build();
-
-    public static CommandSpec forcestats = CommandSpec.builder()
+    /*public static CommandSpec forcestats = CommandSpec.builder()
             .permission("empc.command.staff.forcestats")
             .executor(new ForceStats())
             .arguments(
@@ -220,16 +197,23 @@ public class EMPC
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("stat/value"))),
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("value/force flag"))),
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("force flag"))))
+            .build();*/
+
+    public static CommandSpec partyhatch = CommandSpec.builder()
+            .permission("empc.command.partyhatch")
+            .executor(new PartyHatch())
+            .arguments(
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/confirmation"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("confirmation"))))
             .build();
 
-    /*public static CommandSpec resetcount = CommandSpec.builder()
-            .permission("empc.command.staff.resetcount")
-            .executor(new ResetCount())
+    public static CommandSpec partyheal = CommandSpec.builder()
+            .permission("empc.command.partyheal")
+            .executor(new PartyHeal())
             .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("count"))),
-                    GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
-            .build();*/
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/confirmation"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("confirmation"))))
+            .build();
 
     public static CommandSpec resetevs = CommandSpec.builder()
             .permission("empc.command.resetevs")
@@ -268,7 +252,7 @@ public class EMPC
             .permission("empc.command.timedhatch")
             .executor(new TimedHatch())
             .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/slot/confirmation"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/slot"))),
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot/confirmation"))),
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("confirmation"))))
             .build();
@@ -277,20 +261,10 @@ public class EMPC
             .permission("empc.command.timedheal")
             .executor(new TimedHeal())
             .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/slot/confirmation"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/slot"))),
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot/confirmation"))),
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("confirmation"))))
             .build();
-
-    /*public static CommandSpec upgradeivs = CommandSpec.builder()
-            .permission("empc.command.upgradeivs")
-            .executor(new UpgradeIVs())
-            .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("slot"))),
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("stat"))),
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("quantity"))),
-                    GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
-            .build();*/
     
     @Listener
     public void onGamePreInitEvent(final GamePreInitializationEvent event)

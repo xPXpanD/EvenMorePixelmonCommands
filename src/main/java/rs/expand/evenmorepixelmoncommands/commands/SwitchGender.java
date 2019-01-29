@@ -46,15 +46,15 @@ public class SwitchGender implements CommandExecutor
         if (src instanceof Player)
         {
             // Validate the data we get from the command's main config.
-            final List<String> nativeErrorArray = new ArrayList<>();
+            final List<String> commandErrorList = new ArrayList<>();
             if (commandAlias == null)
-                nativeErrorArray.add("commandAlias");
+                commandErrorList.add("commandAlias");
             if (commandCost == null)
-                nativeErrorArray.add("commandCost");
+                commandErrorList.add("commandCost");
 
-            if (!nativeErrorArray.isEmpty())
+            if (!commandErrorList.isEmpty())
             {
-                PrintingMethods.printCommandNodeError("SwitchGender", nativeErrorArray);
+                PrintingMethods.printCommandNodeError("SwitchGender", commandErrorList);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else if (BattleRegistry.getBattle((EntityPlayerMP) src) != null)
@@ -92,7 +92,7 @@ public class SwitchGender implements CommandExecutor
                 if (pokemon == null)
                     src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
                 else if (pokemon.isEgg())
-                    src.sendMessage(Text.of("§4Error: §cThat's an egg! Go hatch it, first."));
+                    src.sendMessage(Text.of("§4Error: §cThat's an egg. Go hatch it, first."));
                 else if (pokemon.getGender().equals(Gender.None))
                     src.sendMessage(Text.of("§4Error: §cYou can only switch genders on a gendered Pokémon!"));
                 else
@@ -116,9 +116,6 @@ public class SwitchGender implements CommandExecutor
                                             "§b, taking §3" + costToConfirm + "§b coins.");
 
                                     switchGenders(pokemon, src);
-
-                                    // Update the player's sidebar with the new changes.
-                                    printBasicError("Yo, did it update? If not, TODO.");
                                 }
                                 else
                                 {
@@ -136,24 +133,20 @@ public class SwitchGender implements CommandExecutor
                             }
                         }
                         else
-                        {
                             switchGenders(pokemon, src);
-
-                            // Update the player's sidebar with the new changes.
-                            printBasicError("Yo, did it update? If not, TODO.");
-                        }
                     }
                     else
                     {
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         src.sendMessage(Text.of("§6Warning: §eYou are about to switch this Pokémon's gender!"));
-                        src.sendMessage(Text.EMPTY);
 
-                        if (economyEnabled)
+                        if (economyEnabled && commandCost > 0)
                         {
+                            src.sendMessage(Text.EMPTY);
+
                             if (commandCost == 1)
-                                src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coin."));
-                            else if (commandCost > 1)
+                                src.sendMessage(Text.of("§eConfirming will cost you §6one §ecoin."));
+                            else
                                 src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coins."));
                         }
 
@@ -178,10 +171,15 @@ public class SwitchGender implements CommandExecutor
         src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> {-c to confirm}"));
         src.sendMessage(Text.EMPTY);
 
-        if (commandCost == 1)
-            src.sendMessage(Text.of("§eConfirming will cost you §6one §ecoin."));
-        else if (commandCost > 1)
-            src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coins."));
+        if (economyEnabled && commandCost > 0)
+        {
+            src.sendMessage(Text.EMPTY);
+
+            if (commandCost == 1)
+                src.sendMessage(Text.of("§eConfirming will cost you §6one §ecoin."));
+            else
+                src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coins."));
+        }
 
         src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }

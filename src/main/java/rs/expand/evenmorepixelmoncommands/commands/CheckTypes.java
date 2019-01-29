@@ -63,17 +63,17 @@ public class CheckTypes implements CommandExecutor
         if (!(src instanceof CommandBlock))
         {
             // Validate the data we get from the command's main config.
-            final List<String> nativeErrorArray = new ArrayList<>();
+            final List<String> commandErrorList = new ArrayList<>();
             if (commandAlias == null)
-                nativeErrorArray.add("commandAlias");
+                commandErrorList.add("commandAlias");
             if (showFormMessage == null)
-                nativeErrorArray.add("showFormMessage");
+                commandErrorList.add("showFormMessage");
             if (showAlolanMessage == null)
-                nativeErrorArray.add("showAlolanMessage");
+                commandErrorList.add("showAlolanMessage");
 
-            if (!nativeErrorArray.isEmpty())
+            if (!commandErrorList.isEmpty())
             {
-                PrintingMethods.printCommandNodeError("CheckTypes", nativeErrorArray);
+                PrintingMethods.printCommandNodeError("CheckTypes", commandErrorList);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else

@@ -83,30 +83,25 @@ public class ConfigMethods
             else
                 Sponge.getCommandManager().register(empcContainer, checktypes, "checktypes", "checktype");
 
-            /*if (DittoFusion.commandAlias != null && !DittoFusion.commandAlias.equals("dittofusion"))
-                Sponge.getCommandManager().register(empcContainer, dittofusion, "dittofusion", DittoFusion.commandAlias);
-            else
-                Sponge.getCommandManager().register(empcContainer, dittofusion, "dittofusion");*/
-
             if (FixGenders.commandAlias != null && !FixGenders.commandAlias.matches("fixgenders|fixgender"))
                 Sponge.getCommandManager().register(empcContainer, fixgenders, "fixgenders", "fixgender", FixGenders.commandAlias);
             else
                 Sponge.getCommandManager().register(empcContainer, fixgenders, "fixgenders", "fixgender");
 
-            if (ForceHatch.commandAlias != null && !ForceHatch.commandAlias.equals("forcehatch"))
-                Sponge.getCommandManager().register(empcContainer, forcehatch, "forcehatch", ForceHatch.commandAlias);
-            else
-                Sponge.getCommandManager().register(empcContainer, forcehatch, "forcehatch");
-
-            if (ForceStats.commandAlias != null && !ForceStats.commandAlias.matches("forcestats|forcestat"))
+            /*if (ForceStats.commandAlias != null && !ForceStats.commandAlias.matches("forcestats|forcestat"))
                 Sponge.getCommandManager().register(empcContainer, forcestats, "forcestats", "forcestat", ForceStats.commandAlias);
             else
-                Sponge.getCommandManager().register(empcContainer, forcestats, "forcestats", "forcestat");
+                Sponge.getCommandManager().register(empcContainer, forcestats, "forcestats", "forcestat");*/
 
-            /*if (ResetCount.commandAlias != null && !ResetCount.commandAlias.matches("resetcount|resetcounts"))
-                Sponge.getCommandManager().register(empcContainer, resetcount, "resetcount", "resetcounts", ResetCount.commandAlias);
+            if (PartyHatch.commandAlias != null && !PartyHatch.commandAlias.matches("partyhatch|hatchparty"))
+                Sponge.getCommandManager().register(empcContainer, partyhatch, "partyhatch", "hatchparty", PartyHatch.commandAlias);
             else
-                Sponge.getCommandManager().register(empcContainer, resetcount, "resetcount", "resetcounts");*/
+                Sponge.getCommandManager().register(empcContainer, partyhatch, "partyhatch", "hatchparty");
+
+            if (PartyHeal.commandAlias != null && !PartyHeal.commandAlias.matches("partyheal|healparty"))
+                Sponge.getCommandManager().register(empcContainer, partyheal, "partyheal", "healparty", PartyHeal.commandAlias);
+            else
+                Sponge.getCommandManager().register(empcContainer, partyheal, "partyheal", "healparty");
 
             if (ResetEVs.commandAlias != null && !ResetEVs.commandAlias.matches("resetevs|resetev"))
                 Sponge.getCommandManager().register(empcContainer, resetevs, "resetevs", "resetev", ResetEVs.commandAlias);
@@ -137,11 +132,6 @@ public class ConfigMethods
                 Sponge.getCommandManager().register(empcContainer, timedheal, "timedheal", "timerheal", TimedHeal.commandAlias);
             else
                 Sponge.getCommandManager().register(empcContainer, timedheal, "timedheal", "timerheal");
-
-            /*if (UpgradeIVs.commandAlias != null && !UpgradeIVs.commandAlias.matches("upgradeivs|upgradeiv"))
-                Sponge.getCommandManager().register(empcContainer, upgradeivs, "upgradeivs", "upgradeiv", UpgradeIVs.commandAlias);
-            else
-                Sponge.getCommandManager().register(empcContainer, upgradeivs, "upgradeivs", "upgradeiv");*/
 
             return true;
         }
@@ -184,12 +174,6 @@ public class ConfigMethods
                     commandString = "/checktypes";
                     break;
                 }
-                /*case 4:
-                {
-                    commandAlias = DittoFusion.commandAlias;
-                    commandString = "/dittofusion";
-                    break;
-                }*/
                 case 3:
                 {
                     commandAlias = EMPC.commandAlias;
@@ -202,24 +186,24 @@ public class ConfigMethods
                     commandString = "/fixgenders";
                     break;
                 }
-                case 5:
-                {
-                    commandAlias = ForceHatch.commandAlias;
-                    commandString = "/forcehatch";
-                    break;
-                }
-                case 6:
+                /*case 6:
                 {
                     commandAlias = ForceStats.commandAlias;
                     commandString = "/forcestats";
                     break;
-                }
-                /*case 10:
-                {
-                    commandAlias = ResetCount.commandAlias;
-                    commandString = "/resetcount";
-                    break;
                 }*/
+                case 5:
+                {
+                    commandAlias = PartyHatch.commandAlias;
+                    commandString = "/partyhatch";
+                    break;
+                }
+                case 6:
+                {
+                    commandAlias = PartyHeal.commandAlias;
+                    commandString = "/partyheal";
+                    break;
+                }
                 case 7:
                 {
                     commandAlias = ResetEVs.commandAlias;
@@ -256,12 +240,6 @@ public class ConfigMethods
                     commandString = "/timedheal";
                     break;
                 }
-                /*case 17:
-                {
-                    commandAlias = UpgradeIVs.commandAlias;
-                    commandString = "/upgradeivs";
-                    break;
-                }*/
             }
 
             if (commandAlias != null)
@@ -493,28 +471,43 @@ public class ConfigMethods
             FixGenders.requireConfirmation =
                     toBooleanObject(fixGendersConfig.getNode("requireConfirmation").getString());
 
-            // /forcehatch
-            currentCommand = "ForceHatch";
-            checkOrCreateConfig(currentCommand, forceHatchPath);
-            ForceHatch.commandAlias =
-                    EMPC.forceHatchLoader.load().getNode("commandAlias").getString();
-
-            // /forcestats
+            /*// /forcestats
             currentCommand = "ForceStats";
             checkOrCreateConfig(currentCommand, forceStatsPath);
             ForceStats.commandAlias =
-                    EMPC.forceStatsLoader.load().getNode("commandAlias").getString();
+                    EMPC.forceStatsLoader.load().getNode("commandAlias").getString();*/
 
-            /*case "ResetCount":
-            {
-                checkOrCreateConfig("ResetCount", resetCountPath);
-                final CommentedConfigurationNode commandConfig = PixelUpgrade.resetCountLoader.load();
+            // /partyhatch
+            currentCommand = "PartyHatch";
+            checkOrCreateConfig(currentCommand, partyHatchPath);
+            final CommentedConfigurationNode partyHatchConfig = EMPC.partyHatchLoader.load();
 
-                ResetCount.commandAlias =
-                        commandConfig.getNode("commandAlias").getString();
+            PartyHatch.commandAlias =
+                    partyHatchConfig.getNode("commandAlias").getString();
+            PartyHatch.cooldownInSeconds =
+                    interpretInteger(partyHatchConfig.getNode("cooldownInSeconds").getString());
+            PartyHatch.altCooldownInSeconds =
+                    interpretInteger(partyHatchConfig.getNode("altCooldownInSeconds").getString());
+            PartyHatch.sneakyMode  =
+                    toBooleanObject(partyHatchConfig.getNode("sneakyMode").getString());
+            PartyHatch.commandCost =
+                    interpretInteger(partyHatchConfig.getNode("commandCost").getString());
 
-                return ResetCount.commandAlias;
-            }*/
+            // /partyheal
+            currentCommand = "PartyHeal";
+            checkOrCreateConfig(currentCommand, partyHealPath);
+            final CommentedConfigurationNode partyHealConfig = EMPC.partyHealLoader.load();
+
+            PartyHeal.commandAlias =
+                    partyHealConfig.getNode("commandAlias").getString();
+            PartyHeal.cooldownInSeconds =
+                    interpretInteger(partyHealConfig.getNode("cooldownInSeconds").getString());
+            PartyHeal.altCooldownInSeconds =
+                    interpretInteger(partyHealConfig.getNode("altCooldownInSeconds").getString());
+            PartyHeal.sneakyMode  =
+                    toBooleanObject(partyHealConfig.getNode("sneakyMode").getString());
+            PartyHeal.commandCost =
+                    interpretInteger(partyHealConfig.getNode("commandCost").getString());
 
             // /resetevs
             currentCommand = "ResetEVs";
@@ -583,8 +576,6 @@ public class ConfigMethods
                     interpretInteger(timedHatchConfig.getNode("cooldownInSeconds").getString());
             TimedHatch.altCooldownInSeconds =
                     interpretInteger(timedHatchConfig.getNode("altCooldownInSeconds").getString());
-            TimedHatch.hatchParty  =
-                    toBooleanObject(timedHatchConfig.getNode("hatchParty").getString());
             TimedHatch.sneakyMode  =
                     toBooleanObject(timedHatchConfig.getNode("sneakyMode").getString());
             TimedHatch.commandCost =
@@ -601,8 +592,6 @@ public class ConfigMethods
                     interpretInteger(timedHealConfig.getNode("cooldownInSeconds").getString());
             TimedHeal.altCooldownInSeconds =
                     interpretInteger(timedHealConfig.getNode("altCooldownInSeconds").getString());
-            TimedHeal.healParty  =
-                    toBooleanObject(timedHealConfig.getNode("healParty").getString());
             TimedHeal.sneakyMode  =
                     toBooleanObject(timedHealConfig.getNode("sneakyMode").getString());
             TimedHeal.commandCost =

@@ -36,13 +36,10 @@ public class ListCommands implements CommandExecutor
 	    if (!(src instanceof CommandBlock))
         {
             // Set up a class name variable for internal use. We'll pass this to logging when showing a source is desired.
-            final String sourceName = "PU Command List";
+            final String sourceName = "EMPC list";
 
             // Running from console? Let's tell our code that. If "src" is not a Player, this becomes true.
             final boolean calledRemotely = !(src instanceof Player);
-
-            // Make an uninitialized String for command confirmation flags. We fill this in when people need to know a flag.
-            String flagString;
 
             // Create a fresh list to store messages in for every permitted command. We'll iterate over this at the end.
             final java.util.List<Text> permissionMessageList = new ArrayList<>();
@@ -62,7 +59,7 @@ public class ListCommands implements CommandExecutor
             if (EMPC.commandAlias != null)
             {
                 permissionMessageList.add(Text.of("§6/" + EMPC.commandAlias + " [option?]"));
-                permissionMessageList.add(Text.of("§f ➡ §eShows core mod commands such as this very list! Clickable."));
+                permissionMessageList.add(Text.of("§f ➡ §eShows core mod commands such as this list! Clickable."));
             }
             else
                 printSourcedError(sourceName, "§3The main config is malformed! Hiding from list.");
@@ -75,10 +72,8 @@ public class ListCommands implements CommandExecutor
                         permissionMessageList.add(Text.of("§6/" + CheckStats.commandAlias + " <target> [slot? 1-6]"));
                     else
                     {
-                        if (economyEnabled && CheckStats.commandCost != 0)
-                            flagString = " {confirm flag}";
-                        else
-                            flagString = "";
+                        final String flagString =
+                                economyEnabled && CheckStats.commandCost != 0 ? " {confirm flag}" : "";
 
                         if (src.hasPermission("empc.command.other.checkstats") && CheckStats.showTeamWhenSlotEmpty)
                         {
@@ -154,22 +149,7 @@ public class ListCommands implements CommandExecutor
                     printSourcedError(sourceName, "§3/fixgenders §bhas a malformed config, hiding from list.");
             }
 
-            if (calledRemotely || src.hasPermission("empc.command.staff.forcehatch"))
-            {
-                if (ForceHatch.commandAlias != null)
-                {
-                    if (calledRemotely)
-                        permissionMessageList.add(Text.of("§6/" + ForceHatch.commandAlias + " <target> <slot, 1-6>"));
-                    else
-                        permissionMessageList.add(Text.of("§6/" + ForceHatch.commandAlias + " [target?] <slot, 1-6>"));
-
-                    permissionMessageList.add(Text.of("§f ➡ §eHatches any eggs instantly."));
-                }
-                else
-                    printSourcedError(sourceName, "§3/forcehatch §bhas a malformed config, hiding from list.");
-            }
-
-            if (calledRemotely || src.hasPermission("empc.command.staff.forcestats"))
+            /*if (calledRemotely || src.hasPermission("empc.command.staff.forcestats"))
             {
                 if (ForceStats.commandAlias != null)
                 {
@@ -182,6 +162,58 @@ public class ListCommands implements CommandExecutor
                 }
                 else
                     printSourcedError(sourceName, "§3/forcestats §bhas a malformed config, hiding from list.");
+            }*/
+
+            if (calledRemotely || src.hasPermission("empc.command.partyhatch"))
+            {
+                if (PartyHatch.commandCost != null && PartyHatch.commandAlias != null)
+                {
+                    if (calledRemotely)
+                        permissionMessageList.add(Text.of("§6/" + PartyHatch.commandAlias + " <target>"));
+                    else
+                    {
+                        final String flagString =
+                                economyEnabled && PartyHatch.commandCost != 0 ? " {confirm flag}" : "";
+
+                        if (src.hasPermission("empc.command.other.partyhatch"))
+                            permissionMessageList.add(Text.of("§6/" + PartyHatch.commandAlias + " [target?]" + flagString));
+                        else
+                            permissionMessageList.add(Text.of("§6/" + PartyHatch.commandAlias + " " + flagString));
+                    }
+
+                    if (src.hasPermission("empc.command.other.partyhatch"))
+                        permissionMessageList.add(Text.of("§f ➡ §eImmediately hatches all eggs in a targeted party."));
+                    else
+                        permissionMessageList.add(Text.of("§f ➡ §eImmediately hatches all of your eggs."));
+                }
+                else
+                    printSourcedError(sourceName, "§3/partyhatch §bhas a malformed config, hiding from list.");
+            }
+
+            if (calledRemotely || src.hasPermission("empc.command.partyheal"))
+            {
+                if (PartyHeal.commandCost != null && PartyHeal.commandAlias != null)
+                {
+                    if (calledRemotely)
+                        permissionMessageList.add(Text.of("§6/" + PartyHeal.commandAlias + " <target>"));
+                    else
+                    {
+                        final String flagString =
+                                economyEnabled && PartyHeal.commandCost != 0 ? " {confirm flag}" : "";
+
+                        if (src.hasPermission("empc.command.other.partyheal"))
+                            permissionMessageList.add(Text.of("§6/" + PartyHeal.commandAlias + " [target?]" + flagString));
+                        else
+                            permissionMessageList.add(Text.of("§6/" + PartyHeal.commandAlias + " " + flagString));
+                    }
+
+                    if (src.hasPermission("empc.command.other.partyheal"))
+                        permissionMessageList.add(Text.of("§f ➡ §eImmediately heals all Pokémon in a targeted party."));
+                    else
+                        permissionMessageList.add(Text.of("§f ➡ §eImmediately heals all of your Pokémon."));
+                }
+                else
+                    printSourcedError(sourceName, "§3/partyheal §bhas a malformed config, hiding from list.");
             }
 
             /*if (!calledRemotely && src.hasPermission("empc.command.staff.resetcount"))
@@ -246,41 +278,22 @@ public class ListCommands implements CommandExecutor
 
             if (calledRemotely || src.hasPermission("empc.command.timedhatch"))
             {
-                if (TimedHatch.commandCost != null && TimedHatch.commandAlias != null && TimedHatch.hatchParty != null)
+                if (TimedHatch.commandCost != null && TimedHatch.commandAlias != null)
                 {
                     if (calledRemotely)
-                        permissionMessageList.add(Text.of("§6/" + TimedHatch.commandAlias + " <target> [slot? 1-6]"));
+                        permissionMessageList.add(Text.of("§6/" + TimedHatch.commandAlias + " <target> <slot, 1-6>"));
                     else
                     {
-                        if (economyEnabled && TimedHatch.commandCost != 0)
-                            flagString = " {confirm flag}";
-                        else
-                            flagString = "";
+                        final String flagString =
+                                economyEnabled && TimedHatch.commandCost != 0 ? " {confirm flag}" : "";
 
-                        if (TimedHatch.hatchParty)
-                        {
-                            if (src.hasPermission("empc.command.other.timedhatch"))
-                                permissionMessageList.add(Text.of("§6/" + TimedHatch.commandAlias + " [target?]" + flagString));
-                            else
-                                permissionMessageList.add(Text.of("§6/" + TimedHatch.commandAlias + " " + flagString));
-                        }
+                        if (src.hasPermission("empc.command.other.timedhatch"))
+                            permissionMessageList.add(Text.of("§6/" + TimedHatch.commandAlias + " [target?] <slot, 1-6>" + flagString));
                         else
-                        {
-                            if (src.hasPermission("empc.command.other.timedhatch"))
-                                permissionMessageList.add(Text.of("§6/" + TimedHatch.commandAlias + " [target?] <slot, 1-6>" + flagString));
-                            else
-                                permissionMessageList.add(Text.of("§6/" + TimedHatch.commandAlias + " <slot, 1-6>" + flagString));
-                        }
+                            permissionMessageList.add(Text.of("§6/" + TimedHatch.commandAlias + " <slot, 1-6>" + flagString));
                     }
 
-                    if (src.hasPermission("empc.command.other.timedhatch") && TimedHatch.hatchParty)
-                        permissionMessageList.add(Text.of("§f ➡ §eImmediately hatches all targeted eggs."));
-                    else if (TimedHatch.hatchParty)
-                        permissionMessageList.add(Text.of("§f ➡ §eImmediately hatches all your eggs."));
-                    else if (src.hasPermission("empc.command.other.timedhatch"))
-                        permissionMessageList.add(Text.of("§f ➡ §eImmediately hatches the targeted egg."));
-                    else
-                        permissionMessageList.add(Text.of("§f ➡ §eImmediately hatches a egg."));
+                    permissionMessageList.add(Text.of("§f ➡ §eImmediately hatches a targeted egg."));
                 }
                 else
                     printSourcedError(sourceName, "§3/timedhatch §bhas a malformed config, hiding from list.");
@@ -288,41 +301,22 @@ public class ListCommands implements CommandExecutor
 
             if (calledRemotely || src.hasPermission("empc.command.timedheal"))
             {
-                if (TimedHeal.commandCost != null && TimedHeal.commandAlias != null && TimedHeal.healParty != null)
+                if (TimedHeal.commandCost != null && TimedHeal.commandAlias != null)
                 {
                     if (calledRemotely)
-                        permissionMessageList.add(Text.of("§6/" + TimedHeal.commandAlias + " <target> [slot? 1-6]"));
+                        permissionMessageList.add(Text.of("§6/" + TimedHeal.commandAlias + " <target> <slot, 1-6>"));
                     else
                     {
-                        if (economyEnabled && TimedHeal.commandCost != 0)
-                            flagString = " {confirm flag}";
-                        else
-                            flagString = "";
+                        final String flagString =
+                                economyEnabled && TimedHeal.commandCost != 0 ? " {confirm flag}" : "";
 
-                        if (TimedHeal.healParty)
-                        {
-                            if (src.hasPermission("empc.command.other.timedheal"))
-                                permissionMessageList.add(Text.of("§6/" + TimedHeal.commandAlias + " [target?]" + flagString));
-                            else
-                                permissionMessageList.add(Text.of("§6/" + TimedHeal.commandAlias + " " + flagString));
-                        }
+                        if (src.hasPermission("empc.command.other.timedheal"))
+                            permissionMessageList.add(Text.of("§6/" + TimedHeal.commandAlias + " [target?] <slot, 1-6>" + flagString));
                         else
-                        {
-                            if (src.hasPermission("empc.command.other.timedheal"))
-                                permissionMessageList.add(Text.of("§6/" + TimedHeal.commandAlias + " [target?] <slot, 1-6>" + flagString));
-                            else
-                                permissionMessageList.add(Text.of("§6/" + TimedHeal.commandAlias + " <slot, 1-6>" + flagString));
-                        }
+                            permissionMessageList.add(Text.of("§6/" + TimedHeal.commandAlias + " <slot, 1-6>" + flagString));
                     }
 
-                    if (src.hasPermission("empc.command.other.timedheal") && TimedHeal.healParty)
-                        permissionMessageList.add(Text.of("§f ➡ §eHeals all targeted Pokémon, also curing ailments."));
-                    else if (TimedHeal.healParty)
-                        permissionMessageList.add(Text.of("§f ➡ §eHeals all your Pokémon, and cures status ailments."));
-                    else if (src.hasPermission("empc.command.other.timedheal"))
-                        permissionMessageList.add(Text.of("§f ➡ §eHeals the targeted Pokémon, also curing ailments."));
-                    else
-                        permissionMessageList.add(Text.of("§f ➡ §eHeals a Pokémon, also curing status ailments."));
+                    permissionMessageList.add(Text.of("§f ➡ §eImmediately heals a targeted Pokémon."));
                 }
                 else
                     printSourcedError(sourceName, "§3/timedheal §bhas a malformed config, hiding from list.");
@@ -344,13 +338,14 @@ public class ListCommands implements CommandExecutor
             }*/
 
             final PaginationList.Builder paginatedList = PaginationList.builder()
-                        .title(Text.of(TextColors.DARK_PURPLE, "§dEMPC commands"))
+                        .title(Text.of(TextColors.DARK_PURPLE, "§dEven More Pixelmon Commands 4.2.0"))
                         .contents(permissionMessageList)
                         .padding(Text.of(TextColors.DARK_PURPLE, '='));
 
-            if (permissionMessageList.isEmpty())
+            if (permissionMessageList.size() <= 2)
             {
-                permissionMessageList.add(Text.of("§cYou have no permissions for any EMPC commands."));
+                permissionMessageList.add(Text.EMPTY);
+                permissionMessageList.add(Text.of("§cYou have no permissions for any other EMPC commands."));
                 permissionMessageList.add(Text.of("§cPlease contact staff if you believe this to be in error."));
             }
             else

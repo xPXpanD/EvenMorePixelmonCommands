@@ -21,10 +21,7 @@ public class ReloadConfigs implements CommandExecutor
     {
         // Print some identifying stuff to console if a player started the command.
         if (src instanceof Player)
-        {
             printUnformattedMessage("§4EMPC §f// §dPlayer §5" + src.getName() + "§d reloaded the EMPC configs!");
-            printUnformattedMessage("");
-        }
 
         // Load up configs and figure out the hub command alias. Start printing. Methods may insert errors as they go.
         printUnformattedMessage("");

@@ -15,6 +15,7 @@ import com.pixelmonmod.pixelmon.entities.pixelmon.stats.IVStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import com.pixelmonmod.pixelmon.enums.EnumGrowth;
 import com.pixelmonmod.pixelmon.enums.EnumNature;
+import com.pixelmonmod.pixelmon.enums.forms.EnumAlolan;
 import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -58,23 +59,23 @@ public class CheckStats implements CommandExecutor
             calledRemotely = !(src instanceof Player);
 
             // Validate the data we get from the command's main config.
-            final List<String> nativeErrorArray = new ArrayList<>();
+            final List<String> commandErrorList = new ArrayList<>();
             if (commandAlias == null)
-                nativeErrorArray.add("commandAlias");
+                commandErrorList.add("commandAlias");
             if (showTeamWhenSlotEmpty == null)
-                nativeErrorArray.add("showTeamWhenSlotEmpty");
+                commandErrorList.add("showTeamWhenSlotEmpty");
             if (showEVs == null)
-                nativeErrorArray.add("showEVs");
+                commandErrorList.add("showEVs");
             if (allowCheckingEggs == null)
-                nativeErrorArray.add("allowCheckingEggs");
+                commandErrorList.add("allowCheckingEggs");
             if (revealEggStats == null)
-                nativeErrorArray.add("revealEggStats");
+                commandErrorList.add("revealEggStats");
             if (babyHintPercentage == null)
-                nativeErrorArray.add("babyHintPercentage");
+                commandErrorList.add("babyHintPercentage");
             if (commandCost == null)
-            nativeErrorArray.add("commandCost");
+            commandErrorList.add("commandCost");
             if (recheckIsFree == null)
-                nativeErrorArray.add("recheckIsFree");
+                commandErrorList.add("recheckIsFree");
 
             // Also get some stuff from EvenMorePixelmonCommands.conf.
             final List<String> mainConfigErrorArray = new ArrayList<>();
@@ -91,9 +92,9 @@ public class CheckStats implements CommandExecutor
             if (shortenedSpeed == null)
                 mainConfigErrorArray.add("shortenedSpeed");
 
-            if (!nativeErrorArray.isEmpty())
+            if (!commandErrorList.isEmpty())
             {
-                printCommandNodeError("CheckStats", nativeErrorArray);
+                printCommandNodeError("CheckStats", commandErrorList);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else if (!mainConfigErrorArray.isEmpty())
@@ -139,14 +140,9 @@ public class CheckStats implements CommandExecutor
 
                         // Do we have a slot?
                         if (arg2String.matches("^[1-6]"))
-                        {
-                            // canContinue is already flagged true here, no need to re-set it.
                             slot = Integer.parseInt(arg2String);
-                        }
                         else
                         {
-                            // ...we should totally set it false here, though.
-                            // Otherwise it'll print the error but then move on to execution anyway. That happened, oops.
                             src.sendMessage(Text.of("§4Error: §cInvalid slot on second argument. See below."));
                             return CommandResult.empty();
                         }
@@ -229,15 +225,24 @@ public class CheckStats implements CommandExecutor
                     }
                 }
 
-                // Get the player's party, and then get the Pokémon in the targeted slot.
-                final PartyStorage party = Pixelmon.storageManager.getParty((EntityPlayerMP) src);
+                // Get the player's party.
+                final PartyStorage party;
+                if (target != null)
+                    party = Pixelmon.storageManager.getParty((EntityPlayerMP) target);
+                else
+                    party = Pixelmon.storageManager.getParty((EntityPlayerMP) src);
+
+                // Get the Pokémon in the targeted slot.
                 final Pokemon pokemon = party.get(slot - 1);
 
-                if (slot == 0 && (showTeamWhenSlotEmpty || calledRemotely))
+                // Start checking!
+                if (slot == 0)
                     checkParty(src, target, party, calledRemotely);
                 else if (pokemon == null)
                 {
-                    if (target != null)
+                    if (showTeamWhenSlotEmpty)
+                        checkParty(src, target, party, calledRemotely);
+                    else if (target != null)
                         src.sendMessage(Text.of("§4Error: §cYour target has no Pokémon in that slot!"));
                     else
                         src.sendMessage(Text.of("§4Error: §cThere's no Pokémon in that slot!"));
@@ -343,8 +348,17 @@ public class CheckStats implements CommandExecutor
         else
         {
             final String confirmString;
-            if (economyEnabled && commandCost != 0)
+            if (economyEnabled && commandCost > 0)
+            {
+                src.sendMessage(Text.EMPTY);
+
+                if (commandCost == 1)
+                    src.sendMessage(Text.of("§eConfirming will cost you §6one §ecoin."));
+                else
+                    src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coins."));
+
                 confirmString = " {-c to confirm}";
+            }
             else
                 confirmString = "";
 
@@ -362,20 +376,14 @@ public class CheckStats implements CommandExecutor
             }
         }
 
-        src.sendMessage(Text.EMPTY);
-
-        if (commandCost == 1)
-            src.sendMessage(Text.of("§eConfirming will cost you §6one §ecoin."));
-        else if (commandCost > 1)
-            src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coins."));
-
         src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
 
+    // TODO: Support for showing own team. Target screwiness fix.
     private void checkParty(final CommandSource src, final Player target, final PartyStorage party, final boolean calledRemotely)
     {
         src.sendMessage(Text.of("§7-----------------------------------------------------"));
-        src.sendMessage(Text.of("§eNo slot found, showing the target's whole team."));
+        src.sendMessage(Text.of("§eNo slot found, showing whole team."));
         src.sendMessage(Text.EMPTY);
 
         int slotTicker = 0;
@@ -428,15 +436,18 @@ public class CheckStats implements CommandExecutor
     // Checks a slot's stats and prints them to chat in a neat list, with contents differing based on config flags.
     private void checkSpecificSlot(final CommandSource src, final Player target, final Pokemon pokemon, final boolean haveTarget)
     {
+        // Let's start by printing some stuff! Mark the start of our output text box.
+        src.sendMessage(Text.of("§7-----------------------------------------------------"));
+
         // Set up IVs and matching math. These are used everywhere.
         final IVStore IVs = pokemon.getIVs();
         final int totalIVs =
                 IVs.get(StatsType.HP) + IVs.get(StatsType.Attack) + IVs.get(StatsType.Defence) +
-                        IVs.get(StatsType.SpecialAttack) + IVs.get(StatsType.SpecialDefence) + IVs.get(StatsType.Speed);
+                IVs.get(StatsType.SpecialAttack) + IVs.get(StatsType.SpecialDefence) + IVs.get(StatsType.Speed);
         final int percentIVs = totalIVs * 100 / 186;
 
         // Check if our Pokémon is an egg. If it is, be careful with it and only reveal stats if explictly told to do so.
-        if (!pokemon.isEgg() || revealEggStats)
+        if (!pokemon.isEgg() || revealEggStats || calledRemotely)
         {
             // Format the IVs for use later, so we can print them.
             String ivs1 = String.valueOf(IVs.get(StatsType.HP) + " §2" + shortenedHP + statSeparator);
@@ -471,9 +482,6 @@ public class CheckStats implements CommandExecutor
             // Create a copy of the Pokémon's persistent data for extracting specific NBT info from.
             final NBTTagCompound pokemonNBT = pokemon.getPersistentData();
 
-            // Let's start printing some stuff! Mark the start of our output text box.
-            src.sendMessage(Text.of("§7-----------------------------------------------------"));
-
             // Make some easy Strings for the Pokémon's name, nickname and associated stuff.
             final String localizedName = pokemon.getSpecies().getLocalizedName();
             final String baseName = pokemon.getSpecies().getPokemonName();
@@ -484,7 +492,8 @@ public class CheckStats implements CommandExecutor
                     .append("§eStats of ")
                     .append(haveTarget ? "§6" + target.getName() + "§e's " : "your ")
                     .append(pokemon.isShiny() ? "§6§lshiny §r§e" : "§e")
-                    .append(!pokemon.isEgg() ? "level " + pokemon.getLevel() + "§6 " : "§6")
+                    .append(!pokemon.isEgg() ? "level " + pokemon.getLevel() + " " : "")
+                    .append(pokemon.getFormEnum() == EnumAlolan.ALOLAN ? "§6Alolan " : "§6")
                     .append(localizedName)
                     .append(pokemon.isEgg() ? " §eegg" : "§e")
                     .append(!pokemon.isEgg() && nickname != null && !nickname.isEmpty() ?

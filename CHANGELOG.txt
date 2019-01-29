@@ -1,26 +1,34 @@
-5.0 for 7.0
-Released January 28th, 2019.
+4.2.0 for 7.0
+Released January 30th, 2019.
 
     Major (breaking) config changes:
-    * RENAMED THE MOD! We're now "Even more Pixelmon commands", and we've shed some weight. Original, I know.
+    * RENAMED THE MOD! We're now "Even More Pixelmon Commands", and we've shed some weight. Original, I know.
     * (regenerate ALL configs, copy back old data manually if necessary)
 
     Additions:
     * Added the showing of levels to /checkstats and /showstats (hover only, there).
+    * /partyhatch: Replaces old /timedhatch party functionality. Has its own optional cooldown, if you want that.
+    * /partyheal: Replaces old /timedheal party functionality. Can also do the whole cooldown thing.
 
-    Changes:
+    Other changes:
     * Bumped SpongeAPI to 7.1.0, Forge from 2655 to 2768 with the last pre-1.13 mappings. Might fix some issues?
+    * Changed default alias for /checkstats into /gs, as /cs is taken by the super-common WorldEdit. :(
     * Merged the command listing and /pureload into /empc, using a child command setup. (just like PB)
     * Reload now reloads everything, always.
     * Readied everything for gen 7!
+    * Replaced /checkegg with /checkstats, which now has all of the old command's features and settings.
+    * Replaced /forcehatch with /timedhatch and /partyhatch.
     * Reworded /showstats anticheat wording to be a bit less paranoid.
 
     Fixes and tweaks:
+    * Fixed /timedhatch eating money when doing a party hatch with a cost set on a party that has no eggs.
+    * Fixed a few issues with excess blank lines on syntax messages. Also hid confirmation stuff from console.
+    * Fixed bad copy/paste comments in the /timedhatch and /timedheal configs.
     * Fixed some inconsistencies with shown command parameters.
-    * Removed the accidental double check for valid config folders when reloading configs.
+    * Fixed the accidental double check for valid config folders when reloading configs.
 
     Removals:
-    * Removed /checkegg, and merged its settings and features into /checkstats. No point having two commands.
+    * Removed /forcestats for the time being. It may be making a comeback, but 7.0 broke it good.
     * Removed /upgradeivs + /dittofusion + /resetcounts. They need a LOT of work. May become a separate sidemod.
     * Removed excessive logging, compacted everything into a single log setting that only shows important stuff.
     * Removed the "pure black" option from /spawndex as it seems to no longer be supported.
@@ -59,7 +67,7 @@ Released February 13th, 2018.
     Major (breaking) config changes:
     * Completely reworked /showstats and its config; it now uses hovers for its info. Regenerate this config.
 
-    New commands:
+    Additions:
     * /fixgender: Fixes Pokémon affected by breeding bugs or bad commands. Experimental!
     * /spawndex: Spawns Pokémon based on their Pokédex number. Can add neat effects, like an outline.
     * /timedhatch: Hatches eggs (slot or party) on a configurable cooldown, for a configurable cost.

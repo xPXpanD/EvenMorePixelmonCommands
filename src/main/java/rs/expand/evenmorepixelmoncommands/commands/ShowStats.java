@@ -10,7 +10,6 @@ import com.pixelmonmod.pixelmon.entities.pixelmon.stats.IVStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import com.pixelmonmod.pixelmon.enums.EnumGrowth;
 import com.pixelmonmod.pixelmon.enums.EnumNature;
-import com.pixelmonmod.pixelmon.enums.EnumType;
 import com.pixelmonmod.pixelmon.enums.forms.EnumAlolan;
 import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import java.math.BigDecimal;
@@ -34,7 +33,6 @@ import org.spongepowered.api.text.channel.MessageChannel;
 import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
 import static rs.expand.evenmorepixelmoncommands.EMPC.*;
 import static rs.expand.evenmorepixelmoncommands.utilities.PokemonMethods.getShorthand;
-import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printBasicError;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedMessage;
 
@@ -58,27 +56,27 @@ public class ShowStats implements CommandExecutor
         if (src instanceof Player)
         {
             // Validate the data we get from the command's main config.
-            final List<String> nativeErrorArray = new ArrayList<>();
+            final List<String> commandErrorList = new ArrayList<>();
             if (commandAlias == null)
-                nativeErrorArray.add("commandAlias");
+                commandErrorList.add("commandAlias");
             if (cooldownInSeconds == null)
-                nativeErrorArray.add("cooldownInSeconds");
+                commandErrorList.add("cooldownInSeconds");
             if (altCooldownInSeconds == null)
-                nativeErrorArray.add("altCooldownInSeconds");
+                commandErrorList.add("altCooldownInSeconds");
             if (showNicknames == null)
-                nativeErrorArray.add("showNicknames");
+                commandErrorList.add("showNicknames");
             if (showEVs == null)
-                nativeErrorArray.add("showEVs");
+                commandErrorList.add("showEVs");
             if (showExtraInfo == null)
-                nativeErrorArray.add("showExtraInfo");
+                commandErrorList.add("showExtraInfo");
             if (showCounts == null)
-                nativeErrorArray.add("showCounts");
+                commandErrorList.add("showCounts");
             if (clampBadNicknames == null)
-                nativeErrorArray.add("clampBadNicknames");
+                commandErrorList.add("clampBadNicknames");
             if (notifyBadNicknames == null)
-                nativeErrorArray.add("notifyBadNicknames");
+                commandErrorList.add("notifyBadNicknames");
             if (commandCost == null)
-                nativeErrorArray.add("commandCost");
+                commandErrorList.add("commandCost");
 
             // Also get some stuff from EvenMorePixelmonCommands.conf.
             final List<String> mainConfigErrorArray = new ArrayList<>();
@@ -95,9 +93,9 @@ public class ShowStats implements CommandExecutor
             if (shortenedSpeed == null)
                 mainConfigErrorArray.add("shortenedSpeed");
 
-            if (!nativeErrorArray.isEmpty())
+            if (!commandErrorList.isEmpty())
             {
-                PrintingMethods.printCommandNodeError("ShowStats", nativeErrorArray);
+                PrintingMethods.printCommandNodeError("ShowStats", commandErrorList);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else if (!mainConfigErrorArray.isEmpty())
@@ -177,7 +175,7 @@ public class ShowStats implements CommandExecutor
                 }
                 else if (pokemon.isEgg())
                 {
-                    src.sendMessage(Text.of("§4Error: §cThat's an egg! Go hatch it, first."));
+                    src.sendMessage(Text.of("§4Error: §cThat's an egg. Go hatch it, first."));
                     return CommandResult.empty();
                 }
                 else
@@ -382,14 +380,16 @@ public class ShowStats implements CommandExecutor
                 sizeString = "'s size is §2unknown§a...?";
         }
 
-        // These always get added to printing, but are filled in only when necessary.
-        String shinyString = "", nameAdditionString = "";
-
         // Set up name-related stuff.
         final String localizedName = pokemon.getSpecies().getLocalizedName();
         final String baseName = pokemon.getSpecies().getPokemonName();
         final String formattedName = "§6" + localizedName;
         String nickname = pokemon.getNickname();
+
+        // These always get added to printing, but are filled in only when necessary.
+        final String shinyString = pokemon.isShiny() ? "§6§lshiny §r" : "";
+        final String alolanString = pokemon.getFormEnum() == EnumAlolan.ALOLAN ? "§6Alolan " : "";
+        String nameAdditionString = "";
 
         // Do the first of two cheating checks. Might catch some less clever cheat tools.
         if (nickname != null && !nickname.isEmpty() && nickname.length() > 11)
@@ -404,8 +404,6 @@ public class ShowStats implements CommandExecutor
         }
 
         // Alter our earlier strings if necessary.
-        if (pokemon.isShiny())
-            shinyString = "§6§lshiny §r";
         if (showNicknames)
         {
             if (nickname != null && !nickname.isEmpty() && !nickname.equals(localizedName))
@@ -425,13 +423,11 @@ public class ShowStats implements CommandExecutor
         // TODO: Maybe use a StringBuilder setup here as well. (see /checkstats)
         final List<String> hovers = new ArrayList<>();
         hovers.add("§eStats of §6" + player.getName() + "§e's level " + pokemon.getLevel() + " " +
-                shinyString + formattedName + nameAdditionString);
+                shinyString + alolanString + formattedName + nameAdditionString);
         hovers.add("");
         hovers.add("§bCurrent IVs§f:");
         hovers.add("➡ §a" + totalIVs + "§f/§a186§f (§a" + percentIVs + "%§f)");
         hovers.add("➡ §a" + ivs1 + ivs2 + ivs3 + ivs4 + ivs5 + ivs6);
-
-        printBasicError("DEBUG -- Form suffix: " + EnumAlolan.valueOf(baseName).getFormSuffix());
 
         if (showEVs)
         {
