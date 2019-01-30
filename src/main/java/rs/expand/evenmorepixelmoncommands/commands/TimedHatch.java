@@ -7,6 +7,8 @@ import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.battles.BattleRegistry;
 import java.math.BigDecimal;
 import java.util.*;
+
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import net.minecraft.entity.player.EntityPlayerMP;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.tileentity.CommandBlock;
@@ -261,7 +263,7 @@ public class TimedHatch implements CommandExecutor
 
                                 if (target == null)
                                 {
-                                    printSourcedMessage(sourceName, "Hatching calling player §3" + player.getName() +
+                                    printSourcedMessage(sourceName, "§bHatching calling player §3" + player.getName() +
                                             "§b slot §3" + slot + "§b and taking §3" + costToConfirm + "§b coins.");
                                 }
                                 else
@@ -328,7 +330,7 @@ public class TimedHatch implements CommandExecutor
                     else
                     {
                         //noinspection ConstantConditions - safe, just too complicated
-                        printSourcedMessage(sourceName, "Called from remote source, hatching §3" +
+                        printSourcedMessage(sourceName, "§bCalled from remote source, hatching §3" +
                                 target.getName() + "§b's party if available.");
                     }
                 }

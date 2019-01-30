@@ -3,9 +3,7 @@ package rs.expand.evenmorepixelmoncommands.commands;
 
 // Remote imports.
 import com.pixelmonmod.pixelmon.RandomHelper;
-import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.api.pokemon.PokemonSpec;
-import com.pixelmonmod.pixelmon.comm.EnumUpdateType;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +33,7 @@ import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.print
 
 // TODO: Add more flags, like scale/special texture/IVs/EnumBossMode. Needs testing with 7.0 stuff.
 // TODO: Add Alolan Pokémon support.
+// TODO: Move this to the nice name parsing setup /checktypes uses.
 // FIXME: Some names with multiple words (like "Mime Jr.") don't work right. Hard to fix, but nice polish?
 public class SpawnDex implements CommandExecutor
 {
@@ -63,7 +62,7 @@ public class SpawnDex implements CommandExecutor
             }
             else
             {
-                boolean doFakeAnnouncement = false, makeOutlined = false, doRadiusSpawn = false, makeShiny = false;
+                boolean doFakeAnnouncement = false, makeOutlined = false, doRadiusSpawn = false/*, makeShiny = false*/;
                 final Optional<String> arg1Optional = args.getOne("Pokémon name/ID");
                 String arg1String, pokemonName;
                 int diameter = 0;
@@ -141,8 +140,8 @@ public class SpawnDex implements CommandExecutor
                 if (args.hasAny("o"))
                     makeOutlined = true;
 
-                if (args.hasAny("s"))
-                    makeShiny = true;
+                /*if (args.hasAny("s"))
+                    makeShiny = true;*/
 
                 // Advanced flags with actual logic.
                 if (args.hasAny("r"))
@@ -328,11 +327,11 @@ public class SpawnDex implements CommandExecutor
                         src.sendMessage(Text.of("§eGiving the Pokémon §lan outline§r§e..."));
                         pokemonToSpawn.setGlowing(true); // Yeah, weird name. Works, though.
                     }
-                    if (makeShiny)
+                    /*if (makeShiny)
                     {
                         src.sendMessage(Text.of("§eMaking the Pokémon §lshiny§r§e..."));
                         pokemonToSpawn.getPokemonData().setShiny(true);
-                    }
+                    }*/
 
                     // Actually spawn it.
                     world.spawnEntity(pokemonToSpawn);
@@ -344,7 +343,7 @@ public class SpawnDex implements CommandExecutor
                 catch (final NullPointerException F)
                 {
                     src.sendMessage(Text.of("§cSpawning failed! Check console for what went wrong."));
-                    printSourcedError(sourceName, "Something went wrong during spawning, printing trace. Please report.");
+                    printSourcedError(sourceName, "§cSomething went wrong during spawning, printing trace. Please report.");
                     F.printStackTrace();
                 }
             }
@@ -365,7 +364,7 @@ public class SpawnDex implements CommandExecutor
         src.sendMessage(Text.of("§f➡ §6-f §f- §eBroadcasts a fake spawning message, as per the config."));
         src.sendMessage(Text.of("§f➡ §6-o §f- §eGives spawns an outline that shows through walls."));
         src.sendMessage(Text.of("§f➡ §6-r §f- §eSpawns a Pokémon randomly within the given radius."));
-        src.sendMessage(Text.of("§f➡ §6-s §f- §eMakes spawns shiny."));
+        /*src.sendMessage(Text.of("§f➡ §6-s §f- §eMakes spawns shiny."));*/
         src.sendMessage(Text.EMPTY);
         src.sendMessage(Text.of("§5Please note: §dOutlined Pokémon stay outlined if caught."));
         src.sendMessage(Text.of("§dThe effect persists even through trades and evolutions!"));

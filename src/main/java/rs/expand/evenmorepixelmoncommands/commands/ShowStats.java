@@ -36,7 +36,6 @@ import static rs.expand.evenmorepixelmoncommands.utilities.PokemonMethods.getSho
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedMessage;
 
-// TODO: Add ability showing. Thanks for the idea, Mikirae.
 public class ShowStats implements CommandExecutor
 {
     // Declare some variables. We'll load stuff into these when we call the config loader.
@@ -195,8 +194,8 @@ public class ShowStats implements CommandExecutor
 
                                 if (transactionResult.getResult() == ResultType.SUCCESS)
                                 {
-                                    printSourcedMessage(sourceName, "Showing off slot §3" + slot +
-                                            "§b, and taking §3" + costToConfirm + "§b coins.");
+                                    printSourcedMessage(sourceName, "§bShowing off player §3" + ((Player) src).getName() +
+                                            "§b, slot §3" + slot + "§b. Taking §3" + costToConfirm + "§b coins.");
 
                                     cooldownMap.put(playerUUID, currentTime);
                                     checkAndShowStats(pokemon, (Player) src);

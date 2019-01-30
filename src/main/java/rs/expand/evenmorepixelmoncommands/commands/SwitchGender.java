@@ -39,6 +39,8 @@ public class SwitchGender implements CommandExecutor
     // Set up a class name variable for internal use. We'll pass this to logging when showing a source is desired.
     private String sourceName = this.getClass().getSimpleName();
 
+    // TODO: Maybe print specific gender we're changing to in console.
+    // TODO: Add a MalePercent check? Dunno.
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)
     {
@@ -111,8 +113,8 @@ public class SwitchGender implements CommandExecutor
 
                                 if (transactionResult.getResult() == ResultType.SUCCESS)
                                 {
-                                    printSourcedMessage(sourceName, "Switched gender for slot §3" + slot +
-                                            "§b, taking §3" + costToConfirm + "§b coins.");
+                                    printSourcedMessage(sourceName, "§3Switching gender for player §3" + player.getName() + "§b, slot §3" + slot +
+                                            "§b. Taking §3" + costToConfirm + "§b coins.");
 
                                     switchGenders(pokemon, src);
                                 }
@@ -132,7 +134,12 @@ public class SwitchGender implements CommandExecutor
                             }
                         }
                         else
+                        {
+                            printSourcedMessage(sourceName, "§3Switching gender for player §3" + player.getName() + "§b, slot §3" + slot +
+                                    "§b.");
+
                             switchGenders(pokemon, src);
+                        }
                     }
                     else
                     {
@@ -149,7 +156,6 @@ public class SwitchGender implements CommandExecutor
                                 src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coins."));
                         }
 
-                        src.sendMessage(Text.EMPTY);
                         src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
                         src.sendMessage(Text.of("§5-----------------------------------------------------"));
                     }
@@ -168,7 +174,6 @@ public class SwitchGender implements CommandExecutor
         src.sendMessage(Text.of("§5-----------------------------------------------------"));
         src.sendMessage(Text.of(input));
         src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> {-c to confirm}"));
-        src.sendMessage(Text.EMPTY);
 
         if (economyEnabled && commandCost > 0)
         {

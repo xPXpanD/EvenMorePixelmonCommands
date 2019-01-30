@@ -1,4 +1,4 @@
-4.2.0 for 7.0
+5.0.0 for 7.0
 Released January 30th, 2019.
 
     Major (breaking) config changes:
@@ -6,6 +6,7 @@ Released January 30th, 2019.
     * (regenerate ALL configs, copy back old data manually if necessary)
 
     Additions:
+    * Added a ton of missing forms in /checktypes.
     * Added the showing of levels, abilities and happiness to /checkstats and /showstats (hover only, there).
     * Also added a free re-show option to /showstats.
     * /partyhatch: Replaces old /timedhatch party functionality. Has its own optional cooldown, if so desired.
@@ -14,6 +15,7 @@ Released January 30th, 2019.
     Tweaks:
     * Bumped SpongeAPI to 7.1.0, Forge from 2655 to 2768 with the last pre-1.13 mappings. Might fix some issues?
     * Changed default alias for /checkstats into /gs, as /cs is taken by the super-common WorldEdit. :(
+    * Enabled /checktypes showing Alolans by default, as we're now on gen 7.
     * Merged the command listing and /pureload into /empc, using a child command setup. (just like PB)
     * Reload now reloads everything, always.
     * Readied almost everything for gen 7! /spawndex needs some love, still.
@@ -22,13 +24,16 @@ Released January 30th, 2019.
     * Reworded /showstats anticheat wording to be a bit less paranoid.
 
     Fixes:
+    * Fixed /checktypes not recognizing two Tapus when entering their name as two separate words.
     * Fixed /timedhatch eating money when doing a party hatch with a cost set on a party that has no eggs.
     * Fixed a few issues with excess blank lines on syntax messages. Also hid confirmation stuff from console.
+    * Fixed Alolan Geodude/Graveler/Golem not showing up as suggestions for the normal ones with hints enabled.
     * Fixed bad copy/paste comments in the /timedhatch and /timedheal configs.
     * Fixed some inconsistencies with shown command parameters.
     * Fixed the accidental double check for valid config folders when reloading configs.
 
     Removals:
+    * (temporarily?) Removed the -s shinyness flag from /spawndex due to 7.0 changes breaking it.
     * Removed /forcestats for the time being. It may be making a comeback, but 7.0 broke it good.
     * Removed /upgradeivs + /dittofusion + /resetcounts. They need a LOT of work. May become a separate sidemod.
     * Removed excessive logging, compacted everything into a single log setting that only shows important stuff.

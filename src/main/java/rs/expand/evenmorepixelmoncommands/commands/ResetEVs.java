@@ -108,8 +108,8 @@ public class ResetEVs implements CommandExecutor
                             if (transactionResult.getResult() == ResultType.SUCCESS)
                             {
                                 resetPlayerEVs(pokemon, src);
-                                printSourcedMessage(sourceName, "Reset EVs for slot §3" + slot +
-                                        "§b, taking §3" + costToConfirm + "§b coins.");
+                                printSourcedMessage(sourceName, "§bResetting EVs for player §3" + player.getName() + "§b, slot §3" + slot +
+                                        "§b. Taking §3" + costToConfirm + "§b coins.");
                             }
                             else
                             {
@@ -126,7 +126,12 @@ public class ResetEVs implements CommandExecutor
                         }
                     }
                     else
+                    {
+                        printSourcedMessage(sourceName, "§bResetting EVs for player §3" + player.getName() + "§b, slot §3" + slot +
+                                "§b.");
+
                         resetPlayerEVs(pokemon, src);
+                    }
                 }
                 else
                 {
@@ -137,7 +142,6 @@ public class ResetEVs implements CommandExecutor
                     if (economyEnabled && commandCost > 0)
                         src.sendMessage(Text.of("§eResetting will cost §6" + commandCost + "§e coins!"));
 
-                    src.sendMessage(Text.EMPTY);
                     src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
                     src.sendMessage(Text.of("§5-----------------------------------------------------"));
                 }
@@ -173,7 +177,7 @@ public class ResetEVs implements CommandExecutor
     {
         final EVStore EVs = pokemon.getEVs();
 
-        printSourcedMessage(sourceName, "Printing old EVS: §3" +
+        printSourcedMessage(sourceName, "§bPrinting old EVS: §3" +
                 EVs.get(StatsType.HP) + "§b HP, §3" + EVs.get(StatsType.Attack) + "§b ATK, §3" +
                 EVs.get(StatsType.Defence) + "§b DEF, §3" + EVs.get(StatsType.SpecialAttack) + "§b SP. ATK, §3" +
                 EVs.get(StatsType.SpecialDefence) + "§b SP. DEF, §3" + EVs.get(StatsType.Speed) + "§b SPD"

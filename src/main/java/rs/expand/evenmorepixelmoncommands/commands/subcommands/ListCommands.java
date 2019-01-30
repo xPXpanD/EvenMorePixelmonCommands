@@ -49,7 +49,7 @@ public class ListCommands implements CommandExecutor
 
             if (numLinesPerPage == null)
             {
-                printSourcedError(sourceName, "Could not read node \"§4numLinesPerPage§c\".");
+                printSourcedError(sourceName, "§cCould not read node \"§4numLinesPerPage§c\".");
                 sanitizedNumLinesPerPage = 20;
                 printBasicError("We'll proceed with safe defaults. Please fix this.");
             }
@@ -338,7 +338,7 @@ public class ListCommands implements CommandExecutor
             }*/
 
             final PaginationList.Builder paginatedList = PaginationList.builder()
-                        .title(Text.of(TextColors.DARK_PURPLE, "§dEven More Pixelmon Commands 4.2.0"))
+                        .title(Text.of(TextColors.DARK_PURPLE, "§dEven More Pixelmon Commands 5.0.0"))
                         .contents(permissionMessageList)
                         .padding(Text.of(TextColors.DARK_PURPLE, '='));
 

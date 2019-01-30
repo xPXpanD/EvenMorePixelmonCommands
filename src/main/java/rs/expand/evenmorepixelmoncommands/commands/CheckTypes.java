@@ -22,6 +22,7 @@ import rs.expand.evenmorepixelmoncommands.utilities.PokemonMethods;
 // FIXME: Fix some super long lists like /checktypes 599 causing minor visual issues. Nice polish.
 // TODO: Maybe look into paginated lists that you can move through. Lots of work, but would be real neat for evolutions.
 // TODO: Maybe run through differently-typed forms some time, see if they're still up to date with the gen 7 move.
+// TODO: Similarly, check for new abilities.
 public class CheckTypes implements CommandExecutor
 {
     // Declare some variables. We'll load stuff into these when we call the config loader.
@@ -183,10 +184,10 @@ public class CheckTypes implements CommandExecutor
 
                                     break;
                                 }
-                                case "BUNU":
+                                case "BULU":
                                 {
                                     if (arg1String.toUpperCase().equals("TAPU"))
-                                        updatedString = "TapuBunu";
+                                        updatedString = "TapuBulu";
 
                                     break;
                                 }
@@ -265,7 +266,7 @@ public class CheckTypes implements CommandExecutor
             switch (arg1String.toUpperCase()) // Differently typed forms.
             {
                 case "CASTFORM": case "WORMADAM": case "ROTOM": case "SHAYMIN": case "DARMANITAN": case "MELOETTA":
-                case "HOOPA":
+                case "HOOPA": case "ARCEUS": case "SILVALLY": case "ORICORIO": case "NECROZMA":
                 {
                     hasForms = true;
                     break;
@@ -358,7 +359,7 @@ public class CheckTypes implements CommandExecutor
             }
         }
 
-        // Fix the Pokémon's name, if necessary.
+        // Fix the Pokémon's shown name, if necessary.
         src.sendMessage(Text.of("§7-----------------------------------------------------"));
         switch (pName)
         {
@@ -385,12 +386,94 @@ public class CheckTypes implements CommandExecutor
                 nameMessage = "§1(§9#479§1) §6Mower Rotom"; break;
             case "ShayminSky":
                 nameMessage = "§1(§9#492§1) §6Sky Shaymin"; break;
+            case "ArceusDragon":
+                nameMessage = "§1(§9#492§1) §6Draco Plate Arceus"; break;
+            case "ArceusDark":
+                nameMessage = "§1(§9#492§1) §6Dread Plate Arceus"; break;
+            case "ArceusGround":
+                nameMessage = "§1(§9#492§1) §6Earth Plate Arceus"; break;
+            case "ArceusFighting":
+                nameMessage = "§1(§9#492§1) §6Fist Plate Arceus"; break;
+            case "ArceusFire":
+                nameMessage = "§1(§9#492§1) §6Flame Plate Arceus"; break;
+            case "ArceusIce":
+                nameMessage = "§1(§9#492§1) §6Icicle Plate Arceus"; break;
+            case "ArceusBug":
+                nameMessage = "§1(§9#492§1) §6Insect Plate Arceus"; break;
+            case "ArceusSteel":
+                nameMessage = "§1(§9#492§1) §6Iron Plate Arceus"; break;
+            case "ArceusGrass":
+                nameMessage = "§1(§9#492§1) §6Meadow Plate Arceus"; break;
+            case "ArceusPsychic":
+                nameMessage = "§1(§9#492§1) §6Mind Plate Arceus"; break;
+            case "ArceusFairy":
+                nameMessage = "§1(§9#492§1) §6Pixie Plate Arceus"; break;
+            case "ArceusFlying":
+                nameMessage = "§1(§9#492§1) §6Sky Plate Arceus"; break;
+            case "ArceusWater":
+                nameMessage = "§1(§9#492§1) §6Splash Plate Arceus"; break;
+            case "ArceusGhost":
+                nameMessage = "§1(§9#492§1) §6Spooky Plate Arceus"; break;
+            case "ArceusRock":
+                nameMessage = "§1(§9#492§1) §6Stone Plate Arceus"; break;
+            case "ArceusPoison":
+                nameMessage = "§1(§9#492§1) §6Toxic Plate Arceus"; break;
+            case "ArceusElectric":
+                nameMessage = "§1(§9#492§1) §6Zap Plate Arceus"; break;
             case "DarmanitanZen":
                 nameMessage = "§1(§9#555§1) §6Zen Darmanitan"; break;
             case "MeloettaPirouette":
                 nameMessage = "§1(§9#648§1) §6Pirouette Meloetta"; break;
             case "HoopaUnbound":
                 nameMessage = "§1(§9#720§1) §6Unbound Hoopa"; break;
+            case "OricorioBaile":
+                nameMessage = "§1(§9#741§1) §6Baile Oricorio"; break;
+            case "OricorioPomPom":
+                nameMessage = "§1(§9#741§1) §6Pom Pom Oricorio"; break;
+            case "OricorioPau":
+                nameMessage = "§1(§9#741§1) §6Pa'u Oricorio"; break;
+            case "OricorioSensu":
+                nameMessage = "§1(§9#741§1) §6Sensu Oricorio"; break;
+            case "SilvallyBug":
+                nameMessage = "§1(§9#773§1) §6Bug Memory Silvally"; break;
+            case "SilvallyDark":
+                nameMessage = "§1(§9#773§1) §6Dark Memory Silvally"; break;
+            case "SilvallyDragon":
+                nameMessage = "§1(§9#773§1) §6Dragon Memory Silvally"; break;
+            case "SilvallyElectric":
+                nameMessage = "§1(§9#773§1) §6Electric Memory Silvally"; break;
+            case "SilvallyFairy":
+                nameMessage = "§1(§9#773§1) §6Fairy Memory Silvally"; break;
+            case "SilvallyFighting":
+                nameMessage = "§1(§9#773§1) §6Fighting Memory Silvally"; break;
+            case "SilvallyFire":
+                nameMessage = "§1(§9#773§1) §6Fire Memory Silvally"; break;
+            case "SilvallyFlying":
+                nameMessage = "§1(§9#773§1) §6Flying Memory Silvally"; break;
+            case "SilvallyGhost":
+                nameMessage = "§1(§9#773§1) §6Ghost Memory Silvally"; break;
+            case "SilvallyGrass":
+                nameMessage = "§1(§9#773§1) §6Grass Memory Silvally"; break;
+            case "SilvallyGround":
+                nameMessage = "§1(§9#773§1) §6Ground Memory Silvally"; break;
+            case "SilvallyIce":
+                nameMessage = "§1(§9#773§1) §6Ice Memory Silvally"; break;
+            case "SilvallyPoison":
+                nameMessage = "§1(§9#773§1) §6Poison Memory Silvally"; break;
+            case "SilvallyPsychic":
+                nameMessage = "§1(§9#773§1) §6Psychic Memory Silvally"; break;
+            case "SilvallyRock":
+                nameMessage = "§1(§9#773§1) §6Rock Memory Silvally"; break;
+            case "SilvallySteel":
+                nameMessage = "§1(§9#773§1) §6Steel Memory Silvally"; break;
+            case "SilvallyWater":
+                nameMessage = "§1(§9#773§1) §6Water Memory Silvally"; break;
+            case "NecrozmaDarkMane":
+                nameMessage = "§1(§9#800§1) §6Dark Mane Necrozma"; break;
+            case "NecrozmaDawnWings":
+                nameMessage = "§1(§9#800§1) §6Dawn Wings Necrozma"; break;
+            case "NecrozmaUltra":
+                nameMessage = "§1(§9#800§1) §6Ultra Necrozma"; break;
 
             // Alolan variants.
             case "RattataAlolan":
@@ -726,13 +809,12 @@ public class CheckTypes implements CommandExecutor
         // Print messages if differently typed forms or Alolan forms are available.
         if (hasForms && showFormMessage)
         {
-            final String commandHelper = "§cAlolan found! Check: §6/" + commandAlias + " ";
-
+            final String commandHelper = "§cForms found! Check: §6/" + commandAlias + " ";
             src.sendMessage(Text.EMPTY);
 
             switch (pName)
             {
-                // Big ones. We provide just the names, to keep things manageable. Rotom's super squished by necessity.
+                // Big ones. Provide just the names to keep stuff manageable. Some of these are super squished by necessity.
                 case "Castform":
                     src.sendMessage(Text.of(commandHelper + "CastformSunny §f(or §6Rainy§f/§6Snowy§f)")); break;
                 case "Wormadam":
@@ -740,7 +822,18 @@ public class CheckTypes implements CommandExecutor
                 case "Rotom":
                     src.sendMessage(Text.of(commandHelper + "RotomHeat §f(or §6Wash§f/§6Frost§f/§6Fan§f/§6Mow§f)")); break;
                 case "Arceus":
-                    src.sendMessage(Text.of(commandHelper + "ArceusX §f(Replace \"§6X§f\" with the desired type)")); break;
+                    src.sendMessage(Text.of(commandHelper + "ArceusX §f(where \"§6X§f\" is a type)")); break;
+                case "Silvally":
+                    src.sendMessage(Text.of(commandHelper + "SilvallyX §f(where \"§6X§f\" is a type)")); break;
+                case "Necrozma": // I don't like this, but it has to be done.
+                    src.sendMessage(Text.of(commandHelper + "NecrozmaDarkMane§f/§6DawnWings§f/§6Ultra")); break;
+                case "Oricorio": // This one hurts.
+                {
+                    src.sendMessage(Text.of("§cShowing Baile, check: §6/" + commandAlias +
+                            " OricorioPomPom §f(or §6Pau§f/§6Sensu§f)"));
+
+                    break;
+                }
 
                 // Small ones. We can show types on these, like the Alolan variants.
                 case "Shaymin":
@@ -755,7 +848,7 @@ public class CheckTypes implements CommandExecutor
         }
         else if (hasAlolanVariants && showAlolanMessage)
         {
-            final String commandHelper = "§cForms found! Check: §6/" + commandAlias + " ";
+            final String commandHelper = "§cAlolan found! Check: §6/" + commandAlias + " ";
             src.sendMessage(Text.EMPTY);
 
             switch (pName)

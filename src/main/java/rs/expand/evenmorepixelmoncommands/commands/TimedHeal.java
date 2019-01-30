@@ -264,12 +264,12 @@ public class TimedHeal implements CommandExecutor
 
                                 if (target == null)
                                 {
-                                    printSourcedMessage(sourceName, "Healing calling player §3" + player.getName() +
+                                    printSourcedMessage(sourceName, "§bHealing calling player §3" + player.getName() +
                                             "§b slot §3" + slot + "§b and taking §3" + costToConfirm + "§b coins.");
                                 }
                                 else
                                 {
-                                    printSourcedMessage(sourceName, "Player §3" + player.getName() +
+                                    printSourcedMessage(sourceName, "§bPlayer §3" + player.getName() +
                                             "§b is healing slot §3" + slot + "§b for §3" + target.getName() +
                                             "§b. Taking §3" + costToConfirm + "§b coins.");
                                 }
@@ -331,7 +331,7 @@ public class TimedHeal implements CommandExecutor
                     else
                     {
                         //noinspection ConstantConditions - safe, just too complicated
-                        printSourcedMessage(sourceName, "Called from remote source, healing §3" +
+                        printSourcedMessage(sourceName, "§bCalled from remote source, healing §3" +
                                 target.getName() + "§b's slot §3" + slot + "§b Pokémon.");
                     }
                 }

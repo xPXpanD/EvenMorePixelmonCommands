@@ -42,6 +42,9 @@ import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.print
 // TODO: Allow people to unlock hidden abilities, probably through the economy. - Fabyoulust
 // TODO: Make a command that counts the Pokémon in the world, maybe also nearby. - Mikirae (comment, not suggestion)
 // TODO: Make a command that wipes a player's Pokédex. - Mikirae
+// TODO: Make a Wailord Bomb command that blows apart a Wailord into a LOT of cooked fish. - Faty
+// TODO: Make a command that checks EV gains from specific Pokémon. - ElaDiDu
+//     \-> LinkedHashMap<StatsType, Integer> yields = pokemon.getBaseStats().evYields;
 
 // Improvements to existing things:
 // TODO: Tab completion on player names.
@@ -49,12 +52,18 @@ import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.print
 // TODO: Move everything to lang files.
 // TODO: Check if Kyurem fusion preserves custom tags.
 // TODO: Dive into fixing ForceStats for 7.0.
+// TODO: Move "args.hasAny("c")" stuff to the case-insensitive -c one, as that doesn't mess up on -C.
+// TODO: Replace PokemonMethods stuff with Pixelmon's own solutions.
+// TODO: GenericArguments.withSuggestions() is a thing, maybe implement, replace current CMD system.
+// TODO: Look deeper into whether in-battle healing and stuff is doable now. Cursory check had partial success.
+// TODO: When doing localization support, check 5 and 7 color ------ lines? Translate both types. (success/error)
+// TODO: Add console use support for /resetevs and /switchgenders.
 
 @Plugin
 (
         id = "evenmorepixelmoncommands",
         name = "Even More Pixelmon Commands",
-        version = "4.2.0",
+        version = "5.0.0",
         dependencies = @Dependency(id = "pixelmon"),
         description = "A sidemod for Pixelmon Reforged that adds a bunch of new commands, some with economy integration.",
         authors = "XpanD"

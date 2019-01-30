@@ -195,12 +195,12 @@ public class PartyHeal implements CommandExecutor
 
                                 if (target == null)
                                 {
-                                    printSourcedMessage(sourceName, "Healing calling player §3" + player.getName() +
+                                    printSourcedMessage(sourceName, "§bHealing calling player §3" + player.getName() +
                                             "§b's party and taking §3" + costToConfirm + "§b coins.");
                                 }
                                 else
                                 {
-                                    printSourcedMessage(sourceName, "Player §3" + player.getName() + " §bis healing §3" +
+                                    printSourcedMessage(sourceName, "§bPlayer §3" + player.getName() + " §bis healing §3" +
                                             target.getName() + "§b's party. Taking §3" + costToConfirm + "§b coins.");
                                 }
                             }
@@ -264,7 +264,7 @@ public class PartyHeal implements CommandExecutor
                         if (target != null)
                         {
                             //noinspection ConstantConditions - !calledRemotely guarantees this is safe
-                            printSourcedMessage(sourceName, "Called by §3" + player.getName() +
+                            printSourcedMessage(sourceName, "§bCalled by §3" + player.getName() +
                                     "§b, healing §3" + target.getName() + "§b's party.");
                         }
 
@@ -273,7 +273,7 @@ public class PartyHeal implements CommandExecutor
                     else
                     {
                         //noinspection ConstantConditions - safe, just too complicated
-                        printSourcedMessage(sourceName, "Called from remote source, healing §3" +
+                        printSourcedMessage(sourceName, "§bCalled from remote source, healing §3" +
                                 target.getName() + "§b's party if available.");
                     }
                 }

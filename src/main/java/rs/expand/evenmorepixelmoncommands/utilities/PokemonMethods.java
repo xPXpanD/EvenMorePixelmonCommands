@@ -5,10 +5,6 @@ import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
 
-// Local imports.
-import java.util.Arrays;
-import java.util.stream.Stream;
-
 import static rs.expand.evenmorepixelmoncommands.EMPC.*;
 
 // Big ol' list of Pokémon.
@@ -867,6 +863,30 @@ public enum PokemonMethods
     ArceusDark(0, "Dark"),
     ArceusSteel(0, "Steel"),
     ArceusFairy(0, "Fairy"),
+    SilvallyFire(0, "Fire"),
+    SilvallyWater(0, "Water"),
+    SilvallyElectric(0, "Electric"),
+    SilvallyGrass(0, "Grass"),
+    SilvallyIce(0, "Ice"),
+    SilvallyFighting(0, "Fighting"),
+    SilvallyPoison(0, "Poison"),
+    SilvallyGround(0, "Ground"),
+    SilvallyFlying(0, "Flying"),
+    SilvallyPsychic(0, "Psychic"),
+    SilvallyBug(0, "Bug"),
+    SilvallyRock(0, "Rock"),
+    SilvallyGhost(0, "Ghost"),
+    SilvallyDragon(0, "Dragon"),
+    SilvallyDark(0, "Dark"),
+    SilvallySteel(0, "Steel"),
+    SilvallyFairy(0, "Fairy"),
+    OricorioBaile(0, "Fire, Flying"),
+    OricorioPomPom(0, "Electric, Flying"),
+    OricorioPau(0, "Psychic, Flying"),
+    OricorioSensu(0, "Ghost, Flying"),
+    NecrozmaDuskMane(0, "Psychic, Steel"),
+    NecrozmaDawnWings(0, "Psychic, Ghost"),
+    NecrozmaUltra(0, "Psychic, Dragon"),
 
     // Alolan Pokémon variants. Same rules as above.
     RattataAlolan(0, "Dark, Normal"),

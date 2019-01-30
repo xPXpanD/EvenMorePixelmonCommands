@@ -5,6 +5,7 @@ package rs.expand.evenmorepixelmoncommands.commands;
 import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.api.storage.PartyStorage;
+import com.pixelmonmod.pixelmon.comm.ChatHandler;
 import com.pixelmonmod.pixelmon.config.PixelmonConfig;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
+import org.spongepowered.api.text.action.TextActions;
 import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
 import rs.expand.evenmorepixelmoncommands.utilities.PokemonMethods;
 import static rs.expand.evenmorepixelmoncommands.EMPC.*;
@@ -246,7 +248,6 @@ public class CheckStats implements CommandExecutor
                         // !calledRemotely already guarantees src is a Player.
                         @SuppressWarnings("ConstantConditions")
                         final Player player = (Player) src;
-
                         final BigDecimal costToConfirm = new BigDecimal(commandCost);
 
                         if (commandConfirmed)
@@ -261,8 +262,16 @@ public class CheckStats implements CommandExecutor
 
                                 if (transactionResult.getResult() == ResultType.SUCCESS)
                                 {
-                                    printSourcedMessage(sourceName, "Checked slot §3" + slot +
-                                            "§b, taking §3" + costToConfirm + "§b coins.");
+                                    if (target == null)
+                                    {
+                                        printSourcedMessage(sourceName, "§bChecked player §3" + player.getName() +
+                                                "§b, slot §3" + slot + "§b. Taking §3" + costToConfirm + "§b coins.");
+                                    }
+                                    else
+                                    {
+                                        printSourcedMessage(sourceName, "§bPlayer §3" + player.getName() + "§b is checking player §3" +
+                                                target.getName() + "§b, slot §3" + slot + "§b. Taking §3" + costToConfirm + "§b coins.");
+                                    }
                                     checkSpecificSlot(src, target, pokemon, target != null);
                                 }
                                 else
@@ -535,7 +544,8 @@ public class CheckStats implements CommandExecutor
             // Set up a gender character. Console doesn't like Unicode genders, so if src is not a Player we'll use M/F/-.
             final String genderChar = PokemonMethods.getGenderCharacter(src, pokemon.getGender().getForm());
 
-            // Figure out how happy the Pokémon is.
+            // NOTE: Currently commented out because kind of useless, and too long. May make a comeback.
+            /*// Figure out how happy the Pokémon is.
             final int happiness = pokemon.getFriendship();
             final String happinessString;
             if (happiness > 250) // Whoa!
@@ -543,13 +553,18 @@ public class CheckStats implements CommandExecutor
             else if (happiness < 50) // Oof...
                 happinessString = happiness + "...";
             else // Eh.
-                happinessString = String.valueOf(happiness);
+                happinessString = String.valueOf(happiness);*/
 
             // Show extra info, which we grabbed from PokemonMethods.
-            src.sendMessage(Text.of("§bAbility§f: " + pokemon.getAbility().getLocalizedName() +
-                    "§f | §bNature§f: " + nature.name().toLowerCase() + "§f (§a" + plusVal + "§f/§c" + minusVal + "§f)"));
-            src.sendMessage(Text.of("§bGender§f: " + genderChar + "§r | §bSize§f: " +
-                    pokemon.getGrowth().name() + "§f | §bHappiness§f: " + happinessString));
+            src.sendMessage(Text.of("§bNature§f: " + nature.name() + "§f (§a" + plusVal + "§f/§c" + minusVal +
+                    "§f | §bGender§f: " + genderChar + "§r | §bSize§f: " + pokemon.getGrowth().name() + "§f"));
+
+            // Show the ability on a separate line, with a fancy hover showing the description from Pixelmon's own langs!
+            final String unformattedLangKey = ChatHandler.getMessage(
+                    "ability." + pokemon.getAbility().getName() + ".description").getUnformattedComponentText();
+            src.sendMessage(Text.builder("§bAbility§f: §n" + pokemon.getAbility().getLocalizedName())
+                        .onHover(TextActions.showText(Text.of("§7" + unformattedLangKey)))
+                        .build());
 
             // Check and show whether the Pokémon can be upgraded/fused further, if enabled in config.
             /*final boolean isDitto = pokemon.getSpecies().getPokemonName().equals("Ditto");

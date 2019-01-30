@@ -149,13 +149,13 @@ public class FixGenders implements CommandExecutor
 
                     if (sneakyMode)
                     {
-                        printSourcedMessage(sourceName, "Silently fixing genders for player §3" + target.getName() +
-                                "§b. Any changes will be logged.");
+                        printSourcedMessage(sourceName, "§bSilently fixing genders for player §3" + target.getName() +
+                                "§b. Logging any changes.");
                     }
                     else
                     {
-                        printSourcedMessage(sourceName, "Fixing genders for player §3" + target.getName() +
-                                "§b. Any changes will be logged.");
+                        printSourcedMessage(sourceName, "§bFixing genders for player §3" + target.getName() +
+                                "§b. Logging any changes.");
                     }
 
                     sendCheckedMessage(src, "§7-----------------------------------------------------");
