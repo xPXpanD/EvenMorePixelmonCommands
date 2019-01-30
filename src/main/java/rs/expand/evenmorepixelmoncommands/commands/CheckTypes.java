@@ -21,6 +21,7 @@ import rs.expand.evenmorepixelmoncommands.utilities.PokemonMethods;
 
 // FIXME: Fix some super long lists like /checktypes 599 causing minor visual issues. Nice polish.
 // TODO: Maybe look into paginated lists that you can move through. Lots of work, but would be real neat for evolutions.
+// TODO: Maybe run through differently-typed forms some time, see if they're still up to date with the gen 7 move.
 public class CheckTypes implements CommandExecutor
 {
     // Declare some variables. We'll load stuff into these when we call the config loader.
@@ -29,30 +30,6 @@ public class CheckTypes implements CommandExecutor
 
     // Are we running from console? We'll flag this true, and proceed accordingly.
     private boolean calledRemotely;
-
-    /* TODO: Maybe move over to this later. Might be good practice?
-    private static Map<String, String> formattedTypeMap = new HashMap<>();
-    {
-        formattedTypeMap.put("Normal", "§fNormal");
-        formattedTypeMap.put("Fighting", "§4Fighting");
-        formattedTypeMap.put("Flying", "§9Flying");
-        formattedTypeMap.put("Poison", "§5Poison");
-        formattedTypeMap.put("Ground", "§6Ground");
-        formattedTypeMap.put("Rock", "§7Rock");
-        formattedTypeMap.put("Bug", "§2Bug");
-        formattedTypeMap.put("Ghost", "§5Ghost");
-        formattedTypeMap.put("Steel", "§7Steel");
-        formattedTypeMap.put("Fire", "§cFire");
-        formattedTypeMap.put("Water", "§3Water");
-        formattedTypeMap.put("Grass", "§aGrass");
-        formattedTypeMap.put("Electric", "§eElectric");
-        formattedTypeMap.put("Psychic", "§dPsychic");
-        formattedTypeMap.put("Ice", "§bIce");
-        formattedTypeMap.put("Dragon", "§9Dragon");
-        formattedTypeMap.put("Dark", "§8Dark");
-        formattedTypeMap.put("Fairy", "§dFairy");
-    }
-     */
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)
@@ -206,14 +183,14 @@ public class CheckTypes implements CommandExecutor
 
                                     break;
                                 }
-                                case "Bunu":
+                                case "BUNU":
                                 {
                                     if (arg1String.toUpperCase().equals("TAPU"))
                                         updatedString = "TapuBunu";
 
                                     break;
                                 }
-                                case "Fini":
+                                case "FINI":
                                 {
                                     if (arg1String.toUpperCase().equals("TAPU"))
                                         updatedString = "TapuFini";
@@ -539,56 +516,56 @@ public class CheckTypes implements CommandExecutor
         Text immunityStart = Text.of(arrowChar + " §b0%§f: " + immunityBuilder + "§7 (may have ");
 
         // Make a bunch of lists for different type-nullifying abilities.
-        final String motorDrive =
-                "Electivire, Blitzle, Zebstrika, Emolga";
-        final String suctionCups =
-                "Octillery, Lileep, Cradily, Inkay, Malamar";
-        final String voltAbsorb =
-                "Jolteon, Chinchou, Lanturn, Thundurus, Raikou, Minun, Pachirisu, Zeraora";
-        final String stormDrain =
-                "Lileep, Cradily, Shellos, Gastrodon, Finneon, Lumineon, Maractus";
-        final String drySkin =
-                "Paras, Parasect, Croagunk, Toxicroak, Helioptile, Heliolisk, Jynx";
-        final String justified =
-                "Growlithe, Arcanine, Absol, Lucario, Gallade, Cobalion, Terrakion, Virizion, Keldeo";
-        final String hyperCutter =
-                "Krabby, Kingler, Pinsir, Gligar, Mawile, Trapinch, Corphish, Crawdaunt, Gliscor, Crabrawler, " +
-                "Crabominable";
-        final String soundProof =
-                "Voltorb, Electrode, MrMime, Whismur, Loudred, Exploud, MimeJr, Shieldon, Bastiodon, Snover, " +
-                "Abomasnow, Bouffalant";
         final String bigPecks =
                 "Pidove, Tranquill, Unfezant, Ducklett, Swanna, Vullaby, Mandibuzz, Fletchling, Pidgey, Pidgeotto, " +
                 "Pidgeot, Chatot";
         final String clearBody =
                 "Tentacool, Tentacruel, Beldum, Metang, Metagross, Regirock, Regice, Registeel, Carbink, Diancie, " +
                 "Klink, Klang, Klinklang";
-        final String sapSipper =
-                "Deerling, Sawsbuck, Bouffalant, Skiddo, Gogoat, Goomy, Sliggoo, Goodra, Drampa, Marill, Azumarill, " +
-                "Girafarig, Stantler, Miltank, Azurill, Blitzle, Zebstrika";
         final String damp =
                 "Psyduck, Golduck, Paras, Parasect, Horsea, Seadra, Kingdra, Mudkip, Marshtomp, Swampert, Frillish, " +
                 "Jellicent, Poliwag, Poliwhirl, Poliwrath, Politoed, Wooper, Quagsire";
-        final String lightningRod =
-                "Cubone, Marowak, Rhyhorn, Rhydon, Electrike, Manectric, Rhyperior, Blitzle, Zebstrika, Pikachu, " +
-                "Raichu, Goldeen, Seaking, Zapdos, Pichu, Plusle, Sceptile, MarowakAlolan";
+        final String drySkin =
+                "Paras, Parasect, Croagunk, Toxicroak, Helioptile, Heliolisk, Jynx";
         final String flashFire =
                 "Vulpix, Ninetales, Growlithe, Arcanine, Ponyta, Rapidash, Flareon, Houndour, Houndoom, Heatran, " +
                 "Litwick, Lampent, Chandelure, Heatmor, Cyndaquil, Quilava, Typhlosion, Entei";
-        final String waterAbsorb =
-                "Lapras, Vaporeon, Mantine, Mantyke, Maractus, Volcanion, Chinchou, Lanturn, Suicune, Cacnea, " +
-                "Cacturne, Tympole, Palpitoad, Seismitoad, Frillish, Jellicent, Poliwag, Poliwhirl, Poliwrath, " +
-                "Politoed, Wooper, Quagsire";
-        final String sturdy =
-                "Geodude, Graveler, Golem, Magnemite, Magneton, Onix, Sudowoodo, Pineco, Forretress, Steelix, " +
-                "Shuckle, Skarmory, Donphan, Nosepass, Aron, Lairon, Aggron, Shieldon, Bastiodon, Bonsly, Magnezone, " +
-                "Probopass, Roggenrola, Boldore, Gigalith, Sawk, Dwebble, Crustle, Tirtouga, Carracosta, Relicanth, " +
-                "Regirock, Tyrunt, Carbink, Bergmite, Avalugg";
+        final String hyperCutter =
+                "Krabby, Kingler, Pinsir, Gligar, Mawile, Trapinch, Corphish, Crawdaunt, Gliscor, Crabrawler, " +
+                "Crabominable";
+        final String justified =
+                "Growlithe, Arcanine, Absol, Lucario, Gallade, Cobalion, Terrakion, Virizion, Keldeo";
         final String levitate =
                 "Gastly, Haunter, Gengar, Koffing, Weezing, Misdreavus, Unown, Vibrava, Flygon, Lunatone, Solrock, " +
                 "Baltoy, Claydol, Duskull, Chimecho, Latias, Latios, Mismagius, Chingling, Bronzor, Bronzong, " +
                 "Carnivine, Rotom, RotomHeat, RotomWash, RotomFrost, RotomFan, RotomMow, Uxie, Mesprit, Azelf, " +
                 "Giratina, Cresselia, Tynamo, Eelektrik, Eelektross, Cryogonal, Hydreigon, Vikavolt";
+        final String lightningRod =
+                "Cubone, Marowak, Rhyhorn, Rhydon, Electrike, Manectric, Rhyperior, Blitzle, Zebstrika, Pikachu, " +
+                "Raichu, Goldeen, Seaking, Zapdos, Pichu, Plusle, Sceptile, MarowakAlolan";
+        final String motorDrive =
+                "Electivire, Blitzle, Zebstrika, Emolga";
+        final String sapSipper =
+                "Deerling, Sawsbuck, Bouffalant, Skiddo, Gogoat, Goomy, Sliggoo, Goodra, Drampa, Marill, Azumarill, " +
+                "Girafarig, Stantler, Miltank, Azurill, Blitzle, Zebstrika";
+        final String soundProof =
+                "Voltorb, Electrode, MrMime, Whismur, Loudred, Exploud, MimeJr, Shieldon, Bastiodon, Snover, " +
+                "Abomasnow, Bouffalant";
+        final String stormDrain =
+                "Lileep, Cradily, Shellos, Gastrodon, Finneon, Lumineon, Maractus";
+        final String sturdy =
+                "Geodude, Graveler, Golem, Magnemite, Magneton, Onix, Sudowoodo, Pineco, Forretress, Steelix, " +
+                "Shuckle, Skarmory, Donphan, Nosepass, Aron, Lairon, Aggron, Shieldon, Bastiodon, Bonsly, Magnezone, " +
+                "Probopass, Roggenrola, Boldore, Gigalith, Sawk, Dwebble, Crustle, Tirtouga, Carracosta, Relicanth, " +
+                "Regirock, Tyrunt, Carbink, Bergmite, Avalugg, GeodudeAlolan, GravelerAlolan, GolemAlolan";
+        final String suctionCups =
+                "Octillery, Lileep, Cradily, Inkay, Malamar";
+        final String voltAbsorb =
+                "Jolteon, Chinchou, Lanturn, Thundurus, Raikou, Minun, Pachirisu, Zeraora";
+        final String waterAbsorb =
+                "Lapras, Vaporeon, Mantine, Mantyke, Maractus, Volcanion, Chinchou, Lanturn, Suicune, Cacnea, " +
+                "Cacturne, Tympole, Palpitoad, Seismitoad, Frillish, Jellicent, Poliwag, Poliwhirl, Poliwrath, " +
+                "Politoed, Wooper, Quagsire";
 
         // Check if Pokémon are on these lists. Create nice Strings to print to chat and add as hovers.
         if (motorDrive.contains(pName))
@@ -749,10 +726,9 @@ public class CheckTypes implements CommandExecutor
         // Print messages if differently typed forms or Alolan forms are available.
         if (hasForms && showFormMessage)
         {
-            final String commandHelper = "§cCheck out: §6/" + commandAlias + " ";
+            final String commandHelper = "§cAlolan found! Check: §6/" + commandAlias + " ";
 
             src.sendMessage(Text.EMPTY);
-            src.sendMessage(Text.of("§dThis Pokémon has one or more forms with different types."));
 
             switch (pName)
             {
@@ -763,6 +739,8 @@ public class CheckTypes implements CommandExecutor
                     src.sendMessage(Text.of(commandHelper + "WormadamSandy§f, §6WormadamTrash§f")); break;
                 case "Rotom":
                     src.sendMessage(Text.of(commandHelper + "RotomHeat §f(or §6Wash§f/§6Frost§f/§6Fan§f/§6Mow§f)")); break;
+                case "Arceus":
+                    src.sendMessage(Text.of(commandHelper + "ArceusX §f(Replace \"§6X§f\" with the desired type)")); break;
 
                 // Small ones. We can show types on these, like the Alolan variants.
                 case "Shaymin":
@@ -777,10 +755,8 @@ public class CheckTypes implements CommandExecutor
         }
         else if (hasAlolanVariants && showAlolanMessage)
         {
-            final String commandHelper = "§cCheck out: §6/" + commandAlias + " ";
-
+            final String commandHelper = "§cForms found! Check: §6/" + commandAlias + " ";
             src.sendMessage(Text.EMPTY);
-            src.sendMessage(Text.of("§dThis Pokémon has an Alolan variant."));
 
             switch (pName)
             {

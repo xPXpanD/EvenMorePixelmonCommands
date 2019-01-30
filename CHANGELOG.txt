@@ -6,21 +6,22 @@ Released January 30th, 2019.
     * (regenerate ALL configs, copy back old data manually if necessary)
 
     Additions:
-    * Added the showing of levels to /checkstats and /showstats (hover only, there).
-    * /partyhatch: Replaces old /timedhatch party functionality. Has its own optional cooldown, if you want that.
+    * Added the showing of levels, abilities and happiness to /checkstats and /showstats (hover only, there).
+    * Also added a free re-show option to /showstats.
+    * /partyhatch: Replaces old /timedhatch party functionality. Has its own optional cooldown, if so desired.
     * /partyheal: Replaces old /timedheal party functionality. Can also do the whole cooldown thing.
 
-    Other changes:
+    Tweaks:
     * Bumped SpongeAPI to 7.1.0, Forge from 2655 to 2768 with the last pre-1.13 mappings. Might fix some issues?
     * Changed default alias for /checkstats into /gs, as /cs is taken by the super-common WorldEdit. :(
     * Merged the command listing and /pureload into /empc, using a child command setup. (just like PB)
     * Reload now reloads everything, always.
-    * Readied everything for gen 7!
+    * Readied almost everything for gen 7! /spawndex needs some love, still.
     * Replaced /checkegg with /checkstats, which now has all of the old command's features and settings.
     * Replaced /forcehatch with /timedhatch and /partyhatch.
     * Reworded /showstats anticheat wording to be a bit less paranoid.
 
-    Fixes and tweaks:
+    Fixes:
     * Fixed /timedhatch eating money when doing a party hatch with a cost set on a party that has no eggs.
     * Fixed a few issues with excess blank lines on syntax messages. Also hid confirmation stuff from console.
     * Fixed bad copy/paste comments in the /timedhatch and /timedheal configs.
@@ -41,7 +42,10 @@ Released June 6th, 2018.
     * Added a %pokemon% placeholder to /spawndex's fake message option, and updated its config.
     * Added no-economy support for everything except for /dittofusion and /upgradeivs, which show clean errors.
 
-    Fixes and tweaks:
+    Tweaks:
+    * Killed off a few unnecessary messages. Reworded a few others to convey the same info, where necessary.
+
+    Fixes:
     * Fixed "a blocks" typo on /fixgenders, when used from command blocks.
     * Fixed /pixelupgrade console info messages showing up as "PU Info info". Oops.
     * Fixed /pixelupgrade showing it hiding further messages when used from console, even though it wouldn't.
@@ -51,18 +55,9 @@ Released June 6th, 2018.
     * Fixed inconsistencies with several command errors. Might cause minor visual glitches -- please report.
     * Fixed missing EVSpecialDefense tag for /forcestats.
     * Fixed some inconsistencies with the /pixelupgrade (command listing) command descriptions.
-    * Removed a few unnecessary messages. Reworded a few others to convey the same info, where necessary.
 
 4.0.0 beta 1 for 6.2
 Released February 13th, 2018.
-
-    Minor (non-breaking) config changes:
-    * Changed a bunch of helper text to hopefully explain things a bit better.
-    * Changed the default numLinesPerPage for /pixelupgrade from 20 to 10 to accomodate smaller chats.
-    * Removed a few of the less useful config-set aliases. You can still set them manually.
-    * Removed commandCost from /checktypes as this info is easily Googled.
-    * Removed showFixEVsHelper from /checkstats as /fixevs was removed. See "Removed commands" for more info.
-    * Removed per-config versions, as they turned out to be useless.
 
     Major (breaking) config changes:
     * Completely reworked /showstats and its config; it now uses hovers for its info. Regenerate this config.
@@ -72,10 +67,11 @@ Released February 13th, 2018.
     * /spawndex: Spawns Pokémon based on their Pokédex number. Can add neat effects, like an outline.
     * /timedhatch: Hatches eggs (slot or party) on a configurable cooldown, for a configurable cost.
     * /timedheal: Heals Pokémon (slot or party) on a configurable cooldown, for a configurable cost.
-
-    Removals:
-    * /fixevs: As of Reforged 6.2, EVs cap at 252 (gen 6+ cap) instead of 255, making this command obsolete.
-    * /fixlevel: The bug it was made to fix (EVs not increasing when at the level cap) no longer exists.
+    * Added a fancy Unicode arrow ("➡") to /checktypes and the new /showstats hover mode.
+    * Added a Mew clone count check to /checkstats and /showstats.
+    * Added an alternate VIP cooldown to /showstats and the two new timed commands.
+    * Added battle checks to many commands, as they can't work reliably during battles. Prevents wasted cooldowns.
+    * Added Poipole (ID 803) and up to /checktypes and the new /spawndex.
 
     Experimental console support:
     * /checkstats
@@ -94,16 +90,21 @@ Released February 13th, 2018.
     * /timedheal (bypasses cooldowns, can be wired to do stuff like healing zones!)
     * /timedhatch (bypasses cooldowns, can be wired to automatically hatch whole teams)
 
-    Other changes:
-    * Added a fancy Unicode arrow ("➡") to /checktypes and the new /showstats hover mode.
-    * Added a Mew clone count check to /checkstats and /showstats.
-    * Added an alternate VIP cooldown to /showstats and the two new timed commands.
-    * Added battle checks to many commands, as they can't work reliably during battles. Prevents wasted cooldowns.
-    * Added Poipole (ID 803) and up to /checktypes and the new /spawndex.
-    * Also, made Alolan Pokémon in /checktypes accessible through the less awkward "/checktypes Alolan NAMEHERE".
+    Tweaks:
+    * Changed a bunch of helper text to hopefully explain things a bit better.
     * Changed many command messages to be a bit more professional.
     * Changed max-IV formatting for commands like /checkstats to italic to work around an external bug.
+    * Changed the default numLinesPerPage for /pixelupgrade from 20 to 10 to accomodate smaller chats.
     * Changing command aliases no longer requires a reboot. Experimental.
+    * Made /checkstats on eggs only refer to /checkegg if the player has its permissions. Still configurable.
+    * Made Alolan Pokémon in /checktypes accessible through the less awkward "/checktypes Alolan NAMEHERE".
+    * Made names like "Tapu Koko" work in /checktypes.
+    * Moved /showstats from chat printing to a far cleaner and smaller setup using hovers.
+    * Rewrote the internal config loader. Mostly helps maintainability, but filesize also benefits.
+    * Shortened many console messages. Work in progress.
+    * Switched to a #.#.# versioning system again (major/minor/patch) and started keeping proper changelogs!
+
+    Fixes:
     * Fixed /checkegg mentioning free rechecks when no price is set. It'll now continue silently.
     * Fixed /checkstats not showing the nickname on shiny Pokémon.
     * Fixed /checkstats's gender/size/nature line occasionally splitting into two? Hopefully THIS works.
@@ -114,14 +115,16 @@ Released February 13th, 2018.
     * Fixed main config not loading correctly if command configs were missing but a main config DID exist.
     * Fixed missing spaces in front of the pipes when showing EVs in /checkstats.
     * Fixed a bunch of other bugs that were too small to mention, mostly formatting issues.
-    * Made /checkstats on eggs only refer to /checkegg if the player has its permissions. Still configurable.
-    * Made names like "Tapu Koko" work in /checktypes.
+
+    Removals:
+    * /fixevs: As of Reforged 6.2, EVs cap at 252 (gen 6+ cap) instead of 255, making this command obsolete.
+    * /fixlevel: The bug it was made to fix (EVs not increasing when at the level cap) no longer exists.
+    * Removed a few of the less useful config-set aliases. You can still set them manually.
     * Removed a few older internal aliases that weren't being shown anywhere anyways.
     * Removed baby IV checks from several commands, as Reforged updated to the gen6+ way of doing things.
-    * Removed the chat printing option from /showstats, moved to a far cleaner and smaller setup using hovers.
-    * Rewrote the internal config loader. Mostly helps maintainability, but filesize also benefits.
-    * Shortened many console messages to fit a standard Windows Command Prompt window. Work in progress.
-    * Switched to a #.#.# versioning system again (major/minor/patch) and started keeping proper changelogs!
+    * Removed commandCost from /checktypes as this info is easily Googled.
+    * Removed per-config versions, as they turned out to be useless.
+    * Removed showFixEVsHelper from /checkstats as /fixevs was removed. See "Removed commands" for more info.
 
 3.0 for 6.0
 Released December 28, 2017.

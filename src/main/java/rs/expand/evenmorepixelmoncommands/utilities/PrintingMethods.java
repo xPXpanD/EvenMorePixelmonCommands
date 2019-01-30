@@ -38,7 +38,7 @@ public class PrintingMethods
                 printBasicError("Could not determine logging status from main config! Falling back to defaults.");
 
             getConsole().ifPresent(console ->
-                    console.sendMessage(Text.of("§3EMPC | " + callSource + " §f// §b" + inputString)));
+                    console.sendMessage(Text.of("§3EMPC §f// §3" + callSource + " §f// §b" + inputString)));
         }
     }
 
@@ -53,7 +53,7 @@ public class PrintingMethods
     public static void printSourcedError(final String callSource, final String inputString)
     {
         getConsole().ifPresent(console ->
-                console.sendMessage(Text.of("§4EMPC | " + callSource + " §f// §4Error: §c" + inputString)));
+                console.sendMessage(Text.of("§4EMPC §f// §4" + callSource + " §f// §4Error: §c" + inputString)));
     }
 
     // If we can't read a main config parameter, get a bit clever and show everything that went wrong.

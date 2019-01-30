@@ -198,7 +198,7 @@ public class PartyHatch implements CommandExecutor
                                 cooldownMap.put(playerUUID, currentTime);
 
                                 // Hatch!
-                                hatchParty(party);
+                                hatchParty(src, target, party);
 
                                 if (target == null)
                                 {
@@ -209,9 +209,6 @@ public class PartyHatch implements CommandExecutor
                                 {
                                     printSourcedMessage(sourceName, "Player §3" + player.getName() + " §bis hatching §3" +
                                             target.getName() + "§b's party. Taking §3" + costToConfirm + "§b coins.");
-
-                                    src.sendMessage(Text.of("§aYou've successfully hatched §2" + src.getName() + "§a's eggs."));
-                                    target.sendMessage(Text.of("§aYour party's eggs were hatched by §2" + src.getName() + "§a!"));
                                 }
                             }
                             else
@@ -266,7 +263,7 @@ public class PartyHatch implements CommandExecutor
                 else
                 {
                     // Hatch!
-                    hatchParty(party);
+                    hatchParty(src, target, party);
 
                     if (!calledRemotely)
                     {
@@ -276,9 +273,6 @@ public class PartyHatch implements CommandExecutor
                             //noinspection ConstantConditions - !calledRemotely guarantees this is safe
                             printSourcedMessage(sourceName, "Called by §3" + player.getName() +
                                     "§b, hatching §3" + target.getName() + "§b's party.");
-
-                            src.sendMessage(Text.of("§aYou've successfully hatched §2" + src.getName() + "§a's eggs."));
-                            target.sendMessage(Text.of("§aYour party's eggs were hatched by §2" + src.getName() + "§a!"));
                         }
 
                         cooldownMap.put(playerUUID, currentTime);
@@ -288,9 +282,6 @@ public class PartyHatch implements CommandExecutor
                         //noinspection ConstantConditions - safe, just too complicated
                         printSourcedMessage(sourceName, "Called from remote source, hatching §3" +
                                 target.getName() + "§b's party if available.");
-
-                        if (!sneakyMode)
-                            target.sendMessage(Text.of("§aYour party's eggs were hatched remotely!"));
                     }
                 }
             }
@@ -364,15 +355,31 @@ public class PartyHatch implements CommandExecutor
     }
 
     // Hatch us a whole party of eggs! Possibly. Check before you wreck. Returns success status.
-    private void hatchParty(final PartyStorage storage)
+    private void hatchParty(final CommandSource src, final Player target, final PartyStorage party)
     {
         // Create some variables to fill in as we go. Remember: slots start from zero!
         Pokemon pokemon;
         for (int i = 0; i <= 5; i++)
         {
-            pokemon = storage.get(i);
+            pokemon = party.get(i);
             if (pokemon != null && pokemon.isEgg())
                 pokemon.hatchEgg();
         }
+
+        if (target != null)
+        {
+            if (calledRemotely && sneakyMode)
+                sendCheckedMessage(src,"§aThe targeted party's eggs have been silently hatched!");
+            else
+            {
+                sendCheckedMessage(src,"§aThe targeted party's eggs have been hatched!");
+                if (!calledRemotely)
+                    target.sendMessage(Text.of("§aYour eggs were hatched by §2" + src.getName() + "§a!"));
+                else
+                    target.sendMessage(Text.of("§aYour eggs were hatched remotely!"));
+            }
+        }
+        else
+            sendCheckedMessage(src,"§aYour eggs have been hatched!");
     }
 }

@@ -544,6 +544,8 @@ public class ConfigMethods
                     toBooleanObject(showStatsConfig.getNode("notifyBadNicknames").getString());
             ShowStats.commandCost =
                     interpretInteger(showStatsConfig.getNode("commandCost").getString());
+            ShowStats.reshowIsFree =
+                    toBooleanObject(showStatsConfig.getNode("reshowIsFree").getString());
 
             // /spawndex
             currentCommand = "SpawnDex";

@@ -191,7 +191,7 @@ public class PartyHeal implements CommandExecutor
                                 cooldownMap.put(playerUUID, currentTime);
 
                                 // Heal!
-                                party.heal();
+                                healParty(src, target, party);
 
                                 if (target == null)
                                 {
@@ -202,9 +202,6 @@ public class PartyHeal implements CommandExecutor
                                 {
                                     printSourcedMessage(sourceName, "Player §3" + player.getName() + " §bis healing §3" +
                                             target.getName() + "§b's party. Taking §3" + costToConfirm + "§b coins.");
-
-                                    src.sendMessage(Text.of("§aYou've successfully healed §2" + src.getName() + "§a's Pokémon."));
-                                    target.sendMessage(Text.of("§aYour party's Pokémon were healed by §2" + src.getName() + "§a!"));
                                 }
                             }
                             else
@@ -259,7 +256,7 @@ public class PartyHeal implements CommandExecutor
                 else
                 {
                     // Heal!
-                    party.heal();
+                    healParty(src, target, party);
 
                     if (!calledRemotely)
                     {
@@ -269,9 +266,6 @@ public class PartyHeal implements CommandExecutor
                             //noinspection ConstantConditions - !calledRemotely guarantees this is safe
                             printSourcedMessage(sourceName, "Called by §3" + player.getName() +
                                     "§b, healing §3" + target.getName() + "§b's party.");
-
-                            src.sendMessage(Text.of("§aYou've successfully healed §2" + src.getName() + "§a's Pokémon."));
-                            target.sendMessage(Text.of("§aYour party's Pokémon were healed by §2" + src.getName() + "§a!"));
                         }
 
                         cooldownMap.put(playerUUID, currentTime);
@@ -281,9 +275,6 @@ public class PartyHeal implements CommandExecutor
                         //noinspection ConstantConditions - safe, just too complicated
                         printSourcedMessage(sourceName, "Called from remote source, healing §3" +
                                 target.getName() + "§b's party if available.");
-
-                        if (!sneakyMode)
-                            target.sendMessage(Text.of("§aYour party's Pokémon were healed remotely!"));
                     }
                 }
             }
@@ -337,5 +328,27 @@ public class PartyHeal implements CommandExecutor
             else
                 sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " " + confirmString);
         }
+    }
+
+    // Heal all of a party's Pokémon! Also, show the right messages.
+    private void healParty(final CommandSource src, final Player target, final PartyStorage party)
+    {
+        party.heal();
+
+        if (target != null)
+        {
+            if (calledRemotely && sneakyMode)
+                sendCheckedMessage(src,"§aThe targeted party has been silently healed!");
+            else
+            {
+                sendCheckedMessage(src,"§aThe targeted party has been healed!");
+                if (!calledRemotely)
+                    target.sendMessage(Text.of("§aYour Pokémon were healed by §2" + src.getName() + "§a!"));
+                else
+                    target.sendMessage(Text.of("§aYour Pokémon were healed remotely!"));
+            }
+        }
+        else
+            sendCheckedMessage(src,"§aYour party has been healed!");
     }
 }

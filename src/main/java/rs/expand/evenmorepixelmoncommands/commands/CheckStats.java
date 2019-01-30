@@ -13,7 +13,6 @@ import java.util.Optional;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.EVStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.IVStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
-import com.pixelmonmod.pixelmon.enums.EnumGrowth;
 import com.pixelmonmod.pixelmon.enums.EnumNature;
 import com.pixelmonmod.pixelmon.enums.forms.EnumAlolan;
 import com.pixelmonmod.pixelmon.storage.NbtKeys;
@@ -107,6 +106,7 @@ public class CheckStats implements CommandExecutor
                 boolean commandConfirmed = false;
                 final Optional<String> arg1Optional = args.getOne("target/slot");
                 final Optional<String> arg2Optional = args.getOne("slot/confirmation");
+                Pokemon pokemon = null;
                 Player target = null;
                 int slot = 0;
 
@@ -150,8 +150,6 @@ public class CheckStats implements CommandExecutor
                 }
                 else
                 {
-                    boolean canSkip = false;
-
                     // Ugly, but it'll do for now... Doesn't seem like my usual way of getting flags will work here.
                     final Optional<String> arg3Optional = args.getOne("confirmation");
 
@@ -167,24 +165,10 @@ public class CheckStats implements CommandExecutor
 
                         // Do we have a slot?
                         if (arg1String.matches("^[1-6]"))
-                        {
                             slot = Integer.parseInt(arg1String);
-
-                            // Is the player not allowed to check other people's Pokémon, and is there no cost? Skip ahead!
-                            if (!src.hasPermission("empc.command.other.checkstats") && economyEnabled && commandCost == 0)
-                                canSkip = true;
-                        }
                         // Is our calling player allowed to check other people's Pokémon, and is arg 1 a valid target?
                         else if (src.hasPermission("empc.command.other.checkstats") && Sponge.getServer().getPlayer(arg1String).isPresent())
-                        {
                             target = Sponge.getServer().getPlayer(arg1String).get();
-
-                            if (src.getName().equalsIgnoreCase(arg1String))
-                            {
-                                printLocalError(src, "§4Error: §cIf you want to see your own team, just look left!");
-                                return CommandResult.empty();
-                            }
-                        }
                         else
                         {
                             if (src.hasPermission("empc.command.other.checkstats"))
@@ -202,7 +186,7 @@ public class CheckStats implements CommandExecutor
                     }
 
                     // Can we continue, were we not told to skip and do we not have a slot already? Check arg 2 for one.
-                    if (!canSkip && slot == 0)
+                    if (slot == 0)
                     {
                         if (arg2Optional.isPresent())
                         {
@@ -232,8 +216,9 @@ public class CheckStats implements CommandExecutor
                 else
                     party = Pixelmon.storageManager.getParty((EntityPlayerMP) src);
 
-                // Get the Pokémon in the targeted slot.
-                final Pokemon pokemon = party.get(slot - 1);
+                // Get the Pokémon in the targeted slot, if a slot is present.
+                if (slot != 0)
+                    pokemon = party.get(slot - 1);
 
                 // Start checking!
                 if (slot == 0)
@@ -253,7 +238,7 @@ public class CheckStats implements CommandExecutor
                 {
                     // Should this check be free? Only passes if we receive a "hey we checked this previously".
                     final boolean pokemonIsFree =
-                            recheckIsFree && pokemon.getPersistentData().getBoolean("previouslyChecked");
+                            recheckIsFree && pokemon.getPersistentData().getBoolean("wasChecked");
 
                     // Don't use economy for console! Also, skip if we're checking a known Pokémon with free rechecks on.
                     if (economyEnabled && !calledRemotely && commandCost > 0 && !pokemonIsFree)
@@ -347,20 +332,7 @@ public class CheckStats implements CommandExecutor
             src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <target> [slot? 1-6]"));
         else
         {
-            final String confirmString;
-            if (economyEnabled && commandCost > 0)
-            {
-                src.sendMessage(Text.EMPTY);
-
-                if (commandCost == 1)
-                    src.sendMessage(Text.of("§eConfirming will cost you §6one §ecoin."));
-                else
-                    src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coins."));
-
-                confirmString = " {-c to confirm}";
-            }
-            else
-                confirmString = "";
+            final String confirmString = economyEnabled && commandCost > 0 ? " {-c to confirm}" : "";
 
             if (src.hasPermission("empc.command.other.checkstats"))
             {
@@ -374,16 +346,37 @@ public class CheckStats implements CommandExecutor
                 src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6>" + confirmString +
                         " §7(no perms for target)"));
             }
+            if (economyEnabled && commandCost > 0)
+            {
+                src.sendMessage(Text.EMPTY);
+
+                if (commandCost == 1)
+                    src.sendMessage(Text.of("§eConfirming will cost you §6one §ecoin."));
+                else
+                    src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coins."));
+            }
         }
 
         src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
 
-    // TODO: Support for showing own team. Target screwiness fix.
-    private void checkParty(final CommandSource src, final Player target, final PartyStorage party, final boolean calledRemotely)
+    private void checkParty(final CommandSource src, Player target, final PartyStorage party, final boolean calledRemotely)
     {
         src.sendMessage(Text.of("§7-----------------------------------------------------"));
-        src.sendMessage(Text.of("§eNo slot found, showing whole team."));
+
+        // Target can't be null if we were called from console/block, as we'd have errored out earlier.
+        if (target == null)
+            target = (Player) src;
+
+        // Similar to the above. Always grab target if called remotely. Run on the player if they match their target.
+        final String targetString = calledRemotely || target != src ? " " + target.getName() : "";
+
+        // Find out who we're checking, and print that.
+        if (src instanceof Player && src.getName().equals(target.getName()))
+            src.sendMessage(Text.of("§eNo slot found, showing your whole team."));
+        else
+            src.sendMessage(Text.of("§eNo slot found, showing §6" + target.getName() + "§e's whole team."));
+
         src.sendMessage(Text.EMPTY);
 
         int slotTicker = 0;
@@ -392,23 +385,28 @@ public class CheckStats implements CommandExecutor
             if (slotTicker > 5)
                 break;
 
-            final String start = "§bSlot " + (slotTicker + 1) + "§f: ";
             if (pokemon == null)
-                src.sendMessage(Text.of(start + "§2Empty§a."));
+                src.sendMessage(Text.of("§bSlot " + (slotTicker + 1) + "§f: §2Empty§a."));
             else if (pokemon.isEgg())
-                src.sendMessage(Text.of(start + "§aAn §2egg§a."));
+                src.sendMessage(Text.of("§bSlot " + (slotTicker + 1) + "§f: §aAn §2egg§a."));
             else
             {
-                final String localizedName = pokemon.getLevel() + "§2 " + pokemon.getSpecies().getLocalizedName();
+                // We'll need these a few times, so create variables for them.
+                final String localizedName = pokemon.getSpecies().getLocalizedName();
                 final String nickname = pokemon.getNickname();
 
+                // Set up some Strings for our message. Fill them in appropriately depending on the Pokémon.
+                final String alolanString = pokemon.getFormEnum() == EnumAlolan.ALOLAN ? "Alolan " : "";
+                final String shinyString = pokemon.isShiny() ? "§2§lshiny§r §a" : "";
+                final String nicknameString;
                 if (nickname != null && !nickname.isEmpty() && !nickname.equals(localizedName))
-                {
-                    src.sendMessage(Text.of(start + "§aA level " + localizedName +
-                            "§a, nicknamed §2" + pokemon.getNickname() + "§a."));
-                }
+                    nicknameString = ", nicknamed §2" + pokemon.getNickname() + "§a.";
                 else
-                    src.sendMessage(Text.of(start + "§aA level " + localizedName + "§a."));
+                    nicknameString = ".";
+
+                // Report back.
+                src.sendMessage(Text.of("§bSlot " + (slotTicker + 1) + "§f: §aA " + shinyString + "level " + pokemon.getLevel() +
+                        "§2 " + alolanString + localizedName + "§a" + nicknameString));
             }
 
             slotTicker++;
@@ -418,7 +416,7 @@ public class CheckStats implements CommandExecutor
 
         if (economyEnabled && !calledRemotely && commandCost > 0)
         {
-            src.sendMessage(Text.of("§eWant more info? §6/" + commandAlias + " " + target.getName() +
+            src.sendMessage(Text.of("§eWant more info? §6/" + commandAlias + targetString +
                     " <slot, 1-6> {-c to confirm}"));
 
             if (commandCost == 1)
@@ -428,7 +426,7 @@ public class CheckStats implements CommandExecutor
                     commandCost + " §dcoins."));
         }
         else
-            src.sendMessage(Text.of("§eWant to know more? §6/" + commandAlias + " " + target.getName() + " <slot, 1-6>"));
+            src.sendMessage(Text.of("§eWant to know more? §6/" + commandAlias + targetString + " <slot, 1-6>"));
 
         src.sendMessage(Text.of("§7-----------------------------------------------------"));
     }
@@ -441,10 +439,9 @@ public class CheckStats implements CommandExecutor
 
         // Set up IVs and matching math. These are used everywhere.
         final IVStore IVs = pokemon.getIVs();
-        final int totalIVs =
-                IVs.get(StatsType.HP) + IVs.get(StatsType.Attack) + IVs.get(StatsType.Defence) +
-                IVs.get(StatsType.SpecialAttack) + IVs.get(StatsType.SpecialDefence) + IVs.get(StatsType.Speed);
-        final int percentIVs = totalIVs * 100 / 186;
+        final int percentIVs =
+                (IVs.get(StatsType.HP) + IVs.get(StatsType.SpecialAttack) + IVs.get(StatsType.SpecialDefence) +
+                IVs.get(StatsType.Attack) + IVs.get(StatsType.Defence) + IVs.get(StatsType.Speed)) * 100 / 186;
 
         // Check if our Pokémon is an egg. If it is, be careful with it and only reveal stats if explictly told to do so.
         if (!pokemon.isEgg() || revealEggStats || calledRemotely)
@@ -470,15 +467,6 @@ public class CheckStats implements CommandExecutor
             if (IVs.get(StatsType.Speed) > 30)
                 ivs6 = String.valueOf("§o") + ivs6;
 
-            // Get a bunch of important Pokémon stat data.
-            final EnumNature nature = pokemon.getNature();
-            final EnumGrowth growth = pokemon.getGrowth();
-            final String plusVal = '+' + getShorthand(nature.increasedStat);
-            final String minusVal = '-' + getShorthand(nature.decreasedStat);
-
-            // Set up a gender character. Console doesn't like Unicode genders, so if src is not a Player we'll use M/F/-.
-            final String genderChar = PokemonMethods.getGenderCharacter(src, pokemon.getGender().getForm());
-
             // Create a copy of the Pokémon's persistent data for extracting specific NBT info from.
             final NBTTagCompound pokemonNBT = pokemon.getPersistentData();
 
@@ -502,18 +490,17 @@ public class CheckStats implements CommandExecutor
 
             // Print out IVs using previously formatted Strings.
             src.sendMessage(Text.EMPTY);
-            src.sendMessage(Text.of("§bTotal IVs§f: §a" + totalIVs + "§f/§a186§f (§a" + percentIVs + "%§f)"));
-            src.sendMessage(Text.of("§bIVs§f: §a" + ivs1 + ivs2 + ivs3 + ivs4 + ivs5 + ivs6));
+            src.sendMessage(Text.of("§bIVs§f: §a" + percentIVs +
+                    "% §f(§a" + ivs1 + ivs2 + ivs3 + ivs4 + ivs5 + ivs6 + "§f)"));
 
             // Do the same for EVs, if enabled in the config.
             if (showEVs && !pokemon.isEgg())
             {
                 // Rinse and repeat for EVs.
                 final EVStore EVs = pokemon.getEVs();
-                final int totalEVs =
-                        EVs.get(StatsType.HP) + EVs.get(StatsType.Attack) + EVs.get(StatsType.Defence) +
-                        EVs.get(StatsType.SpecialAttack) + EVs.get(StatsType.SpecialDefence) + EVs.get(StatsType.Speed);
-                final int percentEVs = totalEVs * 100 / 510;
+                final int percentEVs =
+                        (EVs.get(StatsType.HP) + EVs.get(StatsType.SpecialAttack) + EVs.get(StatsType.SpecialDefence) +
+                        EVs.get(StatsType.Attack) + EVs.get(StatsType.Defence) + EVs.get(StatsType.Speed)) * 100 / 510;
 
                 // Also format the strings for EVs.
                 String evs1 = String.valueOf(EVs.get(StatsType.HP) + " §2" + shortenedHP + statSeparator);
@@ -536,16 +523,33 @@ public class CheckStats implements CommandExecutor
                 if (EVs.get(StatsType.Speed) > 251)
                     evs6 = String.valueOf("§o") + evs6;
 
-                src.sendMessage(Text.of("§bTotal EVs§f: §a" + totalEVs + "§f/§a510§f (§a" + percentEVs + "%§f)"));
-                src.sendMessage(Text.of("§bEVs§f: §a" + evs1 + evs2 + evs3 + evs4 + evs5 + evs6));
+                src.sendMessage(Text.of("§bEVs§f: §a" + percentEVs +
+                        "% §f(§a" + evs1 + evs2 + evs3 + evs4 + evs5 + evs6 + "§f)"));
             }
 
+            // Get a bunch of important Pokémon stat data.
+            final EnumNature nature = pokemon.getNature();
+            final String plusVal = '+' + getShorthand(nature.increasedStat);
+            final String minusVal = '-' + getShorthand(nature.decreasedStat);
+
+            // Set up a gender character. Console doesn't like Unicode genders, so if src is not a Player we'll use M/F/-.
+            final String genderChar = PokemonMethods.getGenderCharacter(src, pokemon.getGender().getForm());
+
+            // Figure out how happy the Pokémon is.
+            final int happiness = pokemon.getFriendship();
+            final String happinessString;
+            if (happiness > 250) // Whoa!
+                happinessString = "§o" + happiness + "!§r";
+            else if (happiness < 50) // Oof...
+                happinessString = happiness + "...";
+            else // Eh.
+                happinessString = String.valueOf(happiness);
+
             // Show extra info, which we grabbed from PokemonMethods.
-            final String extraInfo1 = String.valueOf("§bGender§f: " + genderChar +
-                    "§r | §bSize§f: " + growth.name() + "§f | ");
-            final String extraInfo2 = String.valueOf("§bNature§f: " + nature.name() +
-                    "§f (§a" + plusVal + "§f/§c" + minusVal + "§f)");
-            src.sendMessage(Text.of(extraInfo1 + extraInfo2));
+            src.sendMessage(Text.of("§bAbility§f: " + pokemon.getAbility().getLocalizedName() +
+                    "§f | §bNature§f: " + nature.name().toLowerCase() + "§f (§a" + plusVal + "§f/§c" + minusVal + "§f)"));
+            src.sendMessage(Text.of("§bGender§f: " + genderChar + "§r | §bSize§f: " +
+                    pokemon.getGrowth().name() + "§f | §bHappiness§f: " + happinessString));
 
             // Check and show whether the Pokémon can be upgraded/fused further, if enabled in config.
             /*final boolean isDitto = pokemon.getSpecies().getPokemonName().equals("Ditto");
@@ -672,16 +676,13 @@ public class CheckStats implements CommandExecutor
 
         if (economyEnabled && commandCost > 0 && recheckIsFree)
         {
-            if (pokemon.getPersistentData().getBoolean("previouslyChecked"))
+            if (pokemon.getPersistentData().getBoolean("wasChecked"))
             {
-                // Add a blank line to avoid clutter in the chat, if necessary.
-                if (!pokemon.isShiny() || !revealEggStats)
-                    src.sendMessage(Text.EMPTY);
-
+                src.sendMessage(Text.EMPTY);
                 src.sendMessage(Text.of("§dThis Pokémon was checked before, so this check was free!"));
             }
             else // Write the "free rechecks" tag to the Pokémon for future use.
-                pokemon.getPersistentData().setBoolean("hadEggChecked", true);
+                pokemon.getPersistentData().setBoolean("wasChecked", true);
         }
 
         // Finish up the output text box. Done!

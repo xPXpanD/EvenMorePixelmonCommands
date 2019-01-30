@@ -3,7 +3,9 @@ package rs.expand.evenmorepixelmoncommands.commands;
 
 // Remote imports.
 import com.pixelmonmod.pixelmon.RandomHelper;
+import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.api.pokemon.PokemonSpec;
+import com.pixelmonmod.pixelmon.comm.EnumUpdateType;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,8 +33,8 @@ import rs.expand.evenmorepixelmoncommands.utilities.PokemonMethods;
 
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;
 
-// TODO: Add target and console support.
 // TODO: Add more flags, like scale/special texture/IVs/EnumBossMode. Needs testing with 7.0 stuff.
+// TODO: Add Alolan Pokémon support.
 // FIXME: Some names with multiple words (like "Mime Jr.") don't work right. Hard to fix, but nice polish?
 public class SpawnDex implements CommandExecutor
 {
@@ -187,7 +189,6 @@ public class SpawnDex implements CommandExecutor
                     // Make pretty names out of internal ones. They seem to be spawnable, too.
                     switch (pokemonName.toUpperCase())
                     {
-                        // Stuff that's currently in.
                         case "NIDORANFEMALE":
                             pokemonName = "Nidoran♀"; break;
                         case "NIDORANMALE":
@@ -202,8 +203,6 @@ public class SpawnDex implements CommandExecutor
                             pokemonName = "Mime Jr."; break;
                         case "FLABEBE":
                             pokemonName = "Flabébé"; break;
-
-                        // Stuff that's not in, yet. Added so we're ready for future updates. Probably needs work.
                         case "TYPENULL":
                             pokemonName = "Type: Null"; break;
                         case "JANGMOO":

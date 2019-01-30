@@ -26,7 +26,6 @@ import org.spongepowered.api.text.Text;
 import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
 import static rs.expand.evenmorepixelmoncommands.EMPC.economyEnabled;
 import static rs.expand.evenmorepixelmoncommands.EMPC.economyService;
-import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printBasicError;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedMessage;
 
@@ -186,16 +185,7 @@ public class SwitchGender implements CommandExecutor
 
     private void switchGenders(final Pokemon pokemon, final CommandSource src)
     {
-        // Set up some variables we'll need.
-        final String pokemonName;
         final String genderName;
-        final String nickname = pokemon.getNickname();
-
-        // Do we have an actual nickname? Use that over the localized name if it's there.
-        if (nickname == null || nickname.isEmpty())
-            pokemonName = pokemon.getSpecies().getLocalizedName();
-        else
-            pokemonName = pokemon.getNickname();
 
         switch (pokemon.getGender())
         {
@@ -207,6 +197,6 @@ public class SwitchGender implements CommandExecutor
                 genderName = "male"; break;
         }
 
-        src.sendMessage(Text.of("§aMagic! Your §2" + pokemonName + "§a just turned into a " + genderName + "!"));
+        src.sendMessage(Text.of("§aMagic! Your Pokémon just turned " + genderName + "!"));
     }
 }

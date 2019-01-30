@@ -43,7 +43,8 @@ public class ShowStats implements CommandExecutor
     // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
     public static Integer cooldownInSeconds, altCooldownInSeconds, commandCost;
-    public static Boolean showNicknames, showEVs, showExtraInfo, showCounts, clampBadNicknames, notifyBadNicknames;
+    public static Boolean showNicknames, showEVs, showExtraInfo, showCounts, clampBadNicknames, notifyBadNicknames,
+                          reshowIsFree;
 
     // Set up some more variables for internal use.
     private String sourceName = this.getClass().getSimpleName();
@@ -77,6 +78,8 @@ public class ShowStats implements CommandExecutor
                 commandErrorList.add("notifyBadNicknames");
             if (commandCost == null)
                 commandErrorList.add("commandCost");
+            if (reshowIsFree == null)
+                commandErrorList.add("reshowIsFree");
 
             // Also get some stuff from EvenMorePixelmonCommands.conf.
             final List<String> mainConfigErrorArray = new ArrayList<>();
@@ -105,44 +108,36 @@ public class ShowStats implements CommandExecutor
             }
             else
             {
-                /*if (showCounts)
+                // Start checking whether the player's stuck in a cooldown.
+                final long currentTime = System.currentTimeMillis() / 1000; // Grab seconds.
+                final UUID playerUUID = ((Player) src).getUniqueId(); // why is the "d" in "Id" lowercase :(
+                if (!src.hasPermission("empc.command.bypass.showstats") && cooldownMap.containsKey(playerUUID))
                 {
-                    final List<String> upgradeErrorArray = new ArrayList<>();
-                    final List<String> fusionErrorArray = new ArrayList<>();
+                    final boolean hasAltPerm = src.hasPermission("empc.command.altcooldown.showstats");
+                    final long timeDifference = currentTime - cooldownMap.get(playerUUID);
+                    final long timeRemaining;
 
-                    printToLog(2, "Entering external config validation. Errors will be logged.");
-
-                    if (DittoFusion.regularCap == null)
-                        fusionErrorArray.add("regularCap");
-                    if (DittoFusion.shinyCap == null)
-                        fusionErrorArray.add("shinyCap");
-                    PrintingMethods.printPartialNodeError("ShowStats", "DittoFusion", fusionErrorArray);
-
-                    if (UpgradeIVs.legendaryAndShinyCap == null)
-                        upgradeErrorArray.add("legendaryAndShinyCap");
-                    if (UpgradeIVs.legendaryCap == null)
-                        upgradeErrorArray.add("legendaryCap");
-                    if (UpgradeIVs.regularCap == null)
-                        upgradeErrorArray.add("regularCap");
-                    if (UpgradeIVs.shinyCap == null)
-                        upgradeErrorArray.add("shinyCap");
-                    PrintingMethods.printPartialNodeError("ShowStats", "UpgradeIVs", upgradeErrorArray);
-
-                    if (!fusionErrorArray.isEmpty() || !upgradeErrorArray.isEmpty())
-                    {
-                        printToLog(0, "Found invalid variables in remote config(s). Disabling integration.");
-
-                        // Set up our "got an error" flags. Reset to false if we didn't, so we don't cause issues later.
-                        if (!fusionErrorArray.isEmpty() || !upgradeErrorArray.isEmpty())
-                            gotExternalConfigError = true;
-                    }
+                    if (hasAltPerm)
+                        timeRemaining = altCooldownInSeconds - timeDifference;
                     else
-                        printToLog(2, "External config loading is done. Moving on to argument parsing.");
-                }*/
+                        timeRemaining = cooldownInSeconds - timeDifference;
+
+                    if (hasAltPerm && cooldownMap.get(playerUUID) > currentTime - altCooldownInSeconds ||
+                            !hasAltPerm && cooldownMap.get(playerUUID) > currentTime - cooldownInSeconds)
+                    {
+                        if (timeRemaining == 1)
+                            printLocalError(src, "§4Error: §cYou must wait §4one §cmore second. You can do this!", true);
+                        else if (timeRemaining > 60)
+                            printLocalError(src, "§4Error: §cYou must wait another §4" + ((timeRemaining / 60) + 1) + "§c minutes.", true);
+                        else
+                            printLocalError(src, "§4Error: §cYou must wait another §4" + timeRemaining + "§c seconds.", true);
+
+                        return CommandResult.success();
+                    }
+                }
 
                 boolean commandConfirmed = false;
                 final int slot;
-                final long currentTime = System.currentTimeMillis() / 1000; // Grab seconds.
 
                 if (!args.<String>getOne("slot").isPresent())
                 {
@@ -173,41 +168,18 @@ public class ShowStats implements CommandExecutor
                     src.sendMessage(Text.of("§4Error: §cYou don't have anything in that slot!"));
                     return CommandResult.empty();
                 }
-                else if (pokemon.isEgg())
+                else if (pokemon.isEgg()) // TODO: Maybe replace with (configurable) vague stat showing. CheckStats style.
                 {
                     src.sendMessage(Text.of("§4Error: §cThat's an egg. Go hatch it, first."));
                     return CommandResult.empty();
                 }
                 else
                 {
-                    final UUID playerUUID = ((Player) src).getUniqueId(); // why is the "d" in "Id" lowercase :(
+                    // Should this show-off be free? Only passes if we receive a "hey we showed this off previously".
+                    final boolean pokemonIsFree =
+                            reshowIsFree && pokemon.getPersistentData().getBoolean("wasShown");
 
-                    if (!src.hasPermission("empc.command.bypass.showstats") && cooldownMap.containsKey(playerUUID))
-                    {
-                        final boolean hasAltPerm = src.hasPermission("empc.command.altcooldown.showstats");
-                        final long timeDifference = currentTime - cooldownMap.get(playerUUID);
-                        final long timeRemaining;
-
-                        if (hasAltPerm)
-                            timeRemaining = altCooldownInSeconds - timeDifference;
-                        else
-                            timeRemaining = cooldownInSeconds - timeDifference;
-
-                        if (hasAltPerm && cooldownMap.get(playerUUID) > currentTime - altCooldownInSeconds ||
-                                !hasAltPerm && cooldownMap.get(playerUUID) > currentTime - cooldownInSeconds)
-                        {
-                            if (timeRemaining == 1)
-                                printLocalError(src, "§4Error: §cYou must wait §4one §cmore second. You can do this!", true);
-                            else if (timeRemaining > 60)
-                                printLocalError(src, "§4Error: §cYou must wait another §4" + ((timeRemaining / 60) + 1) + "§c minutes.", true);
-                            else
-                                printLocalError(src, "§4Error: §cYou must wait another §4" + timeRemaining + "§c seconds.", true);
-
-                            return CommandResult.success();
-                        }
-                    }
-
-                    if (economyEnabled && commandCost > 0)
+                    if (economyEnabled && commandCost > 0 && !pokemonIsFree)
                     {
                         final BigDecimal costToConfirm = new BigDecimal(commandCost);
 
@@ -246,6 +218,8 @@ public class ShowStats implements CommandExecutor
                         }
                         else
                         {
+                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
+
                             // Is cost to confirm exactly one coin?
                             if (costToConfirm.compareTo(BigDecimal.ONE) == 0)
                                 src.sendMessage(Text.of("§6Warning: §eShowing off a Pokémon's stats costs §6one §ecoin."));
@@ -257,6 +231,7 @@ public class ShowStats implements CommandExecutor
 
                             src.sendMessage(Text.EMPTY);
                             src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
+                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         }
                     }
                     else
@@ -333,52 +308,8 @@ public class ShowStats implements CommandExecutor
         // Set up for our anti-cheat notifier.
         boolean nicknameTooLong = false;
 
-        // Get a bunch of important Pokémon stat data.
-        final EnumNature nature = pokemon.getNature();
-        final EnumGrowth growth = pokemon.getGrowth();
-        final String plusVal = '+' + getShorthand(nature.increasedStat);
-        final String minusVal = '-' + getShorthand(nature.decreasedStat);
-
         // Create a copy of the Pokémon's persistent data for extracting specific NBT info from.
         final NBTTagCompound pokemonNBT = pokemon.getPersistentData();
-
-        // Grab a gender string.
-        final String genderString;
-        switch (pokemon.getGender())
-        {
-            case Male:
-                genderString = "is §2male§a."; break;
-            case Female:
-                genderString = "is §2female§a."; break;
-            default:
-                genderString = "has §2no gender§a.";
-        }
-
-        // Grab a growth string.
-        final String sizeString;
-        switch (growth)
-        {
-            case Microscopic:
-                sizeString = " is §2§omicroscopic§r§a."; break; // NOW with fancy italicization!
-            case Pygmy:
-                sizeString = " is §2a pygmy§a."; break;
-            case Runt:
-                sizeString = " is §2a runt§a."; break;
-            case Small:
-                sizeString = " is §2small§a."; break;
-            case Ordinary:
-                sizeString = " is §2ordinary§a."; break;
-            case Huge:
-                sizeString = " is §2huge§a."; break;
-            case Giant:
-                sizeString = " is §2giant§a."; break;
-            case Enormous:
-                sizeString = " is §2enormous§a."; break;
-            case Ginormous:
-                sizeString = " is §2§nginormous§r§a."; break; // NOW with fancy underlining!
-            default:
-                sizeString = "'s size is §2unknown§a...?";
-        }
 
         // Set up name-related stuff.
         final String localizedName = pokemon.getSpecies().getLocalizedName();
@@ -389,7 +320,6 @@ public class ShowStats implements CommandExecutor
         // These always get added to printing, but are filled in only when necessary.
         final String shinyString = pokemon.isShiny() ? "§6§lshiny §r" : "";
         final String alolanString = pokemon.getFormEnum() == EnumAlolan.ALOLAN ? "§6Alolan " : "";
-        String nameAdditionString = "";
 
         // Do the first of two cheating checks. Might catch some less clever cheat tools.
         if (nickname != null && !nickname.isEmpty() && nickname.length() > 11)
@@ -403,24 +333,14 @@ public class ShowStats implements CommandExecutor
             nicknameTooLong = true;
         }
 
-        // Alter our earlier strings if necessary.
-        if (showNicknames)
-        {
-            if (nickname != null && !nickname.isEmpty() && !nickname.equals(localizedName))
-                nameAdditionString = "§e, nicknamed §6" + nickname + "§e:";
-        }
-
-        // Do the setup for our nature String separately, as it's a bit more involved.
-        final String natureString;
-        if (nature.index >= 0 && nature.index <= 4)
-            natureString = "is §2" + nature.name() + "§a, with well-balanced stats.";
-        else if (nature.index < 0 || nature.index > 24)
-            natureString = "has an §2unknown §anature...";
+        // Figure out what to add name-wise.
+        final String nameAdditionString;
+        if (showNicknames && nickname != null && !nickname.isEmpty() && !nickname.equals(localizedName))
+            nameAdditionString = "§e, nicknamed §6" + nickname + "§e:";
         else
-            natureString = "is §2" + nature.name() + "§a, boosting §2" + plusVal + " §aand cutting §2" + minusVal + "§a.";
+            nameAdditionString = "§e:";
 
         // Populate our ArrayList. Every entry will be its own line. May be a bit hacky, but it'll do.
-        // TODO: Maybe use a StringBuilder setup here as well. (see /checkstats)
         final List<String> hovers = new ArrayList<>();
         hovers.add("§eStats of §6" + player.getName() + "§e's level " + pokemon.getLevel() + " " +
                 shinyString + alolanString + formattedName + nameAdditionString);
@@ -466,10 +386,67 @@ public class ShowStats implements CommandExecutor
 
         if (showExtraInfo)
         {
+            // Get a bunch of important Pokémon stat data.
+            final EnumNature nature = pokemon.getNature();
+            final EnumGrowth growth = pokemon.getGrowth();
+            final String plusVal = getShorthand(nature.increasedStat);
+            final String minusVal = getShorthand(nature.decreasedStat);
+
+            // Grab a growth string.
+            final String sizeString;
+            switch (growth)
+            {
+                case Microscopic:
+                    sizeString = " is §2§omicroscopic§r§a."; break; // NOW with fancy italicization!
+                case Pygmy:
+                    sizeString = " is §2a pygmy§a."; break;
+                case Runt:
+                    sizeString = " is §2a runt§a."; break;
+                case Small:
+                    sizeString = " is §2small§a."; break;
+                case Ordinary:
+                    sizeString = " is §2ordinary§a."; break;
+                case Huge:
+                    sizeString = " is §2huge§a."; break;
+                case Giant:
+                    sizeString = " is §2giant§a."; break;
+                case Enormous:
+                    sizeString = " is §2enormous§a."; break;
+                case Ginormous:
+                    sizeString = " is §2§nginormous§r§a."; break; // NOW with fancy underlining!
+                default:
+                    sizeString = "'s size is §2unknown§a...?";
+            }
+
+            // Grab a gender string.
+            final String genderString;
+            switch (pokemon.getGender())
+            {
+                case Male:
+                    genderString = "is §2male§a."; break;
+                case Female:
+                    genderString = "is §2female§a."; break;
+                default:
+                    genderString = "has §2no gender§a.";
+            }
+
+            // Do the setup for our nature String separately, as it's a bit more involved.
+            final String natureString;
+            if (nature.index >= 0 && nature.index <= 4)
+                natureString = "is §2" + nature.name().toLowerCase() + "§a, with well-balanced stats.";
+            else if (nature.index < 0 || nature.index > 24)
+                natureString = "has an §2unknown §anature...";
+            else
+            {
+                natureString = "is §2" + nature.name().toLowerCase() +
+                        "§a, boosting §2" + plusVal + " §aand cutting §2" + minusVal + "§a.";
+            }
+
             hovers.add("§bExtra info§f:");
             hovers.add("➡ §aThis Pokémon" + sizeString);
             hovers.add("➡ §aIt " + genderString);
             hovers.add("➡ §aIt " + natureString);
+            hovers.add("➡ §aIt has the \"§2" + pokemon.getAbility().getLocalizedName() + "§a\" ability.");
 
             if (baseName.equals("Mew"))
             {
@@ -560,6 +537,17 @@ public class ShowStats implements CommandExecutor
 
         MessageChannel.TO_PLAYERS.send(Text.of("§7-----------------------------------------------------"));
         MessageChannel.TO_PLAYERS.send(ivBuilder);
+
+        if (economyEnabled && commandCost > 0 && reshowIsFree)
+        {
+            if (pokemon.getPersistentData().getBoolean("wasShown"))
+            {
+                player.sendMessage(Text.EMPTY);
+                player.sendMessage(Text.of("§dThis Pokémon was shown off before, so this one was free!"));
+            }
+            else // Write the "free rechecks" tag to the Pokémon for future use.
+                pokemon.getPersistentData().setBoolean("wasShown", true);
+        }
 
         // If our anti-cheat caught something, notify people with the correct permissions here.
         if (notifyBadNicknames && nicknameTooLong)

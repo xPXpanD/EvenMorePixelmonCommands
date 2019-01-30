@@ -29,7 +29,6 @@ import static rs.expand.evenmorepixelmoncommands.EMPC.*;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedMessage;
 
-// TODO: Update the economy setup to be in line with most other economy-using commands.
 public class ResetEVs implements CommandExecutor
 {
     // Declare some variables. We'll load stuff into these when we call the config loader.
@@ -188,6 +187,6 @@ public class ResetEVs implements CommandExecutor
         EVs.set(StatsType.Speed, 0);
 
         src.sendMessage(Text.of(
-                "§aYour §2" + pokemon.getSpecies().getLocalizedName() + "§a had its EVs wiped!"));
+                "§aYour Pokémon had its EVs wiped!"));
     }
 }

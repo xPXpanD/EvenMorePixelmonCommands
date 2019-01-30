@@ -38,16 +38,14 @@ import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.print
 // TODO: Look into name colors, or make a full-on rename command with color support. Maybe make it set a tag, and check.
 // TODO: Make a Pokéball changing command, get it to write the old ball to the Pokémon for ball sale purposes.
 // TODO: Do something with setPixelmonScale. Maybe a /spawnboss for super big high HP IV bosses with custom loot?
-// TODO: Make a random legendary dice roll spawner.
+// TODO: Make a random legendary dice roll spawner. Give commands already exist.
 // TODO: Allow people to unlock hidden abilities, probably through the economy. - Fabyoulust
 // TODO: Make a command that counts the Pokémon in the world, maybe also nearby. - Mikirae (comment, not suggestion)
 // TODO: Make a command that wipes a player's Pokédex. - Mikirae
 
 // Improvements to existing things:
 // TODO: Tab completion on player names.
-// TODO: Maybe add some nice "====" borders to config node errors?
 // TODO: Make just about every command with a target show said target a message when stuff is being used on them.
-// TODO: Check for more header/footer inconsistency. Might combine well with the below: vvv
 // TODO: Move everything to lang files.
 // TODO: Check if Kyurem fusion preserves custom tags.
 // TODO: Dive into fixing ForceStats for 7.0.
@@ -61,17 +59,20 @@ import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.print
         description = "A sidemod for Pixelmon Reforged that adds a bunch of new commands, some with economy integration.",
         authors = "XpanD"
 
-        // Not listed but certainly appreciated:
-
-        // NickImpact (helping me understand NBTs, and a bunch of useful snippets)
-        // Proxying (writing to entities in a copy-persistent manner)
-        // Karanum (fancy paginated command lists)
-        // Hiroku (helping with questions and setting up UTF-8 encoding, which made § work)
-        // Simon_Flash (helping with Sponge-related questions)
-        // Xenoyia (helping get PU off the ground, and co-owning the server it started on)
-        // ...and everybody else who contributed ideas and reported issues.
-
-        // Thanks for helping make PU what it is now, people!
+//        _____________________________________________________________________________________
+        /*                                                                                     *\
+        |   Not listed but certainly appreciated:                                               |
+        |                                                                                       |
+        |   * NickImpact (helping me understand NBTs, and a bunch of useful snippets)           |
+        |   * Proxying (writing to entities in a copy-persistent manner)                        |
+        |   * Karanum (fancy paginated command lists)                                           |
+        |   * Hiroku (helping with questions and setting up UTF-8 encoding, which made § work)  |
+        |   * Simon_Flash (helping with Sponge-related questions)                               |
+        |   * Xenoyia (helping get PU off the ground, and co-owning the server it started on)   |
+        |   * ...and everybody else who contributed ideas and reported issues.                  |
+        |                                                                                       |
+        |   Thanks for helping make PU what it is now, people!                                  |
+        \*_____________________________________________________________________________________*/
 )
 
 // Note: printUnformattedMessage is a static import for a method from PrintingMethods, for convenience.

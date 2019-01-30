@@ -7,6 +7,9 @@ import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.battles.BattleRegistry;
 import java.math.BigDecimal;
 import java.util.*;
+
+import com.pixelmonmod.pixelmon.enums.EnumBossMode;
+import com.pixelmonmod.pixelmon.enums.forms.EnumMega;
 import net.minecraft.entity.player.EntityPlayerMP;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.tileentity.CommandBlock;
@@ -269,11 +272,6 @@ public class TimedHeal implements CommandExecutor
                                     printSourcedMessage(sourceName, "Player §3" + player.getName() +
                                             "§b is healing slot §3" + slot + "§b for §3" + target.getName() +
                                             "§b. Taking §3" + costToConfirm + "§b coins.");
-
-                                    target.sendMessage(Text.of("§aYou've successfully healed §2" + src.getName() +
-                                            "§a's slot §2" + slot + "§a Pokémon!"));
-                                    target.sendMessage(Text.of("§aThe Pokémon in slot §2" + slot +
-                                                "§a was healed by §2" + src.getName() + "§a!"));
                                 }
                             }
                             else
@@ -326,12 +324,6 @@ public class TimedHeal implements CommandExecutor
                             //noinspection ConstantConditions - calledRemotely guarantees this is safe
                             printSourcedMessage(sourceName, "Called by §3" + player.getName() +
                                     "§b, hatching slot §3" +  slot + "§b for §3" + target.getName() + "§b.");
-
-                            target.sendMessage(Text.of("§aYou've successfully healed §2" + src.getName() +
-                                    "§a's slot §2" + slot + "§a Pokémon!"));
-
-                            target.sendMessage(Text.of("§aThe Pokémon in slot §2" + slot +
-                                        "§a was healed by §2" + src.getName() + "§a!"));
                         }
 
                         cooldownMap.put(playerUUID, currentTime);
@@ -341,9 +333,6 @@ public class TimedHeal implements CommandExecutor
                         //noinspection ConstantConditions - safe, just too complicated
                         printSourcedMessage(sourceName, "Called from remote source, healing §3" +
                                 target.getName() + "§b's slot §3" + slot + "§b Pokémon.");
-
-                        if (!sneakyMode)
-                            target.sendMessage(Text.of("§aThe Pokémon in slot §2" + slot + "§a was healed remotely!"));
                     }
                 }
             }

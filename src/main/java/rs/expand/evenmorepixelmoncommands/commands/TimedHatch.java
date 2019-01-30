@@ -269,11 +269,6 @@ public class TimedHatch implements CommandExecutor
                                     printSourcedMessage(sourceName, "Player §3" + player.getName() +
                                             "§b is hatching slot §3" + slot + "§b for §3" + target.getName() +
                                             "§b. Taking §3" + costToConfirm + "§b coins.");
-
-                                    target.sendMessage(Text.of("§aYou've successfully hatched §2" + src.getName() +
-                                            "§a's slot §2" + slot + "§a egg!"));
-                                    target.sendMessage(Text.of("§aThe egg in slot §2" + slot + "§a was hatched by §2" +
-                                            src.getName() + "§a!"));
                                 }
                             }
                             else
@@ -326,11 +321,6 @@ public class TimedHatch implements CommandExecutor
                             //noinspection ConstantConditions - calledRemotely guarantees this is safe
                             printSourcedMessage(sourceName, "Called by §3" + player.getName() +
                                     "§b, hatching slot §3" +  slot + "§b for §3" + target.getName() + "§b.");
-
-                            target.sendMessage(Text.of("§aYou've successfully hatched §2" + src.getName() +
-                                    "§a's slot §2" + slot + "§a egg!"));
-                            target.sendMessage(Text.of("§aThe egg in slot §2" + slot + "§a was hatched by §2" +
-                                    src.getName() + "§a!"));
                         }
 
                         cooldownMap.put(playerUUID, currentTime);
@@ -340,9 +330,6 @@ public class TimedHatch implements CommandExecutor
                         //noinspection ConstantConditions - safe, just too complicated
                         printSourcedMessage(sourceName, "Called from remote source, hatching §3" +
                                 target.getName() + "§b's party if available.");
-
-                        if (!sneakyMode)
-                            target.sendMessage(Text.of("§aThe egg in slot §2" + slot + "§a was hatched remotely!"));
                     }
                 }
             }
