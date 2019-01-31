@@ -8,7 +8,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-
 import org.spongepowered.api.Game;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.plugin.PluginContainer;
@@ -72,6 +71,11 @@ public class ConfigMethods
             else
                 Sponge.getCommandManager().register(empcContainer, basecommand, "evenmorepixelmoncommands", "empc");
 
+            if (CheckEVs.commandAlias != null && !CheckEVs.commandAlias.matches("checkevs"))
+                Sponge.getCommandManager().register(empcContainer, checkevs, "checkevs", CheckEVs.commandAlias);
+            else
+                Sponge.getCommandManager().register(empcContainer, checkevs, "checkevs");
+
             // Register all other commands.
             if (CheckStats.commandAlias != null && !CheckStats.commandAlias.matches("checkstats|getstats|checkegg"))
                 Sponge.getCommandManager().register(empcContainer, checkstats, "checkstats", "getstats", "checkegg", CheckStats.commandAlias);
@@ -103,15 +107,15 @@ public class ConfigMethods
             else
                 Sponge.getCommandManager().register(empcContainer, partyheal, "partyheal", "healparty");
 
-            if (ResetEVs.commandAlias != null && !ResetEVs.commandAlias.matches("resetevs|resetev"))
-                Sponge.getCommandManager().register(empcContainer, resetevs, "resetevs", "resetev", ResetEVs.commandAlias);
+            if (ResetEVs.commandAlias != null && !ResetEVs.commandAlias.matches("resetevs"))
+                Sponge.getCommandManager().register(empcContainer, resetevs, "resetevs", ResetEVs.commandAlias);
             else
-                Sponge.getCommandManager().register(empcContainer, resetevs, "resetevs", "resetev");
+                Sponge.getCommandManager().register(empcContainer, resetevs, "resetevs");
 
-            if (ShowStats.commandAlias != null && !ShowStats.commandAlias.matches("showstats|showstat"))
-                Sponge.getCommandManager().register(empcContainer, showstats, "showstats", "showstat", ShowStats.commandAlias);
+            if (ShowStats.commandAlias != null && !ShowStats.commandAlias.matches("showstats"))
+                Sponge.getCommandManager().register(empcContainer, showstats, "showstats", ShowStats.commandAlias);
             else
-                Sponge.getCommandManager().register(empcContainer, showstats, "showstats", "showstat");
+                Sponge.getCommandManager().register(empcContainer, showstats, "showstats");
 
             if (SpawnDex.commandAlias != null && !SpawnDex.commandAlias.equals("spawndex"))
                 Sponge.getCommandManager().register(empcContainer, spawndex, "spawndex", SpawnDex.commandAlias);
@@ -155,7 +159,7 @@ public class ConfigMethods
 
         // Format our commands and aliases and add them to the lists that we'll print in a bit.
         // TODO: If you add/remove a command, update this list and the numEntries counter!
-        final int numEntries = 12;
+        final int numEntries = 13;
         for (int i = 1; i <= numEntries; i++)
         {
             switch (i)
@@ -164,23 +168,29 @@ public class ConfigMethods
                 // This prevents NPEs while also letting us hide commands by checking whether they've returned null.
                 case 1:
                 {
+                    commandAlias = CheckEVs.commandAlias;
+                    commandString = "/checkevs";
+                    break;
+                }
+                case 2:
+                {
                     commandAlias = CheckStats.commandAlias;
                     commandString = "/checkstats";
                     break;
                 }
-                case 2:
+                case 3:
                 {
                     commandAlias = CheckTypes.commandAlias;
                     commandString = "/checktypes";
                     break;
                 }
-                case 3:
+                case 4:
                 {
                     commandAlias = EMPC.commandAlias;
                     commandString = "/empc";
                     break;
                 }
-                case 4:
+                case 5:
                 {
                     commandAlias = FixGenders.commandAlias;
                     commandString = "/fixgenders";
@@ -192,49 +202,49 @@ public class ConfigMethods
                     commandString = "/forcestats";
                     break;
                 }*/
-                case 5:
+                case 6:
                 {
                     commandAlias = PartyHatch.commandAlias;
                     commandString = "/partyhatch";
                     break;
                 }
-                case 6:
+                case 7:
                 {
                     commandAlias = PartyHeal.commandAlias;
                     commandString = "/partyheal";
                     break;
                 }
-                case 7:
+                case 8:
                 {
                     commandAlias = ResetEVs.commandAlias;
                     commandString = "/resetevs";
                     break;
                 }
-                case 8:
+                case 9:
                 {
                     commandAlias = ShowStats.commandAlias;
                     commandString = "/showstats";
                     break;
                 }
-                case 9:
+                case 10:
                 {
                     commandAlias = SpawnDex.commandAlias;
                     commandString = "/spawndex";
                     break;
                 }
-                case 10:
+                case 11:
                 {
                     commandAlias = SwitchGender.commandAlias;
                     commandString = "/switchgender";
                     break;
                 }
-                case 11:
+                case 12:
                 {
                     commandAlias = TimedHatch.commandAlias;
                     commandString = "/timedhatch";
                     break;
                 }
-                case 12:
+                case 13:
                 {
                     commandAlias = TimedHeal.commandAlias;
                     commandString = "/timedheal";
@@ -371,8 +381,6 @@ public class ConfigMethods
                     mainConfig.getNode("commandAlias").getString();
             EMPC.configVersion =
                     interpretInteger(mainConfig.getNode("configVersion").getString());
-            EMPC.logImportantInfo =
-                    toBooleanObject(mainConfig.getNode("logImportantInfo").getString());
             EMPC.numLinesPerPage =
                     interpretInteger(mainConfig.getNode("numLinesPerPage").getString());
             EMPC.shortenedHP =
@@ -387,6 +395,14 @@ public class ConfigMethods
                     mainConfig.getNode("shortenedSpecialDefense").getString();
             EMPC.shortenedSpeed =
                     mainConfig.getNode("shortenedSpeed").getString();
+
+            // /checkevs
+            currentCommand = "CheckEVs";
+            checkOrCreateConfig(currentCommand, checkEVsPath);
+            final CommentedConfigurationNode checkEVsConfig = EMPC.checkEVsLoader.load();
+
+            CheckEVs.commandAlias =
+                    checkEVsConfig.getNode("commandAlias").getString();
 
             // /checkstats
             currentCommand = "CheckStats";

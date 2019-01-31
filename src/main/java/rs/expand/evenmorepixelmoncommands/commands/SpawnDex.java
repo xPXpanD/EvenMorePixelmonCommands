@@ -28,7 +28,6 @@ import org.spongepowered.api.world.World;
 // Local imports.
 import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
 import rs.expand.evenmorepixelmoncommands.utilities.PokemonMethods;
-
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;
 
 // TODO: Add more flags, like scale/special texture/IVs/EnumBossMode. Needs testing with 7.0 stuff.
@@ -361,13 +360,10 @@ public class SpawnDex implements CommandExecutor
         src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <Pokémon name/number> {flags?} [radius?]"));
         src.sendMessage(Text.EMPTY);
         src.sendMessage(Text.of("§6Valid flags:"));
-        src.sendMessage(Text.of("§f➡ §6-f §f- §eBroadcasts a fake spawning message, as per the config."));
+        src.sendMessage(Text.of("§f➡ §6-f §f- §eBroadcasts a fake spawning message from the config."));
         src.sendMessage(Text.of("§f➡ §6-o §f- §eGives spawns an outline that shows through walls."));
         src.sendMessage(Text.of("§f➡ §6-r §f- §eSpawns a Pokémon randomly within the given radius."));
         /*src.sendMessage(Text.of("§f➡ §6-s §f- §eMakes spawns shiny."));*/
-        src.sendMessage(Text.EMPTY);
-        src.sendMessage(Text.of("§5Please note: §dOutlined Pokémon stay outlined if caught."));
-        src.sendMessage(Text.of("§dThe effect persists even through trades and evolutions!"));
         src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
 }

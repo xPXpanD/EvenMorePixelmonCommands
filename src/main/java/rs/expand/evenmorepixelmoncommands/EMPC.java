@@ -58,6 +58,8 @@ import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.print
 // TODO: Look deeper into whether in-battle healing and stuff is doable now. Cursory check had partial success.
 // TODO: When doing localization support, check 5 and 7 color ------ lines? Translate both types. (success/error)
 // TODO: Add console use support for /resetevs and /switchgenders.
+// TODO: Round up when close.
+// TODO: Clickables! Especially the command confirmation messages. Remember to underline.
 
 @Plugin
 (
@@ -72,15 +74,16 @@ import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.print
         /*                                                                                     *\
         |   Not listed but certainly appreciated:                                               |
         |                                                                                       |
-        |   * NickImpact (helping me understand NBTs, and a bunch of useful snippets)           |
+|-------|   * NickImpact (helping me understand NBTs, and a bunch of useful snippets)           |
         |   * Proxying (writing to entities in a copy-persistent manner)                        |
         |   * Karanum (fancy paginated command lists)                                           |
         |   * Hiroku (helping with questions and setting up UTF-8 encoding, which made § work)  |
         |   * Simon_Flash (helping with Sponge-related questions)                               |
+        |   * happyzlife (providing a ton of snippets and help for translation stuff)           |
         |   * Xenoyia (helping get PU off the ground, and co-owning the server it started on)   |
-        |   * ...and everybody else who contributed ideas and reported issues.                  |
+|-------|   * ...and everybody else who contributed ideas and reported issues.                  |
         |                                                                                       |
-        |   Thanks for helping make PU what it is now, people!                                  |
+        |   Thanks for helping make EMPC what it is now, people!                      -- XpanD  |
         \*_____________________________________________________________________________________*/
 )
 
@@ -98,7 +101,6 @@ public class EMPC
     public static String commandAlias;
 
     // Create a ton of variables for use by other commands. These will be filled in, too.
-    public static Boolean logImportantInfo;
     public static String shortenedHP, shortenedAttack, shortenedDefense, shortenedSpecialAttack, shortenedSpecialDefense;
     public static String shortenedSpeed;
 
@@ -109,6 +111,7 @@ public class EMPC
 
     // Create the config paths.
     public static Path primaryConfigPath = Paths.get(primaryPath, "EvenMorePixelmonCommands.conf");
+    public static Path checkEVsPath = Paths.get(commandConfigPath, "CheckEVs.conf");
     public static Path checkStatsPath = Paths.get(commandConfigPath, "CheckStats.conf");
     public static Path checkTypesPath = Paths.get(commandConfigPath, "CheckTypes.conf");
     public static Path fixGendersPath = Paths.get(commandConfigPath, "FixGenders.conf");
@@ -125,6 +128,8 @@ public class EMPC
     // Set up said paths.
     public static ConfigurationLoader<CommentedConfigurationNode> primaryConfigLoader =
             HoconConfigurationLoader.builder().setPath(primaryConfigPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> checkEVsLoader =
+            HoconConfigurationLoader.builder().setPath(checkEVsPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> checkStatsLoader =
             HoconConfigurationLoader.builder().setPath(checkStatsPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> checkTypesLoader =
@@ -172,6 +177,14 @@ public class EMPC
     /*                     *\
          Main commands.
     \*                     */
+
+    public static CommandSpec checkevs = CommandSpec.builder()
+            .permission("empc.command.checkevs")
+            .executor(new CheckEVs())
+            .arguments(
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("Pokémon name/ID"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("optional second word"))))
+            .build();
 
     public static CommandSpec checkstats = CommandSpec.builder()
             .permission("empc.command.checkstats")

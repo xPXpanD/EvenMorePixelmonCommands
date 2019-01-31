@@ -247,10 +247,12 @@ public class ShowStats implements CommandExecutor
         return CommandResult.success();
     }
 
-    // Create and print a command-specific error box that shows a provided String as the actual error.
+    // Create and print a command-specific error box (box bits optional) that shows a provided String as the actual error.
     private void printLocalError(final CommandSource src, final String input, final boolean hitCooldown)
     {
-        src.sendMessage(Text.of("§5-----------------------------------------------------"));
+        if (!hitCooldown)
+            src.sendMessage(Text.of("§5-----------------------------------------------------"));
+
         src.sendMessage(Text.of(input));
 
         if (!hitCooldown)
@@ -259,19 +261,19 @@ public class ShowStats implements CommandExecutor
                 src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6> {-c to confirm}"));
             else
                 src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " <slot, 1-6>"));
+
+            if (economyEnabled && commandCost > 0)
+            {
+                src.sendMessage(Text.EMPTY);
+
+                if (commandCost == 1)
+                    src.sendMessage(Text.of("§eConfirming will cost you §6one §ecoin."));
+                else
+                    src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coins."));
+            }
+
+            src.sendMessage(Text.of("§5-----------------------------------------------------"));
         }
-
-        if (economyEnabled && commandCost > 0)
-        {
-            src.sendMessage(Text.EMPTY);
-
-            if (commandCost == 1)
-                src.sendMessage(Text.of("§eConfirming will cost you §6one §ecoin."));
-            else
-                src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coins."));
-        }
-
-        src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
 
     private void checkAndShowStats(final Pokemon pokemon, final Player player)

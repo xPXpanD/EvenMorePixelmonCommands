@@ -1,57 +1,44 @@
-// Thanks for the command idea, MageFX!
+// Thanks for the idea, ElaDiDu! Managed to squeeze this in.
 package rs.expand.evenmorepixelmoncommands.commands;
 
 // Remote imports.
-import com.pixelmonmod.pixelmon.enums.EnumType;
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import com.pixelmonmod.pixelmon.entities.pixelmon.Entity3HasStats;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.BaseStats;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
+import java.util.*;
+
+import com.pixelmonmod.pixelmon.enums.EnumSpecies;
 import org.spongepowered.api.block.tileentity.CommandBlock;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.Text;
 
 // Local imports.
 import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
 import rs.expand.evenmorepixelmoncommands.utilities.PokemonMethods;
 
-// FIXME: Fix some super long lists like /checktypes 599 causing minor visual issues. Nice polish.
-// TODO: Maybe look into paginated lists that you can move through. Lots of work, but would be real neat for evolutions.
-// TODO: Maybe run through differently-typed forms some time, see if they're still up to date with the gen 7 move.
-// TODO: Similarly, check for new abilities.
-public class CheckTypes implements CommandExecutor
+import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printBasicError;
+
+public class CheckEVs implements CommandExecutor
 {
     // Declare some variables. We'll load stuff into these when we call the config loader.
     public static String commandAlias;
-    public static Boolean showFormMessage, showAlolanMessage;
-
-    // Are we running from console? We'll flag this true, and proceed accordingly.
-    private boolean calledRemotely;
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)
     {
-        // Were we called by a player? Used to get the correct characters to display, console doesn't like some.
-        calledRemotely = !(src instanceof CommandBlock);
-
         if (!(src instanceof CommandBlock))
         {
             // Validate the data we get from the command's main config.
             final List<String> commandErrorList = new ArrayList<>();
             if (commandAlias == null)
                 commandErrorList.add("commandAlias");
-            if (showFormMessage == null)
-                commandErrorList.add("showFormMessage");
-            if (showAlolanMessage == null)
-                commandErrorList.add("showAlolanMessage");
 
             if (!commandErrorList.isEmpty())
             {
-                PrintingMethods.printCommandNodeError("CheckTypes", commandErrorList);
+                PrintingMethods.printCommandNodeError("CheckEVs", commandErrorList);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
             }
             else
@@ -218,7 +205,7 @@ public class CheckTypes implements CommandExecutor
                 }
 
                 // Let's do this thing!
-                checkTypes(returnedPokemon, inputIsInteger, arg1String, src);
+                checkEVs(returnedPokemon, inputIsInteger, arg1String, src);
             }
         }
         else
@@ -236,7 +223,7 @@ public class CheckTypes implements CommandExecutor
         src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
 
-    private void checkTypes(final PokemonMethods returnedPokemon, final boolean inputIsInteger, final String arg1String, final CommandSource src)
+    private void checkEVs(final PokemonMethods returnedPokemon, final boolean inputIsInteger, final String arg1String, final CommandSource src)
     {
         // Check for differently typed forms or Alolan variants. Use fallthroughs to flag specific dex IDs as special.
         boolean hasForms = false, hasAlolanVariants = false;
@@ -286,78 +273,30 @@ public class CheckTypes implements CommandExecutor
         }
 
         // Set up internal variables for (almost) EVERYTHING. Plenty of room to improve, but it'll work for now.
-        boolean type2Present = true;
         final int pNumber = returnedPokemon.index;
-        final char arrowChar;
-        final String nameMessage, typeMessage;
+        final String nameMessage;
         final String pName = returnedPokemon.name();
-        final EnumType type1 = EnumType.parseType(returnedPokemon.type1);
-        final EnumType type2 = EnumType.parseType(returnedPokemon.type2);
-        if (returnedPokemon.type2.contains("EMPTY"))
-            type2Present = false;
 
-        // Decide which arrow to show. Unicode stuff tends to print as question marks in console.
-        if (calledRemotely)
-            arrowChar = '>';
+        // Figure out which form to grab EV yields from.
+        // TODO: Form support.
+        final LinkedHashMap<StatsType, Integer> stats;
+        if (hasAlolanVariants)
+            stats = new BaseStats(pName, 0).evYields;
         else
-            arrowChar = '➡';
+            stats = new BaseStats(pName, -1).evYields;
 
-        final String typeString =
-                "§fNormal, §4Fighting, §9Flying, §5Poison, §6Ground, " +
-                "§7Rock, §2Bug, §5Ghost, §7Steel, §cFire, §3Water, " +
-                "§aGrass, §eElectric, §dPsychic, §bIce, §9Dragon, " +
-                "§8Dark, §dFairy";
-        final String[] typeList = typeString.split(", ");
+        //BaseStats test = EnumSpecies.getFromName(pName).;
 
-        final String unformattedTypeString =
-                "Normal, Fighting, Flying, Poison, Ground, Rock, Bug, Ghost, Steel, " +
-                "Fire, Water, Grass, Electric, Psychic, Ice, Dragon, Dark, Fairy";
-        final String[] unformattedTypeList = unformattedTypeString.split(", ");
+        printBasicError("stats:" + (stats == null ? null : stats.toString()));
+        printBasicError("pName:" + pName);
 
-        final List<EnumType> foundTypes = new ArrayList<>();
-        foundTypes.add(type1);
-        final int indexType1 = Arrays.asList(unformattedTypeList).indexOf(String.valueOf(type1));
-        final int indexType2;
-        if (type2Present)
-        {
-            foundTypes.add(type2);
-            indexType2 = Arrays.asList(unformattedTypeList).indexOf(String.valueOf(type2));
-
-            // Used way later, but setting it up now avoids some repeated code.
-            typeMessage = " §f(" + typeList[indexType1] + "§f, " + typeList[indexType2] + "§f)";
-        }
-        else
-            typeMessage = " §f(" + typeList[indexType1] + "§f)";
-
-        // Run through the big list of Pokémon and check the target's type(s).
-        final StringBuilder weaknessBuilder2x = new StringBuilder();
-        final StringBuilder weaknessBuilder4x = new StringBuilder();
-        final StringBuilder strengthBuilder50p = new StringBuilder();
-        final StringBuilder strengthBuilder25p = new StringBuilder();
-        final StringBuilder immunityBuilder = new StringBuilder();
-
-        for (int i = 1; i < 19; i++)
-        {
-            final EnumType typeToTest = EnumType.parseType(unformattedTypeList[i - 1]);
-            final float typeEffectiveness = EnumType.getTotalEffectiveness(foundTypes, typeToTest);
-
-            if (typeEffectiveness < 1.0f)
-            {
-                if (typeEffectiveness == 0.5f) // 50% effectiveness
-                    strengthBuilder50p.append(typeList[i - 1]).append("§f, ");
-                else if (typeEffectiveness == 0.25f) // 25% effectiveness
-                    strengthBuilder25p.append(typeList[i - 1]).append("§f, ");
-                else if (typeEffectiveness == 0.00f) // Immune!
-                    immunityBuilder.append(typeList[i - 1]).append("§f, ");
-            }
-            else if (typeEffectiveness > 1.0f)
-            {
-                if (typeEffectiveness == 2.0f) // 200% effectiveness
-                    weaknessBuilder2x.append(typeList[i - 1]).append("§f, ");
-                else if (typeEffectiveness == 4.0f) // 400% effectiveness, ouch!
-                    weaknessBuilder4x.append(typeList[i - 1]).append("§f, ");
-            }
-        }
+        // Figure out specific yields.
+        final Integer HPYield = stats.get(StatsType.HP);
+        final int attackYield = stats.get(StatsType.Attack);
+        final int defenseYield = stats.get(StatsType.Defence);
+        final int spAttYield = stats.get(StatsType.SpecialAttack);
+        final int spDefYield = stats.get(StatsType.SpecialDefence);
+        final int speedYield = stats.get(StatsType.Speed);
 
         // Fix the Pokémon's shown name, if necessary.
         src.sendMessage(Text.of("§7-----------------------------------------------------"));
@@ -550,264 +489,18 @@ public class CheckTypes implements CommandExecutor
                 nameMessage = "§1(§9#" + pNumber + "§1) §6" + pName;
         }
 
-        src.sendMessage(Text.of(nameMessage + typeMessage));
+        // Print!
+        src.sendMessage(Text.of(nameMessage));
         src.sendMessage(Text.EMPTY);
-
-        // Get resistances, weaknesses and immunities. Print to chat.
-        if (weaknessBuilder2x.length() != 0 || weaknessBuilder4x.length() != 0)
-        {
-            src.sendMessage(Text.of("§cWeaknesses§f:"));
-            if (weaknessBuilder4x.length() != 0)
-            {
-                weaknessBuilder4x.setLength(weaknessBuilder4x.length() - 2); // Cut off the last comma.
-                src.sendMessage(Text.of(arrowChar + " §c400%§f: " + weaknessBuilder4x));
-            }
-            if (weaknessBuilder2x.length() != 0)
-            {
-                weaknessBuilder2x.setLength(weaknessBuilder2x.length() - 2); // Cut off the last comma.
-                src.sendMessage(Text.of(arrowChar + " §c200%§f: " + weaknessBuilder2x));
-            }
-        }
-
-        if (strengthBuilder50p.length() != 0 || strengthBuilder25p.length() != 0)
-        {
-            src.sendMessage(Text.of("§aResistances§f:"));
-            if (strengthBuilder50p.length() != 0)
-            {
-                strengthBuilder50p.setLength(strengthBuilder50p.length() - 2); // Cut off the last comma.
-                src.sendMessage(Text.of(arrowChar + " §a50%§f: " + strengthBuilder50p));
-            }
-            if (strengthBuilder25p.length() != 0)
-            {
-                strengthBuilder25p.setLength(strengthBuilder25p.length() - 2); // Cut off the last comma.
-                src.sendMessage(Text.of(arrowChar + " §a25%§f: " + strengthBuilder25p));
-            }
-        }
-
-        // Find and format a Pokémon's type-relevant abilities.
-        src.sendMessage(Text.of("§bImmunities§f:"));
-
-        // Abilities/hovers are linked. If one has two entries, the other will have two, too!
-        final List<String> abilities = new ArrayList<>();
-        final List<String> hovers = new ArrayList<>();
-
-        if (immunityBuilder.length() == 0)
-            immunityBuilder.append("§8None"); // Shown when a Pokémon isn't immune against anything.
-        else
-            immunityBuilder.setLength(immunityBuilder.length() - 2); // Shank any trailing commas.
-
-        Text immunityStart = Text.of(arrowChar + " §b0%§f: " + immunityBuilder + "§7 (may have ");
-
-        // Make a bunch of lists for different type-nullifying abilities.
-        final String bigPecks =
-                "Pidove, Tranquill, Unfezant, Ducklett, Swanna, Vullaby, Mandibuzz, Fletchling, Pidgey, Pidgeotto, " +
-                "Pidgeot, Chatot";
-        final String clearBody =
-                "Tentacool, Tentacruel, Beldum, Metang, Metagross, Regirock, Regice, Registeel, Carbink, Diancie, " +
-                "Klink, Klang, Klinklang";
-        final String damp =
-                "Psyduck, Golduck, Paras, Parasect, Horsea, Seadra, Kingdra, Mudkip, Marshtomp, Swampert, Frillish, " +
-                "Jellicent, Poliwag, Poliwhirl, Poliwrath, Politoed, Wooper, Quagsire";
-        final String drySkin =
-                "Paras, Parasect, Croagunk, Toxicroak, Helioptile, Heliolisk, Jynx";
-        final String flashFire =
-                "Vulpix, Ninetales, Growlithe, Arcanine, Ponyta, Rapidash, Flareon, Houndour, Houndoom, Heatran, " +
-                "Litwick, Lampent, Chandelure, Heatmor, Cyndaquil, Quilava, Typhlosion, Entei";
-        final String hyperCutter =
-                "Krabby, Kingler, Pinsir, Gligar, Mawile, Trapinch, Corphish, Crawdaunt, Gliscor, Crabrawler, " +
-                "Crabominable";
-        final String justified =
-                "Growlithe, Arcanine, Absol, Lucario, Gallade, Cobalion, Terrakion, Virizion, Keldeo";
-        final String levitate =
-                "Gastly, Haunter, Gengar, Koffing, Weezing, Misdreavus, Unown, Vibrava, Flygon, Lunatone, Solrock, " +
-                "Baltoy, Claydol, Duskull, Chimecho, Latias, Latios, Mismagius, Chingling, Bronzor, Bronzong, " +
-                "Carnivine, Rotom, RotomHeat, RotomWash, RotomFrost, RotomFan, RotomMow, Uxie, Mesprit, Azelf, " +
-                "Giratina, Cresselia, Tynamo, Eelektrik, Eelektross, Cryogonal, Hydreigon, Vikavolt";
-        final String lightningRod =
-                "Cubone, Marowak, Rhyhorn, Rhydon, Electrike, Manectric, Rhyperior, Blitzle, Zebstrika, Pikachu, " +
-                "Raichu, Goldeen, Seaking, Zapdos, Pichu, Plusle, Sceptile, MarowakAlolan";
-        final String motorDrive =
-                "Electivire, Blitzle, Zebstrika, Emolga";
-        final String sapSipper =
-                "Deerling, Sawsbuck, Bouffalant, Skiddo, Gogoat, Goomy, Sliggoo, Goodra, Drampa, Marill, Azumarill, " +
-                "Girafarig, Stantler, Miltank, Azurill, Blitzle, Zebstrika";
-        final String soundProof =
-                "Voltorb, Electrode, MrMime, Whismur, Loudred, Exploud, MimeJr, Shieldon, Bastiodon, Snover, " +
-                "Abomasnow, Bouffalant";
-        final String stormDrain =
-                "Lileep, Cradily, Shellos, Gastrodon, Finneon, Lumineon, Maractus";
-        final String sturdy =
-                "Geodude, Graveler, Golem, Magnemite, Magneton, Onix, Sudowoodo, Pineco, Forretress, Steelix, " +
-                "Shuckle, Skarmory, Donphan, Nosepass, Aron, Lairon, Aggron, Shieldon, Bastiodon, Bonsly, Magnezone, " +
-                "Probopass, Roggenrola, Boldore, Gigalith, Sawk, Dwebble, Crustle, Tirtouga, Carracosta, Relicanth, " +
-                "Regirock, Tyrunt, Carbink, Bergmite, Avalugg, GeodudeAlolan, GravelerAlolan, GolemAlolan";
-        final String suctionCups =
-                "Octillery, Lileep, Cradily, Inkay, Malamar";
-        final String voltAbsorb =
-                "Jolteon, Chinchou, Lanturn, Thundurus, Raikou, Minun, Pachirisu, Zeraora";
-        final String waterAbsorb =
-                "Lapras, Vaporeon, Mantine, Mantyke, Maractus, Volcanion, Chinchou, Lanturn, Suicune, Cacnea, " +
-                "Cacturne, Tympole, Palpitoad, Seismitoad, Frillish, Jellicent, Poliwag, Poliwhirl, Poliwrath, " +
-                "Politoed, Wooper, Quagsire";
-
-        // Check if Pokémon are on these lists. Create nice Strings to print to chat and add as hovers.
-        if (motorDrive.contains(pName))
-        {
-            abilities.add("§f§l§nMotor Drive");
-            hovers.add("§7§lMotor Drive §r§7nullifies §eElectric §7damage.");
-        }
-        if (suctionCups.contains(pName))
-        {
-            abilities.add("§f§l§nSuction Cups");
-            hovers.add("§7§lSuction Cups §r§7prevents §nswitch-out§r§7 moves.");
-        }
-        if (voltAbsorb.contains(pName))
-        {
-            abilities.add("§f§l§nVolt Absorb");
-            hovers.add("§7§lVolt Absorb §r§7nullifies §eElectric §7damage.");
-        }
-        if (stormDrain.contains(pName))
-        {
-            abilities.add("§f§l§nStorm Drain");
-            hovers.add("§7§lStorm Drain §r§7nullifies §3Water §7damage.");
-        }
-        if (drySkin.contains(pName))
-        {
-            abilities.add("§f§l§nDry Skin");
-            hovers.add("§7§lDry Skin §r§7adds 25% §3Water §7absorbance but §cFire §7hurts 25% more.");
-        }
-        if (justified.contains(pName))
-        {
-            abilities.add("§f§l§nJustified");
-            hovers.add("§7§lJustified §r§7ups §nAttack§r§7 by one stage when hit by a §8Dark §7move.");
-        }
-        if (hyperCutter.contains(pName))
-        {
-            abilities.add("§f§l§nHyper Cutter");
-            hovers.add("§7§lHyper Cutter §r§7prevents a Pokémon's Attack from being dropped.");
-        }
-        if (soundProof.contains(pName))
-        {
-            abilities.add("§f§l§nSoundproof");
-            hovers.add("§7§lSoundproof §r§7nullifies §nsound-based§r§7 moves.");
-        }
-        if (bigPecks.contains(pName))
-        {
-            abilities.add("§f§l§nBig Pecks");
-            hovers.add("§7§lBig Pecks §r§7prevents a Pokémon's Defense from being dropped.");
-        }
-        if (clearBody.contains(pName))
-        {
-            abilities.add("§f§l§nClear Body");
-            hovers.add("§7§lClear Body §r§7prevents all of a Pokémon's stats from being dropped.");
-        }
-        if (sapSipper.contains(pName))
-        {
-            abilities.add("§f§l§nSap Sipper");
-            hovers.add("§7§lSap Sipper §r§7nullifies §aGrass §7damage.");
-        }
-        if (damp.contains(pName))
-        {
-            abilities.add("§f§l§nDamp");
-            hovers.add("§7§lDamp §r§7disables §nSelf-Destruct§r§7/§nExplosion§r§7.");
-        }
-        if (lightningRod.contains(pName))
-        {
-            abilities.add("§f§l§nLightning Rod");
-            hovers.add("§7§lLightning Rod §r§7nullifies §eElectric §7damage.");
-        }
-        if (flashFire.contains(pName))
-        {
-            abilities.add("§f§l§nFlash Fire");
-            hovers.add("§7§lFlash Fire §r§7nullifies §cFire §7damage.");
-        }
-        if (waterAbsorb.contains(pName))
-        {
-            abilities.add("§f§l§nWater Absorb");
-            hovers.add("§7§lWater Absorb §r§7nullifies §3Water §7damage.");
-        }
-        if (sturdy.contains(pName))
-        {
-            abilities.add("§f§l§nSturdy");
-            hovers.add("§7§lSturdy §r§7prevents §n1-hit KO§r§7 attacks.");
-        }
-        if (levitate.contains(pName))
-        {
-            abilities.add("§f§l§nLevitate");
-            hovers.add("§7§lLevitate §r§7nullifies §eGround §7damage.");
-        }
-
-        // Check if we have certain unique Pokémon with unique abilities.
-        if (pName.equals("Torkoal") || pName.equals("Heatmor"))
-        {
-            abilities.add("§f§l§nWhite Smoke");
-            hovers.add("§7§lWhite Smoke §7provides immunity to stat reduction.");
-        }
-        else if (pName.contains("Shedinja"))
-        {
-            abilities.add("§f§l§nWonder Guard");
-            hovers.add("§7§lWonder Guard §7disables all §nnon-super effective§r§7 damage.");
-            immunityStart = Text.of(arrowChar + " §b0%§f: " + immunityBuilder + "§7 (has "); // Less awkward.
-        }
-
-        // Figure out what to show in chat, and how to show it.
-        final Text immunityPair;
-        final Text immunityPair2;
-        final Text immunityPair3;
-        final String immunityEnd = "§r§7)";
-        switch (abilities.size())
-        {
-            case 1:
-            {
-                immunityPair = Text.builder(abilities.get(0))
-                        .onHover(TextActions.showText(Text.of(hovers.get(0))))
-                        .build();
-
-                src.sendMessage(Text.of(immunityStart, immunityPair, immunityEnd));
-                break;
-            }
-            case 2:
-            {
-                final Text orMessage = Text.of("§r§7 or §f§l§n");
-                immunityPair = Text.builder(abilities.get(0))
-                        .onHover(TextActions.showText(Text.of(hovers.get(0))))
-                        .build();
-                immunityPair2 = Text.builder(abilities.get(1))
-                        .onHover(TextActions.showText(Text.of(hovers.get(1))))
-                        .build();
-
-                src.sendMessage(Text.of(immunityStart, immunityPair, orMessage, immunityPair2, immunityEnd));
-                break;
-            }
-            case 3:
-            {
-                // Overwrite this here so we can squeeze in more info.
-                // Not ideal, but not rolling over to double lines is nice.
-                immunityStart = Text.of(
-                        arrowChar + " §b0%§f: " + immunityBuilder + "§7 (may have type abilities, see below)");
-
-                final Text orMessage = Text.of("§r§7 or §f§l§n");
-                final Text newLineFormat = Text.of(arrowChar + " §b=>§f: ");
-                immunityPair = Text.builder(abilities.get(0))
-                        .onHover(TextActions.showText(Text.of(hovers.get(0))))
-                        .build();
-                immunityPair2 = Text.builder(abilities.get(1))
-                        .onHover(TextActions.showText(Text.of(hovers.get(1))))
-                        .build();
-                immunityPair3 = Text.builder(abilities.get(2))
-                        .onHover(TextActions.showText(Text.of(hovers.get(2))))
-                        .build();
-
-                src.sendMessage(immunityStart);
-                src.sendMessage(Text.of(newLineFormat, immunityPair, orMessage, immunityPair2, orMessage, immunityPair3));
-                break;
-            }
-            default:
-                src.sendMessage(Text.of(arrowChar + " §b0%§f: " + immunityBuilder));
-        }
+        src.sendMessage(Text.of("§bHP§f: " + (HPYield != 0 ? "§a" + HPYield + " points." : "§cNone.")));
+        src.sendMessage(Text.of("§bAttack§f: " + (attackYield != 0 ? "§a" + attackYield + " points." : "§cNone.")));
+        src.sendMessage(Text.of("§bDefense§f: " + (defenseYield != 0 ? "§a" + defenseYield + " points." : "§cNone.")));
+        src.sendMessage(Text.of("§bSpecial Attack§f: " + (spAttYield != 0 ? "§a" + spAttYield + " points." : "§cNone.")));
+        src.sendMessage(Text.of("§bSpecial Defense§f: " + (spDefYield != 0 ? "§a" + spDefYield + " points." : "§cNone.")));
+        src.sendMessage(Text.of("§bSpeed§f: " + (speedYield != 0 ? "§a" + speedYield + " points." : "§cNone.")));
 
         // Print messages if differently typed forms or Alolan forms are available.
-        if (hasForms && showFormMessage)
+        if (hasForms)
         {
             src.sendMessage(Text.EMPTY);
 
@@ -837,60 +530,19 @@ public class CheckTypes implements CommandExecutor
 
                 // Small ones. We can show types on these, like the Alolan variants.
                 case "Shaymin":
-                    src.sendMessage(Text.of(commandHelper + "ShayminSky §f(§aGrass§f, §9Flying§f)")); break;
+                    src.sendMessage(Text.of(commandHelper + "ShayminSky")); break;
                 case "Darmanitan":
-                    src.sendMessage(Text.of(commandHelper + "DarmanitanZen §f(§cFire§f, §dPsychic§f)")); break;
+                    src.sendMessage(Text.of(commandHelper + "DarmanitanZen")); break;
                 case "Meloetta":
-                    src.sendMessage(Text.of(commandHelper + "MeloettaPirouette §f(Normal, §4Fighting§f)")); break;
+                    src.sendMessage(Text.of(commandHelper + "MeloettaPirouette")); break;
                 case "Hoopa":
-                    src.sendMessage(Text.of(commandHelper + "HoopaUnbound §f(§dPsychic§f, §8Dark§f)")); break;
+                    src.sendMessage(Text.of(commandHelper + "HoopaUnbound")); break;
             }
         }
-        else if (hasAlolanVariants && showAlolanMessage)
+        else if (hasAlolanVariants)
         {
             src.sendMessage(Text.EMPTY);
-
-            final String commandHelper = "§cAlolan found! §6/" + commandAlias + " ";
-            switch (pName)
-            {
-                // Alolan variants. Same as above.
-                case "Rattata":
-                    src.sendMessage(Text.of(commandHelper + "Alolan Rattata §f(§8Dark§f, Normal)")); break;
-                case "Raticate":
-                    src.sendMessage(Text.of(commandHelper + "Alolan Raticate §f(§8Dark§f, Normal)")); break;
-                case "Raichu":
-                    src.sendMessage(Text.of(commandHelper + "Alolan Raichu §f(§eElectric§f, §dPsychic§f)")); break;
-                case "Sandshrew":
-                    src.sendMessage(Text.of(commandHelper + "Alolan Sandshrew §f(§bIce§f, §7Steel§f)")); break;
-                case "Sandslash":
-                    src.sendMessage(Text.of(commandHelper + "Alolan Sandslash §f(§bIce§f, §7Steel§f)")); break;
-                case "Vulpix":
-                    src.sendMessage(Text.of(commandHelper + "Alolan Vulpix §f(§bIce§f)")); break;
-                case "Ninetales":
-                    src.sendMessage(Text.of(commandHelper + "Alolan Ninetales §f(§bIce§f, §dFairy§f)")); break;
-                case "Diglett":
-                    src.sendMessage(Text.of(commandHelper + "Alolan Diglett §f(§6Ground§f, §7Steel§f)")); break;
-                case "Dugtrio":
-                    src.sendMessage(Text.of(commandHelper + "Alolan Dugtrio §f(§6Ground§f, §7Steel§f)")); break;
-                case "Meowth":
-                    src.sendMessage(Text.of(commandHelper + "Alolan Meowth §f(§8Dark§f)")); break;
-                case "Persian":
-                    src.sendMessage(Text.of(commandHelper + "Alolan Persian §f(§8Dark§f)")); break;
-                case "Geodude":
-                    src.sendMessage(Text.of(commandHelper + "Alolan Geodude §f(§7Rock§f, §eElectric§f)")); break;
-                case "Graveler":
-                    src.sendMessage(Text.of(commandHelper + "Alolan Graveler §f(§7Rock§f, §eElectric§f)")); break;
-                case "Golem":
-                    src.sendMessage(Text.of(commandHelper + "Alolan Golem §f(§7Rock§f, §eElectric§f)")); break;
-                case "Grimer":
-                    src.sendMessage(Text.of(commandHelper + "Alolan Grimer §f(§5Poison§f, §8Dark§f)")); break;
-                case "Muk":
-                    src.sendMessage(Text.of(commandHelper + "Alolan Muk §f(§5Poison§f, §8Dark§f)")); break;
-                case "Exeggutor":
-                    src.sendMessage(Text.of(commandHelper + "Alolan Exeggutor §f(§aGrass§f, §9Dragon§f)")); break;
-                case "Marowak":
-                    src.sendMessage(Text.of(commandHelper + "Alolan Marowak §f(§cFire§f, §5Ghost§f)")); break;
-            }
+            src.sendMessage(Text.of("§cAlolan found! §6/" + commandAlias + " Alolan " + pName));
         }
 
         src.sendMessage(Text.of("§7-----------------------------------------------------"));

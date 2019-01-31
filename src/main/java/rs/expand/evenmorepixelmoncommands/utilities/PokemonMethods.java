@@ -5,6 +5,7 @@ import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
 
+// Local imports.
 import static rs.expand.evenmorepixelmoncommands.EMPC.*;
 
 // Big ol' list of Pokémon.
@@ -436,7 +437,7 @@ public enum PokemonMethods
     Pachirisu(417, "Electric"),
     Buizel(418, "Water"),
     Floatzel(419, "Water"),
-    Cherubi(420, "Grass"),
+    Cherubi(420, "Grass"), // yeah man
     Cherrim(421, "Grass"),
     Shellos(422, "Water"),
     Gastrodon(423, "Water, Ground"),

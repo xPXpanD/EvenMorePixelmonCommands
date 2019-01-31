@@ -12,10 +12,10 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.service.pagination.PaginationList;
 import org.spongepowered.api.text.format.TextColors;
-import rs.expand.evenmorepixelmoncommands.EMPC;
-import rs.expand.evenmorepixelmoncommands.commands.*;
 
 // Local imports.
+import rs.expand.evenmorepixelmoncommands.EMPC;
+import rs.expand.evenmorepixelmoncommands.commands.*;
 import static rs.expand.evenmorepixelmoncommands.EMPC.economyEnabled;
 import static rs.expand.evenmorepixelmoncommands.EMPC.numLinesPerPage;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printBasicError;
@@ -63,6 +63,17 @@ public class ListCommands implements CommandExecutor
             }
             else
                 printSourcedError(sourceName, "§3The main config is malformed! Hiding from list.");
+
+            if (calledRemotely || src.hasPermission("empc.command.checkevs"))
+            {
+                if (CheckEVs.commandAlias != null)
+                {
+                    permissionMessageList.add(Text.of("§6/" + CheckEVs.commandAlias + " <Pokémon name/number>"));
+                    permissionMessageList.add(Text.of("§f ➡ §eShows a Pokémon's EV yields when defeated."));
+                }
+                else
+                    printSourcedError(sourceName, "§3/checkevs §bhas a malformed config, hiding from list.");
+            }
 
             if (calledRemotely || src.hasPermission("empc.command.checkstats"))
             {

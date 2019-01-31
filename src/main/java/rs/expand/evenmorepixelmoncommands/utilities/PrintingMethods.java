@@ -7,9 +7,6 @@ import org.spongepowered.api.text.Text;
 import java.util.List;
 import java.util.Optional;
 
-// Local imports.
-import rs.expand.evenmorepixelmoncommands.EMPC;
-
 // A collection of methods that are commonly used. One changed word or color here, and half the mod changes. Sweet.
 public class PrintingMethods
 {
@@ -32,14 +29,8 @@ public class PrintingMethods
     // If we need to print something originating from a specific command, do it here.
     public static void printSourcedMessage(final String callSource, final String inputString)
     {
-        if (EMPC.logImportantInfo == null || EMPC.logImportantInfo)
-        {
-            if (EMPC.logImportantInfo == null)
-                printBasicError("Could not determine logging status from main config! Falling back to defaults.");
-
-            getConsole().ifPresent(console ->
-                    console.sendMessage(Text.of("§3EMPC §f// §3" + callSource + " §f// §b" + inputString)));
-        }
+        getConsole().ifPresent(console ->
+                console.sendMessage(Text.of("§3EMPC §f// §3" + callSource + " §f// §b" + inputString)));
     }
 
     // If we need to show a generic error with no specific source, do it here.

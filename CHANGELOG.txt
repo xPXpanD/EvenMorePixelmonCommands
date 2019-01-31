@@ -1,13 +1,14 @@
 5.0.0 for 7.0
-Released January 30th, 2019.
+Released February 1st, 2019.
 
     Major (breaking) config changes:
     * RENAMED THE MOD! We're now "Even More Pixelmon Commands", and we've shed some weight. Original, I know.
     * (regenerate ALL configs, copy back old data manually if necessary)
 
     Additions:
-    * Added a ton of missing forms in /checktypes.
-    * Added the showing of levels, abilities and happiness to /checkstats and /showstats (hover only, there).
+    * Added a ton of missing forms to /checktypes.
+    * Added the showing of levels and abilities to /checkstats. Ability info is localized using client locale!
+    * Also added the showing of levels and abilities to /showstats. (hover only)
     * Also added a free re-show option to /showstats.
     * /partyhatch: Replaces old /timedhatch party functionality. Has its own optional cooldown, if so desired.
     * /partyheal: Replaces old /timedheal party functionality. Can also do the whole cooldown thing.
@@ -25,19 +26,19 @@ Released January 30th, 2019.
 
     Fixes:
     * Fixed /checktypes not recognizing two Tapus when entering their name as two separate words.
+    * Fixed Alolan Geodude/Graveler/Golem not showing up as suggestions for the normal ones with hints enabled.
     * Fixed /timedhatch eating money when doing a party hatch with a cost set on a party that has no eggs.
     * Fixed a few issues with excess blank lines on syntax messages. Also hid confirmation stuff from console.
-    * Fixed Alolan Geodude/Graveler/Golem not showing up as suggestions for the normal ones with hints enabled.
     * Fixed bad copy/paste comments in the /timedhatch and /timedheal configs.
     * Fixed some inconsistencies with shown command parameters.
     * Fixed the accidental double check for valid config folders when reloading configs.
 
     Removals:
-    * (temporarily?) Removed the -s shinyness flag from /spawndex due to 7.0 changes breaking it.
-    * Removed /forcestats for the time being. It may be making a comeback, but 7.0 broke it good.
-    * Removed /upgradeivs + /dittofusion + /resetcounts. They need a LOT of work. May become a separate sidemod.
-    * Removed excessive logging, compacted everything into a single log setting that only shows important stuff.
-    * Removed the "pure black" option from /spawndex as it seems to no longer be supported.
+    * (temporarily?) Removed the -s shinyness flag from /spawndex due to 7.0 breaking it.
+    * Also removed /spawndex's "pure black" option as it seems to have broken. Outlines no longer persist, either.
+    * Removed /forcestats for the time being. Needs work, 7.0 broke it good.
+    * Removed /upgradeivs + /dittofusion + /resetcounts. They need a LOT of work. May become separate sidemod(s).
+    * Removed excessive logging. We'll now log only important stuff, at all times.
 
 4.1.0 for 6.3
 Released June 6th, 2018.

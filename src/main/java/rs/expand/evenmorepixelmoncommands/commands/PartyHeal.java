@@ -17,11 +17,11 @@ import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
-import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
 import java.math.BigDecimal;
 import java.util.*;
 
 // Local imports.
+import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
 import static rs.expand.evenmorepixelmoncommands.EMPC.economyEnabled;
 import static rs.expand.evenmorepixelmoncommands.EMPC.economyService;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;
@@ -292,41 +292,39 @@ public class PartyHeal implements CommandExecutor
             src.sendMessage(Text.of(input));
     }
 
-    // Create and print a command-specific error box that shows a provided String as the actual error.
+    // Create and print a command-specific error box (box bits optional) that shows a provided String as the actual error.
     private void printLocalError(final CommandSource src, final String input, final boolean hitCooldown)
     {
-        sendCheckedMessage(src, "§5-----------------------------------------------------");
+        if (!hitCooldown)
+            sendCheckedMessage(src, "§5-----------------------------------------------------");
+
         sendCheckedMessage(src, input);
 
         if (!hitCooldown)
-            printSyntaxHelper(src);
-
-        if (!calledRemotely && economyEnabled && commandCost > 0)
         {
-            src.sendMessage(Text.EMPTY);
-
-            if (commandCost == 1)
-                src.sendMessage(Text.of("§eConfirming will cost you §6one §ecoin."));
+            if (calledRemotely)
+                sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " <target>");
             else
-                src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coins."));
-        }
+            {
+                final String confirmString = economyEnabled && commandCost != 0 ? " {-c to confirm}" : "";
 
-        src.sendMessage(Text.of("§5-----------------------------------------------------"));
-    }
+                if (src.hasPermission("empc.command.other.partyheal"))
+                    sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " [target?]" + confirmString);
+                else
+                    sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " " + confirmString);
+            }
 
-    // Called when it's necessary to figure out the right perm message, or when it's just convenient. Saves typing!
-    private void printSyntaxHelper(final CommandSource src)
-    {
-        if (calledRemotely)
-            sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " <target>");
-        else
-        {
-            final String confirmString = economyEnabled && commandCost != 0 ? " {-c to confirm}" : "";
+            if (!calledRemotely && economyEnabled && commandCost > 0)
+            {
+                src.sendMessage(Text.EMPTY);
 
-            if (src.hasPermission("empc.command.other.partyheal"))
-                sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " [target?]" + confirmString);
-            else
-                sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " " + confirmString);
+                if (commandCost == 1)
+                    src.sendMessage(Text.of("§eConfirming will cost you §6one §ecoin."));
+                else
+                    src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coins."));
+            }
+
+            src.sendMessage(Text.of("§5-----------------------------------------------------"));
         }
     }
 
@@ -337,11 +335,12 @@ public class PartyHeal implements CommandExecutor
 
         if (target != null)
         {
-            if (calledRemotely && sneakyMode)
+            if (sneakyMode)
                 sendCheckedMessage(src,"§aThe targeted party has been silently healed!");
             else
             {
                 sendCheckedMessage(src,"§aThe targeted party has been healed!");
+
                 if (!calledRemotely)
                     target.sendMessage(Text.of("§aYour Pokémon were healed by §2" + src.getName() + "§a!"));
                 else

@@ -7,8 +7,6 @@ import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.battles.BattleRegistry;
 import java.math.BigDecimal;
 import java.util.*;
-
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import net.minecraft.entity.player.EntityPlayerMP;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.tileentity.CommandBlock;
@@ -349,41 +347,39 @@ public class TimedHatch implements CommandExecutor
             src.sendMessage(Text.of(input));
     }
 
-    // Create and print a command-specific error box that shows a provided String as the actual error.
+    // Create and print a command-specific error box (box bits optional) that shows a provided String as the actual error.
     private void printLocalError(final CommandSource src, final String input, final boolean hitCooldown)
     {
-        sendCheckedMessage(src, "§5-----------------------------------------------------");
+        if (!hitCooldown)
+            sendCheckedMessage(src, "§5-----------------------------------------------------");
+
         sendCheckedMessage(src, input);
 
         if (!hitCooldown)
-            printSyntaxHelper(src);
-
-        if (!calledRemotely && economyEnabled && commandCost > 0)
         {
-            src.sendMessage(Text.EMPTY);
-
-            if (commandCost == 1)
-                src.sendMessage(Text.of("§eConfirming will cost you §6one §ecoin."));
+            if (calledRemotely)
+                sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " <target> [slot? 1-6]");
             else
-                src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coins."));
-        }
+            {
+                final String confirmString = economyEnabled && commandCost != 0 ? " {-c to confirm}" : "";
 
-        src.sendMessage(Text.of("§5-----------------------------------------------------"));
-    }
+                if (src.hasPermission("empc.command.other.timedhatch"))
+                    sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " [target?] <slot, 1-6>" + confirmString);
+                else
+                    sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " <slot, 1-6>" + confirmString);
+            }
 
-    // Called when it's necessary to figure out the right perm message, or when it's just convenient. Saves typing!
-    private void printSyntaxHelper(final CommandSource src)
-    {
-        if (calledRemotely)
-            sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " <target> [slot? 1-6]");
-        else
-        {
-            final String confirmString = economyEnabled && commandCost != 0 ? " {-c to confirm}" : "";
+            if (!calledRemotely && economyEnabled && commandCost > 0)
+            {
+                src.sendMessage(Text.EMPTY);
 
-            if (src.hasPermission("empc.command.other.timedhatch"))
-                sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " [target?] <slot, 1-6>" + confirmString);
-            else
-                sendCheckedMessage(src,"§4Usage: §c/" + commandAlias + " <slot, 1-6>" + confirmString);
+                if (commandCost == 1)
+                    src.sendMessage(Text.of("§eConfirming will cost you §6one §ecoin."));
+                else
+                    src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coins."));
+            }
+
+            src.sendMessage(Text.of("§5-----------------------------------------------------"));
         }
     }
 
@@ -392,20 +388,20 @@ public class TimedHatch implements CommandExecutor
     {
         pokemon.hatchEgg();
 
+        // Only print if there's a target. If not, we'll let Pixelmon's messages (and PB's, if active) handle it.
         if (target != null)
         {
-            if (calledRemotely && sneakyMode)
+            if (sneakyMode)
                 sendCheckedMessage(src,"§aThe targeted egg has been silently hatched!");
             else
             {
                 sendCheckedMessage(src,"§aThe targeted egg has been hatched!");
+
                 if (!calledRemotely)
                     target.sendMessage(Text.of("§aOne of your eggs was hatched by §2" + src.getName() + "§a!"));
                 else
                     target.sendMessage(Text.of("§aOne of your eggs was hatched remotely!"));
             }
         }
-        else
-            sendCheckedMessage(src,"§aThe chosen egg has been hatched!");
     }
 }
