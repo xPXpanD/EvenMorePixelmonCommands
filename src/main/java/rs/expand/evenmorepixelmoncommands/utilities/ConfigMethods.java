@@ -433,10 +433,6 @@ public class ConfigMethods
 
             CheckTypes.commandAlias =
                     checkTypesConfig.getNode("commandAlias").getString();
-            CheckTypes.showFormMessage =
-                    toBooleanObject(checkTypesConfig.getNode("showFormMessage").getString());
-            CheckTypes.showAlolanMessage =
-                    toBooleanObject(checkTypesConfig.getNode("showAlolanMessage").getString());
 
             /*case "DittoFusion":
             {

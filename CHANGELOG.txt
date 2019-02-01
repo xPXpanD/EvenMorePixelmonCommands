@@ -10,6 +10,7 @@ Released February 1st, 2019.
     * Added the showing of levels and abilities to /checkstats. Ability info is localized using client locale!
     * Also added the showing of levels and abilities to /showstats. (hover only)
     * Also added a free re-show option to /showstats.
+    * /checkevs: Shows the EV yields from defeating a given Pokémon.
     * /partyhatch: Replaces old /timedhatch party functionality. Has its own optional cooldown, if so desired.
     * /partyheal: Replaces old /timedheal party functionality. Can also do the whole cooldown thing.
 
@@ -39,6 +40,7 @@ Released February 1st, 2019.
     * Removed /forcestats for the time being. Needs work, 7.0 broke it good.
     * Removed /upgradeivs + /dittofusion + /resetcounts. They need a LOT of work. May become separate sidemod(s).
     * Removed excessive logging. We'll now log only important stuff, at all times.
+    * Removed showFormMessage and showAlolanMessage from the /checktypes config as they're useless.
 
 4.1.0 for 6.3
 Released June 6th, 2018.

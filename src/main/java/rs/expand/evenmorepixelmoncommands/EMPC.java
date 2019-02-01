@@ -38,19 +38,16 @@ import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.print
 // TODO: Look into name colors, or make a full-on rename command with color support. Maybe make it set a tag, and check.
 // TODO: Make a Pokéball changing command, get it to write the old ball to the Pokémon for ball sale purposes.
 // TODO: Do something with setPixelmonScale. Maybe a /spawnboss for super big high HP IV bosses with custom loot?
-// TODO: Make a random legendary dice roll spawner. Give commands already exist.
+// TODO: Make a random legendary dice roll spawner. Give command already exists, but spawn does not.
 // TODO: Allow people to unlock hidden abilities, probably through the economy. - Fabyoulust
 // TODO: Make a command that counts the Pokémon in the world, maybe also nearby. - Mikirae (comment, not suggestion)
 // TODO: Make a command that wipes a player's Pokédex. - Mikirae
 // TODO: Make a Wailord Bomb command that blows apart a Wailord into a LOT of cooked fish. - Faty
-// TODO: Make a command that checks EV gains from specific Pokémon. - ElaDiDu
-//     \-> LinkedHashMap<StatsType, Integer> yields = pokemon.getBaseStats().evYields;
 
 // Improvements to existing things:
 // TODO: Tab completion on player names.
 // TODO: Make just about every command with a target show said target a message when stuff is being used on them.
 // TODO: Move everything to lang files.
-// TODO: Check if Kyurem fusion preserves custom tags.
 // TODO: Dive into fixing ForceStats for 7.0.
 // TODO: Move "args.hasAny("c")" stuff to the case-insensitive -c one, as that doesn't mess up on -C.
 // TODO: Replace PokemonMethods stuff with Pixelmon's own solutions.
@@ -58,7 +55,7 @@ import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.print
 // TODO: Look deeper into whether in-battle healing and stuff is doable now. Cursory check had partial success.
 // TODO: When doing localization support, check 5 and 7 color ------ lines? Translate both types. (success/error)
 // TODO: Add console use support for /resetevs and /switchgenders.
-// TODO: Round up when close.
+// TODO: Round up when close. (with IVs or the like)
 // TODO: Clickables! Especially the command confirmation messages. Remember to underline.
 
 @Plugin
