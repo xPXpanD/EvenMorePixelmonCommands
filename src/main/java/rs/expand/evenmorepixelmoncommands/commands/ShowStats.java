@@ -4,18 +4,17 @@ package rs.expand.evenmorepixelmoncommands.commands;
 // Remote imports.
 import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
-import com.pixelmonmod.pixelmon.config.PixelmonConfig;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.EVStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.IVStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.LakeTrioStats;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.MewStats;
 import com.pixelmonmod.pixelmon.enums.EnumGrowth;
 import com.pixelmonmod.pixelmon.enums.EnumNature;
 import com.pixelmonmod.pixelmon.enums.forms.EnumAlolan;
-import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import java.math.BigDecimal;
 import java.util.*;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
@@ -286,31 +285,28 @@ public class ShowStats implements CommandExecutor
         final int percentIVs = totalIVs * 100 / 186;
 
         // Format the IVs for use later, so we can print them.
-        String ivs1 = String.valueOf(IVs.get(StatsType.HP) + " §2" + shortenedHP + statSeparator);
-        String ivs2 = String.valueOf(IVs.get(StatsType.Attack) + " §2" + shortenedAttack + statSeparator);
-        String ivs3 = String.valueOf(IVs.get(StatsType.Defence) + " §2" + shortenedDefense + statSeparator);
-        String ivs4 = String.valueOf(IVs.get(StatsType.SpecialAttack) + " §2" + shortenedSpecialAttack + statSeparator);
-        String ivs5 = String.valueOf(IVs.get(StatsType.SpecialDefence) + " §2" + shortenedSpecialDefense + statSeparator);
-        String ivs6 = String.valueOf(IVs.get(StatsType.Speed) + " §2" + shortenedSpeed);
+        String ivs1 = IVs.get(StatsType.HP) + " §2" + shortenedHP + statSeparator;
+        String ivs2 = IVs.get(StatsType.Attack) + " §2" + shortenedAttack + statSeparator;
+        String ivs3 = IVs.get(StatsType.Defence) + " §2" + shortenedDefense + statSeparator;
+        String ivs4 = IVs.get(StatsType.SpecialAttack) + " §2" + shortenedSpecialAttack + statSeparator;
+        String ivs5 = IVs.get(StatsType.SpecialDefence) + " §2" + shortenedSpecialDefense + statSeparator;
+        String ivs6 = IVs.get(StatsType.Speed) + " §2" + shortenedSpeed;
 
         if (IVs.get(StatsType.HP) > 30)
-            ivs1 = String.valueOf("§o") + ivs1;
+            ivs1 = "§o" + ivs1;
         if (IVs.get(StatsType.Attack) > 30)
-            ivs2 = String.valueOf("§o") + ivs2;
+            ivs2 = "§o" + ivs2;
         if (IVs.get(StatsType.Defence) > 30)
-            ivs3 = String.valueOf("§o") + ivs3;
+            ivs3 = "§o" + ivs3;
         if (IVs.get(StatsType.SpecialAttack) > 30)
-            ivs4 = String.valueOf("§o") + ivs4;
+            ivs4 = "§o" + ivs4;
         if (IVs.get(StatsType.SpecialDefence) > 30)
-            ivs5 = String.valueOf("§o") + ivs5;
+            ivs5 = "§o" + ivs5;
         if (IVs.get(StatsType.Speed) > 30)
-            ivs6 = String.valueOf("§o") + ivs6;
+            ivs6 = "§o" + ivs6;
 
         // Set up for our anti-cheat notifier.
         boolean nicknameTooLong = false;
-
-        // Create a copy of the Pokémon's persistent data for extracting specific NBT info from.
-        final NBTTagCompound pokemonNBT = pokemon.getPersistentData();
 
         // Set up name-related stuff.
         final String localizedName = pokemon.getSpecies().getLocalizedName();
@@ -360,25 +356,25 @@ public class ShowStats implements CommandExecutor
             final int percentEVs = totalEVs * 100 / 510;
 
             // Also format the strings for EVs.
-            String evs1 = String.valueOf(EVs.get(StatsType.HP) + " §2" + shortenedHP + statSeparator);
-            String evs2 = String.valueOf(EVs.get(StatsType.Attack) + " §2" + shortenedAttack + statSeparator);
-            String evs3 = String.valueOf(EVs.get(StatsType.Defence) + " §2" + shortenedDefense + statSeparator);
-            String evs4 = String.valueOf(EVs.get(StatsType.SpecialAttack) + " §2" + shortenedSpecialAttack + statSeparator);
-            String evs5 = String.valueOf(EVs.get(StatsType.SpecialDefence) + " §2" + shortenedSpecialDefense + statSeparator);
-            String evs6 = String.valueOf(EVs.get(StatsType.Speed) + " §2" + shortenedSpeed);
+            String evs1 = EVs.get(StatsType.HP) + " §2" + shortenedHP + statSeparator;
+            String evs2 = EVs.get(StatsType.Attack) + " §2" + shortenedAttack + statSeparator;
+            String evs3 = EVs.get(StatsType.Defence) + " §2" + shortenedDefense + statSeparator;
+            String evs4 = EVs.get(StatsType.SpecialAttack) + " §2" + shortenedSpecialAttack + statSeparator;
+            String evs5 = EVs.get(StatsType.SpecialDefence) + " §2" + shortenedSpecialDefense + statSeparator;
+            String evs6 = EVs.get(StatsType.Speed) + " §2" + shortenedSpeed;
 
             if (EVs.get(StatsType.HP) > 251)
-                evs1 = String.valueOf("§o") + evs1;
+                evs1 = "§o" + evs1;
             if (EVs.get(StatsType.Attack) > 251)
-                evs2 = String.valueOf("§o") + evs2;
+                evs2 = "§o" + evs2;
             if (EVs.get(StatsType.Defence) > 251)
-                evs3 = String.valueOf("§o") + evs3;
+                evs3 = "§o" + evs3;
             if (EVs.get(StatsType.SpecialAttack) > 251)
-                evs4 = String.valueOf("§o") + evs4;
+                evs4 = "§o" + evs4;
             if (EVs.get(StatsType.SpecialDefence) > 251)
-                evs5 = String.valueOf("§o") + evs5;
+                evs5 = "§o" + evs5;
             if (EVs.get(StatsType.Speed) > 251)
-                evs6 = String.valueOf("§o") + evs6;
+                evs6 = "§o" + evs6;
 
             hovers.add("§bCurrent EVs§f:");
             hovers.add("➡ §a" + totalEVs + "§f/§a510§f (§a" + percentEVs + "%§f)");
@@ -449,24 +445,33 @@ public class ShowStats implements CommandExecutor
             hovers.add("➡ §aIt " + natureString);
             hovers.add("➡ §aIt has the \"§2" + pokemon.getAbility().getLocalizedName() + "§a\" ability.");
 
+            // Mew-specific check for cloning counts. A bit cheap, but it'll work down here. Also, lake trio enchant check.
             if (baseName.equals("Mew"))
             {
-                final int cloneCount = pokemonNBT.getInteger(NbtKeys.STATS_NUM_CLONED);
+                // If we haven't added a new line yet, do it now.
+                /*if (isDitto && !showDittoFusionHelper || !isDitto && !showUpgradeHelper)*/
+                player.sendMessage(Text.EMPTY);
+
+                final int cloneCount = ((MewStats) pokemon.getExtraStats()).numCloned;
 
                 if (cloneCount == 0)
-                    hovers.add("➡ §aCloning has not yet been attempted.");
+                    player.sendMessage(Text.of("§eCloning has not yet been attempted."));
                 else
-                    hovers.add("➡ §aCloning has been attempted §2" + cloneCount + "§f/§23 §atimes.");
+                    player.sendMessage(Text.of("§eCloning has been attempted §6" + cloneCount + "§f/§63 §etimes."));
             }
             else if (baseName.equals("Azelf") || baseName.equals("Mesprit") || baseName.equals("Uxie"))
             {
-                final int enchantCount = pokemonNBT.getInteger(NbtKeys.STATS_NUM_ENCHANTED);
-                final int maxEnchants = PixelmonConfig.getConfig().getNode("General", "lakeTrioMaxEnchants").getInt();
+                // If we haven't added a new line yet, do it now.
+                /*if (isDitto && !showDittoFusionHelper || !isDitto && !showUpgradeHelper)*/
+                player.sendMessage(Text.EMPTY);
+
+                final int enchantCount = ((LakeTrioStats) pokemon.getExtraStats()).numEnchanted;
+                final int maxEnchants = LakeTrioStats.MAX_ENCHANTED;
 
                 if (enchantCount == 0)
-                    hovers.add("➡ §aIt has not enchanted any rubies yet.");
+                    player.sendMessage(Text.of("§eIt has not yet enchanted any rubies."));
                 else
-                    hovers.add("➡ §aIt has enchanted §2" + enchantCount + "§f/§2" + maxEnchants + " §arubies.");
+                    player.sendMessage(Text.of("§eIt has enchanted §6" + enchantCount + "§f/§6" + maxEnchants + " §erubies."));
             }
         }
 

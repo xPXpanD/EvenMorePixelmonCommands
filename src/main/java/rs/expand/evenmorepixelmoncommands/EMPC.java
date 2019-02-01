@@ -55,7 +55,7 @@ import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.print
 // TODO: Look deeper into whether in-battle healing and stuff is doable now. Cursory check had partial success.
 // TODO: When doing localization support, check 5 and 7 color ------ lines? Translate both types. (success/error)
 // TODO: Add console use support for /resetevs and /switchgenders.
-// TODO: Round up when close. (with IVs or the like)
+// TODO: Round up when close on stuff like IVs. Currently rounds down, even if at .99.
 // TODO: Clickables! Especially the command confirmation messages. Remember to underline.
 
 @Plugin

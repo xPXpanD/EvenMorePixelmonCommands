@@ -24,6 +24,7 @@ import rs.expand.evenmorepixelmoncommands.utilities.PokemonMethods;
 // TODO: Maybe run through differently-typed forms some time, see if they're still up to date with the gen 7 move.
 // TODO: Similarly, check for new abilities.
 // TODO: Apparently some of the EnumSpecies#getFromName() stuff does translation, too. Slow, but usable. Check.
+// TODO: Move hovers/ability stuff to a localized setup.
 public class CheckTypes implements CommandExecutor
 {
     // Declare some variables. We'll load stuff into these when we call the config loader.
@@ -619,7 +620,7 @@ public class CheckTypes implements CommandExecutor
                 case "Silvally":
                     src.sendMessage(Text.of(commandHelper + "SilvallyTYPE §f(where \"§6TYPE§f\" is a type)")); break;
                 case "Necrozma":
-                    src.sendMessage(Text.of(commandHelper + "NecrozmaDarkMane §f(or §6DawnWings§f/§6Ultra§f)")); break;
+                    src.sendMessage(Text.of(commandHelper + "NecrozmaDuskMane §f(or §6DawnWings§f/§6Ultra§f)")); break;
                 case "Oricorio": // This one hurts.
                 {
                     src.sendMessage(Text.of("§cShowing Baile, check: §6/" + commandAlias +

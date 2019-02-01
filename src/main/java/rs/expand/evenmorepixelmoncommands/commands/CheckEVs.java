@@ -16,7 +16,6 @@ import org.spongepowered.api.text.Text;
 // Local imports.
 import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
 import rs.expand.evenmorepixelmoncommands.utilities.PokemonMethods;
-import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printBasicError;
 
 // TODO: Apparently some of the EnumSpecies#getFromName() stuff does translation, too. Slow, but usable. Check.
 public class CheckEVs implements CommandExecutor
@@ -263,12 +262,8 @@ public class CheckEVs implements CommandExecutor
         final EnumSpecies species = EnumSpecies.getFromDex(enumData.index);
 
         // Figure out which form to grab EV yields from.
-        printBasicError("Name:" + enumData.name());
         IEnumForm form = species.getFormEnum(enumData.form);
-        printBasicError("IEnumForm form:" + form);
-        printBasicError("base form:" + enumData.form);
         final LinkedHashMap<StatsType, Integer> yields = species.getBaseStats(form).evYields;
-        printBasicError("yields:" + (yields == null ? null : yields.toString()));
 
         // Get a formatted title that shows the Pokémon's ID, name and, if applicable, form name. Print.
         src.sendMessage(Text.of("§7-----------------------------------------------------"));
@@ -315,7 +310,7 @@ public class CheckEVs implements CommandExecutor
                 case "Minior":
                     src.sendMessage(Text.of(commandHelper + "MiniorCore")); break;
                 case "Necrozma":
-                    src.sendMessage(Text.of(commandHelper + "NecrozmaDarkMane §f(or §6DawnWings§f/§6Ultra§f)")); break;
+                    src.sendMessage(Text.of(commandHelper + "NecrozmaDuskMane §f(or §6DawnWings§f/§6Ultra§f)")); break;
             }
         }
         else if (hasAlolanVariants)

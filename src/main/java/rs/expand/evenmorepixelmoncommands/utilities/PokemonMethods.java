@@ -967,17 +967,13 @@ public enum PokemonMethods
     {
         switch (name)
         {
-            // Forms.
-            case "CastformSunny":
-                return "§1(§9#351§1) §6Sunny Castform";
-            case "CastformRainy":
-                return "§1(§9#351§1) §6Rainy Castform";
+            // Forms with different types.
             case "CastformSnowy":
                 return "§1(§9#351§1) §6Snowy Castform";
-            case "WormadamSandy":
-                return "§1(§9#413§1) §6Sandy Wormadam";
-            case "WormadamTrash":
-                return "§1(§9#413§1) §6Trashy Wormadam";
+            case "CastformRainy":
+                return "§1(§9#351§1) §6Rainy Castform";
+            case "CastformSunny":
+                return "§1(§9#351§1) §6Sunny Castform";
             case "RotomHeat":
                 return "§1(§9#479§1) §6Microwave Rotom";
             case "RotomWash":
@@ -988,46 +984,40 @@ public enum PokemonMethods
                 return "§1(§9#479§1) §6Fan Rotom";
             case "RotomMow":
                 return "§1(§9#479§1) §6Mower Rotom";
-            case "ShayminSky":
-                return "§1(§9#492§1) §6Sky Shaymin";
-            case "ArceusDragon":
-                return "§1(§9#492§1) §6Draco Plate Arceus";
-            case "ArceusDark":
-                return "§1(§9#492§1) §6Dread Plate Arceus";
-            case "ArceusGround":
-                return "§1(§9#492§1) §6Earth Plate Arceus";
-            case "ArceusFighting":
-                return "§1(§9#492§1) §6Fist Plate Arceus";
-            case "ArceusFire":
-                return "§1(§9#492§1) §6Flame Plate Arceus";
-            case "ArceusIce":
-                return "§1(§9#492§1) §6Icicle Plate Arceus";
-            case "ArceusBug":
-                return "§1(§9#492§1) §6Insect Plate Arceus";
-            case "ArceusSteel":
-                return "§1(§9#492§1) §6Iron Plate Arceus";
             case "ArceusGrass":
                 return "§1(§9#492§1) §6Meadow Plate Arceus";
-            case "ArceusPsychic":
-                return "§1(§9#492§1) §6Mind Plate Arceus";
-            case "ArceusFairy":
-                return "§1(§9#492§1) §6Pixie Plate Arceus";
-            case "ArceusFlying":
-                return "§1(§9#492§1) §6Sky Plate Arceus";
+            case "ArceusFire":
+                return "§1(§9#492§1) §6Flame Plate Arceus";
             case "ArceusWater":
                 return "§1(§9#492§1) §6Splash Plate Arceus";
-            case "ArceusGhost":
-                return "§1(§9#492§1) §6Spooky Plate Arceus";
-            case "ArceusRock":
-                return "§1(§9#492§1) §6Stone Plate Arceus";
+            case "ArceusFlying":
+                return "§1(§9#492§1) §6Sky Plate Arceus";
+            case "ArceusBug":
+                return "§1(§9#492§1) §6Insect Plate Arceus";
             case "ArceusPoison":
                 return "§1(§9#492§1) §6Toxic Plate Arceus";
             case "ArceusElectric":
                 return "§1(§9#492§1) §6Zap Plate Arceus";
-            case "DarmanitanZen":
-                return "§1(§9#555§1) §6Zen Darmanitan";
-            case "MeloettaPirouette":
-                return "§1(§9#648§1) §6Pirouette Meloetta";
+            case "ArceusPsychic":
+                return "§1(§9#492§1) §6Mind Plate Arceus";
+            case "ArceusRock":
+                return "§1(§9#492§1) §6Stone Plate Arceus";
+            case "ArceusGround":
+                return "§1(§9#492§1) §6Earth Plate Arceus";
+            case "ArceusDark":
+                return "§1(§9#492§1) §6Dread Plate Arceus";
+            case "ArceusGhost":
+                return "§1(§9#492§1) §6Spooky Plate Arceus";
+            case "ArceusSteel":
+                return "§1(§9#492§1) §6Iron Plate Arceus";
+            case "ArceusFighting":
+                return "§1(§9#492§1) §6Fist Plate Arceus";
+            case "ArceusIce":
+                return "§1(§9#492§1) §6Icicle Plate Arceus";
+            case "ArceusDragon":
+                return "§1(§9#492§1) §6Draco Plate Arceus";
+            case "ArceusFairy":
+                return "§1(§9#492§1) §6Pixie Plate Arceus";
             case "HoopaUnbound":
                 return "§1(§9#720§1) §6Unbound Hoopa";
             case "OricorioBaile":
@@ -1038,46 +1028,80 @@ public enum PokemonMethods
                 return "§1(§9#741§1) §6Pa'u Oricorio";
             case "OricorioSensu":
                 return "§1(§9#741§1) §6Sensu Oricorio";
-            case "SilvallyBug":
-                return "§1(§9#773§1) §6Bug Memory Silvally";
-            case "SilvallyDark":
-                return "§1(§9#773§1) §6Dark Memory Silvally";
-            case "SilvallyDragon":
-                return "§1(§9#773§1) §6Dragon Memory Silvally";
-            case "SilvallyElectric":
-                return "§1(§9#773§1) §6Electric Memory Silvally";
-            case "SilvallyFairy":
-                return "§1(§9#773§1) §6Fairy Memory Silvally";
-            case "SilvallyFighting":
-                return "§1(§9#773§1) §6Fighting Memory Silvally";
-            case "SilvallyFire":
-                return "§1(§9#773§1) §6Fire Memory Silvally";
-            case "SilvallyFlying":
-                return "§1(§9#773§1) §6Flying Memory Silvally";
-            case "SilvallyGhost":
-                return "§1(§9#773§1) §6Ghost Memory Silvally";
             case "SilvallyGrass":
                 return "§1(§9#773§1) §6Grass Memory Silvally";
-            case "SilvallyGround":
-                return "§1(§9#773§1) §6Ground Memory Silvally";
-            case "SilvallyIce":
-                return "§1(§9#773§1) §6Ice Memory Silvally";
+            case "SilvallyFire":
+                return "§1(§9#773§1) §6Fire Memory Silvally";
+            case "SilvallyWater":
+                return "§1(§9#773§1) §6Water Memory Silvally";
+            case "SilvallyFlying":
+                return "§1(§9#773§1) §6Flying Memory Silvally";
+            case "SilvallyBug":
+                return "§1(§9#773§1) §6Bug Memory Silvally";
             case "SilvallyPoison":
                 return "§1(§9#773§1) §6Poison Memory Silvally";
+            case "SilvallyElectric":
+                return "§1(§9#773§1) §6Electric Memory Silvally";
             case "SilvallyPsychic":
                 return "§1(§9#773§1) §6Psychic Memory Silvally";
             case "SilvallyRock":
                 return "§1(§9#773§1) §6Rock Memory Silvally";
+            case "SilvallyGround":
+                return "§1(§9#773§1) §6Ground Memory Silvally";
+            case "SilvallyDark":
+                return "§1(§9#773§1) §6Dark Memory Silvally";
+            case "SilvallyGhost":
+                return "§1(§9#773§1) §6Ghost Memory Silvally";
             case "SilvallySteel":
                 return "§1(§9#773§1) §6Steel Memory Silvally";
-            case "SilvallyWater":
-                return "§1(§9#773§1) §6Water Memory Silvally";
-            case "NecrozmaDarkMane":
-                return "§1(§9#800§1) §6Dark Mane Necrozma";
+            case "SilvallyFighting":
+                return "§1(§9#773§1) §6Fighting Memory Silvally";
+            case "SilvallyIce":
+                return "§1(§9#773§1) §6Ice Memory Silvally";
+            case "SilvallyDragon":
+                return "§1(§9#773§1) §6Dragon Memory Silvally";
+            case "SilvallyFairy":
+                return "§1(§9#773§1) §6Fairy Memory Silvally";
+
+            // Forms with different types AND different EV yields.
+            case "WormadamSandy":
+                return "§1(§9#413§1) §6Sandy Wormadam";
+            case "WormadamTrash":
+                return "§1(§9#413§1) §6Trashy Wormadam";
+            case "ShayminSky":
+                return "§1(§9#492§1) §6Sky Shaymin";
+            case "DarmanitanZen":
+                return "§1(§9#555§1) §6Zen Darmanitan";
+            case "MeloettaPirouette":
+                return "§1(§9#648§1) §6Pirouette Meloetta";
+            case "NecrozmaDuskMane":
+                return "§1(§9#800§1) §6Dusk Mane Necrozma";
             case "NecrozmaDawnWings":
                 return "§1(§9#800§1) §6Dawn Wings Necrozma";
             case "NecrozmaUltra":
                 return "§1(§9#800§1) §6Ultra Necrozma";
+
+            // Forms with different EV yields.
+            case "DeoxysAttack":
+                return "§1(§9#800§1) §6Attack Deoxys";
+            case "DeoxysDefense":
+                return "§1(§9#800§1) §6Defense Deoxys";
+            case "DeoxysSpeed":
+                return "§1(§9#800§1) §6Speed Deoxys";
+            case "TornadusTherian":
+                return "§1(§9#800§1) §6Therian Tornadus";
+            case "ThundurusTherian":
+                return "§1(§9#800§1) §6Therian Thundurus";
+            case "LandorusTherian":
+                return "§1(§9#800§1) §6Therian Landorus";
+            case "KyuremBlack":
+                return "§1(§9#800§1) §6Black Kyurem";
+            case "KyuremWhite":
+                return "§1(§9#800§1) §6White Kyurem";
+            case "AegislashBlade":
+                return "§1(§9#800§1) §6Blade Aegislash";
+            case "MiniorCore":
+                return "§1(§9#800§1) §6Core Minior";
 
             // Alolan variants.
             case "RattataAlolan":

@@ -5,17 +5,16 @@ package rs.expand.evenmorepixelmoncommands.commands;
 import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.api.storage.PartyStorage;
-import com.pixelmonmod.pixelmon.config.PixelmonConfig;
 import java.math.BigDecimal;
 import java.util.*;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.EVStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.IVStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.LakeTrioStats;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.MewStats;
 import com.pixelmonmod.pixelmon.enums.EnumNature;
 import com.pixelmonmod.pixelmon.enums.forms.EnumAlolan;
-import com.pixelmonmod.pixelmon.storage.NbtKeys;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
@@ -476,9 +475,6 @@ public class CheckStats implements CommandExecutor
             if (IVs.get(StatsType.Speed) > 30)
                 ivs6 = "§o" + ivs6;
 
-            // Create a copy of the Pokémon's persistent data for extracting specific NBT info from.
-            final NBTTagCompound pokemonNBT = pokemon.getPersistentData();
-
             // Make some easy Strings for the Pokémon's name, nickname and associated stuff.
             final String localizedName = pokemon.getSpecies().getLocalizedName();
             final String baseName = pokemon.getSpecies().getPokemonName();
@@ -652,7 +648,7 @@ public class CheckStats implements CommandExecutor
                     /*if (isDitto && !showDittoFusionHelper || !isDitto && !showUpgradeHelper)*/
                     src.sendMessage(Text.EMPTY);
 
-                    final int cloneCount = pokemonNBT.getInteger(NbtKeys.STATS_NUM_CLONED);
+                    final int cloneCount = ((MewStats) pokemon.getExtraStats()).numCloned;
 
                     if (cloneCount == 0)
                         src.sendMessage(Text.of("§eCloning has not yet been attempted."));
@@ -665,11 +661,11 @@ public class CheckStats implements CommandExecutor
                     /*if (isDitto && !showDittoFusionHelper || !isDitto && !showUpgradeHelper)*/
                     src.sendMessage(Text.EMPTY);
 
-                    final int enchantCount = pokemonNBT.getInteger(NbtKeys.STATS_NUM_ENCHANTED);
-                    final int maxEnchants = PixelmonConfig.getConfig().getNode("General", "lakeTrioMaxEnchants").getInt();
+                    final int enchantCount = ((LakeTrioStats) pokemon.getExtraStats()).numEnchanted;
+                    final int maxEnchants = LakeTrioStats.MAX_ENCHANTED;
 
                     if (enchantCount == 0)
-                        src.sendMessage(Text.of("§eIt has not enchanted any rubies yet."));
+                        src.sendMessage(Text.of("§eIt has not yet enchanted any rubies."));
                     else
                         src.sendMessage(Text.of("§eIt has enchanted §6" + enchantCount + "§f/§6" + maxEnchants + " §erubies."));
                 }

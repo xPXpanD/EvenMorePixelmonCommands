@@ -192,14 +192,15 @@ public class SwitchGender implements CommandExecutor
     {
         final String genderName;
 
-        switch (pokemon.getGender())
+        if (pokemon.getGender() == Gender.Male)
         {
-            case Male: // male
-                pokemon.setGender(Gender.Female);
-                genderName = "female"; break;
-            default: // female, no worries here as we check for non-binary Pokémon earlier
-                pokemon.setGender(Gender.Male);
-                genderName = "male"; break;
+            pokemon.setGender(Gender.Female);
+            genderName = "female";
+        }
+        else // No worries here as we check for non-binary Pokémon earlier.
+        {
+            pokemon.setGender(Gender.Male);
+            genderName = "male";
         }
 
         src.sendMessage(Text.of("§aMagic! Your Pokémon just turned " + genderName + "!"));
