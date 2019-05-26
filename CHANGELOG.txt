@@ -1,3 +1,13 @@
+5.0.1 for 7.0.6
+Released May 26th, 2019.
+
+    Additions:
+    * /randomtm: Gives the targeted player a random TM. Can also do HMs, if the flag is passed.
+
+    Fixes:
+    * Fixed shown IVs and EVs always being rounded down.
+    * Likely fixed /resetevs failing to actually reset EVs in certain situations.
+
 5.0.0 for 7.0
 Released February 1st, 2019.
 

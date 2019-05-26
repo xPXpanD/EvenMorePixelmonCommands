@@ -447,9 +447,10 @@ public class CheckStats implements CommandExecutor
 
         // Set up IVs and matching math. These are used everywhere.
         final IVStore IVs = pokemon.getIVs();
-        final int percentIVs =
-                (IVs.get(StatsType.HP) + IVs.get(StatsType.SpecialAttack) + IVs.get(StatsType.SpecialDefence) +
-                IVs.get(StatsType.Attack) + IVs.get(StatsType.Defence) + IVs.get(StatsType.Speed)) * 100 / 186;
+        final int totalIVs =
+                IVs.get(StatsType.HP) + IVs.get(StatsType.Attack) + IVs.get(StatsType.Defence) +
+                IVs.get(StatsType.SpecialAttack) + IVs.get(StatsType.SpecialDefence) + IVs.get(StatsType.Speed);
+        final int percentIVs = (int) Math.round(totalIVs * 100.0 / 186.0);
 
         // Check if our Pokémon is an egg. If it is, be careful with it and only reveal stats if explictly told to do so.
         if (!pokemon.isEgg() || revealEggStats || calledRemotely)
@@ -503,9 +504,10 @@ public class CheckStats implements CommandExecutor
             {
                 // Rinse and repeat for EVs.
                 final EVStore EVs = pokemon.getEVs();
-                final int percentEVs =
-                        (EVs.get(StatsType.HP) + EVs.get(StatsType.SpecialAttack) + EVs.get(StatsType.SpecialDefence) +
-                        EVs.get(StatsType.Attack) + EVs.get(StatsType.Defence) + EVs.get(StatsType.Speed)) * 100 / 510;
+                final int totalEVs =
+                        EVs.get(StatsType.HP) + EVs.get(StatsType.Attack) + EVs.get(StatsType.Defence) +
+                        EVs.get(StatsType.SpecialAttack) + EVs.get(StatsType.SpecialDefence) + EVs.get(StatsType.Speed);
+                final int percentEVs = (int) Math.round(totalEVs * 100.0 / 510.0);
 
                 // Also format the strings for EVs.
                 String evs1 = EVs.get(StatsType.HP) + " §2" + shortenedHP + statSeparator;
@@ -708,7 +710,7 @@ public class CheckStats implements CommandExecutor
                 .appendSibling(new TextComponentTranslation("ability." + ability + ".name"));
 
         component.getStyle().setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                        new TextComponentTranslation("ability." + ability + ".description")));
+                new TextComponentTranslation("ability." + ability + ".description")));
 
         // Send!
         ((EntityPlayerMP) player).sendMessage(component);

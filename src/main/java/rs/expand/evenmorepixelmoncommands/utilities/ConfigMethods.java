@@ -107,6 +107,11 @@ public class ConfigMethods
             else
                 Sponge.getCommandManager().register(empcContainer, partyheal, "partyheal", "healparty");
 
+            if (RandomTM.commandAlias != null && !RandomTM.commandAlias.matches("randomtm"))
+                Sponge.getCommandManager().register(empcContainer, randomtm, "randomtm", RandomTM.commandAlias);
+            else
+                Sponge.getCommandManager().register(empcContainer, randomtm, "randomtm");
+
             if (ResetEVs.commandAlias != null && !ResetEVs.commandAlias.matches("resetevs"))
                 Sponge.getCommandManager().register(empcContainer, resetevs, "resetevs", ResetEVs.commandAlias);
             else
@@ -159,7 +164,7 @@ public class ConfigMethods
 
         // Format our commands and aliases and add them to the lists that we'll print in a bit.
         // TODO: If you add/remove a command, update this list and the numEntries counter!
-        final int numEntries = 13;
+        final int numEntries = 14;
         for (int i = 1; i <= numEntries; i++)
         {
             switch (i)
@@ -216,35 +221,41 @@ public class ConfigMethods
                 }
                 case 8:
                 {
+                    commandAlias = RandomTM.commandAlias;
+                    commandString = "/randomtm";
+                    break;
+                }
+                case 9:
+                {
                     commandAlias = ResetEVs.commandAlias;
                     commandString = "/resetevs";
                     break;
                 }
-                case 9:
+                case 10:
                 {
                     commandAlias = ShowStats.commandAlias;
                     commandString = "/showstats";
                     break;
                 }
-                case 10:
+                case 11:
                 {
                     commandAlias = SpawnDex.commandAlias;
                     commandString = "/spawndex";
                     break;
                 }
-                case 11:
+                case 12:
                 {
                     commandAlias = SwitchGender.commandAlias;
                     commandString = "/switchgender";
                     break;
                 }
-                case 12:
+                case 13:
                 {
                     commandAlias = TimedHatch.commandAlias;
                     commandString = "/timedhatch";
                     break;
                 }
-                case 13:
+                case 14:
                 {
                     commandAlias = TimedHeal.commandAlias;
                     commandString = "/timedheal";
@@ -520,6 +531,14 @@ public class ConfigMethods
                     toBooleanObject(partyHealConfig.getNode("sneakyMode").getString());
             PartyHeal.commandCost =
                     interpretInteger(partyHealConfig.getNode("commandCost").getString());
+
+            // /randomtm
+            currentCommand = "RandomTM";
+            checkOrCreateConfig(currentCommand, randomTMPath);
+            final CommentedConfigurationNode randomTMConfig = randomTMLoader.load();
+
+            RandomTM.commandAlias =
+                    randomTMConfig.getNode("commandAlias").getString();
 
             // /resetevs
             currentCommand = "ResetEVs";

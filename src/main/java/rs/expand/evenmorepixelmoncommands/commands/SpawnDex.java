@@ -36,7 +36,7 @@ import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.print
 // FIXME: Some names with multiple words (like "Mime Jr.") don't work right. Hard to fix, but nice polish?
 public class SpawnDex implements CommandExecutor
 {
-    // Declare a config variable. We'll load stuff into it when we call the config loader.
+    // Declare some variables. We'll load stuff into these when we call the config loader.
     public static String commandAlias, fakeMessage;
 
     // Set up a class name variable for internal use. We'll pass this to logging when showing a source is desired.

@@ -238,6 +238,17 @@ public class ListCommands implements CommandExecutor
                     printSourcedError(sourceName, "§3/resetcount §bhas a malformed config, hiding from list.");
             }*/
 
+            if (!calledRemotely && src.hasPermission("empc.command.staff.randomtm"))
+            {
+                if (RandomTM.commandAlias != null)
+                {
+                    permissionMessageList.add(Text.of("§6/" + RandomTM.commandAlias + " [target]"));
+                    permissionMessageList.add(Text.of("§f ➡ §eGives the chosen player a random TM."));
+                }
+                else
+                    printSourcedError(sourceName, "§3/randomtm §bhas a malformed config, hiding from list.");
+            }
+
             if (!calledRemotely && src.hasPermission("empc.command.resetevs"))
             {
                 if (ResetEVs.commandCost != null && ResetEVs.commandAlias != null)

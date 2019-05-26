@@ -62,7 +62,7 @@ import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.print
 (
         id = "evenmorepixelmoncommands",
         name = "Even More Pixelmon Commands",
-        version = "5.0.0",
+        version = "5.0.1",
         dependencies = @Dependency(id = "pixelmon"),
         description = "A sidemod for Pixelmon Reforged that adds a bunch of new commands, some with economy integration.",
         authors = "XpanD"
@@ -115,6 +115,7 @@ public class EMPC
     /*public static Path forceStatsPath = Paths.get(commandConfigPath, "ForceStats.conf");*/
     public static Path partyHatchPath = Paths.get(commandConfigPath, "PartyHatch.conf");
     public static Path partyHealPath = Paths.get(commandConfigPath, "PartyHeal.conf");
+    public static Path randomTMPath = Paths.get(commandConfigPath, "RandomTM.conf");
     public static Path resetEVsPath = Paths.get(commandConfigPath, "ResetEVs.conf");
     public static Path showStatsPath = Paths.get(commandConfigPath, "ShowStats.conf");
     public static Path spawnDexPath = Paths.get(commandConfigPath, "SpawnDex.conf");
@@ -139,6 +140,8 @@ public class EMPC
             HoconConfigurationLoader.builder().setPath(partyHatchPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> partyHealLoader =
             HoconConfigurationLoader.builder().setPath(partyHealPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> randomTMLoader =
+            HoconConfigurationLoader.builder().setPath(randomTMPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> resetEVsLoader =
             HoconConfigurationLoader.builder().setPath(resetEVsPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> showStatsLoader =
@@ -233,6 +236,13 @@ public class EMPC
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/confirmation"))),
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("confirmation"))))
+            .build();
+
+    public static CommandSpec randomtm = CommandSpec.builder()
+            .permission("empc.command.staff.randomtm")
+            .executor(new RandomTM())
+            .arguments(
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target"))))
             .build();
 
     public static CommandSpec resetevs = CommandSpec.builder()

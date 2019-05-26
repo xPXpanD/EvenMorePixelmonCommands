@@ -282,7 +282,7 @@ public class ShowStats implements CommandExecutor
         final int totalIVs =
                 IVs.get(StatsType.HP) + IVs.get(StatsType.Attack) + IVs.get(StatsType.Defence) +
                 IVs.get(StatsType.SpecialAttack) + IVs.get(StatsType.SpecialDefence) + IVs.get(StatsType.Speed);
-        final int percentIVs = totalIVs * 100 / 186;
+        final int percentIVs = (int) Math.round(totalIVs * 100.0 / 186.0);
 
         // Format the IVs for use later, so we can print them.
         String ivs1 = IVs.get(StatsType.HP) + " §2" + shortenedHP + statSeparator;
@@ -353,7 +353,7 @@ public class ShowStats implements CommandExecutor
             final int totalEVs =
                     EVs.get(StatsType.HP) + EVs.get(StatsType.Attack) + EVs.get(StatsType.Defence) +
                     EVs.get(StatsType.SpecialAttack) + EVs.get(StatsType.SpecialDefence) + EVs.get(StatsType.Speed);
-            final int percentEVs = totalEVs * 100 / 510;
+            final int percentEVs = (int) Math.round(totalIVs * 100.0 / 510.0);
 
             // Also format the strings for EVs.
             String evs1 = EVs.get(StatsType.HP) + " §2" + shortenedHP + statSeparator;

@@ -5,6 +5,7 @@ package rs.expand.evenmorepixelmoncommands.commands;
 import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.battles.BattleRegistry;
+import com.pixelmonmod.pixelmon.comm.EnumUpdateType;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.EVStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import java.math.BigDecimal;
@@ -190,7 +191,9 @@ public class ResetEVs implements CommandExecutor
         EVs.set(StatsType.SpecialDefence, 0);
         EVs.set(StatsType.Speed, 0);
 
-        src.sendMessage(Text.of(
-                "§aYour Pokémon had its EVs wiped!"));
+        // Force an update.
+        pokemon.markDirty(EnumUpdateType.EVs);
+
+        src.sendMessage(Text.of("§aYour Pokémon had its EVs wiped!"));
     }
 }
