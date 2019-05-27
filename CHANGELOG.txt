@@ -1,12 +1,14 @@
-5.0.1 for 7.0.6
+5.1.0 for 7.0.6
 Released May 26th, 2019.
 
     Additions:
     * /randomtm: Gives the targeted player a random TM. Can also do HMs, if the flag is passed.
+    * /resetdex: Resets the targeted player's Pokédex back to zero. A PC can be used to re-register Pokémon.
 
     Fixes:
     * Fixed shown IVs and EVs always being rounded down.
     * Likely fixed /resetevs failing to actually reset EVs in certain situations.
+    * Re-added the "-s" shinyness flag on /spawndex with a hacky fix, and removed an erroneous "-b" mention.
 
 5.0.0 for 7.0
 Released February 1st, 2019.
@@ -45,12 +47,12 @@ Released February 1st, 2019.
     * Fixed the accidental double check for valid config folders when reloading configs.
 
     Removals:
-    * (temporarily?) Removed the -s shinyness flag from /spawndex due to 7.0 breaking it.
     * Also removed /spawndex's "pure black" option as it seems to have broken. Outlines no longer persist, either.
     * Removed /forcestats for the time being. Needs work, 7.0 broke it good.
     * Removed /upgradeivs + /dittofusion + /resetcounts. They need a LOT of work. May become separate sidemod(s).
     * Removed excessive logging. We'll now log only important stuff, at all times.
     * Removed showFormMessage and showAlolanMessage from the /checktypes config as they're useless.
+    * Removed the "-s" shinyness flag from /spawndex due to 7.0 breaking it.
 
 4.1.0 for 6.3
 Released June 6th, 2018.

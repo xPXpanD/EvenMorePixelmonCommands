@@ -1,7 +1,6 @@
 // The party version of /timedheal, broken off due to the insane complexity of cramming that all into a single class.
 package rs.expand.evenmorepixelmoncommands.commands;
 
-// Remote imports.
 import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.api.storage.PartyStorage;
 import com.pixelmonmod.pixelmon.battles.BattleRegistry;
@@ -17,11 +16,11 @@ import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
+import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
+
 import java.math.BigDecimal;
 import java.util.*;
 
-// Local imports.
-import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
 import static rs.expand.evenmorepixelmoncommands.EMPC.economyEnabled;
 import static rs.expand.evenmorepixelmoncommands.EMPC.economyService;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;

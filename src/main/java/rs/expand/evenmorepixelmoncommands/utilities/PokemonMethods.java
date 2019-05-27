@@ -1,11 +1,9 @@
 package rs.expand.evenmorepixelmoncommands.utilities;
 
-// Remote imports.
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
 
-// Local imports.
 import static rs.expand.evenmorepixelmoncommands.EMPC.*;
 
 // Big ol' list of Pokémon.
@@ -904,7 +902,6 @@ public enum PokemonMethods
     MiniorCore(774, 1, "Rock", "Flying"), // Use form 1, everything >0 should be the same for our purposes.
 
     // Alolan Pokémon variants.
-    // TODO: Passing form 1 here is dirty. All current Alolans use it, but a more resilient solution would be nice.
     RattataAlolan(19, 1, "Dark", "Normal"),
     RaticateAlolan(20, 1, "Dark", "Normal"),
     RaichuAlolan(26, 1, "Electric", "Psychic"),

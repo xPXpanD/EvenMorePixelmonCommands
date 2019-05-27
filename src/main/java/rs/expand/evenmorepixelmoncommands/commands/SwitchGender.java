@@ -1,29 +1,28 @@
 // Ohhhh, the cheeky jokes I could make here.
 package rs.expand.evenmorepixelmoncommands.commands;
 
-// Remote imports.
 import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.battles.BattleRegistry;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.Gender;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 import net.minecraft.entity.player.EntityPlayerMP;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
-
-// Local imports.
 import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import static rs.expand.evenmorepixelmoncommands.EMPC.economyEnabled;
 import static rs.expand.evenmorepixelmoncommands.EMPC.economyService;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;

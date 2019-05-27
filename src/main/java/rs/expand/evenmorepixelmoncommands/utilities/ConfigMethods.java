@@ -2,22 +2,21 @@
 // Version one was just n config classes, where n was the number of commands there were minus main. We've come a long way.
 package rs.expand.evenmorepixelmoncommands.utilities;
 
-// Remote imports.
+import ninja.leaping.configurate.commented.CommentedConfigurationNode;
+import org.spongepowered.api.Game;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.plugin.PluginContainer;
+import rs.expand.evenmorepixelmoncommands.EMPC;
+import rs.expand.evenmorepixelmoncommands.commands.*;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import org.spongepowered.api.Game;
-import org.spongepowered.api.Sponge;
-import org.spongepowered.api.plugin.PluginContainer;
 import java.util.List;
-import ninja.leaping.configurate.commented.CommentedConfigurationNode;
-import static org.apache.commons.lang3.BooleanUtils.toBooleanObject;
 
-// Local imports.
-import rs.expand.evenmorepixelmoncommands.EMPC;
-import rs.expand.evenmorepixelmoncommands.commands.*;
+import static org.apache.commons.lang3.BooleanUtils.toBooleanObject;
 import static rs.expand.evenmorepixelmoncommands.EMPC.*;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printUnformattedMessage;
 
@@ -112,6 +111,11 @@ public class ConfigMethods
             else
                 Sponge.getCommandManager().register(empcContainer, randomtm, "randomtm");
 
+            if (ResetDex.commandAlias != null && !ResetDex.commandAlias.matches("resetdex"))
+                Sponge.getCommandManager().register(empcContainer, resetdex, "resetdex", ResetDex.commandAlias);
+            else
+                Sponge.getCommandManager().register(empcContainer, resetdex, "resetdex");
+
             if (ResetEVs.commandAlias != null && !ResetEVs.commandAlias.matches("resetevs"))
                 Sponge.getCommandManager().register(empcContainer, resetevs, "resetevs", ResetEVs.commandAlias);
             else
@@ -164,7 +168,7 @@ public class ConfigMethods
 
         // Format our commands and aliases and add them to the lists that we'll print in a bit.
         // TODO: If you add/remove a command, update this list and the numEntries counter!
-        final int numEntries = 14;
+        final int numEntries = 15;
         for (int i = 1; i <= numEntries; i++)
         {
             switch (i)
@@ -227,35 +231,41 @@ public class ConfigMethods
                 }
                 case 9:
                 {
+                    commandAlias = ResetDex.commandAlias;
+                    commandString = "/resetdex";
+                    break;
+                }
+                case 10:
+                {
                     commandAlias = ResetEVs.commandAlias;
                     commandString = "/resetevs";
                     break;
                 }
-                case 10:
+                case 11:
                 {
                     commandAlias = ShowStats.commandAlias;
                     commandString = "/showstats";
                     break;
                 }
-                case 11:
+                case 12:
                 {
                     commandAlias = SpawnDex.commandAlias;
                     commandString = "/spawndex";
                     break;
                 }
-                case 12:
+                case 13:
                 {
                     commandAlias = SwitchGender.commandAlias;
                     commandString = "/switchgender";
                     break;
                 }
-                case 13:
+                case 14:
                 {
                     commandAlias = TimedHatch.commandAlias;
                     commandString = "/timedhatch";
                     break;
                 }
-                case 14:
+                case 15:
                 {
                     commandAlias = TimedHeal.commandAlias;
                     commandString = "/timedheal";
@@ -539,6 +549,14 @@ public class ConfigMethods
 
             RandomTM.commandAlias =
                     randomTMConfig.getNode("commandAlias").getString();
+
+            // /resetdex
+            currentCommand = "ResetDex";
+            checkOrCreateConfig(currentCommand, resetDexPath);
+            final CommentedConfigurationNode resetDexConfig = EMPC.resetDexLoader.load();
+
+            ResetDex.commandAlias =
+                    resetDexConfig.getNode("commandAlias").getString();
 
             // /resetevs
             currentCommand = "ResetEVs";

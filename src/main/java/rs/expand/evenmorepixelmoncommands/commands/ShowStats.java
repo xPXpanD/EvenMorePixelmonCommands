@@ -1,7 +1,6 @@
 // This was a pain. Nice to have, though.
 package rs.expand.evenmorepixelmoncommands.commands;
 
-// Remote imports.
 import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.EVStore;
@@ -12,13 +11,11 @@ import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.MewStats;
 import com.pixelmonmod.pixelmon.enums.EnumGrowth;
 import com.pixelmonmod.pixelmon.enums.EnumNature;
 import com.pixelmonmod.pixelmon.enums.forms.EnumAlolan;
-import java.math.BigDecimal;
-import java.util.*;
 import net.minecraft.entity.player.EntityPlayerMP;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
@@ -27,9 +24,11 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.channel.MessageChannel;
-
-// Local imports.
 import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
+
+import java.math.BigDecimal;
+import java.util.*;
+
 import static rs.expand.evenmorepixelmoncommands.EMPC.*;
 import static rs.expand.evenmorepixelmoncommands.utilities.PokemonMethods.getShorthand;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;

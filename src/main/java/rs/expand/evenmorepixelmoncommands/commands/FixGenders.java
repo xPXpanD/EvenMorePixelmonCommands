@@ -1,28 +1,27 @@
 // Created to fix the aftermath of a Pixelmon bug where Pokémon could inherit Ditto's lack of a gender.
 package rs.expand.evenmorepixelmoncommands.commands;
 
-// Remote imports.
 import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.RandomHelper;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.api.storage.PartyStorage;
 import com.pixelmonmod.pixelmon.battles.BattleRegistry;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.Gender;
+import net.minecraft.entity.player.EntityPlayerMP;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.block.tileentity.CommandBlock;
+import org.spongepowered.api.command.CommandResult;
+import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.command.args.CommandContext;
+import org.spongepowered.api.command.spec.CommandExecutor;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.text.Text;
+import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.Gender;
-import net.minecraft.entity.player.EntityPlayerMP;
-import org.spongepowered.api.block.tileentity.CommandBlock;
-import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.CommandResult;
-import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.Sponge;
-import org.spongepowered.api.text.Text;
 
-// Local imports.
-import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedMessage;
 
 // TODO: Add a -s flag to allow silent messages even if sneakyMode is off?

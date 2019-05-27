@@ -1,23 +1,21 @@
 // Thanks for the command idea, MageFX!
 package rs.expand.evenmorepixelmoncommands.commands;
 
-// Remote imports.
 import com.pixelmonmod.pixelmon.enums.EnumType;
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 import org.spongepowered.api.block.tileentity.CommandBlock;
-import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.Text;
-
-// Local imports.
-import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
+import org.spongepowered.api.text.action.TextActions;
 import rs.expand.evenmorepixelmoncommands.utilities.PokemonMethods;
+import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 // FIXME: Fix some super long lists like /checktypes 599 causing minor visual issues. Nice polish.
 // TODO: Maybe look into paginated lists that you can move through. Lots of work, but would be real neat for evolutions.

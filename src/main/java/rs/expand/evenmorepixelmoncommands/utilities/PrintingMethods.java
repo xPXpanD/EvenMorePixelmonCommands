@@ -1,9 +1,9 @@
 package rs.expand.evenmorepixelmoncommands.utilities;
 
-// Remote imports.
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.source.ConsoleSource;
 import org.spongepowered.api.text.Text;
+
 import java.util.List;
 import java.util.Optional;
 

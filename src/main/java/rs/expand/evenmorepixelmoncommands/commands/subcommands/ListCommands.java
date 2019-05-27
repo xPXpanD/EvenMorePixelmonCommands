@@ -1,21 +1,20 @@
 // The command listing. Only shows console-accessible commands if used from there.
 package rs.expand.evenmorepixelmoncommands.commands.subcommands;
 
-// Remote imports.
-import java.util.ArrayList;
 import org.spongepowered.api.block.tileentity.CommandBlock;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.text.Text;
 import org.spongepowered.api.service.pagination.PaginationList;
+import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
-
-// Local imports.
 import rs.expand.evenmorepixelmoncommands.EMPC;
 import rs.expand.evenmorepixelmoncommands.commands.*;
+
+import java.util.ArrayList;
+
 import static rs.expand.evenmorepixelmoncommands.EMPC.economyEnabled;
 import static rs.expand.evenmorepixelmoncommands.EMPC.numLinesPerPage;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printBasicError;
@@ -30,6 +29,7 @@ public class ListCommands implements CommandExecutor
     // Other config variables are loaded in from their respective classes.
     public static String commandAlias;
 
+    // TODO: Add the correct args for non-player use on supported commands.
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)
 	{
@@ -72,7 +72,7 @@ public class ListCommands implements CommandExecutor
                     permissionMessageList.add(Text.of("§f ➡ §eShows a Pokémon's EV yields when defeated."));
                 }
                 else
-                    printSourcedError(sourceName, "§3/checkevs §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§6/checkevs §ehas a malformed config, hiding from list.");
             }
 
             if (calledRemotely || src.hasPermission("empc.command.checkstats"))
@@ -84,7 +84,7 @@ public class ListCommands implements CommandExecutor
                     else
                     {
                         final String flagString =
-                                economyEnabled && CheckStats.commandCost != 0 ? " {confirm flag}" : "";
+                                economyEnabled && CheckStats.commandCost != 0 ? " {-c to confirm}" : "";
 
                         if (src.hasPermission("empc.command.other.checkstats") && CheckStats.showTeamWhenSlotEmpty)
                         {
@@ -106,7 +106,7 @@ public class ListCommands implements CommandExecutor
                     permissionMessageList.add(Text.of("§f ➡ §eLists a Pokémon's IVs, nature, size and more."));
                 }
                 else
-                    printSourcedError(sourceName, "§3/checkstats §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§6/checkstats §ehas a malformed config, hiding from list.");
             }
 
             if (calledRemotely || src.hasPermission("empc.command.checktypes"))
@@ -117,7 +117,7 @@ public class ListCommands implements CommandExecutor
                     permissionMessageList.add(Text.of("§f ➡ §eShows a Pokémon's resistances, weaknesses and more."));
                 }
                 else
-                    printSourcedError(sourceName, "§3/checktypes §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§6/checktypes §ehas a malformed config, hiding from list.");
             }
 
             /*if (!calledRemotely && src.hasPermission("empc.command.dittofusion"))
@@ -133,7 +133,7 @@ public class ListCommands implements CommandExecutor
                         permissionMessageList.add(Text.of("§f ➡ §eSacrifice one Ditto to improve another."));
                 }
                 else
-                    printSourcedError(sourceName, "§3/dittofusion §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§6/dittofusion §ehas a malformed config, hiding from list.");
             }*/
 
             if (calledRemotely || src.hasPermission("empc.command.fixgenders"))
@@ -145,11 +145,11 @@ public class ListCommands implements CommandExecutor
                     else
                     {
                         if (src.hasPermission("empc.command.staff.fixgenders") && FixGenders.requireConfirmation)
-                            permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " [target?] {confirm flag}"));
+                            permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " [target?] {-c to confirm}"));
                         else if (src.hasPermission("empc.command.staff.fixgenders"))
                             permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " [target?]"));
                         else if (FixGenders.requireConfirmation)
-                            permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " {confirm flag}"));
+                            permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias + " {-c to confirm}"));
                         else
                             permissionMessageList.add(Text.of("§6/" + FixGenders.commandAlias));
                     }
@@ -157,7 +157,7 @@ public class ListCommands implements CommandExecutor
                     permissionMessageList.add(Text.of("§f ➡ §eFixes genders broken by commands or bugs."));
                 }
                 else
-                    printSourcedError(sourceName, "§3/fixgenders §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§6/fixgenders §ehas a malformed config, hiding from list.");
             }
 
             /*if (calledRemotely || src.hasPermission("empc.command.staff.forcestats"))
@@ -165,14 +165,14 @@ public class ListCommands implements CommandExecutor
                 if (ForceStats.commandAlias != null)
                 {
                     if (calledRemotely)
-                        permissionMessageList.add(Text.of("§6/" + ForceStats.commandAlias + " <target> <slot> <stat> <value> {force flag}"));
+                        permissionMessageList.add(Text.of("§6/" + ForceStats.commandAlias + " <target> <slot> <stat> <value> {-f to force}"));
                     else
-                        permissionMessageList.add(Text.of("§6/" + ForceStats.commandAlias + " [target?] <slot> <stat> <value> {force flag}"));
+                        permissionMessageList.add(Text.of("§6/" + ForceStats.commandAlias + " [target?] <slot> <stat> <value> {-f to force}"));
 
                     permissionMessageList.add(Text.of("§f ➡ §eChanges stats freely, with an optional safety bypass."));
                 }
                 else
-                    printSourcedError(sourceName, "§3/forcestats §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§6/forcestats §ehas a malformed config, hiding from list.");
             }*/
 
             if (calledRemotely || src.hasPermission("empc.command.partyhatch"))
@@ -184,7 +184,7 @@ public class ListCommands implements CommandExecutor
                     else
                     {
                         final String flagString =
-                                economyEnabled && PartyHatch.commandCost != 0 ? " {confirm flag}" : "";
+                                economyEnabled && PartyHatch.commandCost != 0 ? " {-c to confirm}" : "";
 
                         if (src.hasPermission("empc.command.other.partyhatch"))
                             permissionMessageList.add(Text.of("§6/" + PartyHatch.commandAlias + " [target?]" + flagString));
@@ -198,7 +198,7 @@ public class ListCommands implements CommandExecutor
                         permissionMessageList.add(Text.of("§f ➡ §eImmediately hatches all of your eggs."));
                 }
                 else
-                    printSourcedError(sourceName, "§3/partyhatch §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§6/partyhatch §ehas a malformed config, hiding from list.");
             }
 
             if (calledRemotely || src.hasPermission("empc.command.partyheal"))
@@ -210,7 +210,7 @@ public class ListCommands implements CommandExecutor
                     else
                     {
                         final String flagString =
-                                economyEnabled && PartyHeal.commandCost != 0 ? " {confirm flag}" : "";
+                                economyEnabled && PartyHeal.commandCost != 0 ? " {-c to confirm}" : "";
 
                         if (src.hasPermission("empc.command.other.partyheal"))
                             permissionMessageList.add(Text.of("§6/" + PartyHeal.commandAlias + " [target?]" + flagString));
@@ -224,40 +224,51 @@ public class ListCommands implements CommandExecutor
                         permissionMessageList.add(Text.of("§f ➡ §eImmediately heals all of your Pokémon."));
                 }
                 else
-                    printSourcedError(sourceName, "§3/partyheal §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§6/partyheal §ehas a malformed config, hiding from list.");
             }
 
             /*if (!calledRemotely && src.hasPermission("empc.command.staff.resetcount"))
             {
                 if (ResetCount.commandAlias != null)
                 {
-                    permissionMessageList.add(Text.of("§6/" + ResetCount.commandAlias + " <slot, 1-6> <count> {confirm flag}"));
+                    permissionMessageList.add(Text.of("§6/" + ResetCount.commandAlias + " <slot, 1-6> <count> {-c to confirm}"));
                     permissionMessageList.add(Text.of("§f ➡ §eResets fusion/upgrade counts on maxed-out Pokémon."));
                 }
                 else
-                    printSourcedError(sourceName, "§3/resetcount §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§6/resetcount §ehas a malformed config, hiding from list.");
             }*/
 
-            if (!calledRemotely && src.hasPermission("empc.command.staff.randomtm"))
+            if (calledRemotely || src.hasPermission("empc.command.staff.randomtm"))
             {
                 if (RandomTM.commandAlias != null)
                 {
-                    permissionMessageList.add(Text.of("§6/" + RandomTM.commandAlias + " [target]"));
-                    permissionMessageList.add(Text.of("§f ➡ §eGives the chosen player a random TM."));
+                    permissionMessageList.add(Text.of("§6/" + RandomTM.commandAlias + " [target] {-a to include HMs}"));
+                    permissionMessageList.add(Text.of("§f ➡ §eGives the chosen player a random TM/HM."));
                 }
                 else
-                    printSourcedError(sourceName, "§3/randomtm §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§6/randomtm §ehas a malformed config, hiding from list.");
+            }
+
+            if (calledRemotely || src.hasPermission("empc.command.staff.resetdex"))
+            {
+                if (ResetDex.commandAlias != null)
+                {
+                    permissionMessageList.add(Text.of("§6/" + ResetDex.commandAlias + " <target> {-c to confirm}"));
+                    permissionMessageList.add(Text.of("§f ➡ §eWipes the chosen player's Pokédex. Handle with care."));
+                }
+                else
+                    printSourcedError(sourceName, "§6/resetdex §ehas a malformed config, hiding from list.");
             }
 
             if (!calledRemotely && src.hasPermission("empc.command.resetevs"))
             {
                 if (ResetEVs.commandCost != null && ResetEVs.commandAlias != null)
                 {
-                    permissionMessageList.add(Text.of("§6/" + ResetEVs.commandAlias + " <slot, 1-6> {confirm flag}"));
+                    permissionMessageList.add(Text.of("§6/" + ResetEVs.commandAlias + " <slot, 1-6> {-c to confirm}"));
                     permissionMessageList.add(Text.of("§f ➡ §eWipes all EVs. Use if you're unhappy with your spread."));
                 }
                 else
-                    printSourcedError(sourceName, "§3/resetevs §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§6/resetevs §ehas a malformed config, hiding from list.");
             }
 
             if (!calledRemotely && src.hasPermission("empc.command.showstats"))
@@ -265,14 +276,14 @@ public class ListCommands implements CommandExecutor
                 if (ShowStats.commandCost != null && ShowStats.commandAlias != null)
                 {
                     if (economyEnabled && ShowStats.commandCost != 0)
-                        permissionMessageList.add(Text.of("§6/" + ShowStats.commandAlias + " <slot, 1-6> {confirm flag}"));
+                        permissionMessageList.add(Text.of("§6/" + ShowStats.commandAlias + " <slot, 1-6> {-c to confirm}"));
                     else
                         permissionMessageList.add(Text.of("§6/" + ShowStats.commandAlias + " <slot, 1-6>"));
 
                     permissionMessageList.add(Text.of("§f ➡ §eShows off a Pokémon of choice to the server."));
                 }
                 else
-                    printSourcedError(sourceName, "§3/showstats §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§6/showstats §ehas a malformed config, hiding from list.");
             }
 
             if (!calledRemotely && src.hasPermission("empc.command.staff.spawndex"))
@@ -284,18 +295,18 @@ public class ListCommands implements CommandExecutor
                     permissionMessageList.add(Text.of("§f ➡ §eSpawns a heavily customizable Pokémon at the cursor."));
                 }
                 else
-                    printSourcedError(sourceName, "§3/spawndex §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§6/spawndex §ehas a malformed config, hiding from list.");
             }
 
             if (!calledRemotely && src.hasPermission("empc.command.switchgender"))
             {
                 if (SwitchGender.commandCost != null && SwitchGender.commandAlias != null)
                 {
-                    permissionMessageList.add(Text.of("§6/" + SwitchGender.commandAlias + " <slot, 1-6> {confirm flag}"));
+                    permissionMessageList.add(Text.of("§6/" + SwitchGender.commandAlias + " <slot, 1-6> {-c to confirm}"));
                     permissionMessageList.add(Text.of("§f ➡ §eTurns a Pokémon into the other gender, if possible."));
                 }
                 else
-                    printSourcedError(sourceName, "§3/switchgender §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§6/switchgender §ehas a malformed config, hiding from list.");
             }
 
             if (calledRemotely || src.hasPermission("empc.command.timedhatch"))
@@ -307,7 +318,7 @@ public class ListCommands implements CommandExecutor
                     else
                     {
                         final String flagString =
-                                economyEnabled && TimedHatch.commandCost != 0 ? " {confirm flag}" : "";
+                                economyEnabled && TimedHatch.commandCost != 0 ? " {-c to confirm}" : "";
 
                         if (src.hasPermission("empc.command.other.timedhatch"))
                             permissionMessageList.add(Text.of("§6/" + TimedHatch.commandAlias + " [target?] <slot, 1-6>" + flagString));
@@ -318,7 +329,7 @@ public class ListCommands implements CommandExecutor
                     permissionMessageList.add(Text.of("§f ➡ §eImmediately hatches a targeted egg."));
                 }
                 else
-                    printSourcedError(sourceName, "§3/timedhatch §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§6/timedhatch §ehas a malformed config, hiding from list.");
             }
 
             if (calledRemotely || src.hasPermission("empc.command.timedheal"))
@@ -330,7 +341,7 @@ public class ListCommands implements CommandExecutor
                     else
                     {
                         final String flagString =
-                                economyEnabled && TimedHeal.commandCost != 0 ? " {confirm flag}" : "";
+                                economyEnabled && TimedHeal.commandCost != 0 ? " {-c to confirm}" : "";
 
                         if (src.hasPermission("empc.command.other.timedheal"))
                             permissionMessageList.add(Text.of("§6/" + TimedHeal.commandAlias + " [target?] <slot, 1-6>" + flagString));
@@ -341,14 +352,14 @@ public class ListCommands implements CommandExecutor
                     permissionMessageList.add(Text.of("§f ➡ §eImmediately heals a targeted Pokémon."));
                 }
                 else
-                    printSourcedError(sourceName, "§3/timedheal §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§6/timedheal §ehas a malformed config, hiding from list.");
             }
 
             /*if (!calledRemotely && src.hasPermission("empc.command.upgradeivs"))
             {
                 if (UpgradeIVs.commandAlias != null)
                 {
-                    permissionMessageList.add(Text.of("§6/" + UpgradeIVs.commandAlias + " <slot> <IV type> [amount?] {confirm flag}"));
+                    permissionMessageList.add(Text.of("§6/" + UpgradeIVs.commandAlias + " <slot> <IV type> [amount?] {-c to confirm}"));
 
                     if (economyEnabled)
                         permissionMessageList.add(Text.of("§f ➡ §eUpgrades a Pokémon's IVs for economy money."));
@@ -356,7 +367,7 @@ public class ListCommands implements CommandExecutor
                         permissionMessageList.add(Text.of("§f ➡ §eUpgrades a Pokémon's IVs."));
                 }
                 else
-                    printSourcedError(sourceName, "§3/upgradeivs §bhas a malformed config, hiding from list.");
+                    printSourcedError(sourceName, "§6/upgradeivs §ehas a malformed config, hiding from list.");
             }*/
 
             final PaginationList.Builder paginatedList = PaginationList.builder()

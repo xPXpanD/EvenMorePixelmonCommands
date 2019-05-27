@@ -1,12 +1,9 @@
 // PixelUpgrade's very first command. Originally /upgrade stats, then /getstats, and then finally this as part of EMPC.
 package rs.expand.evenmorepixelmoncommands.commands;
 
-// Remote imports.
 import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.api.storage.PartyStorage;
-import java.math.BigDecimal;
-import java.util.*;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.EVStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.IVStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
@@ -19,21 +16,25 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.util.text.event.HoverEvent;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.tileentity.CommandBlock;
-import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.text.Text;
-
-// Local imports.
-import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
 import rs.expand.evenmorepixelmoncommands.utilities.PokemonMethods;
+import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import static rs.expand.evenmorepixelmoncommands.EMPC.*;
 import static rs.expand.evenmorepixelmoncommands.utilities.PokemonMethods.getShorthand;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.*;

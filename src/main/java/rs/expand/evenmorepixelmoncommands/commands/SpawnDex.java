@@ -1,20 +1,16 @@
 // Originally created for testing things for the Pixelmon Wiki, after which it slowly morphed into this crazy thing.
 package rs.expand.evenmorepixelmoncommands.commands;
 
-// Remote imports.
 import com.pixelmonmod.pixelmon.RandomHelper;
 import com.pixelmonmod.pixelmon.api.pokemon.PokemonSpec;
 import com.pixelmonmod.pixelmon.entities.pixelmon.EntityPixelmon;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import com.pixelmonmod.pixelmon.enums.EnumSpecies;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.WorldServer;
-import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
@@ -24,10 +20,14 @@ import org.spongepowered.api.util.blockray.BlockRay;
 import org.spongepowered.api.util.blockray.BlockRayHit;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
-
-// Local imports.
-import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
 import rs.expand.evenmorepixelmoncommands.utilities.PokemonMethods;
+import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;
 
 // TODO: Add more flags, like scale/special texture/IVs/EnumBossMode. Needs testing with 7.0 stuff.
@@ -61,7 +61,7 @@ public class SpawnDex implements CommandExecutor
             }
             else
             {
-                boolean doFakeAnnouncement = false, makeOutlined = false, doRadiusSpawn = false/*, makeShiny = false*/;
+                boolean doRadiusSpawn = false;
                 final Optional<String> arg1Optional = args.getOne("Pokémon name/ID");
                 String arg1String, pokemonName;
                 int diameter = 0;
@@ -132,17 +132,7 @@ public class SpawnDex implements CommandExecutor
                     }
                 }
 
-                // Dumb flags.
-                if (args.hasAny("f"))
-                    doFakeAnnouncement = true;
-
-                if (args.hasAny("o"))
-                    makeOutlined = true;
-
-                /*if (args.hasAny("s"))
-                    makeShiny = true;*/
-
-                // Advanced flags with actual logic.
+                // Advanced flags need some early logic.
                 if (args.hasAny("r"))
                 {
                     doRadiusSpawn = true;
@@ -272,12 +262,8 @@ public class SpawnDex implements CommandExecutor
                     src.sendMessage(Text.of("§aSetting up a fresh §2" + pokemonName + "§a..."));
 
                     // Run through our flag executors.
-                    if (doFakeAnnouncement)
+                    if (args.hasAny("f"))
                     {
-                        // TODO: Maybe register our spawns directly with Pixelmon, using the stuff below? Dunno.
-                        //SpawnEvent spawnEvent = new SpawnEvent();
-                        //Pixelmon.EVENT_BUS.post(spawnEvent);
-
                         // Tell the calling player what we're doing, as usual.
                         src.sendMessage(Text.of("§eBroadcasting the §lconfig-set spawn message§r§e..."));
 
@@ -321,19 +307,37 @@ public class SpawnDex implements CommandExecutor
                         // Deserialize the given message as a Text, with given formatting turned into Text metadata.
                         MessageChannel.TO_PLAYERS.send(TextSerializers.FORMATTING_CODE.deserialize(completedMessage));
                     }
-                    if (makeOutlined)
+                    if (args.hasAny("o"))
                     {
                         src.sendMessage(Text.of("§eGiving the Pokémon §lan outline§r§e..."));
                         pokemonToSpawn.setGlowing(true); // Yeah, weird name. Works, though.
                     }
-                    /*if (makeShiny)
-                    {
-                        src.sendMessage(Text.of("§eMaking the Pokémon §lshiny§r§e..."));
-                        pokemonToSpawn.getPokemonData().setShiny(true);
-                    }*/
+                    if (args.hasAny("s"))
+                        pokemonToSpawn.addTag("needsShinyness");
 
                     // Actually spawn it.
                     world.spawnEntity(pokemonToSpawn);
+
+                    // This is a bit hacky, but seems to be necessary with 7.0's changes.
+                    if (args.hasAny("s"))
+                    {
+                        src.sendMessage(Text.of("§eMaking the Pokémon §lshiny§r§e..."));
+
+                        for (Entity e : world.loadedEntityList)
+                        {
+                            // Check our found entity. If it's a Pokémon and it has the tag, un-tag and make shiny.
+                            if (e instanceof EntityPixelmon && e.getTags().contains("needsShinyness"))
+                            {
+                                // Kill the tag so we don't break things by hitting it again later.
+                                e.removeTag("needsShinyness");
+
+                                // Make it shiny.
+                                ((EntityPixelmon) e).getPokemonData().setShiny(true);
+
+                                src.sendMessage(Text.of("Found tagged entity! Name: " + e.getName()));
+                            }
+                        }
+                    }
 
                     // Notify the player and wrap up.
                     src.sendMessage(Text.of("§aThe chosen Pokémon has been spawned!"));
@@ -363,7 +367,7 @@ public class SpawnDex implements CommandExecutor
         src.sendMessage(Text.of("§f➡ §6-f §f- §eBroadcasts a fake spawning message from the config."));
         src.sendMessage(Text.of("§f➡ §6-o §f- §eGives spawns an outline that shows through walls."));
         src.sendMessage(Text.of("§f➡ §6-r §f- §eSpawns a Pokémon randomly within the given radius."));
-        /*src.sendMessage(Text.of("§f➡ §6-s §f- §eMakes spawns shiny."));*/
+        src.sendMessage(Text.of("§f➡ §6-s §f- §eMakes spawns shiny."));
         src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
 }

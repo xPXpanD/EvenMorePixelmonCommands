@@ -1,16 +1,14 @@
 // Reloads EMPC's configs, aliases included.
 package rs.expand.evenmorepixelmoncommands.commands.subcommands;
 
-// Remote imports.
-import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
-
-// Local imports.
 import rs.expand.evenmorepixelmoncommands.utilities.ConfigMethods;
+
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printUnformattedMessage;
 
 // Note: printUnformattedMessage is a static import for a method from PrintingMethods, for convenience.

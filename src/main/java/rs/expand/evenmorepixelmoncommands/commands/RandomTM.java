@@ -1,20 +1,18 @@
-// PixelUpgrade's very first command. Originally /upgrade stats, then /getstats, and then finally this as part of EMPC.
+// Based on an idea by Dezire that seemed like it'd be fun to implement. (and it was a good excuse to get this updated)
 package rs.expand.evenmorepixelmoncommands.commands;
 
-// Remote imports.
-
-import java.util.*;
-
+import com.pixelmonmod.pixelmon.Pixelmon;
+import net.minecraft.entity.player.EntityPlayerMP;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.tileentity.CommandBlock;
-import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.entity.Item;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.gamemode.GameModes;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.Inventory;
@@ -26,22 +24,27 @@ import org.spongepowered.api.item.inventory.transaction.InventoryTransactionResu
 import org.spongepowered.api.text.Text;
 import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
 
-// Local imports.
-import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
 
 public class RandomTM implements CommandExecutor
 {
     // Declare a config variable. We'll load stuff into it when we call the config loader.
-    // Other config variables are loaded in from their respective classes. Check the imports.
     public static String commandAlias;
 
-    // TODO: Permission check!
+    // Are we running from console or command blocks? We'll flag this true, and proceed accordingly.
+    private boolean calledRemotely;
+
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)
     {
-        // Running from console? Let's tell our code that. If "src" is not a Player, this becomes true.
-        // Set up a variable for internal use.
-        final boolean calledRemotely = !(src instanceof Player);
+        // Running from console or blocks? Let's tell our code that. If "src" is not a Player, this becomes true.
+        calledRemotely = !(src instanceof Player);
+
+        // Set up a variable for saving flag presence.
+        boolean includeHMs = false;
 
         // Validate the data we get from the command's main config.
         // TODO: Override printCommandNodeError and move these single-parameter classes over there.
@@ -51,12 +54,12 @@ public class RandomTM implements CommandExecutor
 
         if (!commandErrorList.isEmpty())
         {
-            printCommandNodeError("RandomTM", commandErrorList);
+            PrintingMethods.printCommandNodeError("RandomTM", commandErrorList);
             src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
         }
         else
         {
-            final Optional<String> arg1Optional = args.getOne("target");
+            final Optional<String> arg1Optional = args.getOne("target/flag");
             final Player target;
 
             if (calledRemotely)
@@ -68,16 +71,23 @@ public class RandomTM implements CommandExecutor
 
                     // Do we have a valid online player?
                     if (Sponge.getServer().getPlayer(arg1String).isPresent())
+                    {
                         target = Sponge.getServer().getPlayer(arg1String).get();
+
+                        // Do we have an argument in the second slot? A bit ugly, but it'll do.
+                        final Optional<String> arg2Optional = args.getOne("flag");
+                        if (arg2Optional.isPresent() && arg2Optional.get().equalsIgnoreCase("-a"))
+                            includeHMs = true;
+                    }
                     else
                     {
-                        src.sendMessage(Text.of("§4Error: §cInvalid target. See below."));
+                        printLocalError(src, "§4Error: §cInvalid target.");
                         return CommandResult.empty();
                     }
                 }
                 else
                 {
-                    src.sendMessage(Text.of("§4Error: §cNo arguments found. See below."));
+                    printLocalError(src, "§4Error: §cNo target found.");
                     return CommandResult.empty();
                 }
             }
@@ -90,75 +100,97 @@ public class RandomTM implements CommandExecutor
 
                     // Is the provided first argument a valid player?
                     if (Sponge.getServer().getPlayer(arg1String).isPresent())
+                    {
                         target = Sponge.getServer().getPlayer(arg1String).get();
+
+                        // Do we have an argument in the second slot? A bit ugly, but it'll do.
+                        final Optional<String> arg2Optional = args.getOne("flag");
+                        if (arg2Optional.isPresent() && arg2Optional.get().equalsIgnoreCase("-a"))
+                            includeHMs = true;
+                    }
+                    else if (arg1Optional.get().equalsIgnoreCase("-a"))
+                    {
+                        //noinspection ConstantConditions
+                        target = (Player) src;
+                        includeHMs = true;
+                    }
                     else
                     {
-                        if (src instanceof CommandBlock)
-                            src.sendMessage(Text.of("§4Error: §cNo target found."));
-                        else
-                        {
-                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                            src.sendMessage(Text.of("§4Error: §cInvalid target. See below."));
-                            src.sendMessage(Text.of("§4Usage: §c/" + commandAlias + " [target]"));
-                            src.sendMessage(Text.of("§5-----------------------------------------------------"));
-                        }
-
+                        printLocalError(src, "§4Error: §cInvalid target.");
                         return CommandResult.empty();
                     }
                 }
                 else
+                {
+                    //noinspection ConstantConditions
                     target = (Player) src;
+                }
             }
 
-            // TODO: HM support. There's 10 of those, so maybe +10 the random number if the -a flag is set.
+            // Create a new random number between 0 and 173/184, then shift it up by 1 for an usable range.
+            final int bound = includeHMs ? 184 : 173;
+            final int machineNum = new Random().nextInt(bound) + 1;
 
-            // Create a new random number between 0 and 173, then shift it up by 1 for the TM range of 1-174.
-            final int machineNum = new Random().nextInt(173) + 1;
-
-            // Get a random TM using Pixelmon's item types.
-            final Optional<ItemType> item = Sponge.getRegistry().getType(ItemType.class, "pixelmon:tm" + machineNum);
+            // Get a random TM or HM using Pixelmon's item types. Numbers above 174 are shifted down to create a HM range.
+            final Optional<ItemType> item;
+            if (machineNum > 174)
+                item = Sponge.getRegistry().getType(ItemType.class, "pixelmon:hm" + (machineNum - 174));
+            else
+                item = Sponge.getRegistry().getType(ItemType.class, "pixelmon:tm" + machineNum);
 
             // Did we get a valid TM? Should always happen, but yeah.
             if (item.isPresent())
             {
                 final ItemStack stack = ItemStack.builder().itemType(item.get()).build();
-                final Inventory inventory = getHotbarFirst(target.getInventory());
 
-                // Can we insert our stack into the target's inventory? Niiiiice.
-                if (inventory.offer(stack).equals(InventoryTransactionResult.successNoTransactions()))
-                    sendCheckedMessage(src, "§aGave out a fresh TM, number " + machineNum + ".");
+                // Format the message based on what we're giving out.
+                if (machineNum > 174)
+                    sendCheckedMessage(src, "§aGiving out a fresh HM, number " + (machineNum - 174) + ".");
                 else
+                    sendCheckedMessage(src, "§aGiving out a fresh TM, number " + machineNum + ".");
+
+                // Create a drop entity.
+                Item drop = (Item) target.getLocation().getExtent().createEntity(EntityTypes.ITEM, target.getLocation().getPosition());
+
+                // Define the actual drop item using our ItemStack.
+                drop.offer(Keys.REPRESENTED_ITEM, stack.createSnapshot());
+
+                // Drop it like it's hot.
+                target.getWorld().spawnEntity(drop);
+
+                // Inform the target.
+                if (target != src)
                 {
-                    sendCheckedMessage(src, "§aDropping a fresh TM, number " + machineNum + ".");
-
-                    // Don't send this to command blocks.
-                    if (target.gameMode().get().equals(GameModes.CREATIVE) && !(src instanceof CommandBlock))
-                        sendCheckedMessage(src, "§5Please note: §dThe item may disappear due to Creative mode.");
-
-                    // Create a drop entity.
-                    Item drop = (Item) target.getLocation().getExtent().createEntity(EntityTypes.ITEM, target.getLocation().getPosition());
-
-                    // Define the actual drop item using our ItemStack.
-                    drop.offer(Keys.REPRESENTED_ITEM, stack.createSnapshot());
-
-                    // Drop it like it's hot.
-                    target.getWorld().spawnEntity(drop);
+                    if (machineNum > 174)
+                        target.sendMessage(Text.of("§dYou've received a random HM!"));
+                    else
+                        target.sendMessage(Text.of("§dYou've received a random TM!"));
                 }
             }
             else
-                src.sendMessage(Text.of("§4Error: §cRandom TM not found! Please report this. Item number: " + machineNum));
+            {
+                if (machineNum > 174)
+                    src.sendMessage(Text.of("§4Error: §cRandom HM not found! Please report this. Item number: " + (machineNum - 174)));
+                else
+                    src.sendMessage(Text.of("§4Error: §cRandom TM not found! Please report this. Item number: " + machineNum));
+            }
         }
 
         return CommandResult.success();
 	}
 
-	// Based on a snippet by Faithcaio from https://github.com/SpongePowered/SpongeCommon/issues/1840. Confusing stuff.
-    // Sends items to the hotbar first, main inventory second. Prevents stuff suddenly appearing in armor/hand slots.
-	private Inventory getHotbarFirst(Inventory inventory)
+    // Create and print a command-specific error box that shows a provided String as the actual error.
+    private void printLocalError(final CommandSource src, final String input)
     {
-        return inventory
-                .query(QueryOperationTypes.INVENTORY_TYPE.of(Hotbar.class))
-                .union(inventory.query(QueryOperationTypes.INVENTORY_TYPE.of(MainPlayerInventory.class)));
+        sendCheckedMessage(src, "§5-----------------------------------------------------");
+        sendCheckedMessage(src, input);
+
+        if (calledRemotely)
+            sendCheckedMessage(src, "§4Usage: §c/" + commandAlias + " <target> {-a to include HMs}");
+        else
+            sendCheckedMessage(src, "§4Usage: §c/" + commandAlias + " [target] {-a to include HMs}");
+
+        sendCheckedMessage(src, "§5-----------------------------------------------------");
     }
 
     // Allows us to redirect printed messages away from command blocks, and into the console if need be.

@@ -1,21 +1,22 @@
 // Thanks for the idea, ElaDiDu! Managed to squeeze this in.
 package rs.expand.evenmorepixelmoncommands.commands;
 
-// Remote imports.
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
-import java.util.*;
 import com.pixelmonmod.pixelmon.enums.EnumSpecies;
 import com.pixelmonmod.pixelmon.enums.forms.IEnumForm;
 import org.spongepowered.api.block.tileentity.CommandBlock;
-import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.text.Text;
-
-// Local imports.
-import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
 import rs.expand.evenmorepixelmoncommands.utilities.PokemonMethods;
+import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Optional;
 
 // TODO: Apparently some of the EnumSpecies#getFromName() stuff does translation, too. Slow, but usable. Check.
 public class CheckEVs implements CommandExecutor

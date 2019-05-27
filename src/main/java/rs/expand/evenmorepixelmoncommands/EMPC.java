@@ -1,29 +1,29 @@
 // Written for Pixelmon Reforged. Running this on Gens is unsupported and ill-advised, just like Gens itself.
 package rs.expand.evenmorepixelmoncommands;
 
-// Remote imports.
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Optional;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
-import org.spongepowered.api.event.game.state.*;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.game.state.GamePostInitializationEvent;
+import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.plugin.Dependency;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.economy.EconomyService;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.text.Text;
-
-// Local imports.
 import rs.expand.evenmorepixelmoncommands.commands.*;
 import rs.expand.evenmorepixelmoncommands.commands.subcommands.ListCommands;
 import rs.expand.evenmorepixelmoncommands.commands.subcommands.ReloadConfigs;
 import rs.expand.evenmorepixelmoncommands.utilities.ConfigMethods;
+
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Optional;
+
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printUnformattedMessage;
 
 /*                                                               *\
@@ -41,28 +41,28 @@ import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.print
 // TODO: Make a random legendary dice roll spawner. Give command already exists, but spawn does not.
 // TODO: Allow people to unlock hidden abilities, probably through the economy. - Fabyoulust
 // TODO: Make a command that counts the Pokémon in the world, maybe also nearby. - Mikirae (comment, not suggestion)
-// TODO: Make a command that wipes a player's Pokédex. - Mikirae
 // TODO: Make a Wailord Bomb command that blows apart a Wailord into a LOT of cooked fish. - Faty
 
 // Improvements to existing things:
 // TODO: Tab completion on player names.
 // TODO: Make just about every command with a target show said target a message when stuff is being used on them.
 // TODO: Move everything to lang files.
+// TODO: When doing localization support, check 5 and 7 color ------ lines? Translate both types. (success/error)
 // TODO: Dive into fixing ForceStats for 7.0.
 // TODO: Move "args.hasAny("c")" stuff to the case-insensitive -c one, as that doesn't mess up on -C.
 // TODO: Replace PokemonMethods stuff with Pixelmon's own solutions.
 // TODO: GenericArguments.withSuggestions() is a thing, maybe implement, replace current CMD system.
 // TODO: Look deeper into whether in-battle healing and stuff is doable now. Cursory check had partial success.
-// TODO: When doing localization support, check 5 and 7 color ------ lines? Translate both types. (success/error)
 // TODO: Add console use support for /resetevs and /switchgenders.
-// TODO: Round up when close on stuff like IVs. Currently rounds down, even if at .99.
 // TODO: Clickables! Especially the command confirmation messages. Remember to underline.
+// TODO: Sending checked messages in printLocalError is a huge inconsistent mess. Fix this, somehow.
+// TODO: Somehow support command block selectors.
 
 @Plugin
 (
         id = "evenmorepixelmoncommands",
         name = "Even More Pixelmon Commands",
-        version = "5.0.1",
+        version = "5.1.0",
         dependencies = @Dependency(id = "pixelmon"),
         description = "A sidemod for Pixelmon Reforged that adds a bunch of new commands, some with economy integration.",
         authors = "XpanD"
@@ -116,6 +116,7 @@ public class EMPC
     public static Path partyHatchPath = Paths.get(commandConfigPath, "PartyHatch.conf");
     public static Path partyHealPath = Paths.get(commandConfigPath, "PartyHeal.conf");
     public static Path randomTMPath = Paths.get(commandConfigPath, "RandomTM.conf");
+    public static Path resetDexPath = Paths.get(commandConfigPath, "ResetDex.conf");
     public static Path resetEVsPath = Paths.get(commandConfigPath, "ResetEVs.conf");
     public static Path showStatsPath = Paths.get(commandConfigPath, "ShowStats.conf");
     public static Path spawnDexPath = Paths.get(commandConfigPath, "SpawnDex.conf");
@@ -142,6 +143,8 @@ public class EMPC
             HoconConfigurationLoader.builder().setPath(partyHealPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> randomTMLoader =
             HoconConfigurationLoader.builder().setPath(randomTMPath).build();
+    public static ConfigurationLoader<CommentedConfigurationNode> resetDexLoader =
+            HoconConfigurationLoader.builder().setPath(resetDexPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> resetEVsLoader =
             HoconConfigurationLoader.builder().setPath(resetEVsPath).build();
     public static ConfigurationLoader<CommentedConfigurationNode> showStatsLoader =
@@ -242,7 +245,16 @@ public class EMPC
             .permission("empc.command.staff.randomtm")
             .executor(new RandomTM())
             .arguments(
-                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target"))))
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target/flag"))),
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("flag"))))
+            .build();
+
+    public static CommandSpec resetdex = CommandSpec.builder()
+            .permission("empc.command.staff.resetdex")
+            .executor(new ResetDex())
+            .arguments(
+                    GenericArguments.optionalWeak(GenericArguments.string(Text.of("target"))),
+                    GenericArguments.flags().flag("c").buildWith(GenericArguments.none()))
             .build();
 
     public static CommandSpec resetevs = CommandSpec.builder()
@@ -266,7 +278,7 @@ public class EMPC
             .executor(new SpawnDex())
             .arguments(
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("Pokémon name/ID"))),
-                    GenericArguments.flags().flag("b").flag("f").flag("o").flag("r").flag("s").buildWith(GenericArguments.none()),
+                    GenericArguments.flags().flag("f").flag("o").flag("r").flag("s").buildWith(GenericArguments.none()),
                     GenericArguments.optionalWeak(GenericArguments.string(Text.of("optional square radius"))))
             .build();
 
