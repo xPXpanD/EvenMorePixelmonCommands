@@ -1,5 +1,5 @@
 5.1.0 for 7.0.6
-Released May 26th, 2019.
+Released May 27th, 2019.
 
     Additions:
     * /randomtm: Gives the targeted player a random TM. Can also do HMs, if the flag is passed.
