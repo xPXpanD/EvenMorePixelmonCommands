@@ -1,5 +1,5 @@
 5.1.1 for 7.0.8
-Released September 28th, 2019.
+Released September 27th, 2019.
 
     Additions:
     * /checkstats and /showstats now show hyper training boosts.

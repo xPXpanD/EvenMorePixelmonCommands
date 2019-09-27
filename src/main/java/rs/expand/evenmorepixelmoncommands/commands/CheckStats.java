@@ -288,23 +288,17 @@ public class CheckStats implements CommandExecutor
                             else
                                 src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
 
-                            if (recheckIsFree)
+                            if (economyEnabled && recheckIsFree)
                             {
                                 src.sendMessage(Text.EMPTY);
-                                src.sendMessage(Text.of("§5Note: §dFuture checks on this Pokémon will be free!"));
+                                src.sendMessage(Text.of("§5Note: §dChecks on already-checked Pokémon are free!"));
                             }
 
                             src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         }
                     }
                     else
-                    {
-                        boolean haveTarget = false;
-                        if (target != null)
-                            haveTarget = true;
-
-                        checkSpecificSlot(src, target, pokemon, haveTarget);
-                    }
+                        checkSpecificSlot(src, target, pokemon, target != null);
                 }
             }
         }
@@ -347,10 +341,10 @@ public class CheckStats implements CommandExecutor
                 else
                     src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coins."));
 
-                if (recheckIsFree)
+                if (economyEnabled && recheckIsFree)
                 {
                     src.sendMessage(Text.EMPTY);
-                    src.sendMessage(Text.of("§5Note: §dFuture checks on this Pokémon will be free!"));
+                    src.sendMessage(Text.of("§5Note: §dChecks on already-checked Pokémon are free!"));
                 }
             }
         }

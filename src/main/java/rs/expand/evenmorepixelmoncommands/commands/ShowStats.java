@@ -209,10 +209,10 @@ public class ShowStats implements CommandExecutor
                             src.sendMessage(Text.EMPTY);
                             src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
 
-                            if (reshowIsFree)
+                            if (economyEnabled && reshowIsFree)
                             {
                                 src.sendMessage(Text.EMPTY);
-                                src.sendMessage(Text.of("§5Note: §dFuture checks on this Pokémon will be free!"));
+                                src.sendMessage(Text.of("§5Note: §dShowing already-shown Pokémon is free!"));
                             }
 
                             src.sendMessage(Text.of("§5-----------------------------------------------------"));
@@ -256,10 +256,10 @@ public class ShowStats implements CommandExecutor
                 else
                     src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coins."));
 
-                if (reshowIsFree)
+                if (economyEnabled && reshowIsFree)
                 {
                     src.sendMessage(Text.EMPTY);
-                    src.sendMessage(Text.of("§5Note: §dFuture checks on this Pokémon will be free!"));
+                    src.sendMessage(Text.of("§5Note: §dShowing already-shown Pokémon is free!"));
                 }
             }
 
@@ -426,16 +426,11 @@ public class ShowStats implements CommandExecutor
 
         if (showExtraInfo)
         {
-            // Get a bunch of important Pokémon stat data.
-            final EnumNature nature = pokemon.getNature();
-            final EnumGrowth growth = pokemon.getGrowth();
-            final String plusVal = PokemonMethods.getShorthand(nature.increasedStat);
-            final String minusVal = PokemonMethods.getShorthand(nature.decreasedStat);
-
             // Start adding miscellaneous Pokémon info.
             hovers.add("§bExtra info§f:");
 
             // Get and add the Pokémon's growth, their size. Omit it entirely if it can't be grabbed, somehow.
+            final EnumGrowth growth = pokemon.getGrowth();
             switch (growth)
             {
                 case Microscopic:
@@ -469,13 +464,16 @@ public class ShowStats implements CommandExecutor
                     hovers.add("➡ §aIt has §2no gender§a.");
             }
 
-            // Get and add the nature and the boosted/cut stats.
+            // Get and add the nature and the boosted/cut stats. Capitalize the nature's name properly.
+            final EnumNature nature = pokemon.getNature();
+            final String plusVal = PokemonMethods.getShorthand(nature.increasedStat);
+            final String minusVal = PokemonMethods.getShorthand(nature.decreasedStat);
             if (nature.index >= 0 && nature.index <= 4)
                 hovers.add("➡ §aIt is §2" + nature.name().toLowerCase() + "§a, with well-balanced stats.");
             else if (nature.index < 0 || nature.index > 24)
                 hovers.add("➡ §aIt has an §2unknown §anature...");
             else
-                hovers.add("➡ §aIt is §2" + nature.name() + "§a, boosting §2" + plusVal + " §aand cutting §2" + minusVal + "§a.");
+                hovers.add("➡ §aIt is §2" + nature.name().toLowerCase() + "§a, boosting §2" + plusVal + " §aand cutting §2" + minusVal + "§a.");
 
             // Get and add the ability, and show whether it's hidden or not.
             if (pokemon.getAbilitySlot() == 2)
