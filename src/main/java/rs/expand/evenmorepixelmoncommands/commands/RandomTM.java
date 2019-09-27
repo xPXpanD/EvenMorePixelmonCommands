@@ -1,8 +1,6 @@
 // Based on an idea by Dezire that seemed like it'd be fun to implement. (and it was a good excuse to get this updated)
 package rs.expand.evenmorepixelmoncommands.commands;
 
-import com.pixelmonmod.pixelmon.Pixelmon;
-import net.minecraft.entity.player.EntityPlayerMP;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.tileentity.CommandBlock;
 import org.spongepowered.api.command.CommandResult;
@@ -13,14 +11,8 @@ import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.entity.Item;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.entity.living.player.gamemode.GameModes;
 import org.spongepowered.api.item.ItemType;
-import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.item.inventory.entity.Hotbar;
-import org.spongepowered.api.item.inventory.entity.MainPlayerInventory;
-import org.spongepowered.api.item.inventory.query.QueryOperationTypes;
-import org.spongepowered.api.item.inventory.transaction.InventoryTransactionResult;
 import org.spongepowered.api.text.Text;
 import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
 

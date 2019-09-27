@@ -188,7 +188,7 @@ public class FixGenders implements CommandExecutor
                     }
 
                     sendCheckedMessage(src, "");
-                    sendCheckedMessage(src, "§5Please note: §dAny broken genders will be immediately rerolled.");
+                    sendCheckedMessage(src, "§5Note: §dAny broken genders will be immediately rerolled.");
                     sendCheckedMessage(src, "§5-----------------------------------------------------");
                 }
             }
@@ -211,7 +211,7 @@ public class FixGenders implements CommandExecutor
             sendCheckedMessage(src, "§4Usage: §c/" + commandAlias + " [target?]");
 
         sendCheckedMessage(src, "");
-        sendCheckedMessage(src, "§5Please note: §dAny broken genders will be immediately rerolled.");
+        sendCheckedMessage(src, "§5Note: §dAny broken genders will be immediately rerolled.");
         src.sendMessage(Text.of("§5-----------------------------------------------------"));
     }
 

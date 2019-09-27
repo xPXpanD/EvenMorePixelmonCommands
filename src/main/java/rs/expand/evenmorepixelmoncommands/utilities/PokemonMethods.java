@@ -4,7 +4,7 @@ import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
 
-import static rs.expand.evenmorepixelmoncommands.EMPC.*;
+import static rs.expand.evenmorepixelmoncommands.EMPC.statShorthands;
 
 // Big ol' list of Pokémon.
 public enum PokemonMethods
@@ -1181,17 +1181,17 @@ public enum PokemonMethods
         switch (stat)
         {
             case HP:
-                return (shortenedHP == null) ? "ERROR" : shortenedHP;
+                return (statShorthands[0] == null) ? "ERROR" : statShorthands[0];
             case Attack:
-                return (shortenedAttack == null) ? "ERROR" : shortenedAttack;
+                return (statShorthands[1] == null) ? "ERROR" : statShorthands[1];
             case Defence:
-                return (shortenedDefense == null) ? "ERROR" : shortenedDefense;
+                return (statShorthands[2] == null) ? "ERROR" : statShorthands[2];
             case SpecialAttack:
-                return (shortenedSpecialAttack == null) ? "ERROR" : shortenedSpecialAttack;
+                return (statShorthands[3] == null) ? "ERROR" : statShorthands[3];
             case SpecialDefence:
-                return (shortenedSpecialDefense == null) ? "ERROR" : shortenedSpecialDefense;
+                return (statShorthands[4] == null) ? "ERROR" : statShorthands[4];
             case Speed:
-                return (shortenedSpeed == null) ? "ERROR" : shortenedSpeed;
+                return (statShorthands[5] == null) ? "ERROR" : statShorthands[5];
             default:
                 return "None"; // Hit when we have a stat without a shorthand. Shouldn't happen.
         }
@@ -1220,9 +1220,10 @@ public enum PokemonMethods
                 default: return "§8???";
             }
         }
-    }
+    }/*
 
-    /*public static String getGrowthName(final int growthNum)
+
+    public static String getGrowthName(final int growthNum)
     {
         switch (growthNum)
         {

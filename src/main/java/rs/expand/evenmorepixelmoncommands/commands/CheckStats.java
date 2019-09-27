@@ -28,7 +28,6 @@ import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.text.Text;
 import rs.expand.evenmorepixelmoncommands.utilities.PokemonMethods;
-import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -36,7 +35,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static rs.expand.evenmorepixelmoncommands.EMPC.*;
-import static rs.expand.evenmorepixelmoncommands.utilities.PokemonMethods.getShorthand;
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.*;
 
 public class CheckStats implements CommandExecutor
@@ -74,34 +72,14 @@ public class CheckStats implements CommandExecutor
             if (babyHintPercentage == null)
                 commandErrorList.add("babyHintPercentage");
             if (commandCost == null)
-            commandErrorList.add("commandCost");
+                commandErrorList.add("commandCost");
             if (recheckIsFree == null)
                 commandErrorList.add("recheckIsFree");
-
-            // Also get some stuff from EvenMorePixelmonCommands.conf.
-            final List<String> mainConfigErrorArray = new ArrayList<>();
-            if (shortenedHP == null)
-                mainConfigErrorArray.add("shortenedHP");
-            if (shortenedAttack == null)
-                mainConfigErrorArray.add("shortenedAttack");
-            if (shortenedDefense == null)
-                mainConfigErrorArray.add("shortenedDefense");
-            if (shortenedSpecialAttack == null)
-                mainConfigErrorArray.add("shortenedSpecialAttack");
-            if (shortenedSpecialDefense == null)
-                mainConfigErrorArray.add("shortenedSpecialDefense");
-            if (shortenedSpeed == null)
-                mainConfigErrorArray.add("shortenedSpeed");
 
             if (!commandErrorList.isEmpty())
             {
                 printCommandNodeError("CheckStats", commandErrorList);
                 src.sendMessage(Text.of("§4Error: §cThis command's config is invalid! Please report to staff."));
-            }
-            else if (!mainConfigErrorArray.isEmpty())
-            {
-                PrintingMethods.printMainNodeError("CheckStats", mainConfigErrorArray);
-                src.sendMessage(Text.of("§4Error: §cCould not parse main config. Please report to staff."));
             }
             else
             {
@@ -239,8 +217,7 @@ public class CheckStats implements CommandExecutor
                 else
                 {
                     // Should this check be free? Only passes if we receive a "hey we checked this previously".
-                    final boolean pokemonIsFree =
-                            recheckIsFree && pokemon.getPersistentData().getBoolean("wasChecked");
+                    final boolean pokemonIsFree = recheckIsFree && pokemon.getPersistentData().getBoolean("wasChecked");
 
                     // Don't use economy for console! Also, skip if we're checking a known Pokémon with free rechecks on.
                     if (economyEnabled && !calledRemotely && commandCost > 0 && !pokemonIsFree)
@@ -311,6 +288,12 @@ public class CheckStats implements CommandExecutor
                             else
                                 src.sendMessage(Text.of("§2Ready? Type: §a/" + commandAlias + " " + slot + " -c"));
 
+                            if (recheckIsFree)
+                            {
+                                src.sendMessage(Text.EMPTY);
+                                src.sendMessage(Text.of("§5Note: §dFuture checks on this Pokémon will be free!"));
+                            }
+
                             src.sendMessage(Text.of("§5-----------------------------------------------------"));
                         }
                     }
@@ -363,6 +346,12 @@ public class CheckStats implements CommandExecutor
                     src.sendMessage(Text.of("§eConfirming will cost you §6one §ecoin."));
                 else
                     src.sendMessage(Text.of("§eConfirming will cost you §6" + commandCost + "§e coins."));
+
+                if (recheckIsFree)
+                {
+                    src.sendMessage(Text.EMPTY);
+                    src.sendMessage(Text.of("§5Note: §dFuture checks on this Pokémon will be free!"));
+                }
             }
         }
 
@@ -425,17 +414,17 @@ public class CheckStats implements CommandExecutor
 
         if (economyEnabled && !calledRemotely && commandCost > 0)
         {
-            src.sendMessage(Text.of("§eWant more info? §6/" + commandAlias + targetString +
+            src.sendMessage(Text.of("§dWant more info? §6/" + commandAlias + targetString +
                     " <slot, 1-6> {-c to confirm}"));
 
             if (commandCost == 1)
-                src.sendMessage(Text.of("§5Warning: §dThis will cost you §5one §dcoin."));
+                src.sendMessage(Text.of("§6Warning: §eThis will cost you §5one §dcoin."));
             else
-                src.sendMessage(Text.of("§5Warning: §dThis will cost you §5" +
+                src.sendMessage(Text.of("§6Warning: §eThis will cost you §5" +
                     commandCost + " §dcoins."));
         }
         else
-            src.sendMessage(Text.of("§eWant to know more? §6/" + commandAlias + targetString + " <slot, 1-6>"));
+            src.sendMessage(Text.of("§dWant to know more? §6/" + commandAlias + targetString + " <slot, 1-6>"));
 
         src.sendMessage(Text.of("§7-----------------------------------------------------"));
     }
@@ -456,27 +445,6 @@ public class CheckStats implements CommandExecutor
         // Check if our Pokémon is an egg. If it is, be careful with it and only reveal stats if explictly told to do so.
         if (!pokemon.isEgg() || revealEggStats || calledRemotely)
         {
-            // Format the IVs for use later, so we can print them.
-            String ivs1 = IVs.get(StatsType.HP) + " §2" + shortenedHP + statSeparator;
-            String ivs2 = IVs.get(StatsType.Attack) + " §2" + shortenedAttack + statSeparator;
-            String ivs3 = IVs.get(StatsType.Defence) + " §2" + shortenedDefense + statSeparator;
-            String ivs4 = IVs.get(StatsType.SpecialAttack) + " §2" + shortenedSpecialAttack + statSeparator;
-            String ivs5 = IVs.get(StatsType.SpecialDefence) + " §2" + shortenedSpecialDefense + statSeparator;
-            String ivs6 = IVs.get(StatsType.Speed) + " §2" + shortenedSpeed;
-
-            if (IVs.get(StatsType.HP) > 30)
-                ivs1 = "§o" + ivs1;
-            if (IVs.get(StatsType.Attack) > 30)
-                ivs2 = "§o" + ivs2;
-            if (IVs.get(StatsType.Defence) > 30)
-                ivs3 = "§o" + ivs3;
-            if (IVs.get(StatsType.SpecialAttack) > 30)
-                ivs4 = "§o" + ivs4;
-            if (IVs.get(StatsType.SpecialDefence) > 30)
-                ivs5 = "§o" + ivs5;
-            if (IVs.get(StatsType.Speed) > 30)
-                ivs6 = "§o" + ivs6;
-
             // Make some easy Strings for the Pokémon's name, nickname and associated stuff.
             final String localizedName = pokemon.getSpecies().getLocalizedName();
             final String baseName = pokemon.getSpecies().getPokemonName();
@@ -491,148 +459,176 @@ public class CheckStats implements CommandExecutor
                     .append(pokemon.getFormEnum() == EnumAlolan.ALOLAN ? "§6Alolan " : "§6")
                     .append(localizedName)
                     .append(pokemon.isEgg() ? " §eegg" : "§e")
-                    .append(!pokemon.isEgg() && nickname != null && !nickname.isEmpty() ?
-                            ", nicknamed §6" + nickname + "§e:" : "§e:")
+                    .append(!pokemon.isEgg() && nickname != null && !nickname.isEmpty() ? ", nicknamed §6" + nickname + "§e:" : "§e:")
             ));
 
-            // Print out IVs using previously formatted Strings.
-            src.sendMessage(Text.EMPTY);
-            src.sendMessage(Text.of("§bIVs§f: §a" + percentIVs +
-                    "% §f(§a" + ivs1 + ivs2 + ivs3 + ivs4 + ivs5 + ivs6 + "§f)"));
+            // Build an array of relevant stats, and only those. We don't need Accuracy or Eveasion where we're going!
+            StatsType[] stats = new StatsType[]
+                    { StatsType.HP, StatsType.Attack, StatsType.Defence, StatsType.SpecialAttack, StatsType.SpecialDefence, StatsType.Speed };
 
-            // Do the same for EVs, if enabled in the config.
+            // Set up a builder for our IV String. Add early text, we'll fill in the rest later.
+            final StringBuilder ivStrings = new StringBuilder().append("§bIVs§f: ");
+
+            // Set up a bool for later checking. We'll append a message to explain Hyper Training if necessary.
+            boolean wasHyperTrained = true;
+
+            // Check if we have any stats that aren't hyper-trained.
+            for (StatsType stat : stats)
+            {
+                if (!IVs.isHyperTrained(stat))
+                    wasHyperTrained = false;
+            }
+
+            // Apply different formatting based on whether all stats were hyper-trained or not.
+            if (wasHyperTrained)
+            {
+                // Make everything yellow/orange, here. This keeps the theme intact.
+                ivStrings.append("§d")
+                        .append(percentIVs)
+                        .append("% §f(");
+
+                // Loop through the different stats and add them to our String builder.
+                for (int i = 0; i < 6; i++)
+                {
+                    // Append a fitting color tag. Has to be done here, as applying these breaks non-color formatting tags.
+                    ivStrings.append("§d");
+
+                    // If the IV was already 31+, italicize the text for extra fanciness.
+                    if (IVs.get(stats[i]) > 30)
+                        ivStrings.append("§o");
+
+                    // Append the rest of our info.
+                    ivStrings.append(IVs.get(stats[i]))
+                            .append(" §5")
+                            .append(statShorthands[i]);
+
+                    // Add a separator if we're not at the end, so we can separate stats for display.
+                    if (i < 5)
+                        ivStrings.append(statSeparator);
+                }
+            }
+            else
+            {
+                // Use the normal green/dark green scheme, since we have at least one normal stat.
+                ivStrings.append("§a")
+                        .append(percentIVs)
+                        .append("% §f(");
+
+                // Loop through the different stats and add them to our String builder.
+                for (int i = 0; i < 6; i++)
+                {
+                    // Append a fitting color tag. Has to be done here, as applying these breaks non-color formatting tags.
+                    if (IVs.isHyperTrained(stats[i]))
+                        ivStrings.append("§d");
+                    else
+                        ivStrings.append("§a");
+
+                    // If the IV was already 31+, italicize the text for extra fanciness.
+                    if (IVs.get(stats[i]) > 30)
+                        ivStrings.append("§o");
+
+                    // Add the original IV. Again, make it yellow/orange if we're dealing with a boosted stat.
+                    if (IVs.isHyperTrained(stats[i]))
+                    {
+                        wasHyperTrained = true;
+
+                        ivStrings.append(IVs.get(stats[i])).append(" §5");
+                    }
+                    else
+                        ivStrings.append(IVs.get(stats[i])).append(" §2");
+
+                    // Append the common shorthand String.
+                    ivStrings.append(statShorthands[i]);
+
+                    // Add a separator if we're not at the end, so we can separate stats for display.
+                    if (i < 5)
+                        ivStrings.append(statSeparator);
+                }
+            }
+
+            // Finish our built IV String and print it.
+            src.sendMessage(Text.EMPTY);
+            src.sendMessage(Text.of(ivStrings + "§f)"));
+
+            // Do the same for EVs, if enabled in the config and not on an egg. (eggs with EVs? nah)
             if (showEVs && !pokemon.isEgg())
             {
-                // Rinse and repeat for EVs.
+                // Rinse and repeat stat setup for EVs.
                 final EVStore EVs = pokemon.getEVs();
                 final int totalEVs =
                         EVs.get(StatsType.HP) + EVs.get(StatsType.Attack) + EVs.get(StatsType.Defence) +
                         EVs.get(StatsType.SpecialAttack) + EVs.get(StatsType.SpecialDefence) + EVs.get(StatsType.Speed);
                 final int percentEVs = (int) Math.round(totalEVs * 100.0 / 510.0);
 
-                // Also format the strings for EVs.
-                String evs1 = EVs.get(StatsType.HP) + " §2" + shortenedHP + statSeparator;
-                String evs2 = EVs.get(StatsType.Attack) + " §2" + shortenedAttack + statSeparator;
-                String evs3 = EVs.get(StatsType.Defence) + " §2" + shortenedDefense + statSeparator;
-                String evs4 = EVs.get(StatsType.SpecialAttack) + " §2" + shortenedSpecialAttack + statSeparator;
-                String evs5 = EVs.get(StatsType.SpecialDefence) + " §2" + shortenedSpecialDefense + statSeparator;
-                String evs6 = EVs.get(StatsType.Speed) + " §2" + shortenedSpeed;
+                // Set up a builder for our EV String. Add some early text, we'll fill in the rest later.
+                final StringBuilder evStrings = new StringBuilder()
+                        .append("§bEVs§f: §a")
+                        .append(percentEVs)
+                        .append("% §f(§a");
 
-                if (EVs.get(StatsType.HP) > 251)
-                    evs1 = "§o" + evs1;
-                if (EVs.get(StatsType.Attack) > 251)
-                    evs2 = "§o" + evs2;
-                if (EVs.get(StatsType.Defence) > 251)
-                    evs3 = "§o" + evs3;
-                if (EVs.get(StatsType.SpecialAttack) > 251)
-                    evs4 = "§o" + evs4;
-                if (EVs.get(StatsType.SpecialDefence) > 251)
-                    evs5 = "§o" + evs5;
-                if (EVs.get(StatsType.Speed) > 251)
-                    evs6 = "§o" + evs6;
+                // Loop through the stats, and format our EV String.
+                for (int i = 0; i < 6; i++)
+                {
+                    if (EVs.get(stats[i]) > 251) // Italicize the text for extra fanciness.
+                        evStrings.append("§o").append(EVs.get(stats[i]));
+                    else
+                        evStrings.append(EVs.get(stats[i]));
 
-                src.sendMessage(Text.of("§bEVs§f: §a" + percentEVs +
-                        "% §f(§a" + evs1 + evs2 + evs3 + evs4 + evs5 + evs6 + "§f)"));
+                    // Append common Strings.
+                    evStrings.append(" §2").append(statShorthands[i]);
+
+                    // Add a separator if we're not at the end, so we can separate stats for display.
+                    if (i < 5)
+                        evStrings.append(statSeparator);
+                }
+
+                // Finish our built EV String and print it.
+                src.sendMessage(Text.of(evStrings + "§f)"));
             }
 
             // Get a bunch of important Pokémon stat data.
             final EnumNature nature = pokemon.getNature();
-            final String plusVal = '+' + getShorthand(nature.increasedStat);
-            final String minusVal = '-' + getShorthand(nature.decreasedStat);
+            final String plusVal = '+' + PokemonMethods.getShorthand(nature.increasedStat);
+            final String minusVal = '-' + PokemonMethods.getShorthand(nature.decreasedStat);
 
             // Set up a gender character. Console doesn't like Unicode genders, so if src is not a Player we'll use M/F/-.
             final String genderChar = PokemonMethods.getGenderCharacter(src, pokemon.getGender().getForm());
-
-            // NOTE: Currently commented out because kind of useless, and too long. May make a comeback.
-            /*// Figure out how happy the Pokémon is.
-            final int happiness = pokemon.getFriendship();
-            final String happinessString;
-            if (happiness > 250) // Whoa!
-                happinessString = "§o" + happiness + "!§r";
-            else if (happiness < 50) // Oof...
-                happinessString = happiness + "...";
-            else // Eh.
-                happinessString = String.valueOf(happiness);*/
 
             // Show extra info, which we grabbed from PokemonMethods.
             src.sendMessage(Text.of("§bSize§f: " + pokemon.getGrowth().name() + "§f | §bGender§f: " + genderChar +
                     "§r | §bNature§f: " + nature.name() + "§f (§a" + plusVal + "§f/§c" + minusVal + "§f)"));
 
             // Show the ability on a separate line. Localize it so we can show name/description in the user's language!
-            if (src instanceof Player)
-                sendTranslatedAbilityMessage((Player) src, pokemon);
-            else
-                src.sendMessage(Text.of("§bAbility§f: " + pokemon.getAbility().getLocalizedName()));
-
-            // Check and show whether the Pokémon can be upgraded/fused further, if enabled in config.
-            /*final boolean isDitto = pokemon.getSpecies().getPokemonName().equals("Ditto");
-            if (isDitto && showDittoFusionHelper && !gotFusionError || !isDitto && showUpgradeHelper && !gotUpgradeError)
+            // Shoutout to happyzlife, who wrote several snippets for me to get this working. Thanks a ton!
+            if (src instanceof EntityPlayerMP)
             {
-                // Let's not forget to do this. Moves the count helper message to its own line, right at the bottom.
-                src.sendMessage(Text.EMPTY);
+                // Set up Forge's counterpart to Sponge's text stuff.
+                ITextComponent component = new TextComponentString("§bAbility§f: ");
 
-                // Let's re-use the startString String. It's still relevant.
-                if (isDitto)
-                {
-                    final int fuseCount = pokemonNBT.getInteger("fuseCount");
-                    final int fusionCap;
+                // Underline.
+                component.getStyle().setUnderlined(true);
 
-                    if (pokemon.getIsShiny())
-                    {
-                        startString = "§eThis §6§lshiny §r§6Ditto §e";
-                        fusionCap = DittoFusion.shinyCap; // Shiny cap.
-                    }
-                    else
-                    {
-                        startString = "§eThis §6Ditto §e";
-                        fusionCap = DittoFusion.regularCap; // Regular cap.
-                    }
+                // If we have a hidden ability, italicize.
+                if (pokemon.getAbilitySlot() == 2)
+                    component.getStyle().setItalic(true);
 
-                    if (fuseCount != 0 && fuseCount < fusionCap)
-                        src.sendMessage(Text.of(startString + "has been fused §6" + fuseCount + "§e/§6" + fusionCap + " §etimes."));
-                    else if (fuseCount == 0 && fuseCount < fusionCap)
-                        src.sendMessage(Text.of(startString + "can be fused §6" + fusionCap + "§e more times."));
-                    else
-                        src.sendMessage(Text.of(startString + "cannot be fused any further!"));
-                }
+                // Add the ability's name, translated into the user's language.
+                component.appendSibling(new TextComponentTranslation("ability." + pokemon.getAbility().getName() + ".name"));
+
+                // Do the same for the ability's description, as shown when hovered over.
+                component.getStyle().setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                        new TextComponentTranslation("ability." + pokemon.getAbility().getName() + ".description")));
+
+                // Send!
+                ((EntityPlayerMP) src).sendMessage(component);
+            }
+            else
+            {
+                if (pokemon.getAbilitySlot() == 2)
+                    src.sendMessage(Text.of("§bAbility§f: §o" + pokemon.getAbility().getLocalizedName()));
                 else
-                {
-                    final int upgradeCount = pokemonNBT.getInteger("upgradeCount");
-                    final int upgradeCap;
-                    final boolean isLegendary = EnumSpecies.legendaries.contains(baseName);
-
-                    if (pokemon.getIsShiny() && isLegendary)
-                    {
-                        startString = "§eThis §6§lshiny legendary §r§e";
-                        upgradeCap = UpgradeIVs.legendaryAndShinyCap; // Legendary + shiny cap.
-                    }
-                    else if (isLegendary)
-                    {
-                        startString = "§eThis §6§llegendary §r§ePokémon ";
-                        upgradeCap = UpgradeIVs.legendaryCap; // Legendary cap.
-                    }
-                    else if (pokemon.getIsShiny())
-                    {
-                        startString = "§eThis §6§lshiny §r§ePokémon ";
-                        upgradeCap = UpgradeIVs.shinyCap; // Shiny cap.
-                    }
-                    else
-                    {
-                        startString = "§eThis Pokémon ";
-                        upgradeCap = UpgradeIVs.regularCap; // Regular cap.
-                    }
-
-                    if (upgradeCount != 0 && upgradeCount < upgradeCap)
-                    {
-                        src.sendMessage(Text.of(startString + "has been upgraded §6" + upgradeCount + "§e/§6" +
-                                upgradeCap + " §etimes."));
-                    }
-                    else if (upgradeCount == 0 && upgradeCount < upgradeCap)
-                        src.sendMessage(Text.of(startString + "can be upgraded §6" + upgradeCap + "§e more times."));
-                    else
-                        src.sendMessage(Text.of(startString + "has been fully upgraded!"));
-                }
-            }*/
+                    src.sendMessage(Text.of("§bAbility§f: " + pokemon.getAbility().getLocalizedName()));
+            }
 
             if (pokemon.isEgg())
             {
@@ -644,11 +640,15 @@ public class CheckStats implements CommandExecutor
             }
             else
             {
+                if (wasHyperTrained)
+                {
+                    src.sendMessage(Text.EMPTY);
+                    src.sendMessage(Text.of("§dIVs displayed in pink are hyper-trained."));
+                }
+
                 // Mew-specific check for cloning counts. A bit cheap, but it'll work down here. Also, lake trio enchant check.
                 if (baseName.equals("Mew"))
                 {
-                    // If we haven't added a new line yet, do it now.
-                    /*if (isDitto && !showDittoFusionHelper || !isDitto && !showUpgradeHelper)*/
                     src.sendMessage(Text.EMPTY);
 
                     final int cloneCount = ((MewStats) pokemon.getExtraStats()).numCloned;
@@ -660,17 +660,15 @@ public class CheckStats implements CommandExecutor
                 }
                 else if (baseName.equals("Azelf") || baseName.equals("Mesprit") || baseName.equals("Uxie"))
                 {
-                    // If we haven't added a new line yet, do it now.
-                    /*if (isDitto && !showDittoFusionHelper || !isDitto && !showUpgradeHelper)*/
                     src.sendMessage(Text.EMPTY);
 
                     final int enchantCount = ((LakeTrioStats) pokemon.getExtraStats()).numEnchanted;
                     final int maxEnchants = LakeTrioStats.MAX_ENCHANTED;
 
                     if (enchantCount == 0)
-                        src.sendMessage(Text.of("§eIt has not yet enchanted any rubies."));
+                        src.sendMessage(Text.of("§eThis §6" + baseName + "§e has not yet enchanted any rubies."));
                     else
-                        src.sendMessage(Text.of("§eIt has enchanted §6" + enchantCount + "§f/§6" + maxEnchants + " §erubies."));
+                        src.sendMessage(Text.of("§eThis §6" + baseName + "§e has enchanted §6" + enchantCount + "§f/§6" + maxEnchants + " §erubies."));
                 }
             }
         }
@@ -687,33 +685,11 @@ public class CheckStats implements CommandExecutor
                 src.sendMessage(Text.of("§eThis baby seems to be fairly ordinary..."));
         }
 
-        if (economyEnabled && commandCost > 0 && recheckIsFree)
-        {
-            if (pokemon.getPersistentData().getBoolean("wasChecked"))
-            {
-                src.sendMessage(Text.EMPTY);
-                src.sendMessage(Text.of("§dThis Pokémon was checked before, so this check was free!"));
-            }
-            else // Write the "free rechecks" tag to the Pokémon for future use.
-                pokemon.getPersistentData().setBoolean("wasChecked", true);
-        }
+        // Set a tag so future rechecks are free, provided that's enabled in the configs.
+        if (economyEnabled && commandCost > 0)
+            pokemon.getPersistentData().setBoolean("wasChecked", true);
 
         // Finish up the output text box. Done!
         src.sendMessage(Text.of("§7-----------------------------------------------------"));
-    }
-
-    // Shoutout to happyzlife, who wrote several snippets for me to get this working. Thanks a ton!
-    private static void sendTranslatedAbilityMessage(Player player, Pokemon pokemon)
-    {
-        final String ability = pokemon.getAbility().getName();
-
-        ITextComponent component = new TextComponentString("§bAbility§f: §n")
-                .appendSibling(new TextComponentTranslation("ability." + ability + ".name"));
-
-        component.getStyle().setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                new TextComponentTranslation("ability." + ability + ".description")));
-
-        // Send!
-        ((EntityPlayerMP) player).sendMessage(component);
     }
 }

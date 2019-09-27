@@ -65,8 +65,8 @@ public class ConfigMethods
             game.getCommandManager().getOwnedBy(empcContainer).forEach(game.getCommandManager()::removeMapping);
 
             // Register the main command.
-            if (EMPC.commandAlias != null && !EMPC.commandAlias.matches("evenmorepixelmoncommands|empc"))
-                Sponge.getCommandManager().register(empcContainer, basecommand, "evenmorepixelmoncommands", "empc", EMPC.commandAlias);
+            if (commandAlias != null && !commandAlias.matches("evenmorepixelmoncommands|empc"))
+                Sponge.getCommandManager().register(empcContainer, basecommand, "evenmorepixelmoncommands", "empc", commandAlias);
             else
                 Sponge.getCommandManager().register(empcContainer, basecommand, "evenmorepixelmoncommands", "empc");
 
@@ -341,7 +341,7 @@ public class ConfigMethods
                     printUnformattedMessage("    §eNo primary configuration file found, creating...");
 
                     Files.copy(ConfigMethods.class.getResourceAsStream("/assets/EvenMorePixelmonCommands.conf"),
-                            Paths.get(EMPC.primaryPath, "EvenMorePixelmonCommands.conf"));
+                            Paths.get(primaryPath, "EvenMorePixelmonCommands.conf"));
                 }
                 catch (final IOException F)
                 {
@@ -360,7 +360,7 @@ public class ConfigMethods
                             "§e configuration file found, creating...");
 
                     Files.copy(ConfigMethods.class.getResourceAsStream("/assets/" + callSource + ".conf"),
-                            Paths.get(EMPC.commandConfigPath, callSource + ".conf"));
+                            Paths.get(commandConfigPath, callSource + ".conf"));
                 }
                 catch (final IOException F)
                 {
@@ -382,7 +382,7 @@ public class ConfigMethods
         // Create a config directory if it doesn't exist. Silently swallow an error if it does. I/O is awkward.
         try
         {
-            Files.createDirectory(Paths.get(EMPC.commandConfigPath));
+            Files.createDirectory(Paths.get(commandConfigPath));
             printUnformattedMessage("--> §aEMPC folder not found, making a new one for command configs...");
         }
         catch (final IOException ignored) {}
@@ -396,31 +396,31 @@ public class ConfigMethods
             // Main config.
             currentCommand = "EMPC";
             checkOrCreateConfig(currentCommand, primaryConfigPath);
-            final CommentedConfigurationNode mainConfig = EMPC.primaryConfigLoader.load();
+            final CommentedConfigurationNode mainConfig = primaryConfigLoader.load();
 
-            EMPC.commandAlias =
+            commandAlias =
                     mainConfig.getNode("commandAlias").getString();
-            EMPC.configVersion =
+            configVersion =
                     interpretInteger(mainConfig.getNode("configVersion").getString());
-            EMPC.numLinesPerPage =
+            numLinesPerPage =
                     interpretInteger(mainConfig.getNode("numLinesPerPage").getString());
-            EMPC.shortenedHP =
+            statShorthands[0] =
                     mainConfig.getNode("shortenedHealth").getString();
-            EMPC.shortenedAttack =
+            statShorthands[1] =
                     mainConfig.getNode("shortenedAttack").getString();
-            EMPC.shortenedDefense =
+            statShorthands[2] =
                     mainConfig.getNode("shortenedDefense").getString();
-            EMPC.shortenedSpecialAttack =
+            statShorthands[3] =
                     mainConfig.getNode("shortenedSpecialAttack").getString();
-            EMPC.shortenedSpecialDefense =
+            statShorthands[4] =
                     mainConfig.getNode("shortenedSpecialDefense").getString();
-            EMPC.shortenedSpeed =
+            statShorthands[5] =
                     mainConfig.getNode("shortenedSpeed").getString();
 
             // /checkevs
             currentCommand = "CheckEVs";
             checkOrCreateConfig(currentCommand, checkEVsPath);
-            final CommentedConfigurationNode checkEVsConfig = EMPC.checkEVsLoader.load();
+            final CommentedConfigurationNode checkEVsConfig = checkEVsLoader.load();
 
             CheckEVs.commandAlias =
                     checkEVsConfig.getNode("commandAlias").getString();
@@ -428,7 +428,7 @@ public class ConfigMethods
             // /checkstats
             currentCommand = "CheckStats";
             checkOrCreateConfig(currentCommand, checkStatsPath);
-            final CommentedConfigurationNode checkStatsConfig = EMPC.checkStatsLoader.load();
+            final CommentedConfigurationNode checkStatsConfig = checkStatsLoader.load();
 
             CheckStats.commandAlias =
                     checkStatsConfig.getNode("commandAlias").getString();
@@ -450,7 +450,7 @@ public class ConfigMethods
             // /checktypes
             currentCommand = "CheckTypes";
             checkOrCreateConfig(currentCommand, checkTypesPath);
-            final CommentedConfigurationNode checkTypesConfig = EMPC.checkTypesLoader.load();
+            final CommentedConfigurationNode checkTypesConfig = checkTypesLoader.load();
 
             CheckTypes.commandAlias =
                     checkTypesConfig.getNode("commandAlias").getString();
@@ -495,7 +495,7 @@ public class ConfigMethods
             // /fixgenders
             currentCommand = "FixGenders";
             checkOrCreateConfig(currentCommand, fixGendersPath);
-            final CommentedConfigurationNode fixGendersConfig = EMPC.fixGendersLoader.load();
+            final CommentedConfigurationNode fixGendersConfig = fixGendersLoader.load();
 
             FixGenders.commandAlias =
                     fixGendersConfig.getNode("commandAlias").getString();
@@ -508,12 +508,12 @@ public class ConfigMethods
             currentCommand = "ForceStats";
             checkOrCreateConfig(currentCommand, forceStatsPath);
             ForceStats.commandAlias =
-                    EMPC.forceStatsLoader.load().getNode("commandAlias").getString();*/
+                    forceStatsLoader.load().getNode("commandAlias").getString();*/
 
             // /partyhatch
             currentCommand = "PartyHatch";
             checkOrCreateConfig(currentCommand, partyHatchPath);
-            final CommentedConfigurationNode partyHatchConfig = EMPC.partyHatchLoader.load();
+            final CommentedConfigurationNode partyHatchConfig = partyHatchLoader.load();
 
             PartyHatch.commandAlias =
                     partyHatchConfig.getNode("commandAlias").getString();
@@ -529,7 +529,7 @@ public class ConfigMethods
             // /partyheal
             currentCommand = "PartyHeal";
             checkOrCreateConfig(currentCommand, partyHealPath);
-            final CommentedConfigurationNode partyHealConfig = EMPC.partyHealLoader.load();
+            final CommentedConfigurationNode partyHealConfig = partyHealLoader.load();
 
             PartyHeal.commandAlias =
                     partyHealConfig.getNode("commandAlias").getString();
@@ -553,7 +553,7 @@ public class ConfigMethods
             // /resetdex
             currentCommand = "ResetDex";
             checkOrCreateConfig(currentCommand, resetDexPath);
-            final CommentedConfigurationNode resetDexConfig = EMPC.resetDexLoader.load();
+            final CommentedConfigurationNode resetDexConfig = resetDexLoader.load();
 
             ResetDex.commandAlias =
                     resetDexConfig.getNode("commandAlias").getString();
@@ -561,7 +561,7 @@ public class ConfigMethods
             // /resetevs
             currentCommand = "ResetEVs";
             checkOrCreateConfig(currentCommand, resetEVsPath);
-            final CommentedConfigurationNode resetEVsConfig = EMPC.resetEVsLoader.load();
+            final CommentedConfigurationNode resetEVsConfig = resetEVsLoader.load();
 
             ResetEVs.commandAlias =
                     resetEVsConfig.getNode("commandAlias").getString();
@@ -571,7 +571,7 @@ public class ConfigMethods
             // /showstats
             currentCommand = "ShowStats";
             checkOrCreateConfig(currentCommand, showStatsPath);
-            final CommentedConfigurationNode showStatsConfig = EMPC.showStatsLoader.load();
+            final CommentedConfigurationNode showStatsConfig = showStatsLoader.load();
 
             ShowStats.commandAlias =
                     showStatsConfig.getNode("commandAlias").getString();
@@ -599,7 +599,7 @@ public class ConfigMethods
             // /spawndex
             currentCommand = "SpawnDex";
             checkOrCreateConfig(currentCommand, spawnDexPath);
-            final CommentedConfigurationNode spawnDexConfig = EMPC.spawnDexLoader.load();
+            final CommentedConfigurationNode spawnDexConfig = spawnDexLoader.load();
 
             SpawnDex.commandAlias =
                     spawnDexConfig.getNode("commandAlias").getString();
@@ -609,7 +609,7 @@ public class ConfigMethods
             // /switchgender
             currentCommand = "SwitchGender";
             checkOrCreateConfig(currentCommand, switchGenderPath);
-            final CommentedConfigurationNode switchGenderConfig = EMPC.switchGenderLoader.load();
+            final CommentedConfigurationNode switchGenderConfig = switchGenderLoader.load();
 
             SwitchGender.commandAlias =
                     switchGenderConfig.getNode("commandAlias").getString();
@@ -619,7 +619,7 @@ public class ConfigMethods
             // /timedhatch
             currentCommand = "TimedHatch";
             checkOrCreateConfig(currentCommand, timedHatchPath);
-            final CommentedConfigurationNode timedHatchConfig = EMPC.timedHatchLoader.load();
+            final CommentedConfigurationNode timedHatchConfig = timedHatchLoader.load();
 
             TimedHatch.commandAlias =
                     timedHatchConfig.getNode("commandAlias").getString();
@@ -635,7 +635,7 @@ public class ConfigMethods
             // /timedheal
             currentCommand = "TimedHeal";
             checkOrCreateConfig(currentCommand, timedHealPath);
-            final CommentedConfigurationNode timedHealConfig = EMPC.timedHealLoader.load();
+            final CommentedConfigurationNode timedHealConfig = timedHealLoader.load();
 
             TimedHeal.commandAlias =
                     timedHealConfig.getNode("commandAlias").getString();

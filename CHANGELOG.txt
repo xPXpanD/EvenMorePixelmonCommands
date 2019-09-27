@@ -1,3 +1,20 @@
+5.1.1 for 7.0.8
+Released September 28th, 2019.
+
+    Additions:
+    * /checkstats and /showstats now show hyper training boosts.
+    * /showstats now shows a special message for hidden abilities.
+
+    Tweaks:
+    * Abilities shown in /checkstats are now underlined to emphasize that you can hover for details.
+
+    Fixes:
+    * Hidden abilities shown in /checkstats are now italicized, as they should've been.
+    * Fixed EMPC's main command alias potentially not being listed right when starting up/reloading.
+
+    Removals:
+    * Removed the free recheck message from /checkstats. Explained it better in the command helper, instead.
+
 5.1.0 for 7.0.6
 Released May 27th, 2019.
 

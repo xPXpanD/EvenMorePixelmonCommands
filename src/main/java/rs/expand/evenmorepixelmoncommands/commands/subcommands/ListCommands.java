@@ -387,7 +387,7 @@ public class ListCommands implements CommandExecutor
                 if (calledRemotely)
                 {
                     permissionMessageList.add(Text.EMPTY);
-                    permissionMessageList.add(Text.of("§6Please note: §eCommands without console functionality were omitted."));
+                    permissionMessageList.add(Text.of("§6Note: §eCommands without console functionality were omitted."));
                     paginatedList.linesPerPage(permissionMessageList.size() + 2);
                 }
                 else

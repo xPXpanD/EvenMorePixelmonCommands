@@ -34,12 +34,10 @@ import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.print
 
 // New things:
 // TODO: Make a token redeeming command for shinies? Maybe make it a starter picker command, even. - Xenoyia
-// TODO: Make a /pokesell, maybe one that sells based on ball worth.
 // TODO: Look into name colors, or make a full-on rename command with color support. Maybe make it set a tag, and check.
 // TODO: Make a Pokéball changing command, get it to write the old ball to the Pokémon for ball sale purposes.
 // TODO: Do something with setPixelmonScale. Maybe a /spawnboss for super big high HP IV bosses with custom loot?
 // TODO: Make a random legendary dice roll spawner. Give command already exists, but spawn does not.
-// TODO: Allow people to unlock hidden abilities, probably through the economy. - Fabyoulust
 // TODO: Make a command that counts the Pokémon in the world, maybe also nearby. - Mikirae (comment, not suggestion)
 // TODO: Make a Wailord Bomb command that blows apart a Wailord into a LOT of cooked fish. - Faty
 
@@ -48,21 +46,20 @@ import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.print
 // TODO: Make just about every command with a target show said target a message when stuff is being used on them.
 // TODO: Move everything to lang files.
 // TODO: When doing localization support, check 5 and 7 color ------ lines? Translate both types. (success/error)
-// TODO: Dive into fixing ForceStats for 7.0.
-// TODO: Move "args.hasAny("c")" stuff to the case-insensitive -c one, as that doesn't mess up on -C.
-// TODO: Replace PokemonMethods stuff with Pixelmon's own solutions.
+// TODO: Replace more of PokemonMethods stuff with Pixelmon's own solutions.
 // TODO: GenericArguments.withSuggestions() is a thing, maybe implement, replace current CMD system.
 // TODO: Look deeper into whether in-battle healing and stuff is doable now. Cursory check had partial success.
 // TODO: Add console use support for /resetevs and /switchgenders.
 // TODO: Clickables! Especially the command confirmation messages. Remember to underline.
 // TODO: Sending checked messages in printLocalError is a huge inconsistent mess. Fix this, somehow.
 // TODO: Somehow support command block selectors.
+// TODO: Move duplicate /showstats and /checkstats logic to PokemonMethods or something.
 
 @Plugin
 (
         id = "evenmorepixelmoncommands",
         name = "Even More Pixelmon Commands",
-        version = "5.1.0",
+        version = "5.1.1",
         dependencies = @Dependency(id = "pixelmon"),
         description = "A sidemod for Pixelmon Reforged that adds a bunch of new commands, some with economy integration.",
         authors = "XpanD"
@@ -97,9 +94,8 @@ public class EMPC
     public static Integer configVersion, numLinesPerPage;
     public static String commandAlias;
 
-    // Create a ton of variables for use by other commands. These will be filled in, too.
-    public static String shortenedHP, shortenedAttack, shortenedDefense, shortenedSpecialAttack, shortenedSpecialDefense;
-    public static String shortenedSpeed;
+    // Create an array of stat Strings for use wherever we need shorthand notation. Position follows the games/main mod.
+    public static String[] statShorthands = new String[6];
 
     // Set up our config paths, and grab an OS-specific file path separator. This will usually be a forward slash.
     private static String separator = FileSystems.getDefault().getSeparator();
