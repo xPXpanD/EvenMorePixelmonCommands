@@ -3,7 +3,8 @@ Released June 21st, 2020.
 
     Additions:
     * Added the final gen 7 Pokémon (Meltan and Melmetal) to /checktypes.
-    * Added all of the gen 8 Pokémon and forms (Galarian regional variants included) to /checktypes.
+    * Added some missing earlier forms like Primal Groudon to relevant commands.
+    * Added all of the gen 8 Pokémon and forms, Galarian regional variants included.
 
     Fixes:
     * Fixed EnumAlolan crashes caused by 8.0.0+ changing how regional forms are listed internally.
