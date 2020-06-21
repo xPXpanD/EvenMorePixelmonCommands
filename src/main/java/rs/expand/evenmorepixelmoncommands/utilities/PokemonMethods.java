@@ -829,11 +829,147 @@ public enum PokemonMethods
     Stakataka(805, 0, "Rock", "Steel"),
     Blacephalon(806, 0, "Fire", "Ghost"),
     Zeraora(807, 0, "Electric"),
+    Meltan(808, 0, "Steel"),
+    Melmetal(809, 0, "Steel"),
+
+    // Gen 8.
+    Grookey(810, 0, "Grass"),
+    Thwackey(811, 0, "Grass"),
+    Rillaboom(812, 0, "Grass"),
+    Scorbunny(813, 0, "Fire"),
+    Raboot(814, 0, "Fire"),
+    Cinderace(815, 0, "Fire"),
+    Sobble(816, 0, "Water"),
+    Drizzile(817, 0, "Water"),
+    Inteleon(818, 0, "Water"),
+    Skwovet(819, 0, "Normal"),
+    Greedent(820, 0, "Normal"),
+    Rookidee(821, 0, "Flying"),
+    Corvisquire(822, 0, "Flying"),
+    Corviknight(823, 0, "Flying", "Steel"),
+    Blipbug(824, 0, "Bug"),
+    Dottler(825, 0, "Bug", "Psychic"),
+    Orbeetle(826, 0, "Bug", "Psychic"),
+    Nickit(827, 0, "Dark"),
+    Thievul(828, 0, "Dark"),
+    Gossifleur(829, 0, "Grass"),
+    Eldegoss(830, 0, "Grass"),
+    Wooloo(831, 0, "Normal"),
+    Dubwool(832, 0, "Normal"),
+    Chewtle(833, 0, "Water"),
+    Drednaw(834, 0, "Water", "Rock"),
+    Yamper(835, 0, "Electric"),
+    Boltund(836, 0, "Electric"),
+    Rolycoly(837, 0, "Rock"),
+    Carkol(838, 0, "Rock", "Fire"),
+    Coalossal(839, 0, "Rock", "Fire"),
+    Applin(840, 0, "Grass", "Dragon"),
+    Flapple(841, 0, "Grass", "Dragon"),
+    Appletun(842, 0, "Grass", "Dragon"),
+    Silicobra(843, 0, "Ground"),
+    Sandaconda(844, 0, "Ground"),
+    Cramorant(845, 0, "Flying", "Water"),
+    Arrokuda(846, 0, "Water"),
+    Barraskewda(847, 0, "Water"),
+    Toxel(848, 0, "Electric", "Poison"),
+    Toxtricity(849, 0, "Electric", "Poison"),
+    Sizzlipede(850, 0, "Fire", "Bug"),
+    Centiskorch(851, 0, "Fire", "Bug"),
+    Clobbopus(852, 0, "Fighting"),
+    Grapploct(853, 0, "Fighting"),
+    Sinistea(854, 0, "Ghost"),
+    Polteageist(855, 0, "Ghost"),
+    Hatenna(856, 0, "Psychic"),
+    Hattrem(857, 0, "Psychic"),
+    Hatterene(858, 0, "Psychic", "Fairy"),
+    Impidimp(859, 0, "Dark", "Fairy"),
+    Morgrem(860, 0, "Dark", "Fairy"),
+    Grimmsnarl(861, 0, "Dark", "Fairy"),
+    Obstagoon(862, 0, "Dark", "Normal"),
+    Perrserker(863, 0, "Steel"),
+    Cursola(864, 0, "Ghost"),
+    Sirfetchd(865, 0, "Fighting"),
+    MrRime(866, 0, "Ice", "Psychic"),
+    Runerigus(867, 0, "Ground", "Ghost"),
+    Milcery(868, 0, "Fairy"),
+    Alcremie(869, 0, "Fairy"),
+    Falinks(870, 0, "Fighting"),
+    Pincurchin(871, 0, "Electric"),
+    Snom(872, 0, "Ice", "Bug"),
+    Frosmoth(873, 0, "Ice", "Bug"),
+    Stonjourner(874, 0, "Rock"),
+    Eiscue(875, 0, "Ice"),
+    Indeedee(876, 0, "Psychic", "Normal"),
+    Morpeko(877, 0, "Electric", "Dark"),
+    Cufant(878, 0, "Steel"),
+    Copperajah(879, 0, "Steel"),
+    Dracozolt(880, 0, "Electric", "Dragon"),
+    Arctozolt(881, 0, "Electric", "Ice"),
+    Dracovish(882, 0, "Water", "Dragon"),
+    Arctovish(883, 0, "Water", "Ice"),
+    Duraludon(884, 0, "Steel", "Dragon"),
+    Dreepy(885, 0, "Dragon", "Ghost"),
+    Drakloak(886, 0, "Dragon", "Ghost"),
+    Dragapult(887, 0, "Dragon", "Ghost"),
+    Zacian(888, 0, "Fairy"),
+    Zamazenta(889, 0, "Fighting"),
+    Eternatus(890, 0, "Poison", "Dragon"),
+    Kubfu(891, 0, "Fighting"),
+    Urshifu(892, 0, "Fighting", "Dark"),
+    Zarude(893, 0, "Dark", "Grass"),
+    // Calyrex(000, 0, "Psychic", "Grass"), TODO after release.
+    // Regieleki(000, 0, "Electric"), TODO after release.
+    // Regidrago(000, 0, "Dragon"), TODO after release.
+
+    // Alolan Pokémon variants.
+    RattataAlolan(19, 1, "Dark", "Normal"),
+    RaticateAlolan(20, 1, "Dark", "Normal"),
+    RaichuAlolan(26, 1, "Electric", "Psychic"),
+    SandshrewAlolan(27, 1, "Ice", "Steel"),
+    SandslashAlolan(28, 1, "Ice", "Steel"),
+    VulpixAlolan(37, 1, "Ice"),
+    NinetalesAlolan(38, 1, "Ice", "Fairy"),
+    DiglettAlolan(50, 1, "Ground", "Steel"),
+    DugtrioAlolan(51, 1, "Ground", "Steel"),
+    MeowthAlolan(52, 1, "Dark"),
+    PersianAlolan(53, 1, "Dark"),
+    GeodudeAlolan(74, 1, "Rock", "Electric"),
+    GravelerAlolan(75, 1, "Rock", "Electric"),
+    GolemAlolan(76, 1, "Rock", "Electric"),
+    GrimerAlolan(88, 1, "Poison", "Dark"),
+    MukAlolan(89, 1, "Poison", "Dark"),
+    ExeggutorAlolan(103, 1, "Grass", "Dragon"),
+    MarowakAlolan(105, 1, "Fire", "Ghost"),
+
+    // Galarian Pokémon variants.
+    MeowthGalarian(52, 2, "Steel"),
+    PonytaGalarian(77, 2, "Psychic"),
+    RapidashGalarian(78, 2, "Psychic", "Fairy"),
+    SlowpokeGalarian(79, 2, "Psychic"),
+    SlowbroGalarian(80, 2, "Poison", "Psychic"),
+    FarfetchdGalarian(83, 2, "Fighting"),
+    WeezingGalarian(110, 2, "Poison", "Fairy"),
+    MrMimeGalarian(122, 2, "Ice", "Psychic"),
+    ArticunoGalarian(144, 2, "Psychic", "Flying"),
+    ZapdosGalarian(145, 2, "Fighting", "Flying"),
+    MoltresGalarian(146, 2, "Dark", "Flying"),
+    // SlowkingGalarian(199, 2, "???"), TODO after release.
+    CorsolaGalarian(222, 2, "Ghost"),
+    ZigzagoonGalarian(263, 2, "Dark", "Normal"),
+    LinooneGalarian(264, 2, "Dark", "Normal"),
+    DarumakaGalarian(554, 2, "Ice"),
+    DarmanitanGalarian(555, 2, "Ice"),
+    YamaskGalarian(562, 2, "Ground", "Ghost"),
+    StunfiskGalarian(618, 2, "Ground", "Steel"),
+
+    // Regional forms with different types AND different EV yields. I long for the sweet embrace of death.
+    DarmanitanZenGalarian(555, 3, "Ice", "Fire"),
 
     // Forms with different types.
     CastformSnowy(351, 1, "Ice"),
     CastformRainy(351, 2, "Water"),
     CastformSunny(351, 3, "Fire"),
+    GroudonPrimal(383, 1, "Ground", "Fire"),
     RotomHeat(479, 1, "Electric", "Fire"),
     RotomWash(479, 2, "Electric", "Water"),
     RotomFrost(479, 3, "Electric", "Ice"),
@@ -878,16 +1014,12 @@ public enum PokemonMethods
     SilvallyIce(773, 15, "Ice"),
     SilvallyDragon(773, 16, "Dragon"),
     SilvallyFairy(773, 17, "Fairy"),
-
-    // Forms with different types AND different EV yields.
-    WormadamSandy(413, 1, "Bug", "Ground"),
-    WormadamTrash(413, 2, "Bug", "Steel"),
-    ShayminSky(492, 1, "Grass", "Flying"),
-    DarmanitanZen(555, 1, "Fire", "Psychic"),
-    MeloettaPirouette(648, 1, "Normal", "Fighting"),
-    NecrozmaDuskMane(800, 1, "Psychic", "Steel"),
-    NecrozmaDawnWings(800, 2, "Psychic", "Ghost"),
-    NecrozmaUltra(800, 3, "Psychic", "Dragon"),
+    ZacianHero(888, 0, "Fairy"), // Only here for completion's sake.
+    ZacianCrowned(888, 1, "Fairy", "Steel"),
+    ZamazentaHero(889, 0, "Fighting"), // Only here for completion's sake.
+    ZamazentaCrowned(889, 1, "Fighting", "Steel"),
+    UrshifuSingle(892, 0, "Fighting", "Dark"), // Duplicated, we'll use this form as the default.
+    UrshifuRapid(892, 1, "Fighting", "Water"),
 
     // Forms with different EV yields.
     DeoxysAttack(386, 1, "Psychic"),
@@ -900,27 +1032,18 @@ public enum PokemonMethods
     KyuremWhite(646, 2, "Dragon", "Ice"),
     AegislashBlade(681, 1, "Steel", "Ghost"),
     MiniorCore(774, 1, "Rock", "Flying"), // Use form 1, everything >0 should be the same for our purposes.
+    IndeedeeMale(876, 0, "Psychic", "Normal"), // Duplicated, we'll use this form as the default.
+    IndeedeeFemale(876, 1, "Psychic", "Normal"),
 
-    // Alolan Pokémon variants.
-    RattataAlolan(19, 1, "Dark", "Normal"),
-    RaticateAlolan(20, 1, "Dark", "Normal"),
-    RaichuAlolan(26, 1, "Electric", "Psychic"),
-    SandshrewAlolan(27, 1, "Ice", "Steel"),
-    SandslashAlolan(28, 1, "Ice", "Steel"),
-    VulpixAlolan(37, 1, "Ice"),
-    NinetalesAlolan(38, 1, "Ice", "Fairy"),
-    DiglettAlolan(50, 1, "Ground", "Steel"),
-    DugtrioAlolan(51, 1, "Ground", "Steel"),
-    MeowthAlolan(52, 1, "Dark"),
-    PersianAlolan(53, 1, "Dark"),
-    GeodudeAlolan(74, 1, "Rock", "Electric"),
-    GravelerAlolan(75, 1, "Rock", "Electric"),
-    GolemAlolan(76, 1, "Rock", "Electric"),
-    GrimerAlolan(88, 1, "Poison", "Dark"),
-    MukAlolan(89, 1, "Poison", "Dark"),
-    ExeggutorAlolan(103, 1, "Grass", "Dragon"),
-    MarowakAlolan(105, 1, "Fire", "Ghost"),
-    ;
+    // Forms with different types AND different EV yields.
+    WormadamSandy(413, 1, "Bug", "Ground"),
+    WormadamTrash(413, 2, "Bug", "Steel"),
+    ShayminSky(492, 1, "Grass", "Flying"),
+    DarmanitanZen(555, 1, "Fire", "Psychic"),
+    MeloettaPirouette(648, 1, "Normal", "Fighting"),
+    NecrozmaDuskMane(800, 1, "Psychic", "Steel"),
+    NecrozmaDawnWings(800, 2, "Psychic", "Ghost"),
+    NecrozmaUltra(800, 3, "Psychic", "Dragon");
 
     // Set up some variables for the Pokémon check.
     public int index, form;
@@ -964,6 +1087,88 @@ public enum PokemonMethods
     {
         switch (name)
         {
+            // Alolan variants.
+            case "RattataAlolan":
+                return "§1(§9#19§1) §6Alolan Rattata";
+            case "RaticateAlolan":
+                return "§1(§9#20§1) §6Alolan Raticate";
+            case "RaichuAlolan":
+                return "§1(§9#26§1) §6Alolan Raichu";
+            case "SandshrewAlolan":
+                return "§1(§9#27§1) §6Alolan Sandshrew";
+            case "SandslashAlolan":
+                return "§1(§9#28§1) §6Alolan Sandslash";
+            case "VulpixAlolan":
+                return "§1(§9#37§1) §6Alolan Vulpix";
+            case "NinetalesAlolan":
+                return "§1(§9#38§1) §6Alolan Ninetales";
+            case "DiglettAlolan":
+                return "§1(§9#50§1) §6Alolan Diglett";
+            case "DugtrioAlolan":
+                return "§1(§9#51§1) §6Alolan Dugtrio";
+            case "MeowthAlolan":
+                return "§1(§9#52§1) §6Alolan Meowth";
+            case "PersianAlolan":
+                return "§1(§9#53§1) §6Alolan Persian";
+            case "GeodudeAlolan":
+                return "§1(§9#74§1) §6Alolan Geodude";
+            case "GravelerAlolan":
+                return "§1(§9#75§1) §6Alolan Graveler";
+            case "GolemAlolan":
+                return "§1(§9#76§1) §6Alolan Golem";
+            case "GrimerAlolan":
+                return "§1(§9#88§1) §6Alolan Grimer";
+            case "MukAlolan":
+                return "§1(§9#89§1) §6Alolan Muk";
+            case "ExeggutorAlolan":
+                return "§1(§9#103§1) §6Alolan Exeggutor";
+            case "MarowakAlolan":
+                return "§1(§9#105§1) §6Alolan Marowak";
+
+            // Galarian variants.
+            case "MeowthGalarian":
+                return "§1(§9#52§1) §6Galarian Meowth";
+            case "PonytaGalarian":
+                return "§1(§9#77§1) §6Galarian Ponyta";
+            case "RapidashGalarian":
+                return "§1(§9#78§1) §6Galarian Rapidash";
+            case "SlowpokeGalarian":
+                return "§1(§9#79§1) §6Galarian Slowpoke";
+            case "SlowbroGalarian":
+                return "§1(§9#80§1) §6Galarian Slowbro";
+            case "FarfetchdGalarian":
+                return "§1(§9#83§1) §6Galarian Farfetch'd";
+            case "WeezingGalarian":
+                return "§1(§9#110§1) §6Galarian Weezing";
+            case "MrMimeGalarian":
+                return "§1(§9#122§1) §6Galarian Mr. Mime";
+            case "ArticunoGalarian":
+                return "§1(§9#144§1) §6Galarian Articuno";
+            case "ZapdosGalarian":
+                return "§1(§9#145§1) §6Galarian Zapdos";
+            case "MoltresGalarian":
+                return "§1(§9#146§1) §6Galarian Moltres";
+/*            case "SlowkingGalarian": TODO
+                return "§1(§9#199§1) §6Galarian Slowking";*/
+            case "CorsolaGalarian":
+                return "§1(§9#222§1) §6Galarian Corsola";
+            case "ZigzagoonGalarian":
+                return "§1(§9#263§1) §6Galarian Zigzagoon";
+            case "LinooneGalarian":
+                return "§1(§9#264§1) §6Galarian Linoone";
+            case "DarumakaGalarian":
+                return "§1(§9#554§1) §6Galarian Darumaka";
+            case "DarmanitanGalarian":
+                return "§1(§9#555§1) §6Galarian Darmanitan";
+            case "YamasknGalarian":
+                return "§1(§9#555§1) §6Galarian Yamask";
+            case "StunfiskGalarian":
+                return "§1(§9#618§1) §6Galarian Stunfisk";
+
+            // Regional forms with different types AND different EV yields. Death is a preferable alternative to gen 8.
+            case "DarmanitanZenGalarian":
+                return "§1(§9#555§1) §6Galarian Zen Darmanitan";
+
             // Forms with different types.
             case "CastformSnowy":
                 return "§1(§9#351§1) §6Snowy Castform";
@@ -971,6 +1176,8 @@ public enum PokemonMethods
                 return "§1(§9#351§1) §6Rainy Castform";
             case "CastformSunny":
                 return "§1(§9#351§1) §6Sunny Castform";
+            case "GroudonPrimal":
+                return "§1(§9#383§1) §6Primal Groudon";
             case "RotomHeat":
                 return "§1(§9#479§1) §6Microwave Rotom";
             case "RotomWash":
@@ -1017,7 +1224,7 @@ public enum PokemonMethods
                 return "§1(§9#492§1) §6Pixie Plate Arceus";
             case "HoopaUnbound":
                 return "§1(§9#720§1) §6Unbound Hoopa";
-            case "OricorioBaile":
+            case "Oricorio": case "OricorioBaile":
                 return "§1(§9#741§1) §6Baile Oricorio";
             case "OricorioPomPom":
                 return "§1(§9#741§1) §6Pom Pom Oricorio";
@@ -1059,6 +1266,18 @@ public enum PokemonMethods
                 return "§1(§9#773§1) §6Dragon Memory Silvally";
             case "SilvallyFairy":
                 return "§1(§9#773§1) §6Fairy Memory Silvally";
+            case "Zacian": case "ZacianHero":
+                return "§1(§9#888§1) §6Zacian, Hero of Many Battles";
+            case "ZacianCrowned":
+                return "§1(§9#888§1) §6Crowned Sword Zacian";
+            case "Zamazenta": case "ZamazentaHero":
+                return "§1(§9#889§1) §6Zamazenta, Hero of Many Battles";
+            case "ZamazentaCrowned":
+                return "§1(§9#889§1) §6Crowned Shield Zamazenta";
+            case "Urshifu": case "UrshifuSingle":
+                return "§1(§9#892§1) §6Single Strike Urshifu";
+            case "UrshifuRapid":
+                return "§1(§9#892§1) §6Rapid Strike Urshifu";
 
             // Forms with different types AND different EV yields.
             case "WormadamSandy":
@@ -1079,6 +1298,7 @@ public enum PokemonMethods
                 return "§1(§9#800§1) §6Ultra Necrozma";
 
             // Forms with different EV yields.
+            // TODO: Give all of these the Indeedee treatment with the default form being shown in /checkevs.
             case "DeoxysAttack":
                 return "§1(§9#800§1) §6Attack Deoxys";
             case "DeoxysDefense":
@@ -1099,46 +1319,12 @@ public enum PokemonMethods
                 return "§1(§9#800§1) §6Blade Aegislash";
             case "MiniorCore":
                 return "§1(§9#800§1) §6Core Minior";
+            case "Indeedee": case "IndeedeeMale":
+                return "§1(§9#876§1) §6Male Indeedee";
+            case "IndeedeeFemale":
+                return "§1(§9#876§1) §6Female Indeedee";
 
-            // Alolan variants.
-            case "RattataAlolan":
-                return "§1(§9#19§1) §6Alolan Rattata";
-            case "RaticateAlolan":
-                return "§1(§9#20§1) §6Alolan Raticate";
-            case "RaichuAlolan":
-                return "§1(§9#26§1) §6Alolan Raichu";
-            case "SandshrewAlolan":
-                return "§1(§9#27§1) §6Alolan Sandshrew";
-            case "SandslashAlolan":
-                return "§1(§9#28§1) §6Alolan Sandslash";
-            case "VulpixAlolan":
-                return "§1(§9#37§1) §6Alolan Vulpix";
-            case "NinetalesAlolan":
-                return "§1(§9#38§1) §6Alolan Ninetales";
-            case "DiglettAlolan":
-                return "§1(§9#50§1) §6Alolan Diglett";
-            case "DugtrioAlolan":
-                return "§1(§9#51§1) §6Alolan Dugtrio";
-            case "MeowthAlolan":
-                return "§1(§9#52§1) §6Alolan Meowth";
-            case "PersianAlolan":
-                return "§1(§9#53§1) §6Alolan Persian";
-            case "GeodudeAlolan":
-                return "§1(§9#74§1) §6Alolan Geodude";
-            case "GravelerAlolan":
-                return "§1(§9#75§1) §6Alolan Graveler";
-            case "GolemAlolan":
-                return "§1(§9#76§1) §6Alolan Golem";
-            case "GrimerAlolan":
-                return "§1(§9#88§1) §6Alolan Grimer";
-            case "MukAlolan":
-                return "§1(§9#89§1) §6Alolan Muk";
-            case "ExeggutorAlolan":
-                return "§1(§9#103§1) §6Alolan Exeggutor";
-            case "MarowakAlolan":
-                return "§1(§9#105§1) §6Alolan Marowak";
-
-            // Pokémon with weird internal names due to technical issues.
+            // Pokémon with weird internal names due to technical limitations.
             case "NidoranFemale":
                 return "§1(§9#29§1) §6Nidoran♀";
             case "NidoranMale":
@@ -1162,13 +1348,17 @@ public enum PokemonMethods
             case "KommoO":
                 return "§1(§9#784§1) §6Kommo-O";
             case "TapuKoko":
-                return "§1(§9#784§1) §6Tapu Koko";
+                return "§1(§9#785§1) §6Tapu Koko";
             case "TapuLele":
-                return "§1(§9#784§1) §6Tapu Lele";
+                return "§1(§9#786§1) §6Tapu Lele";
             case "TapuBulu":
-                return "§1(§9#784§1) §6Tapu Bulu";
+                return "§1(§9#787§1) §6Tapu Bulu";
             case "TapuFini":
-                return "§1(§9#784§1) §6Tapu Fini";
+                return "§1(§9#788§1) §6Tapu Fini";
+            case "Sirfetchd":
+                return "§1(§9#865§1) §6Sirfetch'd";
+            case "MrRime":
+                return "§1(§9#866§1) §6Mr. Rime";
 
             // Pokémon is not special, print defaults.
             default:

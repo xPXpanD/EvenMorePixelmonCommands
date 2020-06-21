@@ -38,7 +38,7 @@ public class ResetEVs implements CommandExecutor
     public static Integer commandCost;
 
     // Set up a class name variable for internal use. We'll pass this to logging when showing a source is desired.
-    private String sourceName = this.getClass().getSimpleName();
+    private final String sourceName = this.getClass().getSimpleName();
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)

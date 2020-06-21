@@ -25,13 +25,12 @@ import rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.printSourcedError;
 
 // TODO: Add more flags, like scale/special texture/IVs/EnumBossMode. Needs testing with 7.0 stuff.
-// TODO: Add Alolan Pokémon support.
+// TODO: Add Alolan/Galarian Pokémon support.
 // TODO: Move this to the nice name parsing setup /checktypes uses.
 // FIXME: Some names with multiple words (like "Mime Jr.") don't work right. Hard to fix, but nice polish?
 public class SpawnDex implements CommandExecutor
@@ -40,7 +39,7 @@ public class SpawnDex implements CommandExecutor
     public static String commandAlias, fakeMessage;
 
     // Set up a class name variable for internal use. We'll pass this to logging when showing a source is desired.
-    private String sourceName = this.getClass().getSimpleName();
+    private final String sourceName = this.getClass().getSimpleName();
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)
@@ -77,23 +76,33 @@ public class SpawnDex implements CommandExecutor
 
                     if (arg1String.matches("^[1-9]\\d*$"))
                     {
-                        final int pokedexNumber = Integer.parseInt(arg1Optional.get());
+                        final int pokedexNumber = Integer.parseInt(arg1String);
 
-                        if (pokedexNumber > 807 || pokedexNumber < 1)
+                        // TODO: Update if new Pokémon are added!
+                        if (pokedexNumber > 893 || pokedexNumber < 1)
                         {
-                            printLocalError(src, "§4Error: §cInvalid Pokédex number! Valid range is 1-807.");
+                            // TODO: Update if new Pokémon are added!
+                            printLocalError(src, "§4Error: §cInvalid Pokédex number! Valid range is 1-893.");
                             return CommandResult.empty();
                         }
                         else
                         {
-                            try
+                            if (EnumSpecies.getFromDex(Integer.parseInt(arg1String)) == null)
                             {
-                                pokemonName = Objects.requireNonNull(PokemonMethods.getPokemonFromID(pokedexNumber)).name();
-                            }
-                            catch (final NullPointerException F)
-                            {
-                                src.sendMessage(Text.of("§4Error: §cSpawning failed. This Pokémon is likely not in yet."));
+                                printLocalError(src, "§4Error: §cInvalid Pokémon! It may not be in the mod yet.");
                                 return CommandResult.empty();
+                            }
+                            else
+                            {
+                                final PokemonMethods pokemonInfo = PokemonMethods.getPokemonFromID(pokedexNumber);
+
+                                if (pokemonInfo != null)
+                                    pokemonName = pokemonInfo.toString();
+                                else
+                                {
+                                    printLocalError(src, "§4Error: §cCould not get Pokémon name from the enum! Please report this.");
+                                    return CommandResult.empty();
+                                }
                             }
                         }
                     }
@@ -113,8 +122,10 @@ public class SpawnDex implements CommandExecutor
                                 // Convenience fixes.
                                 case "MR.MIME":
                                     arg1String = "MrMime"; break;
+                                case "MR.RIME":
+                                    arg1String = "MrRime"; break;
                                 case "FLABÉBE": case "FLABEBÉ":
-                                    arg1String = "MrMime"; break;
+                                    arg1String = "Flabebe"; break;
                             }
 
                             pokemonName = EnumSpecies.getFromName(arg1String).orElseThrow(Exception::new).toString();
@@ -124,6 +135,11 @@ public class SpawnDex implements CommandExecutor
                             src.sendMessage(Text.of("§4Error: §cSpawning failed. Check input, make sure it's been added."));
                             return CommandResult.empty();
                         }
+                    }
+                    else if (!EnumSpecies.getFromName(arg1String).isPresent())
+                    {
+                        printLocalError(src, "§4Error: §cInvalid Pokémon! It may not be in the mod yet.");
+                        return CommandResult.empty();
                     }
                     else
                     {
@@ -215,7 +231,7 @@ public class SpawnDex implements CommandExecutor
                     final WorldServer world = playerEntity.getServerWorld();
                     final EntityPixelmon pokemonToSpawn = PokemonSpec.from(pokemonName).create(world);
                     final Player player = (Player) src;
-                    final Location playerPos = player.getLocation();
+                    final Location<World> playerPos = player.getLocation();
 
                     if (doRadiusSpawn)
                     {
@@ -333,8 +349,6 @@ public class SpawnDex implements CommandExecutor
 
                                 // Make it shiny.
                                 ((EntityPixelmon) e).getPokemonData().setShiny(true);
-
-                                src.sendMessage(Text.of("Found tagged entity! Name: " + e.getName()));
                             }
                         }
                     }

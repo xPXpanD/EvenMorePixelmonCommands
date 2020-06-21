@@ -35,10 +35,10 @@ public class TimedHeal implements CommandExecutor
     public static Boolean sneakyMode;
 
     // Set up some more variables for internal use.
-    private String sourceName = this.getClass().getSimpleName();
+    private final String sourceName = this.getClass().getSimpleName();
     private UUID playerUUID;
     private boolean calledRemotely;
-    private HashMap<UUID, Long> cooldownMap = new HashMap<>();
+    private final HashMap<UUID, Long> cooldownMap = new HashMap<>();
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)

@@ -40,6 +40,7 @@ import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.print
 // TODO: Make a random legendary dice roll spawner. Give command already exists, but spawn does not.
 // TODO: Make a command that counts the Pokémon in the world, maybe also nearby. - Mikirae (comment, not suggestion)
 // TODO: Make a Wailord Bomb command that blows apart a Wailord into a LOT of cooked fish. - Faty
+// TODO: Show custom textures. - Mikirae
 
 // Improvements to existing things:
 // TODO: Tab completion on player names.
@@ -59,7 +60,7 @@ import static rs.expand.evenmorepixelmoncommands.utilities.PrintingMethods.print
 (
         id = "evenmorepixelmoncommands",
         name = "Even More Pixelmon Commands",
-        version = "5.1.1",
+        version = "5.1.3",
         dependencies = @Dependency(id = "pixelmon"),
         description = "A sidemod for Pixelmon Reforged that adds a bunch of new commands, some with economy integration.",
         authors = "XpanD"
@@ -98,7 +99,7 @@ public class EMPC
     public static String[] statShorthands = new String[6];
 
     // Set up our config paths, and grab an OS-specific file path separator. This will usually be a forward slash.
-    private static String separator = FileSystems.getDefault().getSeparator();
+    private static final String separator = FileSystems.getDefault().getSeparator();
     public static String primaryPath = "config" + separator;
     public static String commandConfigPath = "config" + separator + "EMPC" + separator;
 
@@ -158,12 +159,12 @@ public class EMPC
          Utility commands.
     \*                        */
 
-    private static CommandSpec reloadconfigs = CommandSpec.builder()
+    private static final CommandSpec reloadconfigs = CommandSpec.builder()
             .permission("empc.command.staff.reload")
             .executor(new ReloadConfigs())
             .build();
 
-    private static CommandSpec commandlist = CommandSpec.builder()
+    private static final CommandSpec commandlist = CommandSpec.builder()
             .executor(new ListCommands())
             .build();
 

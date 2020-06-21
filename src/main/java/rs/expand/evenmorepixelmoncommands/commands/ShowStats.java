@@ -3,6 +3,7 @@ package rs.expand.evenmorepixelmoncommands.commands;
 
 import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
+import com.pixelmonmod.pixelmon.config.PixelmonConfig;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.EVStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.IVStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
@@ -10,7 +11,7 @@ import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.LakeTrioStats
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.MewStats;
 import com.pixelmonmod.pixelmon.enums.EnumGrowth;
 import com.pixelmonmod.pixelmon.enums.EnumNature;
-import com.pixelmonmod.pixelmon.enums.forms.EnumAlolan;
+import com.pixelmonmod.pixelmon.enums.forms.RegionalForms;
 import net.minecraft.entity.player.EntityPlayerMP;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandResult;
@@ -44,8 +45,8 @@ public class ShowStats implements CommandExecutor
                           reshowIsFree;
 
     // Set up some more variables for internal use.
-    private String sourceName = this.getClass().getSimpleName();
-    private HashMap<UUID, Long> cooldownMap = new HashMap<>();
+    private final String sourceName = this.getClass().getSimpleName();
+    private final HashMap<UUID, Long> cooldownMap = new HashMap<>();
     /*private boolean gotExternalConfigError = false;*/
 
     @SuppressWarnings("NullableProblems")
@@ -361,7 +362,15 @@ public class ShowStats implements CommandExecutor
 
         // These always get added to printing, but are filled in only when necessary.
         final String shinyString = pokemon.isShiny() ? "§6§lshiny §r" : "";
-        final String alolanString = pokemon.getFormEnum() == EnumAlolan.ALOLAN ? "§6Alolan " : "";
+
+        // Add a regional indicator for Pokémon from later-gen regions.
+        final String regionString;
+        if (pokemon.getFormEnum() == RegionalForms.ALOLAN)
+            regionString = "§6Alolan ";
+        else if (pokemon.getFormEnum() == RegionalForms.GALARIAN)
+            regionString = "§6Galarian ";
+        else
+            regionString = "";
 
         // Do the first of two cheating checks. Might catch some less clever cheat tools.
         if (nickname != null && !nickname.isEmpty() && nickname.length() > 11)
@@ -385,7 +394,7 @@ public class ShowStats implements CommandExecutor
         // Populate our ArrayList. Every entry will be its own line. May be a bit hacky, but it'll do.
         final List<String> hovers = new ArrayList<>();
         hovers.add("§eStats of §6" + player.getName() + "§e's level " + pokemon.getLevel() + " " +
-                shinyString + alolanString + formattedName + nameAdditionString);
+                shinyString + regionString + formattedName + nameAdditionString);
         hovers.add("");
         hovers.add("§bCurrent IVs§f:");
         hovers.add("➡ §a" + totalIVs + "§f/§a186§f (§a" + percentIVs + "%§f)");
@@ -504,7 +513,7 @@ public class ShowStats implements CommandExecutor
                 hovers.add("");
 
                 final int enchantCount = ((LakeTrioStats) pokemon.getExtraStats()).numEnchanted;
-                final int maxEnchants = LakeTrioStats.MAX_ENCHANTED;
+                final int maxEnchants = PixelmonConfig.lakeTrioMaxEnchants;
 
                 if (enchantCount == 0)
                     hovers.add("§eThis §6" + baseName + "§e has not yet enchanted any rubies.");

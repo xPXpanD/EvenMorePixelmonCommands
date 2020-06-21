@@ -58,43 +58,55 @@ public class CheckEVs implements CommandExecutor
                         inputIsInt = true;
                         inputInteger = Integer.parseInt(arg1String);
 
-                        if (inputInteger > 807 || inputInteger < 1)
+                        // TODO: Update if new Pokémon are added!
+                        if (inputInteger > 893|| inputInteger < 1)
                         {
-                            printLocalError(src, "§4Error: §cInvalid Pokédex number! Valid range is 1-807.");
+                            // TODO: Update if new Pokémon are added!
+                            printLocalError(src, "§4Error: §cInvalid Pokédex number! Valid range is 1-893.");
                             return CommandResult.empty();
                         }
                         else
-                            enumData = PokemonMethods.getPokemonFromID(inputInteger);
+                        {
+                            if (EnumSpecies.getFromDex(inputInteger) == null)
+                            {
+                                printLocalError(src, "§4Error: §cInvalid Pokémon! It may not be in the mod yet.");
+                                return CommandResult.empty();
+                            }
+                            else
+                                enumData = PokemonMethods.getPokemonFromID(inputInteger);
+                        }
                     }
                     else
                     {
-                        String updatedString = arg1String;
-
                         switch (arg1String.toUpperCase())
                         {
                             // Possibly dodgy inputs and names that are different internally for technical reasons.
                             case "NIDORANF": case "FNIDORAN": case "FEMALENIDORAN": case "NIDORAN♀":
-                                updatedString = "NidoranFemale"; break;
+                                arg1String = "NidoranFemale"; break;
                             case "NIDORANM": case "MNIDORAN": case "MALENIDORAN": case "NIDORAN♂":
-                                updatedString = "NidoranMale"; break;
+                                arg1String = "NidoranMale"; break;
                             case "FARFETCH'D": case "FARFETCHED":
-                                updatedString = "Farfetchd"; break;
+                                arg1String = "Farfetchd"; break;
                             case "MR.MIME": case "MISTERMIME":
-                                updatedString = "MrMime"; break;
+                                arg1String = "MrMime"; break;
                             case "HO-OH":
-                                updatedString = "HoOh"; break;
+                                arg1String = "HoOh"; break;
                             case "MIMEJR.": case "MIMEJUNIOR":
-                                updatedString = "MimeJr"; break;
+                                arg1String = "MimeJr"; break;
                             case "FLABÉBÉ": case "FLABÈBÈ":
-                                updatedString = "Flabebe"; break;
+                                arg1String = "Flabebe"; break;
                             case "TYPE:NULL":
-                                updatedString = "TypeNull"; break;
+                                arg1String = "TypeNull"; break;
                             case "JANGMO-O":
-                                updatedString = "JangmoO"; break;
+                                arg1String = "JangmoO"; break;
                             case "HAKAMO-O":
-                                updatedString = "HakamoO"; break;
+                                arg1String = "HakamoO"; break;
                             case "KOMMO-O":
-                                updatedString = "KommoO"; break;
+                                arg1String = "KommoO"; break;
+                            case "SIRFETCH'D": case "SIRFETCHED":
+                                arg1String = "Sirfetchd"; break;
+                            case "MR.RIME": case "MISTERRIME":
+                                arg1String = "MrRime"; break;
                         }
 
                         if (arg2Optional.isPresent())
@@ -103,26 +115,27 @@ public class CheckEVs implements CommandExecutor
                             arg2String = arg2Optional.get();
                             switch (arg2String.toUpperCase())
                             {
-                                // Alolan variants.
+                                // Alolan variants. (and Meowth, two regional variants so we handle it as a special case)
                                 case "RATTATA": case "RATICATE": case "RAICHU": case "SANDSHREW": case "SANDSLASH": case "VULPIX":
-                                case "NINETALES": case "DIGLETT": case "DUGTRIO": case "MEOWTH": case "PERSIAN": case "GEODUDE":
+                                case "MEOWTH": case "NINETALES": case "DIGLETT": case "DUGTRIO": case "PERSIAN": case "GEODUDE":
                                 case "GRAVELER": case "GOLEM": case "GRIMER": case "MUK": case "EXEGGUTOR": case "MAROWAK":
                                 {
-                                    if (arg1String.toUpperCase().equals("ALOLAN"))
-                                    {
-                                        // Split our arg2String String into constituent characters.
-                                        final char[] characterArray = arg2String.toCharArray();
+                                    if (arg1String.equalsIgnoreCase("Alolan"))
+                                        arg1String = arg2String + arg1String;
+                                    else if (arg1String.equalsIgnoreCase("Galarian") && arg2String.equalsIgnoreCase("MEOWTH"))
+                                        arg1String = arg2String + arg1String;
+    
+                                    break;
+                                }
 
-                                        // Uppercase the first letter. We'll go from "eXaMpLe" to "EXaMpLe".
-                                        characterArray[0] = Character.toUpperCase(characterArray[0]);
-
-                                        // Lowercase the rest, start from char 2 at pos 1. Go from "EXaMpLe" to "Example".
-                                        for (int i = 1; i < characterArray.length; i++)
-                                            characterArray[i] = Character.toLowerCase(characterArray[i]);
-
-                                        updatedString = new String(characterArray) + "Alolan";
-                                    }
-
+                                // Galarian variants.
+                                case "PONYTA": case "RAPIDASH": case "SLOWPOKE": case "SLOWBRO": case "FARFETCHD":
+                                case "WEEZING": case "MRMIME": case "ARTICUNO": case "ZAPDOS": case "MOLTRES": case "CORSOLA":
+                                case "ZIGZAGOON": case "LINOONE": case "DARUMAKA": case "DARMANITAN": case "YAMASK": case "STUNFISK":
+                                {
+                                    if (arg1String.equalsIgnoreCase("Galarian"))
+                                        arg1String = arg2String + arg1String;
+    
                                     break;
                                 }
 
@@ -130,7 +143,7 @@ public class CheckEVs implements CommandExecutor
                                 case "OH":
                                 {
                                     if (arg1String.toUpperCase().equals("HO"))
-                                        updatedString = "HoOh";
+                                        arg1String = "HoOh";
 
                                     break;
                                 }
@@ -139,11 +152,11 @@ public class CheckEVs implements CommandExecutor
                                     switch (arg1String.toUpperCase())
                                     {
                                         case "JANGMO":
-                                            updatedString = "JangmoO"; break;
+                                            arg1String = "JangmoO"; break;
                                         case "HAKAMO":
-                                            updatedString = "HakamoO"; break;
+                                            arg1String = "HakamoO"; break;
                                         case "KOMMO":
-                                            updatedString = "KommoO"; break;
+                                            arg1String = "KommoO"; break;
                                     }
 
                                     break;
@@ -151,42 +164,41 @@ public class CheckEVs implements CommandExecutor
                                 case "NULL":
                                 {
                                     if (arg1String.toUpperCase().equals("TYPE") || arg1String.toUpperCase().equals("TYPE:"))
-                                        updatedString = "TypeNull";
+                                        arg1String = "TypeNull";
 
                                     break;
                                 }
                                 case "KOKO":
                                 {
                                     if (arg1String.toUpperCase().equals("TAPU"))
-                                        updatedString = "TapuKoko";
+                                        arg1String = "TapuKoko";
 
                                     break;
                                 }
                                 case "LELE":
                                 {
                                     if (arg1String.toUpperCase().equals("TAPU"))
-                                        updatedString = "TapuLele";
+                                        arg1String = "TapuLele";
 
                                     break;
                                 }
                                 case "BULU":
                                 {
                                     if (arg1String.toUpperCase().equals("TAPU"))
-                                        updatedString = "TapuBulu";
+                                        arg1String = "TapuBulu";
 
                                     break;
                                 }
                                 case "FINI":
                                 {
                                     if (arg1String.toUpperCase().equals("TAPU"))
-                                        updatedString = "TapuFini";
+                                        arg1String = "TapuFini";
 
                                     break;
                                 }
                             }
                         }
 
-                        arg1String = updatedString;
                         enumData = PokemonMethods.getPokemonFromName(arg1String);
 
                         if (enumData == null)
@@ -214,8 +226,8 @@ public class CheckEVs implements CommandExecutor
 
     private void checkEVs(final PokemonMethods enumData, final boolean inputIsInt, final CommandSource src)
     {
-        // Set up some variables for managing forms and Alolan variants.
-        boolean hasForms = false, hasAlolanVariants = false;
+        // Set up some variables for managing forms and regional variants.
+        boolean hasForms = false, hasAlolanVariant = false, hasGalarianVariant = false;
 
         // Check for forms or Alolan variants with different yields. Use fallthroughs to flag specific dex IDs as special.
         if (inputIsInt)
@@ -233,7 +245,14 @@ public class CheckEVs implements CommandExecutor
                 // Alolan variants with different yields.
                 case 38: case 51:
                 {
-                    hasAlolanVariants = true;
+                    hasAlolanVariant = true;
+                    break;
+                }
+
+                // Galarian variants with different yields.
+                case 52: case 122: case 222:
+                {
+                    hasGalarianVariant = true;
                     break;
                 }
             }
@@ -253,74 +272,94 @@ public class CheckEVs implements CommandExecutor
                 // Alolan variants with different yields.
                 case "NINETALES": case "DUGTRIO":
                 {
-                    hasAlolanVariants = true;
+                    hasAlolanVariant = true;
+                    break;
+                }
+
+                // Galarian variants with different yields.
+                case "MEOWTH": case "MRMIME": case "CORSOLA":
+                {
+                    hasGalarianVariant = true;
                     break;
                 }
             }
         }
 
-        // Set up internal variables for (almost) EVERYTHING. Plenty of room to improve, but it'll work for now.
+        // Get our Pokémon's data.
         final EnumSpecies species = EnumSpecies.getFromDex(enumData.index);
 
-        // Figure out which form to grab EV yields from.
-        IEnumForm form = species.getFormEnum(enumData.form);
-        final LinkedHashMap<StatsType, Integer> yields = species.getBaseStats(form).evYields;
-
-        // Get a formatted title that shows the Pokémon's ID, name and, if applicable, form name. Print.
-        src.sendMessage(Text.of("§7-----------------------------------------------------"));
-        src.sendMessage(Text.of(PokemonMethods.getTitleWithIDAndFormName(enumData.index, enumData.name()) + "§e EV yields:"));
-        src.sendMessage(Text.EMPTY);
-
-        // Start inserting stats, if present.
-        printStatMessage(src, "HP", yields != null ? yields.get(StatsType.HP) : null);
-        printStatMessage(src, "Attack", yields != null ? yields.get(StatsType.Attack) : null);
-        printStatMessage(src, "Defense", yields != null ? yields.get(StatsType.Defence) : null);
-        printStatMessage(src, "Sp. Attack", yields != null ? yields.get(StatsType.SpecialAttack) : null);
-        printStatMessage(src, "Sp. Defense", yields != null ? yields.get(StatsType.SpecialDefence) : null);
-        printStatMessage(src, "Speed", yields != null ? yields.get(StatsType.Speed) : null);
-
-        // Print messages if forms or Alolans with different EV yields are available.
-        if (hasForms)
+        // Check if we have a valid Species. (e.g. if the Pokémon actually exists in the mod already)
+        // TODO: Remove when they're all in. This is dirty.
+        if (species == null)
+            printLocalError(src, "§4Error: §cInvalid Pokémon! It may not be in the mod yet.");
+        else
         {
+            // Figure out which form to grab EV yields from.
+            // TODO: Check if Galarian EV grabbing works when we get forms that have differing EV yields.
+            IEnumForm form = species.getFormEnum(enumData.form);
+            final LinkedHashMap<StatsType, Integer> yields = species.getBaseStats(form).evYields;
+
+            // Get a formatted title that shows the Pokémon's ID, name and, if applicable, form name. Print.
+            src.sendMessage(Text.of("§7-----------------------------------------------------"));
+            src.sendMessage(Text.of(PokemonMethods.getTitleWithIDAndFormName(enumData.index, enumData.name()) + "§e EV yields:"));
             src.sendMessage(Text.EMPTY);
 
-            final String commandHelper = "§cForms found! §6/" + commandAlias + " ";
-            switch (enumData.name())
+            // Start inserting stats, if present.
+            printStatMessage(src, "HP", yields != null ? yields.get(StatsType.HP) : null);
+            printStatMessage(src, "Attack", yields != null ? yields.get(StatsType.Attack) : null);
+            printStatMessage(src, "Defense", yields != null ? yields.get(StatsType.Defence) : null);
+            printStatMessage(src, "Sp. Attack", yields != null ? yields.get(StatsType.SpecialAttack) : null);
+            printStatMessage(src, "Sp. Defense", yields != null ? yields.get(StatsType.SpecialDefence) : null);
+            printStatMessage(src, "Speed", yields != null ? yields.get(StatsType.Speed) : null);
+
+            // Print messages if forms or Alolans with different EV yields are available.
+            if (hasForms)
             {
-                // Some of these are super squished by necessity, but it'll do.
-                case "Deoxys":
-                    src.sendMessage(Text.of(commandHelper + "DeoxysAttack §f(or §6Defense§f/§6Speed§f)")); break;
-                case "Wormadam":
-                    src.sendMessage(Text.of(commandHelper + "WormadamSandy§f, §6WormadamTrash")); break;
-                case "Shaymin":
-                    src.sendMessage(Text.of(commandHelper + "ShayminSky")); break;
-                case "Darmanitan":
-                    src.sendMessage(Text.of(commandHelper + "DarmanitanZen")); break;
-                case "Tornadus":
-                    src.sendMessage(Text.of(commandHelper + "TornadusTherian")); break;
-                case "Thundurus":
-                    src.sendMessage(Text.of(commandHelper + "ThundurusTherian")); break;
-                case "Landorus":
-                    src.sendMessage(Text.of(commandHelper + "LandorusTherian")); break;
-                case "Kyurem":
-                    src.sendMessage(Text.of(commandHelper + "KyuremBlack§f, §6KyuremWhite")); break;
-                case "Meloetta":
-                    src.sendMessage(Text.of(commandHelper + "MeloettaPirouette")); break;
-                case "Aegislash":
-                    src.sendMessage(Text.of(commandHelper + "AegislashBlade")); break;
-                case "Minior":
-                    src.sendMessage(Text.of(commandHelper + "MiniorCore")); break;
-                case "Necrozma":
-                    src.sendMessage(Text.of(commandHelper + "NecrozmaDuskMane §f(or §6DawnWings§f/§6Ultra§f)")); break;
-            }
-        }
-        else if (hasAlolanVariants)
-        {
-            src.sendMessage(Text.EMPTY);
-            src.sendMessage(Text.of("§cAlolan found! §6/" + commandAlias + " Alolan " + enumData.name()));
-        }
+                src.sendMessage(Text.EMPTY);
 
-        src.sendMessage(Text.of("§7-----------------------------------------------------"));
+                final String commandHelper = "§cForms found! §6/" + commandAlias + " ";
+                switch (enumData.name())
+                {
+                    // Some of these are super squished by necessity, but it'll do.
+                    case "Deoxys":
+                        src.sendMessage(Text.of(commandHelper + "DeoxysAttack §f(or §6Defense§f/§6Speed§f)")); break;
+                    case "Wormadam":
+                        src.sendMessage(Text.of(commandHelper + "WormadamSandy§f, §6WormadamTrash")); break;
+                    case "Shaymin":
+                        src.sendMessage(Text.of(commandHelper + "ShayminSky")); break;
+                    case "Darmanitan":
+                        src.sendMessage(Text.of(commandHelper + "DarmanitanZen")); break;
+                    case "Tornadus":
+                        src.sendMessage(Text.of(commandHelper + "TornadusTherian")); break;
+                    case "Thundurus":
+                        src.sendMessage(Text.of(commandHelper + "ThundurusTherian")); break;
+                    case "Landorus":
+                        src.sendMessage(Text.of(commandHelper + "LandorusTherian")); break;
+                    case "Kyurem":
+                        src.sendMessage(Text.of(commandHelper + "KyuremBlack§f, §6KyuremWhite")); break;
+                    case "Meloetta":
+                        src.sendMessage(Text.of(commandHelper + "MeloettaPirouette")); break;
+                    case "Aegislash":
+                        src.sendMessage(Text.of(commandHelper + "AegislashBlade")); break;
+                    case "Minior":
+                        src.sendMessage(Text.of(commandHelper + "MiniorCore")); break;
+                    case "Necrozma":
+                        src.sendMessage(Text.of(commandHelper + "NecrozmaDuskMane §f(or §6DawnWings§f/§6Ultra§f)")); break;
+                }
+            }
+            else if (hasAlolanVariant)
+            {
+                src.sendMessage(Text.EMPTY);
+                src.sendMessage(Text.of("§cAlolan found! §6/" + commandAlias + " Alolan " + enumData.name()));
+            }
+            else if (hasGalarianVariant)
+            {
+                src.sendMessage(Text.EMPTY);
+                src.sendMessage(Text.of("§cGalarian found! §6/" + commandAlias + " Galarian " + enumData.name()));
+            }
+
+            src.sendMessage(Text.of("§7-----------------------------------------------------"));
+        }
     }
 
     // Create and print a stat message based on the presence and value of the stat.

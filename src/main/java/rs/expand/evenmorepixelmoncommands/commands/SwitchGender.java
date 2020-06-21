@@ -36,7 +36,7 @@ public class SwitchGender implements CommandExecutor
     public static Integer commandCost;
 
     // Set up a class name variable for internal use. We'll pass this to logging when showing a source is desired.
-    private String sourceName = this.getClass().getSimpleName();
+    private final String sourceName = this.getClass().getSimpleName();
 
     // TODO: Maybe print specific gender we're changing to in console.
     // TODO: Add a MalePercent check? Dunno.

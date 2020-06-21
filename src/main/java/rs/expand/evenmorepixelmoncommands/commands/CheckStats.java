@@ -4,13 +4,14 @@ package rs.expand.evenmorepixelmoncommands.commands;
 import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.api.storage.PartyStorage;
+import com.pixelmonmod.pixelmon.config.PixelmonConfig;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.EVStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.IVStore;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.LakeTrioStats;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.MewStats;
 import com.pixelmonmod.pixelmon.enums.EnumNature;
-import com.pixelmonmod.pixelmon.enums.forms.EnumAlolan;
+import com.pixelmonmod.pixelmon.enums.forms.RegionalForms;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
@@ -47,7 +48,7 @@ public class CheckStats implements CommandExecutor
 
     // Set up some more variables for internal use.
     private boolean calledRemotely;
-    private String sourceName = this.getClass().getSimpleName();
+    private final String sourceName = this.getClass().getSimpleName();
 
     @SuppressWarnings("NullableProblems")
     public CommandResult execute(final CommandSource src, final CommandContext args)
@@ -388,7 +389,6 @@ public class CheckStats implements CommandExecutor
                 final String nickname = pokemon.getNickname();
 
                 // Set up some Strings for our message. Fill them in appropriately depending on the Pokémon.
-                final String alolanString = pokemon.getFormEnum() == EnumAlolan.ALOLAN ? "Alolan " : "";
                 final String shinyString = pokemon.isShiny() ? "§2§lshiny§r §a" : "";
                 final String nicknameString;
                 if (nickname != null && !nickname.isEmpty() && !nickname.equals(localizedName))
@@ -396,9 +396,18 @@ public class CheckStats implements CommandExecutor
                 else
                     nicknameString = ".";
 
+                // Add a regional indicator for Pokémon from later-gen regions.
+                final String regionString;
+                if (pokemon.getFormEnum() == RegionalForms.ALOLAN)
+                    regionString = "Alolan ";
+                else if (pokemon.getFormEnum() == RegionalForms.GALARIAN)
+                    regionString = "Galarian ";
+                else
+                    regionString = "";
+
                 // Report back.
                 src.sendMessage(Text.of("§bSlot " + (slotTicker + 1) + "§f: §aA " + shinyString + "level " + pokemon.getLevel() +
-                        "§2 " + alolanString + localizedName + "§a" + nicknameString));
+                        "§2 " + regionString + localizedName + "§a" + nicknameString));
             }
 
             slotTicker++;
@@ -444,13 +453,22 @@ public class CheckStats implements CommandExecutor
             final String baseName = pokemon.getSpecies().getPokemonName();
             final String nickname = pokemon.getNickname();
 
+            // Add a regional indicator for Pokémon from later-gen regions.
+            final String regionString;
+            if (pokemon.getFormEnum() == RegionalForms.ALOLAN)
+                regionString = "§6Alolan ";
+            else if (pokemon.getFormEnum() == RegionalForms.GALARIAN)
+                regionString = "§6Galarian ";
+            else
+                regionString = "§6";
+
             // Let's build a dynamic message that we can print to chat.
             src.sendMessage(Text.of(new StringBuilder()
                     .append("§eStats of ")
                     .append(haveTarget ? "§6" + target.getName() + "§e's " : "your ")
                     .append(pokemon.isShiny() ? "§6§lshiny §r§e" : "§e")
                     .append(!pokemon.isEgg() ? "level " + pokemon.getLevel() + " " : "")
-                    .append(pokemon.getFormEnum() == EnumAlolan.ALOLAN ? "§6Alolan " : "§6")
+                    .append(regionString)
                     .append(localizedName)
                     .append(pokemon.isEgg() ? " §eegg" : "§e")
                     .append(!pokemon.isEgg() && nickname != null && !nickname.isEmpty() ? ", nicknamed §6" + nickname + "§e:" : "§e:")
@@ -657,7 +675,7 @@ public class CheckStats implements CommandExecutor
                     src.sendMessage(Text.EMPTY);
 
                     final int enchantCount = ((LakeTrioStats) pokemon.getExtraStats()).numEnchanted;
-                    final int maxEnchants = LakeTrioStats.MAX_ENCHANTED;
+                    final int maxEnchants = PixelmonConfig.lakeTrioMaxEnchants;
 
                     if (enchantCount == 0)
                         src.sendMessage(Text.of("§eThis §6" + baseName + "§e has not yet enchanted any rubies."));
